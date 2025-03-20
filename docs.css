@@ -1,0 +1,365 @@
+* {
+    box-sizing: border-box;
+}
+
+body, html {
+    font-family: 'Roboto', sans-serif; /* Устанавливаем шрифт Roboto */
+    background: 
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), /* Полупрозрачный черный цвет */
+        url('fon2.jpg'); /* Фоновое изображение */
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    width: 100%; /* Задаем ширину 100% */
+    height: 100%; /* Задаем высоту 100% */
+}
+
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 250px;
+    height: 100%;
+    background-color: #313131;
+    color: rgb(65, 84, 255);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.nav a {
+    color: white;
+    text-decoration: none;
+    padding: 15px 10px;
+    border-radius: 5px;
+    transition: background 0.3s, color 0.3s;
+}
+
+.nav a:hover {
+    background: #ff6347;
+    color: white;
+}
+
+.banner {
+    background: linear-gradient(to right, #ff6347, #ffcc00);
+    color: white;
+    padding: 70px 20px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.banner h1 {
+    font-size: 2.5em;
+    margin: 0;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.banner p {
+    font-size: 1.2em;
+    animation: fadeIn 1.5s ease-in-out;
+}
+
+
+
+
+
+
+
+
+
+#main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+.section {
+    padding: 50px;
+    margin: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+    width: 80%;
+    max-width: 800px;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+}
+
+.section h1 {
+    font-size: 28px;
+    margin-bottom: 20px;
+    text-align: center;
+    color: #ff725f;
+}
+
+.section h2 {
+    font-size: 24px;
+    margin-bottom: 15px;
+    position: relative;
+    z-index: 1;
+    text-align: left;
+    color: #ffcdcd;
+}
+
+.block {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 15px 0;
+    transition: transform 0.3s, box-shadow 0.3s;
+    display: flex;
+    justify-content: space-between; /* Размещаем элементы по краям */
+    align-items: center; /* Выравниваем по центру по вертикали */
+}
+
+.block h4 {
+    font-size: 18px;
+    margin: 0; /* Убираем отступы */
+    color: #ffffff;
+}
+
+.block a {
+    background: #ff725f; /* Цвет кнопки */
+    color: #ffffff; /* Цвет текста */
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background 0.3s, transform 0.3s;
+    font-weight: 500;
+}
+
+.block a:hover {
+    background: #ffcdcd; /* Цвет кнопки при наведении */
+    transform: translateY(-2px); /* Эффект поднятия кнопки */
+}
+
+/* Эффекты при наведении на блоки */
+.block:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Анимация текста при загрузке */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section h2, .block h4 {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+/* Добавляем анимацию при появлении секций */
+.section:nth-child(1) h2 {
+    animation-delay: 0.1s;
+}
+
+.section:nth-child(2) h2 {
+    animation-delay: 0.2s;
+}
+
+.section:nth-child(3) h2 {
+    animation-delay: 0.3s;
+}
+
+/* Адаптация для планшетов и мобильных устройств */
+@media (max-width: 768px) {
+    .section {
+        padding: 30px;
+        margin: 10px;
+        width: 90%;
+    }
+
+    .section h2 {
+        font-size: 20px;
+    }
+
+    .block {
+        padding: 15px;
+        flex-direction: column; /* Размещаем элементы в столбик на мобильных устройствах */
+        align-items: flex-start; /* Выравниваем по левому краю */
+    }
+
+    .block h4 {
+        font-size: 16px;
+    }
+
+    .block a {
+        width: 100%; /* Кнопка занимает всю ширину */
+        text-align: center; /* Выравнивание текста по центру */
+        margin-top: 10px; /* Отступ сверху для кнопки */
+    }
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 480px) {
+    .section {
+        padding: 20px;
+        margin: 5px;
+    }
+
+    .section h2 {
+        font-size: 18px;
+    }
+
+    .block {
+        padding: 10px;
+    }
+
+    .block h4 {
+        font-size: 14px; /* Уменьшаем размер шрифта заголовка */
+    }
+
+    .block a {
+        padding: 8px 10px; /* Уменьшаем отступы для кнопки на мобильных устройствах */
+        font-size: 14px; /* Уменьшаем размер шрифта кнопки */
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+footer {
+    text-align: center;
+    padding: 15px;
+    background-color: #4a4a4a;
+    color: white;
+}
+
+.section {
+    display: none; /* Скрываем все секции по умолчанию */
+}
+
+.section.active {
+    display: block; /* Показываем только активную секцию */
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 200px; /* Уменьшаем ширину боковой панели для мобильных устройств */
+    }
+
+    .toggle-btn {
+        left: 15px; /* Немного смещаем кнопку */
+    }
+
+    main {
+        margin-left: 0; /* Убираем отступ для основного контента */
+        padding: 10px; /* Уменьшаем отступ для мобильных устройств */
+    }
+
+    .sidebar.active {
+        transform: translateX(0); /* Показываем боковую панель */
+    }
+}
+
+@media (max-width: 480px) {
+    .toggle-btn {
+        font-size: 20px; /* Уменьшаем размер кнопки на маленьких экранах */
+    }
+
+    .nav a {
+        padding: 8px; /* Уменьшаем отступы для ссылок */
+    }
+}
+
+.hh3{
+    border: none; /* Убираем стандартные границы */
+    height: 1px; /* Высота линии */
+    background-color: #ccc; /* Цвет линии */
+    margin-top: 10px; /* Отступ сверху для линии */
+    margin-bottom: 30px; /* Отступ снизу для линии */
+}
+
+.agreement-container {
+    background: rgba(0, 0, 0, 0.5); /* Полупрозрачный черный фон */
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.5s forwards;
+    backdrop-filter: blur(10px); /* Эффект размытия фона */
+}
+
+.agreement-container2 {
+    margin-top: 50px; /* Отступ сверху на 10 пикселей */
+    background: rgba(0, 0, 0, 0.5); /* Полупрозрачный черный фон */
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.5s forwards;
+    backdrop-filter: blur(10px); /* Эффект размытия фона */
+}
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 20px;
+    margin-top: 20px;
+}
+
+h3 {
+    font-size: 20px;
+    margin-top: 20px;
+}
+
+p, li {
+    line-height: 1.6;
+}
+
+ul {
+    margin: 10px 0 20px 20px;
+}
+
+@media (max-width: 600px) {
+    .agreement-container {
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+
+    h2 {
+        font-size: 18px;
+    }
+}

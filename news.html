@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="navigation.css">
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>BHS ➭ Новости</title>
+    <style>
+
+
+@font-face {
+    font-family: 'MyCustomFont'; /* Укажите имя шрифта */
+    src: url('Doors\ Cyrillic\ Font.ttf') format('truetype'); /* Укажите правильный путь к файлу шрифта */
+    font-weight: normal;
+    font-style: normal;
+}
+
+
+.logo-container22 {
+    display: flex;
+    align-items: center;
+}
+
+.logo22 {
+    border-radius: 50%;
+    width: 90px;
+    margin-right: 15px;
+}
+        
+:root {
+    --primary-color: #ff6f61; /* Основной цвет */
+    --secondary-color: #ffffff; /* Цвет текста */
+    --bg-color: linear-gradient(to bottom right, rgba(126, 126, 126, 0.253), rgba(51, 51, 51, 0.534)), url('fon2.jpg'); /* Градиент + изображение */
+    --hover-bg-color: rgba(104, 88, 88, 0.5); /* Цвет фона при наведении */
+    --box-shadow: 5px 7px 15px rgba(255, 138, 92, 0.6); /* Тень */
+}
+
+/* Подключение шрифта Russian Dollmaker */
+@font-face {
+    font-family: 'Russian Dollmaker';
+    src: url('BHStore/RussianDollmaker-Regular.ttf') format('truetype'); /* Укажите правильный путь к файлу шрифта */
+}
+
+/* Стили для контейнера новостей */
+.news-container {
+    max-width: 900px;
+    margin: 25px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 35px;
+}
+
+/* Стили для отдельного элемента новости */
+.news-item {
+    font-family: 'Russian Dollmaker', sans-serif;
+    background: var(--bg-color);
+    border-radius: 15px;
+    padding: 25px;
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+    animation: slideIn 0.5s ease forwards;
+    opacity: 0;
+    position: relative;
+    box-shadow: var(--box-shadow);
+    overflow: hidden; /* Скрыть переполнение */
+}
+
+/* Эффект при наведении на элемент новости */
+.news-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 30px rgba(255, 153, 85, 0.9);
+    background: var(--hover-bg-color);
+}
+
+/* Новый стиль для даты */
+.news-date {
+    background: linear-gradient(90deg, #ff6f61, #ffcc00); /* Градиент для даты */
+    color: var(--secondary-color);
+    padding: 5px 10px;
+    border-radius: 5px;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: 'Russian Dollmaker', sans-serif;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Добавление тени для улучшения читаемости */
+}
+
+/* Стили для заголовка новости */
+.news-title {
+    font-size: 64px;
+    margin: 0 0 10px;
+    background: linear-gradient(90deg, #ff6f61, #ffcc00); /* Градиент для заголовка */
+    -webkit-background-clip: text; /* Обрезаем фон по тексту для эффекта градиента */
+    background-clip: text;
+    color: transparent; /* Делаем текст прозрачным для градиента */
+    text-transform: uppercase;
+    letter-spacing: 1px; /* Межбуквенное расстояние */
+    font-family: 'MyCustomFont', sans-serif; /* Используем ваш шрифт */
+}
+
+/* Стили для содержимого новости */
+.news-content {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--secondary-color);
+    font-family: 'Russian Dollmaker', sans-serif;
+}
+
+/* Стили для изображения новости */
+.news-image {
+    width: 5%; /* Изображение занимает 100% ширины контейнера */
+    height: auto;
+    border-radius: 10px; /* Закругленные углы для изображения */
+    margin-bottom: 15px;
+    transition: transform 0.3s; /* Плавный переход */
+}
+
+.news-image:hover {
+    transform: scale(1.05); /* Увеличение изображения при наведении */
+}
+
+/* Медиазапросы для адаптации под разные экраны */
+
+/* Для мобильных устройств */
+@media (max-width: 600px) {
+    .news-title {
+        font-size: 20px; /* Уменьшаем размер заголовка на мобильных */
+    }
+
+    .news-content {
+        font-size: 14px; /* Уменьшаем размер текста на мобильных */
+    }
+
+    .news-image {
+        width: 15%; /* Изображение занимает 100% ширины контейнера */
+    }
+
+    .news-date {
+        font-size: 12px; /* Уменьшаем размер даты на мобильных */
+    }
+
+    .news-item {
+        padding: 15px; /* Уменьшаем отступы на мобильных */
+    }
+}
+
+/* Для планшетов */
+@media (min-width: 601px) and (max-width: 900px) {
+    .news-title {
+        font-size: 62px; /* Уменьшаем размер заголовка для планшетов */
+    }
+
+    .news-content {
+        font-size: 15px; /* Уменьшаем размер текста для планшетов */
+    }
+
+    .news-image {
+        width: 8%; /* Изображение занимает 100% ширины контейнера */
+    }
+
+    .news-date {
+        font-size: 13px; /* Уменьшаем размер даты для планшетов */
+    }
+
+    .news-item {
+        padding: 20px; /* Уменьшаем отступы для планшетов */
+    }
+}
+
+/* Анимация появления элемента */
+@keyframes slideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.footer3 {
+    border-radius: 20px; /* Скругление углов на 10 пикселей */
+    margin-top: 20px; /* Отступ сверху на 10 пикселей */
+    position: Inherit; /* Фиксированное позиционирование */
+    bottom: 0; /* Привязываем футер к нижней части экрана */
+    left: 0; /* Привязываем футер к левой стороне */
+    right: 0; /* Привязываем футер к правой стороне */
+    color: #ffffff;
+    padding: 20px; /* Отступы внутри футера */
+    text-align: center; /* Выравнивание текста по центру */
+    height: 80px; /* Фиксированная высота футера */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для футера */
+    border-top: 2px solid rgba(255, 196, 68, 0.5); /* Верхняя граница */
+    background: rgba(0, 0, 0, 0.7); /* Полупрозрачный черный фон */
+    overflow: hidden; /* Скрыть переполнение */
+    backdrop-filter: blur(5px); /* Эффект размытия фона */
+}
+
+.footer3::before {
+    content: '';
+    position: absolute; /* Абсолютное позиционирование */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('fon2.jpg') no-repeat center center; /* Фоновое изображение */
+    background-size: cover; /* Масштабирование изображения */
+    opacity: 0.6; /* Прозрачность фона */
+    z-index: 0; /* Поместить под текстом */
+}
+
+.footer3 > * {
+    position: relative; /* Относительное позиционирование для текста */
+    z-index: 1; /* Поместить текст выше фона */
+}
+
+.footer3-container {
+    display: flex; /* Используем flexbox для выравнивания элементов */
+    flex-direction: column; /* Вертикальное выравнивание */
+    align-items: center; /* Центрирование по горизонтали */
+    justify-content: center; /* Центрирование по вертикали */
+    height: 100%; /* Занимаем всю высоту футера */
+}
+
+.footer3-links {
+    margin: 10px 0;
+}
+
+.footer3-links a {
+    color: #e5ff00;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.footer3-links a:hover {
+    text-decoration: underline;
+    color: #ffcc00;
+    transform: scale(1.1);
+}
+
+.footer3 p {
+    margin: 10px 0 0;
+    font-size: 0.9em;
+}
+
+/* Новый стиль для даты */
+@font-face {
+    font-family: 'Roblox Doors'; /* Название шрифта */
+    src: url('path/to/doors-font.ttf') format('truetype'); /* Укажите правильный путь к файлу шрифта */
+}
+
+
+
+
+
+
+
+
+
+
+/* Стили для кнопки */
+.read-more {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 15px;
+    background-color: var(--primary-color);
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    text-decoration: none;
+    transition: background-color 0.3s, transform 0.3s; /* Плавный переход */
+    font-family: 'Roblox Doors', sans-serif; /* Применение шрифта */
+}
+
+.read-more:hover {
+    background-color: darken(var(--primary-color), 10%); /* Темнее при наведении */
+    transform: translateY(-2px); /* Легкий подъем при наведении */
+}
+
+/* Анимация появления */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Дополнительные медиа-запросы для адаптивности */
+@media (max-width: 600px) {
+    .news-title {
+        font-size: 20px; /* Уменьшение размера заголовка на мобильных устройствах */
+    }
+    .news-content {
+        font-size: 14px; /* Уменьшение размера текста на мобильных устройствах */
+    }
+    .read-more {
+        font-size: 14px; /* Уменьшение размера кнопки на мобильных устройствах */
+    }
+}
+
+
+
+
+
+
+
+.footer3 {
+    position: Inherit; /* Фиксированное позиционирование */
+    bottom: 0; /* Привязываем футер к нижней части экрана */
+    left: 0; /* Привязываем футер к левой стороне */
+    right: 0; /* Привязываем футер к правой стороне */
+    color: #ffffff;
+    padding: 20px; /* Отступы внутри футера */
+    text-align: center; /* Выравнивание текста по центру */
+    height: 80px; /* Фиксированная высота футера */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для футера */
+    border-top: 2px solid rgba(255, 196, 68, 0.5); /* Верхняя граница */
+    background: rgba(0, 0, 0, 0.7); /* Полупрозрачный черный фон */
+    overflow: hidden; /* Скрыть переполнение */
+    backdrop-filter: blur(5px); /* Эффект размытия фона */
+}
+
+.footer3::before {
+    content: '';
+    position: absolute; /* Абсолютное позиционирование */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('fon2.jpg') no-repeat center center; /* Фоновое изображение */
+    background-size: cover; /* Масштабирование изображения */
+    opacity: 0.6; /* Прозрачность фона */
+    z-index: 0; /* Поместить под текстом */
+}
+
+.footer3 > * {
+    position: relative; /* Относительное позиционирование для текста */
+    z-index: 1; /* Поместить текст выше фона */
+}
+
+.footer3-container {
+    display: flex; /* Используем flexbox для выравнивания элементов */
+    flex-direction: column; /* Вертикальное выравнивание */
+    align-items: center; /* Центрирование по горизонтали */
+    justify-content: center; /* Центрирование по вертикали */
+    height: 100%; /* Занимаем всю высоту футера */
+}
+
+.footer3-links {
+    margin: 10px 0;
+}
+
+.footer3-links a {
+    color: #e5ff00;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.footer3-links a:hover {
+    text-decoration: underline;
+    color: #ffcc00;
+    transform: scale(1.1);
+}
+
+.footer3 p {
+    margin: 10px 0 0;
+    font-size: 0.9em;
+}
+
+h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .bh1 {
+            text-align: center;
+            font-size: 34px;
+            margin-bottom: 20px;
+        }
+
+
+        .banner {
+    display: flex; /* Используем flexbox для выравнивания содержимого */
+    justify-content: space-between; /* Распределяем пространство между логотипом и навигацией */
+    align-items: center; /* Центрируем элементы по вертикали */
+    padding: 20px; /* Отступы для баннера */
+}
+
+.hh {
+    margin-right: 18px; /* Отступ направо на 10 пикселей */
+}
+
+    </style>
+</head>
+<body>
+    <div class="banner2">
+        <div class="logo-container">
+            <img src="logotip.jpg" alt="Логотип" class="logo">
+            <h1 class="bh1 textzagalovok">BHS ➭ Новости</h1>
+        </div>
+        <button class="toggle-btn" aria-label="Toggle Navigation">&#9776;</button> <!-- Кнопка для открытия/закрытия навигации -->
+        <nav class="navigation">
+            <ul class="nav-list">
+                <li class="nav-item"><a href="index.html" class="nav-link">Главная</a></li>
+                <li class="nav-item"><a href="news.html" class="nav-link" class="disabled">Новости</a></li>
+                <li class="nav-item"><a href="staff.html" class="nav-link">Персонал</a></li>
+                <li class="nav-item"><a href="docs.html" class="nav-link">Документация</a></li>
+            </ul>
+        </nav>
+    </div>
+
+<!--
+    <div class="image-container unselectable no-interaction">
+    <img src="fons.png" alt="" id="image" />
+    </div>
+-->
+
+    <div class="news-container unselectable">
+        <div class="news-item unselectable">
+            <div class="news-date unselectable">7 Февраля 2025</div>
+            <h2 class="news-title unselectable"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F830058395427274762.gif%3Fv%3D1&w=64&q=75" alt="" class="news-image unselectable no-interaction"> UPDATE</h2>
+            <p class="news-content unselectable">Полное обновление сайта, мы перешли на новый хостинг и на собственные коды, теперь мы можем сделать качественный и красивый сайт который порадует ваши глаза! Добавлена страница - "Персонал", а так же изменился дизайн, цены на товары и новое оформление.</p>
+    </div>
+        
+    <div class="news-item unselectable">
+        <div class="news-date unselectable">7 Февраля 2025</div>
+        <h2 class="news-title unselectable"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F852993296133128223.gif%3Fv%3D1&w=64&q=75" alt="" class="news-image unselectable no-interaction"> MINECRAFT</h2>
+        <p class="news-content unselectable">Обновление товаров в товаре "Minecraft Фишки", добавлены новые товары такие как - "Уникальные моды" и "Уникальные плагины".</p>
+        <a href="minecraft.html" class="read-more unselectable" target="_blank">Перейти</a>
+</div>
+
+    <div class="news-item unselectable">
+            <div class="news-date unselectable">2 Января 2025</div>
+            <h2 class="news-title unselectable"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F888068973655126107.gif%3Fv%3D1&w=64&q=75" alt="" class="news-image unselectable no-interaction"> PROMOCODES</h2>
+            <p class="news-content unselectable">В нашем Discord сервере для покупателей которые купили хотябы 1 раз какой нибудь товар или услугу мы раздаем БЕСПЛАТНЫЕ промокоды на скидку на товары или услуги подробнее в нашем Discord</p>
+            <p class="news-content unselectable">Если вы уже являетесь покупателем, но у вас нету доступа свяжитесь с поддержкой!</p>
+            <a href="https://discord.gg/YfZxXXeW6D" class="read-more unselectable" target="_blank">Присоединиться</a>
+    </div>
+
+    <footer class="footer3">
+        <div class="footer-container3">
+            <div class="footer-links3">
+                <a href="privacy.html" class="hh">Конфиденциальность</a>
+                <a href="agreement.html">Соглашение</a>
+            </div>
+            <p>&copy; 2024-2025 ➥ BORISONCHIK • Все права защищены</p>
+        </div>
+    </footer>
+    
+
+    <script src="navig.js"></script>
+    <script src="static.js"></script>
+
+        <script>
+            const navToggle = document.getElementById('nav-toggle');
+            const navList = document.getElementById('nav-list');
+    
+            navToggle.addEventListener('click', () => {
+                navList.style.display = navList.style.display === 'block' ? 'none' : 'block';
+            });
+    
+            // Закрытие меню при клике вне его
+            window.addEventListener('click', (event) => {
+                if (!navToggle.contains(event.target) && !navList.contains(event.target)) {
+                    navList.style.display = 'none';
+                }
+            });
+        </script>   
+</body>
+</html>

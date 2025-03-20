@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="navigation.css">
+    <link rel="stylesheet" href="statics.css">
+    <script src="protect2.js" defer></script>
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>BHS ➭ Ошибка</title>
+    <style>
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(125deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7));
+    color: #ffffff;
+    font-family: 'Roboto', sans-serif;
+    overflow: hidden; /* Отключаем прокрутку */
+    animation: backgroundAnimation 10s ease infinite; /* Анимация фона */
+}
+
+@keyframes backgroundAnimation {
+    0% {
+        background: linear-gradient(125deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7));
+    }
+    50% {
+        background: linear-gradient(125deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.9));
+    }
+    100% {
+        background: linear-gradient(125deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7));
+    }
+}
+
+.error-container {
+    text-align: center;
+    background: rgba(40, 40, 40, 0.9);
+    padding: 50px;
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.5s ease-in-out, bounce 1s infinite alternate; /* Добавляем анимацию */
+    position: relative; /* Для псевдоэлементов */
+    overflow: hidden; /* Скрываем переполнение */
+}
+
+.error-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 0, 0, 0.1), rgba(255, 255, 0, 0.1));
+    opacity: 0.5;
+    z-index: 0; /* Псевдоэлемент под содержимым */
+    animation: pulse 2s infinite; /* Пульсация фона */
+}
+
+.error-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(255, 0, 255, 0.1));
+    opacity: 0.3;
+    z-index: 0; /* Псевдоэлемент под содержимым */
+    animation: gradientAnimation 5s ease infinite; /* Анимация градиента */
+}
+
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+h1 {
+    font-size: 40px;
+    color: #ff4d4d; /* Ярко-красный цвет для ошибки */
+    text-shadow: 0 0 15px rgba(255, 77, 77, 0.7);
+    margin-bottom: 20px;
+    position: relative; /* Для текста над псевдоэлементом */
+    z-index: 1; /* Текст над псевдоэлементом */
+}
+
+p {
+    font-size: 20px;
+    margin: 15px 0;
+    line-height: 1.5;
+    animation: slideIn 0.5s ease forwards; /* Анимация появления текста */
+    position: relative; /* Для текста над псевдоэлементом */
+    z-index: 1; /* Текст над псевдоэлементом */
+}
+
+a {
+    color: #00ffcc; /* Цвет ссылки */
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s, transform 0.3s; /* Плавный переход цвета и трансформации */
+    position: relative; /* Для текста над псевдоэлементом */
+    z-index: 1; /* Текст над псевдоэлементом */
+}
+
+a:hover {
+    color: #ffcc00; /* Цвет ссылки при наведении */
+    transform: scale(1.05); /* Увеличение ссылки при наведении */
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+
+        .bt2 {
+    display: inline-flex; /* Используем flex для выравнивания */
+    align-items: center; /* Центрирование по вертикали */
+    justify-content: center; /* Центрирование по горизонтали */
+    margin-top: 15px;
+    padding: 15px 25px; /* Увеличенные отступы для большей кнопки */
+    background: linear-gradient(135deg, #1a1a1a, #333333); /* Градиент для кнопки */
+    border-radius: 30px;
+    text-decoration: none;
+    color: #00ffcc; /* Яркий цвет текста в стиле киберпанка */
+    transition: background 0.3s, transform 0.3s, box-shadow 0.3s, filter 0.3s; /* Плавные переходы */
+    font-weight: bold; /* Жирное начертание */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для кнопки */
+    position: relative; /* Для позиционирования псевдоэлемента */
+    font-size: 16px; /* Размер шрифта */
+    overflow: hidden; /* Скрываем переполнение для псевдоэлемента */
+}
+
+.bt2 img {
+    width: 32px; /* Ширина изображения */
+    height: 32px; /* Высота изображения */
+    margin-right: 10px; /* Отступ между изображением и текстом */
+    transition: transform 0.3s; /* Плавный переход для изображения */
+}
+
+.bt2:hover {
+    background: linear-gradient(135deg, #333333, #1a1a1a); /* Изменение градиента при наведении */
+    transform: translateY(-3px); /* Легкий подъем при наведении на кнопку */
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4); /* Увеличение тени для кнопки */
+    filter: brightness(1.1); /* Увеличение яркости при наведении */
+}
+
+.bt2::after {
+    content: ''; /* Псевдоэлемент для эффекта */
+    position: absolute; /* Абсолютное позиционирование */
+    top: 50%; /* Центрирование по вертикали */
+    left: 50%; /* Центрирование по горизонтали */
+    width: 300%; /* Увеличиваем ширину для эффекта */
+    height: 300%; /* Увеличиваем высоту для эффекта */
+    background: rgba(0, 255, 204, 0.2); /* Полупрозрачный цвет в стиле киберпанка */
+    border-radius: 50%; /* Округлая форма */
+    transform: translate(-50%, -50%) scale(0); /* Начальное состояние */
+    transition: transform 0.5s ease; /* Плавный переход для эффекта */
+    z-index: 0; /* Псевдоэлемент под кнопкой */
+}
+
+.bt2:hover::after {
+    transform: translate(-50%, -50%) scale(1); /* Увеличение при наведении */
+}
+
+.bt2 span {
+    position: relative; /* Для текста над псевдоэлементом */
+    z-index: 1; /* Текст над псевдоэлементом */
+    text-shadow: 0 0 5px rgba(0, 255, 204, 0.8); /* Тень текста для эффекта свечения */
+}
+
+
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 32px; /* Уменьшение заголовка на мобильных */
+            }
+
+            p {
+                font-size: 18px; /* Уменьшение текста на мобильных */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <h1>Ошибка доступа</h1>
+        <p>Ваш IP-адрес не соответствует разрешенному. Пожалуйста, отключите VPN или проверьте настройки сети.</p>
+        <p><a href="https://discord.gg/YfZxXXeW6D" class="bt2">
+            <img src="https://cdn-icons-png.flaticon.com/128/3917/3917689.png" alt=""> Перейти
+        </a></p>
+    </div>
+</body>
+</html>

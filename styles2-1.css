@@ -1,0 +1,983 @@
+/* Основные стили для мобильных устройств */
+body {
+    font-family: 'Roboto', sans-serif;
+    background: url('fon2.jpg');
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+canvas {
+    position: absolute; /* Абсолютное позиционирование */
+    top: 0;
+    left: 0;
+    width: 100%; /* Ширина 100% */
+    height: 100%; /* Высота 100% */
+    z-index: -1; /* Помещаем за контентом */
+}
+
+.banner {
+    cursor: context-menu;
+    background: linear-gradient(to bottom, rgba(18, 18, 18, 0.5), rgba(18, 18, 18, 1)), url('banner.png'); /* Изображение для ПК */
+    background-size: cover; /* Заполняет весь баннер, сохраняя пропорции */
+    background-position: center; /* Центрируем изображение */
+    height: 19.9vh; /* Высота баннера */
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    position: relative; /* Для размещения кнопки */
+    color: white; /* Цвет текста */
+}
+
+/* Для мобильных устройств */
+@media (max-width: 768px) {
+    .banner {
+        background: linear-gradient(to bottom, rgba(18, 18, 18, 0.5), rgba(18, 18, 18, 1)), url('banner-m.png'); /* Изображение для мобильных */
+        background-size: contain; /* Изображение полностью помещается в баннер */
+        height: 25vh; /* Увеличиваем высоту для мобильных */
+        padding: 0 10px; /* Уменьшаем отступы */
+    }
+}
+
+@media (max-width: 480px) {
+    .banner {
+        height: 30vh; /* Еще больше высота для маленьких экранов */
+        padding: 0 5px; /* Уменьшаем отступы */
+    }
+
+    .banner h1, .banner p {
+        font-size: 1.5em; /* Увеличиваем размер шрифта */
+    }
+}
+
+/* Логотип */
+.logo-container {
+    display: flex;
+    justify-content: center; /* Центрируем логотип */
+}
+
+.logo {
+    width: 40px; /* Уменьшенный размер логотипа */
+    height: 40px;
+    margin-bottom: 10px; /* Убираем отступ справа */
+    border-radius: 50%; /* Делаем логотип круглым */
+    object-fit: cover; /* Сохраняем пропорции изображения */
+}
+
+/* Навигация */
+.navigation {
+    margin-top: 10px; /* Отступ сверху для навигации */
+}
+
+.nav-list {
+    list-style: none;
+    padding: 0;
+    text-align: center; /* Центрируем список навигации */
+}
+
+.nav-item {
+    display: block; /* Блочное отображение для мобильных */
+    margin: 10px 0; /* Вертикальный отступ между пунктами */
+}
+
+.nav-item a {
+    color: #00ffcc;
+    text-decoration: none;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.nav-item a:hover {
+    color: #ffcc00;
+    transform: scale(1.1);
+}
+
+/* Стили для товаров и услуг */
+.product-page {
+    padding: 20px; /* Уменьшено для мобильного */
+    text-align: center;
+}
+
+.product-container, .service-container {
+    display: flex;
+    flex-direction: column; /* Вертикальная ориентация для мобильных */
+    align-items: center; /* Центрируем элементы */
+}
+
+/* Элементы товаров и услуг */
+.product-item {
+    padding: 15px; /* Уменьшенный отступ */
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    margin: 10px; /* Уменьшен отступ между элементами */
+    transition: transform 0.3s, box-shadow 0.3s;
+    animation: slideIn 0.5s ease forwards;
+    opacity: 0;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 255, 204, 0.5);
+    max-width: 90%; /* Ограничение ширины для мобильных */
+    text-align: left;
+}
+
+.product-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 40px rgba(0, 255, 204, 0.8);
+}
+
+/* Общие стили для услуг */
+.animation-item {
+    margin: 10px; /* Отступ между блоками */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Добавим тень для визуального эффекта */
+    border-radius: 15px; /* Скругление углов */
+    padding: 20px; /* Уменьшенный padding для мобильных */
+    background: rgba(255, 255, 255, 0.35); /* Фоновый цвет */
+}
+
+/* Индивидуальные стили для каждого блока услуг */
+.service-container {
+    display: flex;
+    flex-direction: column; /* Вертикальная ориентация для мобильных */
+    align-items: center; /* Центрируем блоки */
+}
+
+.service-bitrate, .service-additional, .service-aspect-ratio {
+    background: rgba(255, 255, 255, 0.15);
+    width: 90%; /* Ширина блока для мобильных */
+    margin: 10px 0; /* Отступ между блоками */
+    padding: 20px; /* Уменьшенный padding для мобильных */
+    border-radius: 15px; /* Скругление углов */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Тень для визуального эффекта */
+}
+
+/* Индивидуальные размеры для блоков услуг */
+.service-montage {
+    height: auto; /* Авто высота для адаптивности */
+}
+
+.service-quality {
+    height: auto; /* Авто высота для адаптивности */
+}
+
+.service-frame-rate {
+    height: auto; /* Авто высота для адаптивности */
+}
+
+.service-bitrate {
+    height: auto; /* Авто высота для адаптивности */
+}
+
+.service-additional {
+    height: auto; /* Авто высота для адаптивности */
+}
+
+.service-aspect-ratio {
+    height: auto; /* Авто высота для адаптивности */
+}
+
+/* Стили для заголовков */
+.animation-item h2 {
+    font-size: 20px; /* Размер заголовка для мобильных */
+    margin-bottom: 15px; /* Отступ снизу */
+    color: #ffa16b; /* Цвет текста */
+}
+
+.animation-item h3 {
+    font-size: 16px; /* Размер подзаголовка для мобильных */
+    margin: 5px 0; /* Отступ сверху и снизу */
+    color: #ffbb94; /* Цвет текста */
+}
+
+
+/* Пример нового товара */
+.service-new-item {
+    background: rgba(255, 255, 255, 0.45);
+    width: 90%; /* Ширина блока для мобильных */
+    height: auto; /* Авто высота для адаптивности */
+    margin: 10px auto; /* Центрируем блоки */
+    border-radius: 10px; /* Скругление углов */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Тень для визуального эффекта */
+}
+
+.service-another-item {
+    background: rgba(255, 255, 255, 0.5);
+    width: 90%; /* Ширина блока для мобильных */
+    height: auto; /* Авто высота для адаптивности */
+    margin: 10px auto; /* Центрируем блоки */
+    border-radius: 10px; /* Скругление углов */
+}
+
+/* Эффект при наведении */
+.animation-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+}
+
+/* Изображение товара */
+.product-image {
+    width: 100%; /* Ширина 100% для мобильных */
+    height: auto; /* Авто высота для сохранения пропорций */
+    border-radius: 10px; /* Скругление углов */
+    transition: transform 0.3s; /* Плавный переход при наведении */
+}
+
+/* Статус */
+.status-container {
+    display: flex;
+    flex-direction: row; /* Горизонтальное выравнивание элементов */
+    align-items: center;
+    background-color: rgba(0, 255, 0, 0.1);
+    border: 2px solid #a6ff41;
+    border-radius: 8px;
+    padding: 5px;
+    margin-top: 5px;
+}
+
+.status-image {
+    width: 35px; /* Уменьшен размер для мобильных */
+    height: 35px; /* Уменьшен размер для мобильных */
+    margin-right: 10px;
+}
+
+.status-text {
+    font-weight: bold;
+    color: #a6ff41;
+    font-size: 1em; /* Уменьшен размер шрифта для мобильных */
+    text-shadow: 2px 2px 2px rgba(8, 8, 8, 0.5); /* Уменьшен эффект тени */
+}
+
+/* Стили для обязательных услуг */
+.required {
+    color: #ff4757;
+    font-weight: bold;
+    display: block;
+    margin-top: 10px;
+    font-size: 0.9em; /* Уменьшен размер шрифта для мобильных */
+}
+
+/* Анимация при загрузке */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* Эффект при наведении на изображение товара */
+.product-image:hover {
+    transform: rotate(5deg) scale(1.05); /* Эффект при наведении */
+}
+
+/* Стили для обязательных услуг */
+.required {
+    background-color: #ff3d00; /* Цвет фона */
+    color: white; /* Цвет текста */
+    padding: 5px 8px; /* Уменьшенные отступы */
+    border-radius: 8px; /* Скругление углов */
+    position: absolute; /* Позиционирование */
+    top: 5px; /* Отступ сверху */
+    right: 5px; /* Отступ справа */
+    animation: fadeIn 0.5s ease; /* Анимация появления */
+    font-size: 0.9em; /* Уменьшенный размер шрифта для мобильных */
+}
+
+/* Если нужно добавить отступ снизу для родительского элемента */
+.parent-class {
+    padding-bottom: 30px; /* Уменьшенный отступ снизу */
+}
+
+/* Стили для футера с динамическим эффектом */
+.footer {
+    background: linear-gradient(135deg, rgb(13, 10, 41), rgb(48, 44, 99), rgb(35, 35, 62));
+    color: #ffffff; /* Цвет текста */
+    padding: 15px; /* Уменьшенные отступы */
+    text-align: center; /* Центрирование текста */
+    width: 100%; /* Ширина 100% */
+    position: static; /* Позиционирование */
+    left: 0; /* Начало с левой стороны */
+    margin: 0; /* Убираем отступы */
+    animation: fadeIn 1s ease-in-out; /* Анимация появления */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для футера */
+    border-top: 2px solid rgba(255, 174, 0, 0.5); /* Верхняя граница */
+}
+
+/* Стили для контейнера кнопок в футере */
+.button-container {
+    margin-top: 10px; /* Отступ сверху от описания */
+    display: flex; /* Flex-контейнер */
+    flex-direction: column; /* Вертикальное выравнивание */
+    align-items: center; /* Центрирование кнопок */
+}
+
+/* Описание кнопок */
+.button-description {
+    font-size: 16px; /* Уменьшенный размер шрифта для мобильных */
+    color: #ffae00; /* Цвет текста */
+    margin-bottom: 8px; /* Уменьшенный отступ снизу от описания */
+}
+
+/* Стили для кнопок */
+.buttons {
+    display: flex; /* Flex-контейнер */
+    flex-direction: column; /* Вертикальное выравнивание */
+    align-items: center; /* Центрирование кнопок */
+    gap: 10px; /* Уменьшенный отступ между кнопками */
+}
+
+
+/* Стиль кнопок */
+.dynamic-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50px; /* Уменьшенная ширина кнопки для мобильных */
+    height: 50px; /* Уменьшенная высота кнопки для мобильных */
+    background-color: var(--primary-color);
+    border-radius: 50%; /* Круглая форма */
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s; /* Плавный переход */
+    box-shadow: var(--box-shadow);
+    overflow: hidden; /* Скрыть переполнение */
+}
+
+/* Эффект при наведении на кнопку */
+.dynamic-button:hover {
+    background-color: var(--hover-bg-color); /* Цвет фона при наведении */
+    transform: translateY(-3px); /* Легкий подъем при наведении */
+    box-shadow: 0 8px 30px rgba(0, 255, 204, 0.8); /* Увеличение тени при наведении */
+}
+
+/* Стили для изображений внутри кнопок */
+.dynamic-button img {
+    width: 30px; /* Уменьшенная ширина изображения */
+    height: 30px; /* Уменьшенная высота изображения */
+    object-fit: cover; /* Сохранение пропорций изображения */
+}
+
+/* Стили для ссылок в футере */
+.footer-links {
+    margin: 5px 0; /* Уменьшенный отступ для мобильных */
+    display: flex;
+    justify-content: center; /* Центрируем ссылки */
+    flex-wrap: wrap; /* Позволяет ссылкам переноситься на новую строку */
+}
+
+.footer-links a {
+    color: #ffae00;
+    margin: 0 10px; /* Уменьшенный отступ между ссылками */
+    text-decoration: none;
+    transition: color 0.5s, transform 0.5s;
+    position: relative; /* Для анимации */
+}
+
+.footer-links a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: #ffae00;
+    left: 0;
+    bottom: -5px; /* Расположение под ссылкой */
+    transform: scaleX(0);
+    transition: transform 0.5s ease;
+}
+
+.footer-links a:hover {
+    color: #fff4c9;
+    transform: scale(1.1);
+}
+
+.footer-links a:hover::after {
+    transform: scaleX(1); /* Анимация появления подчеркивания */
+}
+
+.footer p {
+    margin: 10px 0 0;
+    font-size: 0.8em; /* Уменьшенный размер шрифта для мобильных */
+    opacity: 0.8; /* Немного прозрачности для текста */
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Дополнительные стили для кнопок */
+.button {
+    background-color: #00ffcc;
+    color: #000;
+    padding: 8px 16px; /* Уменьшенные отступы для мобильных */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+    font-size: 0.9em; /* Уменьшенный размер шрифта для мобильных */
+}
+
+.button:hover {
+    background-color: #ffcc00;
+    transform: scale(1.05); /* Уменьшенный эффект масштабирования */
+}
+
+/* Стили для форм */
+input[type="text"], input[type="email"], textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #00ffcc;
+    border-radius: 5px;
+    margin: 8px 0; /* Уменьшенный отступ */
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 0.9em; /* Уменьшенный размер шрифта для мобильных */
+}
+
+input[type="text"]:focus, input[type="email"]:focus, textarea:focus {
+    border-color: #ffcc00;
+    outline: none;
+}
+
+/* Стили для заголовков */
+h1 {
+    color: #00ffcc;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+    font-size: 2.2em; /* Уменьшенный размер заголовка для мобильных */
+}
+
+h2 {
+    color: #fff;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+    font-size: 1.4em; /* Уменьшенный размер заголовка для мобильных */
+}
+
+h3 {
+    color: #fff;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+    font-size: 1em; /* Уменьшенный размер заголовка для мобильных */
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+    .product-container, .service-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .nav-item {
+        display: block;
+        margin: 8px 0; /* Уменьшенный отступ для мобильных */
+    }
+
+    .banner-content {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .status-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .status-image {
+        margin-bottom: 5px;
+    }
+
+    .status-text {
+        font-size: 0.9em; /* Уменьшенный размер текста для мобильных */
+    }
+
+    .product-item, .animation-item {
+        width: 90%;
+        margin: 10px 0;
+    }
+
+    .footer {
+        padding: 10px; /* Уменьшенный отступ для футера */
+    }
+
+    .footer-links a {
+        display: block;
+        margin: 5px 0;
+        font-size: 0.9em; /* Уменьшенный размер шрифта для ссылок */
+    }
+
+    h1 {
+        font-size: 2.5em; /* Уменьшенный размер заголовка для мобильных */
+    }
+
+    h2 {
+        font-size: 1.5em; /* Уменьшенный размер заголовка для мобильных */
+    }
+
+    h3 {
+        font-size: 0.8em; /* Уменьшенный размер заголовка для мобильных */
+    }
+}
+
+/* Анимация для элементов на странице */
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px); /* Уменьшенное значение для мобильных */
+    }
+}
+
+.product-item, .animation-item {
+    animation: slideIn 0.5s ease forwards, bounce 2s infinite alternate;
+}
+
+/* Стили для кнопок с эффектом */
+.button {
+    position: relative;
+    overflow: hidden;
+    padding: 8px 16px; /* Уменьшенные отступы для мобильных */
+    font-size: 0.9em; /* Уменьшенный размер шрифта для мобильных */
+}
+
+.button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300%;
+    height: 300%;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.5s ease;
+    z-index: 0;
+}
+
+.button:hover::after {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.button:hover {
+    color: #000;
+}
+
+/* Стили для карточек услуг с динамическими эффектами */
+.service-card {
+    border-radius: 10px; /* Уменьшенное скругление для мобильных */
+    padding: 15px; /* Уменьшенные отступы */
+    margin: 10px; /* Уменьшенный отступ */
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); /* Уменьшенная тень */
+}
+
+.service-card:hover {
+    transform: translateY(-3px); /* Уменьшенный эффект при наведении */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Индивидуальные стили для блоков услуг */
+.service-montage {
+    background: rgba(255, 255, 255, 0.15);
+    width: 90%; /* Уменьшенная ширина для мобильных */
+    max-width: 300px; /* Ограничение ширины */
+    height: auto; /* Автоматическая высота */
+}
+
+.service-quality {
+    background: rgba(255, 255, 255, 0.2);
+    width: 90%; /* Уменьшенная ширина для мобильных */
+    max-width: 350px; /* Ограничение ширины */
+    height: auto; /* Автоматическая высота */
+}
+
+.service-frame-rate {
+    background: rgba(255, 255, 255, 0.25);
+    width: 90%; /* Уменьшенная ширина для мобильных */
+    max-width: 280px; /* Ограничение ширины */
+    height: auto; /* Автоматическая высота */
+}
+
+.service-bitrate {
+    background: rgba(255, 255, 255, 0.3);
+    width: 90%; /* Уменьшенная ширина для мобильных */
+    max-width: 320px; /* Ограничение ширины */
+    height: auto; /* Автоматическая высота */
+}
+
+.service-additional {
+    background: rgba(255, 255, 255, 0.35);
+    width: 90%; /* Уменьшенная ширина для мобильных */
+    max-width: 400px; /* Ограничение ширины */
+    height: auto; /* Автоматическая высота */
+}
+
+.service-aspect-ratio {
+    background: rgba(255, 255, 255, 0.4);
+    width: 90%; /* Уменьшенная ширина для мобильных */
+    max-width: 260px; /* Ограничение ширины */
+    height: auto; /* Автоматическая высота */
+}
+
+/* Стили для заголовков услуг */
+.service-card h4 {
+    color: #00ffcc;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+    font-size: 1.2em; /* Уменьшенный размер шрифта для заголовков */
+}
+
+/* Стили для текста услуг */
+.service-card p {
+    color: #ffffff;
+    line-height: 1.4; /* Уменьшенная межстрочная высота для мобильных */
+    font-size: 0.9em; /* Уменьшенный размер шрифта для мобильных */
+}
+
+/* Стили для иконок услуг */
+.service-icon {
+    width: 40px; /* Уменьшенная ширина иконок */
+    height: 40px; /* Уменьшенная высота иконок */
+    margin-bottom: 10px; /* Уменьшенный отступ снизу */
+    transition: transform 0.3s;
+}
+
+.service-icon:hover {
+    transform: scale(1.1); /* Уменьшенный эффект масштабирования */
+}
+
+/* Стили для футера с динамическим эффектом */
+.footer {
+    background: linear-gradient(135deg, rgb(13, 10, 41), rgb(48, 44, 99), rgb(35, 35, 62));
+    color: #ffffff;
+    padding: 15px; /* Уменьшенные отступы */
+    text-align: center;
+    width: 100%; /* Используем ширину контейнера */
+    position: fixed; /* Или absolute, если нужно */
+    bottom: 0; /* Привязываем футер к нижней части окна */
+    left: 0; /* Устанавливаем его влево */
+    margin: 0; /* Убираем отступы */
+    animation: fadeIn 1s ease-in-out;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для футера */
+    border-top: 2px solid rgba(255, 174, 0, 0.5); /* Верхняя граница */
+}
+
+.footer-links {
+    margin: 10px 0;
+}
+
+.footer-links a {
+    color: #00ffcc;
+    margin: 0 10px; /* Уменьшенный отступ для мобильных */
+    text-decoration: none;
+    transition: color 0.3s, transform 0.3s;
+    font-size: 0.9em; /* Уменьшенный размер шрифта для ссылок */
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+    color: #ffcc00;
+    transform: scale(1.05); /* Уменьшенный эффект масштабирования */
+}
+
+.footer p {
+    margin: 10px 0 0;
+    font-size: 0.8em; /* Уменьшенный размер шрифта для текста футера */
+}
+
+/* Анимация текста в футере */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Стили для кнопки "Наверх" */
+.scroll-to-top {
+    position: fixed;
+    bottom: 20px; /* Уменьшенный отступ снизу */
+    right: 20px; /* Уменьшенный отступ справа */
+    background-color: #00ffcc;
+    color: #000;
+    border: none;
+    border-radius: 50%;
+    width: 40px; /* Уменьшенная ширина кнопки */
+    height: 40px; /* Уменьшенная высота кнопки */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.scroll-to-top:hover {
+    transform: scale(1.1); /* Увеличение при наведении */
+}
+
+
+.scroll-to-top:hover {
+    background-color: #ffcc00;
+    transform: scale(1.05); /* Уменьшенное увеличение при наведении */
+}
+
+/* Стили для анимации заголовков */
+h1, h2, h3 {
+    animation: fadeIn 0.5s ease-in-out;
+    margin-bottom: 10px; /* Уменьшенный отступ снизу */
+    font-size: 1.5em; /* Уменьшенный размер шрифта для заголовков */
+}
+
+/* Стили для карточек с изображениями */
+.image-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px; /* Уменьшенное скругление */
+    transition: transform 0.3s, box-shadow 0.3s;
+    margin: 10px 0; /* Уменьшенный отступ между карточками */
+}
+
+.image-card img {
+    width: 100%;
+    border-radius: 10px; /* Уменьшенное скругление */
+    transition: transform 0.3s;
+}
+
+.image-card:hover img {
+    transform: scale(1.03); /* Уменьшенное увеличение изображения */
+}
+
+.image-card:hover {
+    transform: translateY(-3px); /* Уменьшенный эффект при наведении */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Уменьшенная тень */
+}
+
+/* Стили для уведомлений */
+.notification {
+    background-color: rgba(255, 255, 0, 0.9);
+    color: #000;
+    padding: 10px; /* Уменьшенные отступы */
+    border-radius: 5px;
+    margin: 15px 0; /* Уменьшенный отступ сверху и снизу */
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Стили для кнопок с эффектом */
+.button {
+    position: relative;
+    overflow: hidden;
+    padding: 8px 16px; /* Уменьшенные отступы */
+    border: none;
+    border-radius: 5px;
+    background-color: #00ffcc;
+    color: #000;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+    font-size: 0.9em; /* Уменьшенный размер шрифта для кнопок */
+}
+
+.button:hover {
+    background-color: #ffcc00;
+    transform: scale(1.05); /* Уменьшенное увеличение при наведении */
+}
+
+/* Элементы форм с эффектом */
+input[type="text"], input[type="email"], textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #00ffcc;
+    border-radius: 5px;
+    margin: 10px 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    transition: border-color 0.3s;
+    font-size: 0.9em; /* Уменьшенный размер шрифта для полей ввода */
+}
+
+input[type="text"]:focus, input[type="email"]:focus, textarea:focus {
+    border-color: #ffcc00;
+    outline: none;
+}
+
+.divider {
+    border: none; /* Убираем стандартные стили границы */
+    height: 2px; /* Высота линии */
+    background-color: #00ffcc; /* Цвет линии */
+    margin: 0 auto; /* Центрируем линию */
+    width: 80%; /* Ширина линии */
+    max-width: 500px; /* Уменьшенная максимальная ширина линии для мобильных */
+}
+
+/* Стили для анимации текста */
+.service-title {
+    font-size: 28px; /* Уменьшенный размер заголовка для мобильных */
+    color: #ffa16b; /* Цвет текста */
+    text-align: center;
+    animation: rotateIn 1s ease forwards; /* Анимация при появлении */
+}
+
+.service-description {
+    font-size: 16px; /* Уменьшенный размер описания для мобильных */
+    color: #ffbb94; /* Цвет текста */
+    text-align: center;
+    margin-top: 15px; /* Уменьшенный отступ сверху */
+    animation: fadeInUp 1s ease forwards; /* Анимация при появлении */
+}
+
+/* Анимация поворота */
+@keyframes rotateIn {
+    from {
+        transform: rotate(-200deg);
+        opacity: 0;
+    }
+    to {
+        transform: rotate(0deg);
+        opacity: 1;
+    }
+}
+
+/* Анимация появления с подъемом */
+@keyframes fadeInUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Контейнер соглашения */
+.agreement-container {
+    max-width: 90%; /* Увеличена ширина для мобильных */
+    margin: 20px auto; /* Уменьшен верхний и нижний отступы */
+    padding: 15px; /* Уменьшено внутреннее заполнение */
+    background: rgba(30, 30, 30, 0.8);
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    position: relative;
+    animation: fadeIn 1s ease-in-out;
+}
+
+/* Заголовки */
+h1, h3 {
+    color: #00ffcc;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+    margin-bottom: 10px; /* Уменьшен отступ снизу */
+    position: relative;
+    font-size: 24px; /* Уменьшен размер заголовка для мобильных */
+}
+
+/* Анимация заголовков */
+h1::after, h3::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: #00ffcc;
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    transform: scaleX(0);
+    transition: transform 0.5s ease;
+}
+
+h1:hover::after, h3:hover::after {
+    transform: scaleX(1);
+}
+
+/* Параграфы */
+p {
+    line-height: 1.5; /* Уменьшена высота строки для лучшего восприятия */
+    margin-bottom: 10px; /* Уменьшен отступ снизу */
+    transition: color 0.3s ease;
+}
+
+p:hover {
+    color: #00ffcc;
+}
+
+/* Анимация появления */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Кнопки */
+button {
+    background-color: #00ffcc;
+    color: #2c2c2c;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px; /* Уменьшено внутреннее заполнение */
+    cursor: pointer;
+    font-size: 14px; /* Уменьшен размер шрифта для кнопок */
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+    background-color: #00cc99;
+    transform: scale(1.05);
+}
+
+/* Ссылки */
+a {
+    color: #00ffcc;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    font-size: 16px; /* Увеличен размер шрифта для лучшей читабельности на мобильных */
+    padding: 5px; /* Добавлено внутреннее заполнение для улучшения кликабельности */
+}
+
+a:hover {
+    color: #00cc99;
+}
+
+/* Препятствие копированию текста */
+.unselectable {
+    user-select: none; /* Отключает выделение текста */
+    -webkit-user-select: none; /* Для Safari */
+    -moz-user-select: none; /* Для Firefox */
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0); /* Прозрачный фон */
+    pointer-events: auto; /* Включает взаимодействие с оверлеем */
+}
+
+/* Отключение интерактивности */
+.no-interaction {
+    pointer-events: none; /* Отключает все взаимодействия с элементом */
+    user-select: none; /* Запрещает выделение текста/изображения */
+}
+
+.disabled {
+    pointer-events: none; /* Отключает взаимодействие с элементом */
+    color: gray; /* Цвет текста, чтобы показать, что ссылка неактивна */
+    text-decoration: none; /* Убирает подчеркивание */
+    cursor: default; /* Изменяет курсор на стандартный, чтобы показать, что элемент не кликабельный */
+}
+
+/* Дополнительные стили для мобильных устройств */
+@media (max-width: 768px) {
+    a {
+        font-size: 18px; /* Увеличен размер шрифта для мобильных устройств */
+        padding: 10px; /* Увеличено внутреннее заполнение для удобства нажатия */
+    }
+}
+

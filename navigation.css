@@ -1,0 +1,95 @@
+/* Основные стили для кнопки */
+.toggle-btn {
+    background: none;
+    border-style: outset;
+    border-color: #ffa468;
+    color: #ffffff; /* Цвет текста кнопки */
+    font-size: 40px; /* Размер шрифта */
+    cursor: context-menu;
+    margin-left: auto;
+    display: none; /* Скрываем кнопку по умолчанию на больших экранах */
+    z-index: 1000; /* Убедитесь, что кнопка выше других элементов */
+    transition: color 0.3s; /* Плавный переход для цвета */
+}
+
+/* Навигация */
+.navigation {
+    display: flex; /* Показываем навигацию по умолчанию на больших экранах */
+    margin-left: auto;
+    background: none;
+}
+
+.nav-list {
+    background: none;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: flex-end; /* Выравниваем элементы по правому краю */
+}
+
+.nav-item {
+    background: none;
+    margin-left: 20px;
+}
+
+.nav-item a {
+    background: none;
+    color: #ffcc5f; /* Цвет ссылок */
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 500;
+    padding: 10px;
+    transition: color 0.3s, background 0.3s; /* Плавный переход для цвета и фона */
+}
+
+.nav-item a:hover {
+    color: #fff; /* Цвет при наведении */
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+    .toggle-btn {
+        display: block; /* Показываем кнопку на мобильных устройствах */
+    }
+
+    .navigation {
+        display: none; /* Скрываем навигацию по умолчанию на мобильных устройствах */
+        flex-direction: column; /* Вертикальное положение на мобильных устройствах */
+        position: absolute; /* Позиционирование для выпадающего меню */
+        top: 100%; /* Под кнопкой */
+        right: 0; /* Выровнять по правому краю */
+        background-color: rgba(18, 18, 18, 0.788); /* Полупрозрачный фон для меню */
+        width: 100%; /* Ширина 100% для мобильных устройств */
+        z-index: 1199; /* Убедитесь, что меню выше других элементов */
+    }
+
+    .navigation.active {
+        display: flex; /* Показываем навигацию при активном состоянии */
+    }
+
+    .nav-list {
+        flex-direction: column; /* Вертикальное положение на мобильных устройствах */
+        align-items: flex-start; /* Выравниваем элементы по левому краю */
+        padding: 10px 0; /* Добавляем отступы для удобства */
+    }
+
+    .nav-item {
+        margin: 10px 10px; /* Увеличиваем промежуток между элементами */
+        width: 100%; /* Задаем ширину 100% для элементов */
+    }
+
+    .nav-item a {
+        padding: 15px; /* Увеличиваем отступы для кликабельной области */
+        display: block; /* Делаем ссылки блочными для удобства клика */
+    }
+}
+
+/* Классы для изменения цвета */
+.nav-item a.custom-color {
+    color: #ff5733; /* Пример кастомного цвета */
+}
+
+.toggle-btn .custom-color {
+    color: #ff5733; /* Цвет кнопки при кастомизации */
+}

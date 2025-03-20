@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="account.css">
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <title>BHS ➭ Профиль</title>
+    <link rel="shortcut icon" href="logotip.jpg">
+</head>
+<body>
+    <header class="header">
+        <h1>BHS ➭ Профиль</h1>
+    </header>
+
+    <main>
+        <div class="settings">
+            <section class="setting-item">
+                <label for="phone">Укажите номер телефона</label>
+                <div style="display: flex; align-items: center;">
+                    <input type="text" id="phone" placeholder="Введите номер телефона" style="flex: 1; min-width: 825px; max-width: 600px; padding: 10px;">
+                    <select id="country" class="country-select" style="margin-left: 20px; width: 50px; padding: 6px;">
+                        <option value="Россия">🇷🇺</option>
+                        <option value="США">🇺🇸</option>
+                    </select>
+                </div>
+                <div id="active-phone" style="padding: 8px; color: green;">Не указано</div>
+                <div id="phone-info" style="display: none; padding: 8px; color: green;"></div>
+                <div id="phone-error" style="display: none; padding: 8px; color: red;"></div>
+                <button class="save-button" onclick="savePhoneNumber()">Сохранить</button>
+            </section>
+            
+            
+
+            <section class="setting-item">
+                <label for="email">Электронная почта:</label>
+                <input type="email" id="email" placeholder="Введите электронную почту">
+                <button class="save-button2">Сохранить</button>
+            </section>
+
+            <section class="setting-item">
+                <label for="card-input" style="display: block; margin-bottom: 10px;">Укажите номер карты</label>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center;">
+                        <label for="payment-method" style="margin-right: 10px;">Выберите банк:</label>
+                        <select id="payment-method" class="payment-method-select" style="width: 200px; padding: 5px;">
+                            <option value="СберБанк">СберБанк</option>
+                            <option value="Тинькофф">Тинькофф</option>
+                            <option value="ВТБ">ВТБ</option>
+                            <option value="Альфа-Банк">Альфа-Банк</option>
+                            <option value="Газпромбанк">Газпромбанк</option>
+                            <option value="Райффайзенбанк">Райффайзенбанк</option>
+                            <option value="Открытие">Открытие</option>
+                            <option value="Почта Банк">Почта Банк</option>
+                            <option value="Россельхозбанк">Россельхозбанк</option>
+                            <option value="МКБ">МКБ</option>
+                            <option value="ЮниКредит Банк">ЮниКредит Банк</option>
+                            <option value="Росбанк">Росбанк</option>
+                            <option value="Совкомбанк">Совкомбанк</option>
+                            <option value="Хоум Кредит">Хоум Кредит</option>
+                            <option value="Промсвязьбанк">Промсвязьбанк</option>
+                            <option value="Банк Уралсиб">Банк Уралсиб</option>
+                            <option value="Банк Санкт-Петербург">Банк Санкт-Петербург</option>
+                            <option value="Ак Барс Банк">Ак Барс Банк</option>
+                            <option value="МТС Банк">МТС Банк</option>
+                            <option value="Ренессанс Кредит">Ренессанс Кредит</option>
+                            <option value="Банк Русский Стандарт">Банк Русский Стандарт</option>
+                            <option value="Банк Зенит">Банк Зенит</option>
+                            <option value="Банк Восточный">Банк Восточный</option>
+                            <option value="Банк Открытие">Банк Открытие</option>
+                            <option value="Банк Хлынов">Банк Хлынов</option>
+                            <option value="Банк Точка">Банк Точка</option>
+                            <option value="Банк ДОМ.РФ">Банк ДОМ.РФ</option>
+                            <option value="Банк РСХБ">Банк РСХБ</option>
+                            <option value="Банк Акцепт">Банк Акцепт</option>
+                            <option value="Банк Возрождение">Банк Возрождение</option>
+                            <option value="Банк Интеза">Банк Интеза</option>
+                            <option value="Банк Левобережный">Банк Левобережный</option>
+                            <option value="Банк Москвы">Банк Москвы</option>
+                            <option value="Банк Новикомбанк">Банк Новикомбанк</option>
+                            <option value="Банк Пермь">Банк Пермь</option>
+                            <option value="Банк ПСКБ">Банк ПСКБ</option>
+                            <option value="Банк РНКБ">Банк РНКБ</option>
+                            <option value="Банк Росгосстрах">Банк Росгосстрах</option>
+                            <option value="Банк Росэнергобанк">Банк Росэнергобанк</option>
+                            <option value="Банк Русь">Банк Русь</option>
+                            <option value="Банк Саратов">Банк Саратов</option>
+                            <option value="Банк Связь-Банк">Банк Связь-Банк</option>
+                            <option value="Банк СКБ-Банк">Банк СКБ-Банк</option>
+                            <option value="Банк Солидарность">Банк Солидарность</option>
+                            <option value="Банк Союз">Банк Союз</option>
+                            <option value="Банк ТКПБ">Банк ТКПБ</option>
+                            <option value="Банк УБРиР">Банк УБРиР</option>
+                            <option value="Банк Урал ФД">Банк Урал ФД</option>
+                            <option value="Банк ФК Открытие">Банк ФК Открытие</option>
+                            <option value="Банк Центр-Инвест">Банк Центр-Инвест</option>
+                            <option value="Банк Эксперт">Банк Эксперт</option>
+                            <option value="Банк Энерготрансбанк">Банк Энерготрансбанк</option>
+                            <option value="Банк Югра">Банк Югра</option>
+                            <option value="Банк ЯР">Банк ЯР</option>
+                            <option value="Банк Авангард">Банк Авангард</option>
+                            <option value="Банк Акибанк">Банк Акибанк</option>
+                            <option value="Банк Алмазэргиэнбанк">Банк Алмазэргиэнбанк</option>
+                            <option value="Банк Алеф-Банк">Банк Алеф-Банк</option>
+                            <option value="Банк Альта-Банк">Банк Альта-Банк</option>
+                            <option value="Банк Амурпромстройбанк">Банк Амурпромстройбанк</option>
+                            <option value="Банк Ассоциация">Банк Ассоциация</option>
+                            <option value="Банк БайкалИнвестБанк">Банк БайкалИнвестБанк</option>
+                            <option value="Банк Балтика">Банк Балтика</option>
+                            <option value="Банк Белгородпромстройбанк">Банк Белгородпромстройбанк</option>
+                            <option value="Банк БКС">Банк БКС</option>
+                            <option value="Банк БМБ">Банк БМБ</option>
+                            <option value="Банк БНП Париба">Банк БНП Париба</option>
+                            <option value="Банк БТА-Казань">Банк БТА-Казань</option>
+                            <option value="Банк Венец">Банк Венец</option>
+                            <option value="Банк Верхневолжский">Банк Верхневолжский</option>
+                            <option value="Банк Вологжанин">Банк Вологжанин</option>
+                            <option value="Банк Вологодский">Банк Вологодский</option>
+                            <option value="Банк Воронеж">Банк Воронеж</option>
+                            <option value="Банк Глобэкс">Банк Глобэкс</option>
+                            <option value="Банк Дальневосточный">Банк Дальневосточный</option>
+                            <option value="Банк Держава">Банк Держава</option>
+                            <option value="Банк Екатеринбург">Банк Екатеринбург</option>
+                            <option value="Банк Живаго">Банк Живаго</option>
+                            <option value="Банк Ижкомбанк">Банк Ижкомбанк</option>
+                        </select>
+                    </div>
+            
+                    <div style="display: flex; align-items: center;">
+                        <label for="card-input" style="margin-left: 20px; margin-right: 10px;">Введите номер карты:</label>
+                        <input type="text" id="card-input" placeholder="XXXX XXXX XXXX XXXX" maxlength="19" style="min-width: 300px; max-width: 600px; padding: 10px;">
+                    </div>
+                </div>
+            
+                <div id="card-info" style="display: none; padding: 8px; color: green;"></div>
+                <div id="card-error" style="display: none; padding: 8px; color: red;"></div>
+                <button id="save-card" onclick="saveCardNumber()" >Сохранить</button>
+            </section>
+
+            
+        </div>
+
+        <section class="info">
+            <h2 class="section-title">Информация</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tbody>
+                    <tr>
+                        <td style="padding: 8px;"><strong>Ваш ID:</strong></td>
+                        <td style="padding: 8px;">
+                            <div class="info-block"><span id="member-id"></span></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><strong>Активный номер телефона:</strong></td>
+                        <td style="padding: 8px;">
+                            <div class="info-block">
+                                <span id="active-phone"></span> (<span id="country"></span>)
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><strong>Активная электронная почта:</strong></td>
+                        <td style="padding: 8px;">
+                            <div class="info-block"><span id="active-email"></span></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><strong>Дата регистрации:</strong></td>
+                        <td style="padding: 8px;">
+                            <div class="info-block"><span id="registration-date">01.01.2023</span></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><strong>Количество раз заходов:</strong></td>
+                        <td style="padding: 8px;">
+                            <div class="info-block"><span id="visit-count">10</span></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><strong>Последний купленный товар:</strong></td>
+                        <td style="padding: 8px;">
+                            <div class="info-block"><span id="last-purchase">Товар 1</span></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><strong>Активный способ оплаты:</strong></td>
+                        <td style="padding: 8px;">
+                            <div class="info-block"><span id="active-payment">Не выбран</span></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px;"><strong>Текущий номер карты:</strong></td>
+                        <td style="padding: 8px;">
+                            <div class="info-block"><span id="active-payment2">Отсутствует</span></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>            
+        </section>
+
+        <section class="wallet">
+            <h2 class="section-title">Кошелёк</h2>
+            <div class="wallet-info" style="display: none;">
+                <p>Количество денег в "BH Кошельке": <span id="wallet-amount">1000 ₽</span></p>
+                <p>Дата регистрации карты: <span id="card-registration-date">01.01.2023</span></p>
+                <button class="delete-wallet">Удалить карту</button>
+            </div>
+            <div class="no-wallet">
+                <p>У вас ещё нет кошелька. Создайте его!</p>
+                <button class="create-wallet">Создать кошелёк</button>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024-2025 ➥ BORISONCHIK • Все права защищены</p>
+    </footer>
+
+
+
+    <script>
+// Функция для проверки корректности номера телефона
+function isValidPhoneNumber(phoneNumber, country) {
+    const cleanedPhone = phoneNumber.replace(/\D/g, '');
+    if (country === "Россия") {
+        return /^7\d{10}$/.test(cleanedPhone);
+    }
+    if (country === "США") {
+        return /^1\d{10}$/.test(cleanedPhone);
+    }
+    return false;
+}
+
+// Функция для форматирования номера телефона
+function formatPhoneNumber(phoneNumber) {
+    return phoneNumber.replace(/\D/g, '');
+}
+
+// Функция для отображения ошибки
+function showPhoneError(message) {
+    document.getElementById('phone-error').textContent = message;
+    document.getElementById('phone-error').style.display = 'block';
+    document.getElementById('phone-info').style.display = 'none';
+}
+
+// Функция для сохранения номера телефона в localStorage
+function savePhoneNumber() {
+    const phoneInput = document.getElementById('phone');
+    const countrySelect = document.getElementById('country');
+    const phoneNumber = phoneInput.value.trim();
+    const country = countrySelect.value;
+
+    if (!phoneNumber) {
+        showPhoneError('Пожалуйста, введите номер телефона.');
+        return;
+    }
+
+    if (!isValidPhoneNumber(phoneNumber, country)) {
+        showPhoneError(`Номер телефона введен некорректно для страны ${country}.`);
+        return;
+    }
+
+    // Сохранение в localStorage
+    localStorage.setItem('phone', phoneNumber);
+    localStorage.setItem('country', country);
+
+    // Форматирование и вывод на страницу
+    const formattedPhone = formatPhoneNumber(phoneNumber);
+    document.getElementById('active-phone').textContent = formattedPhone;
+    document.getElementById('country').textContent = country;
+    document.getElementById('phone-info').textContent = `Номер телефона успешно сохранен: ${formattedPhone}`;
+    document.getElementById('phone-info').style.display = 'block';
+    document.getElementById('phone-error').style.display = 'none';
+    alert('Номер телефона успешно сохранен!');
+}
+
+// Восстановление сохраненного номера при загрузке страницы
+window.onload = function() {
+    const savedPhone = localStorage.getItem('phone');
+    const savedCountry = localStorage.getItem('country');
+
+    if (savedPhone) {
+        const formattedPhone = formatPhoneNumber(savedPhone);
+        document.getElementById('active-phone').textContent = formattedPhone;
+        document.getElementById('country').textContent = savedCountry;
+        document.getElementById('phone-info').textContent = `Предыдущий номер: ${formattedPhone}`;
+        document.getElementById('phone-info').style.display = 'block';
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Функция для загрузки сохраненной электронной почты из localStorage
+function loadEmail() {
+    const savedEmail = localStorage.getItem('email');
+    if (savedEmail) {
+        document.getElementById('email').value = savedEmail;
+        document.getElementById('active-email').textContent = savedEmail;
+    } else {
+        document.getElementById('active-email').textContent = 'Не указано';
+    }
+}
+
+// Функция для сохранения электронной почты в localStorage
+function saveEmail() {
+    const emailInput = document.getElementById('email');
+    const email = emailInput.value.trim();
+
+    // Проверка на пустое значение
+    if (!email) {
+        showError('Пожалуйста, введите электронную почту.');
+        return;
+    }
+
+    // Проверка на валидность email
+    if (!isValidEmail(email)) {
+        showError('Электронная почта введена некорректно. Пожалуйста, введите действительный адрес.');
+        return;
+    }
+
+    // Сохранение электронной почты в localStorage
+    localStorage.setItem('email', email);
+
+    // Обновление отображения электронной почты
+    document.getElementById('active-email').textContent = email;
+    showSuccess('Электронная почта успешно сохранена!');
+}
+
+// Функция для проверки валидности email
+function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+// Функция для отображения сообщения об ошибке
+function showError(message) {
+    alert(message); // Можно заменить на вывод в отдельный элемент на странице
+}
+
+// Функция для отображения сообщения об успехе
+function showSuccess(message) {
+    alert(message); // Можно заменить на вывод в отдельный элемент на странице
+}
+
+// Загрузка электронной почты при загрузке страницы
+window.onload = loadEmail;
+
+// Обработчик нажатия кнопки "Сохранить"
+document.querySelector('.save-button2').addEventListener('click', saveEmail);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Функция для загрузки сохраненных данных из localStorage
+function loadSettings() {
+    const savedPaymentMethod = localStorage.getItem('paymentMethod');
+    const savedCardNumber = localStorage.getItem('cardNumber');
+
+    // Обновление способа оплаты
+    if (savedPaymentMethod) {
+        document.getElementById('active-payment').textContent = savedPaymentMethod;
+    } else {
+        document.getElementById('active-payment').textContent = 'Не выбран';
+    }
+
+    // Обновление номера карты
+    if (savedCardNumber) {
+        document.getElementById('active-payment2').textContent = savedCardNumber;
+    } else {
+        document.getElementById('active-payment2').textContent = 'Отсутствует';
+    }
+}
+
+// Функция для проверки валидности номера карты
+function isValidCardNumber(cardNumber) {
+    const cleanedCardNumber = cardNumber.replace(/\s/g, '');
+    return /^\d{16}$/.test(cleanedCardNumber);
+}
+
+// Функция для форматирования номера карты (XXXX XXXX XXXX XXXX)
+function formatCardNumber(cardNumber) {
+    return cardNumber.replace(/(\d{4})/g, '\$1 ').trim();
+}
+
+// Функция для сохранения данных
+function saveSettings() {
+    const paymentMethod = document.getElementById('payment-method').value;
+    const cardInput = document.getElementById('card-input');
+    const cardNumber = cardInput.value.trim();
+
+    // Проверка на пустое значение
+    if (!cardNumber) {
+        showCardError('Пожалуйста, введите номер карты.');
+        return;
+    }
+
+    // Проверка на валидность номера карты
+    if (!isValidCardNumber(cardNumber)) {
+        showCardError('Некорректный номер карты. Введите 16 цифр.');
+        return;
+    }
+
+    // Сохранение данных в localStorage
+    localStorage.setItem('paymentMethod', paymentMethod);
+    localStorage.setItem('cardNumber', formatCardNumber(cardNumber));
+
+    // Обновление интерфейса
+    document.getElementById('active-payment').textContent = paymentMethod;
+    document.getElementById('active-payment2').textContent = formatCardNumber(cardNumber);
+    document.getElementById('card-info').textContent = `Номер карты успешно сохранен: ${formatCardNumber(cardNumber)}`;
+    document.getElementById('card-info').style.display = 'block';
+    document.getElementById('card-error').style.display = 'none';
+    alert('Настройки успешно сохранены!');
+}
+
+// Функция для отображения ошибки номера карты
+function showCardError(message) {
+    const cardError = document.getElementById('card-error');
+    cardError.textContent = message;
+    cardError.style.display = 'block';
+    document.getElementById('card-info').style.display = 'none';
+}
+
+// Обработчик ввода номера карты (автоматическое форматирование)
+document.getElementById('card-input').addEventListener('input', function (e) {
+    const input = e.target;
+    let value = input.value.replace(/\s/g, ''); // Удаляем пробелы
+    if (value.length > 16) {
+        value = value.slice(0, 16); // Ограничиваем до 16 цифр
+    }
+    input.value = formatCardNumber(value); // Форматируем
+});
+
+// Обработчик нажатия кнопки "Сохранить"
+document.getElementById('save-card').addEventListener('click', saveSettings);
+
+// Загрузка данных при загрузке страницы
+window.onload = loadSettings;
+
+    </script>
+
+</body>
+</html>

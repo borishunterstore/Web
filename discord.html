@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles2.css">
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>BHS ➭ Discord</title>
+    <style>
+body, html {
+    font-family: 'Roboto', sans-serif; /* Устанавливаем шрифт Roboto */
+    background: 
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), /* Полупрозрачный черный цвет */
+        url('fon2.jpg'); /* Фоновое изображение */
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    width: 100%; /* Задаем ширину 100% */
+    height: 100%; /* Задаем высоту 100% */
+}
+
+        #snowCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+        }
+
+/* Стили для баннера */
+.banner2 {
+    background: linear-gradient(to bottom, rgba(18, 18, 18, 0.5), rgba(18, 18, 18, 1)), url('fon.gif'); /* Градиент + изображение */
+    background-size: cover;
+    background-position: center;
+    height: 18vh; /* Полный экран */
+    display: flex;
+    align-items: center; /* Выравнивание содержимого по центру */
+    padding: 0 20px; /* Отступы по бокам */
+}
+
+/* Логотип и название */
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    border-radius: 50%; /* Делаем логотип круглым */
+    width: 90px;
+    margin-right: 15px;
+}
+
+h1 {
+    font-family: 'Roboto', sans-serif; /* Устанавливаем шрифт Roboto */
+    font-size: 38px;
+    text-shadow: 1px 1px 2px rgba(18, 18, 18, 1);
+}
+
+        .news-container {
+            max-width: 900px;
+            margin: 25px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 35px;
+        }
+
+        .image-container {
+            position: fixed; /* Фиксируем изображение */
+            top: 90px; /* Отступ сверху */
+            right: 1200px; /* Отступ справа */
+            z-index: 0; /* Убедитесь, что изображение выше других элементов */
+        }
+
+        #image {
+            width: 950px; /* Ширина изображения */
+            height: auto; /* Автоматическая высота */
+        }
+
+/* Стили для баннера */
+.banner2 {
+    background: linear-gradient(to bottom, rgba(18, 18, 18, 0.5), rgba(18, 18, 18, 1)), url('fon.gif'); /* Градиент + изображение */
+    background-size: cover;
+    background-position: center;
+    height: 18vh; /* Полный экран */
+    display: flex;
+    align-items: center; /* Выравнивание содержимого по центру */
+    padding: 0 20px; /* Отступы по бокам */
+}
+
+/* Логотип и название */
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    border-radius: 50%; /* Делаем логотип круглым */
+    width: 90px;
+    margin-right: 15px;
+}
+
+h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 38px;
+    text-shadow: 1px 1px 2px rgba(18, 18, 18, 1);
+}
+        
+/* Логотип */
+.logo2-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo2 {
+    border-radius: 50%; /* Делаем логотип круглым */
+    width: 90px;
+    margin-right: 15px;
+}
+
+.navigation {
+    background-color: transparent; /* Прозрачный фон для навигации */
+    position: static; /* Статическая позиция */
+    top: 0; /* Это свойство не будет применяться в статическом положении */
+    right: 0; /* Это свойство не будет применяться в статическом положении */
+    padding: 10px 20px; /* Отступы для навигации */
+    z-index: 100; /* Убедитесь, что навигация выше других элементов */
+    margin-left: auto; /* Автоматический отступ слева для выравнивания вправо */
+    display: flex; /* Используйте flexbox для выравнивания содержимого */
+}
+
+
+.nav-list {
+    list-style: none; /* Убираем маркеры списка */
+    padding: 100;
+    margin: 100;
+    display: flex; /* Используем flexbox для горизонтального выравнивания */
+    justify-content: flex-end; /* Выравниваем элементы по правому краю */
+}
+
+.nav-item {
+    margin-left: 20px; /* Промежуток между элементами навигации */
+}
+
+.nav-item a {
+    color: #ffab00; /* Цвет ссылок */
+    text-decoration: none; /* Убираем подчеркивание */
+    font-size: 1.1rem;
+    font-weight: 500; /* Полужирный текст */
+    padding: 10px; /* Отступы для кликабельной области */
+    transition: color 0.3s; /* Плавный переход цвета */
+}
+
+.nav-item a:hover {
+    color: #fff; /* Цвет при наведении */
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+    .nav-list {
+        flex-direction: column; /* Вертикальное положение на мобильных устройствах */
+        align-items: flex-end; /* Выравниваем элементы по правому краю */
+    }
+
+    .nav-item {
+        margin: 10px 0; /* Уменьшаем промежуток между элементами */
+    }
+}
+
+        .service-quality {
+    background: rgba(255, 255, 255, 0.2);
+    width: 800;
+    height: 790px;
+}
+
+
+
+.footer3 {
+    position: Inherit; /* Фиксированное позиционирование */
+    bottom: 0; /* Привязываем футер к нижней части экрана */
+    left: 0; /* Привязываем футер к левой стороне */
+    right: 0; /* Привязываем футер к правой стороне */
+    color: #ffffff;
+    padding: 20px; /* Отступы внутри футера */
+    text-align: center; /* Выравнивание текста по центру */
+    height: 80px; /* Фиксированная высота футера */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для футера */
+    border-top: 2px solid rgba(255, 196, 68, 0.5); /* Верхняя граница */
+    background: rgba(0, 0, 0, 0.7); /* Полупрозрачный черный фон */
+    overflow: hidden; /* Скрыть переполнение */
+    backdrop-filter: blur(5px); /* Эффект размытия фона */
+}
+
+.footer3::before {
+    content: '';
+    position: absolute; /* Абсолютное позиционирование */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('fon2.jpg') no-repeat center center; /* Фоновое изображение */
+    background-size: cover; /* Масштабирование изображения */
+    opacity: 0.6; /* Прозрачность фона */
+    z-index: 0; /* Поместить под текстом */
+}
+
+.footer3 > * {
+    position: relative; /* Относительное позиционирование для текста */
+    z-index: 1; /* Поместить текст выше фона */
+}
+
+.footer3-container {
+    display: flex; /* Используем flexbox для выравнивания элементов */
+    flex-direction: column; /* Вертикальное выравнивание */
+    align-items: center; /* Центрирование по горизонтали */
+    justify-content: center; /* Центрирование по вертикали */
+    height: 100%; /* Занимаем всю высоту футера */
+}
+
+.footer3-links {
+    margin: 10px 0;
+}
+
+.footer3-links a {
+    color: #e5ff00;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.footer3-links a:hover {
+    text-decoration: underline;
+    color: #ffcc00;
+    transform: scale(1.1);
+}
+
+.footer3 p {
+    margin: 10px 0 0;
+    font-size: 0.9em;
+}
+
+/* Стили для контейнера кнопок в футере */
+.button-container {
+    margin-top: 10px; /* Отступ сверху от описания */
+}
+
+/* Описание кнопок */
+.button-description {
+    font-size: 18px;
+    color: #ffae00; /* Цвет текста */
+    margin-bottom: 10px; /* Отступ снизу от описания */
+}
+
+/* Стили для кнопок */
+.buttons {
+    display: flex;
+    justify-content: center; /* Центрирование кнопок */
+    gap: 15px; /* Отступ между кнопками */
+}
+
+/* Стиль кнопок */
+.dynamic-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60px; /* Ширина кнопки */
+    height: 60px; /* Высота кнопки */
+    background-color: var(--primary-color);
+    border-radius: 50%; /* Круглая форма */
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s; /* Плавный переход */
+    box-shadow: var(--box-shadow);
+    overflow: hidden; /* Скрыть переполнение */
+}
+
+/* Эффект при наведении на кнопку */
+.dynamic-button:hover {
+    background-color: var(--hover-bg-color); /* Цвет фона при наведении */
+    transform: translateY(-3px); /* Легкий подъем при наведении */
+    box-shadow: 0 8px 30px rgba(255, 112, 56, 0.8); /* Увеличение тени при наведении */
+}
+
+/* Стили для изображений внутри кнопок */
+.dynamic-button img {
+    width: 40px; /* Ширина изображения */
+    height: 40px; /* Высота изображения */
+    object-fit: cover; /* Сохранение пропорций изображения */
+}
+
+/* Стили для ссылок в футере */
+.footer-links {
+    margin: 10px 0;
+    display: flex;
+    justify-content: center; /* Центрируем ссылки */
+}
+
+.footer-links a {
+    color: #ffae00;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: color 0.5s, transform 0.5s;
+    position: relative; /* Для анимации */
+}
+
+.footer-links a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: #ffae00;
+    left: 0;
+    bottom: -5px; /* Расположение под ссылкой */
+    transform: scaleX(0);
+    transition: transform 0.5s ease;
+}
+
+.footer-links a:hover {
+    color: #fff4c9;
+    transform: scale(1.1);
+}
+
+.footer-links a:hover::after {
+    transform: scaleX(1); /* Анимация появления подчеркивания */
+}
+
+.footer p {
+    margin: 10px 0 0;
+    font-size: 0.9em;
+    opacity: 0.8; /* Немного прозрачности для текста */
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.hh {
+    margin-right: 18px; /* Отступ направо на 10 пикселей */
+}
+
+
+
+
+
+
+
+
+
+
+.h35 {
+    font-size: 0.89em;
+}
+
+
+h2 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-align: center;
+    color: #00bcd4;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+hr {
+    border: 1px solid #ff843d;
+    margin: 20px 0;
+}
+
+.product-container2 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin-bottom: 30px;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.product-item2 {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
+    max-width: 400px; /* Максимальная ширина для лучшего отображения на ПК */
+    width: 90%; /* Адаптивная ширина */
+}
+
+.product-item2:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 60px rgba(0, 0, 0, 0.5);
+}
+
+.product-image2 {
+    width: 100%;
+    border-radius: 15px;
+    transition: opacity 0.5s, transform 0.5s;
+}
+
+.product-image2:hover {
+    opacity: 0.8;
+    transform: scale(1.1);
+}
+
+.status-container2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.status-image2 {
+    width: 25px;
+    margin-right: 5px;
+}
+
+.service-container2 {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.animation-item2 {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px;
+    width: 300px; /* Ширина для услуг */
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.animation-item2:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+.unselectable2 {
+    user-select: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+    h2 {
+        font-size: 2em;
+    }
+
+    .product-item2, .animation-item2 {
+        width: 90%; /* Ширина для мобильных устройств */
+    }
+}
+
+@media (max-width: 480px) {
+    h2 {
+        font-size: 1.5em;
+    }
+
+    .status-image2 {
+        width: 20px; /* Уменьшение размера иконки статуса */
+    }
+}
+</style>
+</head>
+<body>
+    <canvas id="snowCanvas"></canvas>
+    
+    <div class="banner2">
+        <div class="logo-container">
+            <img src="logotip.jpg" alt="Логотип" class="logo2">
+            <h1 class="bh1">BHS ➭ Новости</h1>
+        </div>
+        <nav class="navigation">
+            <ul class="nav-list">
+                <li class="nav-item"><a href="index.html">Главная</a></li>
+                <li class="nav-item"><a href="news.html">Новости</a></li>
+                <li class="nav-item"><a href="staff.html">Персонал</a></li>
+            </ul>
+        </nav>
+    </div>  
+
+    <main class="product-page2">
+        <h2 class="unselectable2">Discord</h2>
+        <hr class="divider2 no-interaction2">
+        
+        <div class="product-container2">
+            <div class="product-item2">
+                <img src="discord.jpg" alt="Товар 1" class="product-image2">
+                <p class="unselectable2">Создаём качественный Discord сервер и настраиваем так как вы хотите!</p>
+                <p class="status-container2 no-interaction2">
+                    <img src="https://cdn3.emoji.gg/emojis/84893-checkmark.png" alt="Статус" class="status-image2 no-interaction2"> 
+                    <span class="status-text2 no-interaction2">Статус - Доступен</span>
+                </p>
+            </div>
+        </div>
+
+                <h2 class="unselectable2">Подробности</h2>
+        <hr class="divider2">
+        <div class="service-container2">
+            <div class="animation-item2 service-montage2">
+                <h2 class="unselectable2">Оформление</h2>
+                <h3 class="unselectable2 h35">Красивое оформление каналов - +35₽</h3>
+                <h3 class="unselectable2 h35">Красивое оформление ролей - +35₽</h3>
+                <h3 class="unselectable2 h35">Красивое оформление категорий - +35₽</h3>
+                <h3 class="unselectable2 h35">Красивое оформление текстов - +35₽</h3>
+                <h3 class="unselectable2 h35">Красивое оформление изображений с текстом - +50₽</h3>
+            </div>
+            <div class="animation-item2 service-quality2">
+                <h2 class="unselectable2">Настройка</h2>
+                <h3 class="unselectable2 h35">Настроить модерацию бота - +60₽</h3>
+                <h3 class="unselectable2 h35">Настроить авто модерацию бота - +83₽</h3>
+                <h3 class="unselectable2 h35">Настроить права ролей - +55₽</h3>
+                <h3 class="unselectable2 h35">Настроить права каналов - +55₽</h3>
+                <h3 class="unselectable2 h35">Настроить права категорий - +55₽</h3>
+                <h3 class="unselectable2 h35">Авто-Публикация из соц-сетей - +27₽</h3>
+                <h3 class="unselectable2 h35">Экономика бота (JuniperBot) - +65₽</h3>
+                <h3 class="unselectable2 h35">Система уровней (JuniperBot) - +50₽</h3>
+                <h3 class="unselectable2 h35">Система Приветствия / Прощания - +60₽</h3>
+                <h3 class="unselectable2 h35">Журнал аудита (Один канал) - +34₽</h3>
+                <h3 class="unselectable2 h35">Журнал аудита (Разные каналы) - +68₽</h3>
+                <h3 class="unselectable2 h35">Музыкальный канал "Создать комнату" и "Настроть комнату" - +40₽</h3>
+                <h3 class="unselectable2 h35">Веселые штучки - +40₽</h3>
+                <h3 class="unselectable2 h35">Добавить эмодзи - +70₽</h3>
+                <h3 class="unselectable2 h35">Добавить стикеры - +64₽</h3>
+                <h3 class="unselectable2 h35">Добавить звуковую панель - +68₽</h3>
+                <h3 class="unselectable2 h35">Настроить "Адаптацию" - +66₽</h3>
+                <h3 class="unselectable2 h35">Сделать картинки или баннеры - +60₽</h3>
+                <h3 class="unselectable2 h35">Настроить бота для партнёрств- +45₽</h3>
+                <h3 class="unselectable2 h35">Настроить бота для инвайтов- +45₽</h3>
+                <h3 class="unselectable2 h35">Настроить систему пиара для сервера - +70₽</h3>
+            </div>
+    </main>
+
+    <footer class="footer3">
+        <div class="footer-container3">
+            <div class="footer-links3">
+                <a href="privacy.html" class="hh">Конфиденциальность</a>
+                <a href="agreement.html">Соглашение</a>
+            </div>
+            <p>&copy; 2024-2025 ➥ BORISONCHIK • Все права защищены</p>
+        </div>
+    </footer>
+    
+    <script src="script.js"></script>
+    <script src="script2.js"></script>
+    <script src="snow.js"></script>
+    <script src="static.js"></script>
+    
+</body>
+</html>

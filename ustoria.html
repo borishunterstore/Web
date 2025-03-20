@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="navigation.css">
+    <link rel="stylesheet" href="statics.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История создания</title>
+    <style>
+body, html {
+    cursor: context-menu;
+    font-family: 'Roboto', sans-serif;
+    background: rgba(71, 71, 71, 0.507);
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    height: 100%;
+}
+
+
+@font-face {
+    font-family: 'MyCustomFont'; /* Укажите имя шрифта */
+    src: url('Doors\ Cyrillic\ Font.ttf') format('truetype'); /* Укажите правильный путь к файлу шрифта */
+    font-weight: normal;
+    font-style: normal;
+}
+
+.banner2 {
+    cursor: context-menu;
+    background: linear-gradient(to bottom, rgba(18, 18, 18, 0.5), rgba(18, 18, 18, 1)), url('banner.png'); /* Изображение для ПК */
+    background-size: cover; /* Заполняет весь баннер, сохраняя пропорции */
+    background-position: center; /* Центрируем изображение */
+    height: 19.9vh; /* Высота баннера */
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    position: relative; /* Для размещения кнопки */
+    color: white; /* Цвет текста */
+}
+
+.container {
+    position: relative;
+    width: 100%;
+    min-height: 400vh; /* Минимальная высота контейнера */
+    display: flex;
+    flex-direction: column; /* Вертикальная ориентация */
+    align-items: center;
+    justify-content: flex-start; /* Выравнивание по верхнему краю */
+    padding: 20px;
+}
+
+
+
+
+.line {
+    position: fixed; /* Зафиксированная позиция для линии */
+    left: 50%;
+    width: 6px; /* Ширина линии */
+    height: 100%; /* Высота линии на всю страницу */
+    background: linear-gradient(to bottom, #ffffff, #616161); /* Градиент для линии */
+    border-radius: 3px; /* Закругление углов линии */
+    box-shadow: 0 0 10px rgba(167, 167, 167, 0.2); /* Легкая тень для глубины */
+    transition: background-color 0.5s;
+    transform: translateX(-50%); /* Центрирование линии по горизонтали */
+}
+
+
+.section {
+    width: 100%;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out; /* Плавные переходы */
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Выравнивание по левому краю */
+    transform: translateY(20px); /* Начальная позиция */
+    margin: 50px 0; /* Отступы между секциями */
+}
+
+.section:nth-child(even) {
+    justify-content: flex-end; /* Выравнивание по правому краю для четных секций */
+}
+
+
+
+
+
+
+.content {
+    background-color: #2c2f3380; /* Темный фон для контента */
+    border-radius: 52px; /* Закругленные углы */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); /* Более выраженная тень для глубины */
+    padding: 50px; /* Увеличенные отступы внутри контента */
+    text-align: center;
+    width: 80%; /* Ширина контента */
+    max-width: 700px; /* Увеличенная максимальная ширина для больших экранов */
+    transition: transform 0.5s ease; /* Плавный переход для контента */
+    margin: 20px 20px; /* Вертикальные отступы для контента и горизонтальные отступы по 20px */
+    min-height: 300px; /* Минимальная высота блока для лучшего восприятия */
+}
+
+
+.content h2 {
+    color: white; /* Белый цвет заголовка */
+    margin-top: 40px; /* Отступ сверху для заголовка */
+}
+
+.content-img1 {
+    position: relative; /* Относительное позиционирование для изображения */
+    top: -200px; /* Подъем изображения выше блока */
+    left: 0; /* Убираем отступ от левого края */
+    width: 100px; /* Ширина изображения */
+    height: 100px; /* Высота изображения */
+    margin-left: 550px; /* Отступ слева для изображения */
+}
+
+.content-img2 {
+    position: relative; /* Относительное позиционирование для изображения */
+    top: -200px; /* Подъем изображения выше блока */
+    left: 0; /* Убираем отступ от левого края */
+    width: 50px; /* Ширина изображения */
+    height: 60px; /* Высота изображения */
+    margin-left: 220px; /* Отступ слева для изображения */
+}
+
+.content-img {
+    position: relative; /* Относительное позиционирование для изображения */
+    top: 19px; /* Небольшой подъем изображения для выравнивания с текстом */
+    width: 80px; /* Ширина изображения, чтобы оно выглядело как эмодзи */
+    height: 80px; /* Высота изображения */
+    margin-left: 5px; /* Отступ слева для изображения */
+    display: inline-block; /* Отображение в строке с текстом */
+}
+
+@media (max-width: 768px) {
+    .content {
+        padding: 30px; /* Уменьшенные отступы на мобильных устройствах */
+        min-height: 250px; /* Минимальная высота блока для мобильных устройств */
+    }
+
+    .content img {
+        width: 40px; /* Уменьшенная ширина изображения на мобильных */
+        height: 50px; /* Уменьшенная высота изображения на мобильных */
+        top: -30px; /* Корректировка позиции изображения на мобильных */
+    }
+}
+
+
+.section.active {
+    opacity: 1;
+    transform: translateY(0); /* Возвращение в исходное положение */
+}
+
+.content:hover {
+    transform: scale(1.05); /* Увеличение при наведении */
+}
+
+
+h2 {
+    margin-top: 10px;
+    font-size: 2em; /* Увеличенный размер шрифта заголовка */
+    color: #2c2f33; /* Темный цвет заголовка */
+    font-weight: 600; /* Полужирный шрифт для заголовка */
+}
+
+p {
+    font-size: 1em; /* Размер шрифта для текста */
+    color: #586069; /* Более светлый цвет текста для описаний */
+    line-height: 1.5; /* Межстрочный интервал для удобства чтения */
+}
+
+/* Адаптация на мобильные устройства */
+@media (max-width: 768px) {
+    .content {
+        width: 100%; /* Увеличение ширины контента на мобильных устройствах */
+        padding: 20px; /* Уменьшение отступов для мобильных */
+    }
+
+    h2 {
+        font-size: 1.5em; /* Уменьшение размера заголовка на мобильных */
+    }
+
+    p {
+        font-size: 0.9em; /* Уменьшение размера текста на мобильных */
+    }
+}
+</style>
+</head>
+<body>
+    <div class="banner2">
+        <div class="logo-container">
+            <img src="logotip.jpg" alt="Логотип" class="logo">
+            <h1 class="bh1 textzagalovok">BHS ➭ Главная</h1>
+        </div>
+        <button class="toggle-btn" aria-label="Toggle Navigation">&#9776;</button>
+        <nav class="navigation">
+            <ul class="nav-list">
+                <li class="nav-item"><a href="index.html" class="nav-link" class="disabled">Главная</a></li>
+                <li class="nav-item"><a href="news.html" class="nav-link">Новости</a></li>
+                <li class="nav-item"><a href="staff.html" class="nav-link">Персонал</a></li>
+                <li class="nav-item"><a href="docs.html" class="nav-link">Документация</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="container">
+        <div class="line"></div>
+        <div class="section left">
+            <div class="content">
+                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F845152888430264320.png%3Fv%3D1&w=64&q=75" alt="Изображение 1" class="content-img1">
+                <h2>ДЕКАБРЬ 2023 Г.</h2>
+                <p>Borisonchik пришла идея начать помогать людям создавать аватарки и превью, и начал создавать проект.</p>
+            </div>
+        </div>
+
+        <div class="section right">
+            <div class="content">
+                <img src="avatar2.jpg" alt="Изображение 2">
+                <h2>ЯНВАРЬ 2024 Г.</h2>
+                <p>Borisonchik решил создать Telegram канал под названием "VanniLard", идея названия проекта пришла спонтанна.</p>
+            </div>
+        </div>
+        
+        <div class="section left">
+            <div class="content">
+                <img src="avatar2.jpg" alt="Изображение 2">
+                <h2>ФЕВРАЛЬ 2024 Г.</h2>
+                <p>Borisonchik добавил множество товаров в свой ассортимент, а именно такие как - помощь по созданию Discord сервера, Создание Telegram бота, Веб сайтов и многое другое...</p>
+            </div>
+        </div>
+
+        <div class="section right">
+            <div class="content">
+                <img src="avatar2.jpg" alt="Изображение 2">
+                <h2>МАРТ 2024 Г.</h2>
+                <p>Первая покупка и первый отзыв.</p>
+                <p>50 Подписчиков в Telegram канале.</p>
+            </div>
+        </div>
+
+        <div class="section left">
+            <div class="content">
+                <img src="avatar2.jpg" alt="Изображение 2">
+                <h2>АПРЕЛЬ 2024 Г.</h2>
+                <p>Создал Telegram бота для поддержки и для игр. (Чтобы заработать валюту)</p>
+                <p>Валюта - система которая можно поменять на % скидки при покупки.</p>
+            </div>
+        </div>
+
+        <div class="section right">
+            <div class="content">
+                <img src="avatar2.jpg" alt="Изображение 2">
+                <h2>МАЙ 2024 Г.</h2>
+                <p>Вторая масштабная скидка. (на 2 месяца)</p>
+            </div>
+        </div>
+
+        <div class="section left">
+            <div class="content">
+                <img src="avatar2.jpg" alt="Изображение 2">
+                <h2>ДЕКАБРЬ 2024 Г.</h2>
+                <p>Создал сайт в Google Sites для различных информаций, документов и статистики.</p>
+            </div>
+        </div>
+
+        <div class="section right">
+            <div class="content">
+                <img src="avatar2.jpg" alt="Изображение 2">
+                <h2>МАРТ 2025 Г.</h2>
+                <p>Большую половину мы уделили Discord серверу, теперь там все будет, в Telegram так же будет, но меньше.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="navig.js"></script>
+    <script src="static.js"></script>
+
+    <script>
+const sections = document.querySelectorAll('.section');
+const line = document.querySelector('.line'); // Получаем линию
+const options = {
+    root: null,
+    threshold: 0.1,
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+            // Анимация конфетки при активации секции
+            line.classList.add('active-line');
+        } else {
+            entry.target.classList.remove('active');
+            // Убираем анимацию, если секция не видима
+            line.classList.remove('active-line');
+        }
+    });
+}, options);
+
+sections.forEach(section => {
+    observer.observe(section);
+});
+    </script>
+</body>
+</html>

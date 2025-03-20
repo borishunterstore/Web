@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BHS ➭ Директор</title>
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Russo+One&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="profile-container">
+        <a class="social-link1" href="staff.html">Вернуться</a>
+        <div class="profile-header">
+            <img src="https://sun9-4.userapi.com/impg/6x46T45tX2lBA1_-CGE75HVv0jEcscqq0BdQ3w/jwfUxkvY8as.jpg?size=1280x1280&quality=95&sign=d0f736a5fd2f46729a2e43f4376e22d2&type=album" alt="Фотография человека" class="profile-photo">
+            <div class="profile-info">
+                <h1 class="styled-title shadow-text no-interaction">Стахеев Данила Александрович</h1>
+                <p class="short-description">Работаю удаленно <p class="job-title">Должность - Директор</p></p>
+                
+            </div>
+        </div>
+
+        <script>
+            // Функция для проверки устройства
+            function loadScript() {
+                const isMobile = /Mobi|Android/i.test(navigator.userAgent); // Проверяем пользовательский агент
+    
+                if (isMobile) {
+                    // Если мобильное устройство, загружаем мобильный скрипт
+                    const script = document.createElement('script');
+                    script.src = 'id1_mobile.js'; // Путь к мобильному скрипту
+                    document.body.appendChild(script);
+                } else {
+                    // Если ПК, загружаем скрипт для ПК
+                    const script = document.createElement('script');
+                    script.src = 'id1_pc.js'; // Путь к скрипту для ПК
+                    document.body.appendChild(script);
+                }
+            }
+    
+            // Вызов функции загрузки скрипта
+            loadScript();
+        </script>
+
+
+        <style>
+        
+body, html {
+    background-color: #1a1a1a; /* Темный фон для контраста */
+    color: #ffffff; /* Цвет текста по умолчанию */
+    font-family: 'Russo One', sans-serif; /* Применяем шрифт Russo One для основного текста */
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+    width: 100%; /* Задаем ширину 100% */
+    height: 100%; /* Задаем высоту 100% */
+    overflow-x: hidden; /* Скрываем горизонтальную прокрутку */
+        }
+        
+        .container {
+            font-family: 'Bangers', cursive; /* Применяем шрифт Bangers */
+            display: flex; /* Используем flexbox для расположения элементов на одной строке */
+            align-items: center;
+            margin: 20px;
+        }
+        
+        .short-description {
+            font-size: 18px;
+            color: #333;
+            margin: 0;
+            padding: 5px 10px; /* Отступы внутри блока */
+            background-color: #e0e0e0; /* Цвет фона для первого блока */
+            border-radius: 5px; /* Закругленные углы */
+            transition: color 0.5s ease;
+        }
+        
+        .short-description:hover {
+            color: #007BFF; /* Цвет текста при наведении */
+        }
+        
+        .job-title {
+            font-size: 18px;
+            color: #FF5733; /* Цвет текста для второго блока */
+            margin: 0;
+            padding: 5px 10px; /* Отступы внутри блока */
+            background-color: #f0f0f0; /* Цвет фона для второго блока */
+            border-radius: 5px; /* Закругленные углы */
+            transition: color 0.5s ease;
+            margin-left: 10px; /* Отступ между блоками */
+        }
+
+        .job-title:hover {
+            color: #C70039; /* Цвет текста при наведении */
+        }
+        
+        #snowCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+        }
+
+        .banner {
+            background: rgba(28, 28, 28, 0.8);
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid #00ffcc;
+            animation: fadeIn 1s ease-in-out;
+            height: 80px;
+            box-shadow: 0 4px 10px rgba(0, 255, 204, 0.3);
+        }
+
+        .news-container {
+            max-width: 900px;
+            margin: 25px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 35px;
+        }
+
+        .image-container {
+            position: fixed; /* Фиксируем изображение */
+            top: 90px; /* Отступ сверху */
+            right: 1200px; /* Отступ справа */
+            z-index: 0; /* Убедитесь, что изображение выше других элементов */
+        }
+
+        #image {
+            width: 950px; /* Ширина изображения */
+            height: auto; /* Автоматическая высота */
+        }
+
+.banner-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+}
+
+/* Логотип */
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+    border-radius: 50%; /* Делаем логотип круглым */
+    object-fit: cover; /* Сохраняем пропорции изображения */
+}
+
+/* Навигация */
+.navigation {
+    position: relative;
+}
+
+.nav-list {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-item {
+    margin: 0 15px;
+    position: relative;
+}
+
+.nav-item a {
+    color: #ffae00;
+    text-decoration: none;
+    padding: 5px 0;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.nav-item a:hover {
+    color: #00ffcc; /* Цвет при наведении */
+    transform: scale(1.1); /* Увеличение при наведении */
+}
+
+.nav-item a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: #00ffcc;
+    left: 0;
+    bottom: -5px; /* Расположение под ссылкой */
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.nav-item a:hover::after {
+    transform: scaleX(1); /* Анимация появления подчеркивания */
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}        #snowCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+        }
+
+        .banner {
+            background: rgba(28, 28, 28, 0.8);
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid #00ffcc;
+            animation: fadeIn 1s ease-in-out;
+            height: 70px;
+            box-shadow: 0 4px 10px rgba(0, 255, 204, 0.3);
+        }
+
+        .news-container {
+            max-width: 900px;
+            margin: 25px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 35px;
+        }
+
+        .image-container {
+            position: fixed; /* Фиксируем изображение */
+            top: 90px; /* Отступ сверху */
+            right: 1200px; /* Отступ справа */
+            z-index: 0; /* Убедитесь, что изображение выше других элементов */
+        }
+
+        #image {
+            width: 950px; /* Ширина изображения */
+            height: auto; /* Автоматическая высота */
+        }
+
+.banner-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+}
+
+/* Логотип */
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+    border-radius: 50%; /* Делаем логотип круглым */
+    object-fit: cover; /* Сохраняем пропорции изображения */
+}
+
+/* Навигация */
+.navigation {
+    position: relative;
+}
+
+.nav-list {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.nav-item {
+    margin: 0 15px;
+    position: relative;
+}
+
+.nav-item a {
+    color: #ffae00;
+    text-decoration: none;
+    padding: 5px 0;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.nav-item a:hover {
+    color: #00ffcc; /* Цвет при наведении */
+    transform: scale(1.1); /* Увеличение при наведении */
+}
+
+.nav-item a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: #00ffcc;
+    left: 0;
+    bottom: -5px; /* Расположение под ссылкой */
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.nav-item a:hover::after {
+    transform: scaleX(1); /* Анимация появления подчеркивания */
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+
+.left {
+    display: inline-block; /* Делаем ссылки блочными для добавления отступов */
+    padding: 210px 15px; /* Отступы для ссылок */
+    color: #f8f8f8; /* Цвет текста ссылки */
+    text-decoration: none; /* Убираем подчеркивание */
+    border: 22px solid transparent; /* Прозрачная граница для эффекта при наведении */
+    border-radius: 15px; /* Скругленные углы */
+    transition: background-color 1.3s, color 1.3s, border-color 1.3s; /* Плавный переход */
+}
+
+.left:hover {
+    background-color: #f7955c; /* Цвет фона при наведении */
+    color: #000000; /* Цвет текста при наведении */
+    border-color: #ff754a; /* Цвет границы при наведении */
+}
+
+.no-interaction {
+    pointer-events: none; /* Отключает все взаимодействия с элементом */
+    user-select: none; /* Запрещает выделение текста/изображения */
+}
+
+.disabled {
+    pointer-events: none; /* Отключает взаимодействие с элементом */
+    color: gray; /* Цвет текста, чтобы показать, что ссылка неактивна */
+    text-decoration: none; /* Убирает подчеркивание */
+    cursor: default; /* Изменяет курсор на стандартный, чтобы показать, что элемент не кликабельный */
+}
+
+</style>
+
+
+
+<div class="detailed-info">
+    <h2 class="styled-title three-d-text no-interaction">Подробное описание</h2>
+    <div class="info-block">
+        <div class="info-item">
+            <strong class="shadow-text no-interaction">Возраст</strong>
+            <span class="info-value no-interaction">15 лет</span>
+        </div>
+        <div class="info-item">
+            <strong class="shadow-text no-interaction">Пол</strong>
+            <span class="info-value no-interaction">Мужской</span>
+        </div>
+        <div class="info-item">
+            <strong class="shadow-text no-interaction">Стаж</strong>
+            <span class="info-value no-interaction">7 лет</span>
+        </div>
+        <div class="info-item">
+            <strong class="shadow-text no-interaction">Сфера</strong>
+            <div class="info-container no-interaction">
+                <span class="info-value no-interaction">Веб-разработка</span>
+                <span class="info-value1 no-interaction">Discord ботов</span>
+                <span class="info-value1 no-interaction">Telegram ботов</span>
+            </div>
+        </div>
+        <div class="info-item">
+            <strong class="shadow-text no-interaction">Дата регистрации</strong>
+            <span class="info-value no-interaction">27.01.2024</span>
+        </div>
+        <div class="info-item">
+            <strong class="shadow-text no-interaction">Отзывы</strong>
+            <span class="info-value"><a class="social-link1" href="reviews-id1.html">Перейти</a></span>
+        </div>
+        <div class="info-item">
+            <strong class="shadow-text no-interaction">Кол-во принятых работ</strong>
+            <span class="info-value no-interaction">18</span>
+        </div>
+    </div>
+</div>
+
+
+<div class="detailed-info">
+    <h2 class="styled-title three-d-text no-interaction">Мои социальные сети</h2>
+    <ul class="info-block">
+        <li><a class="social-link" href="index.html">Магазин</a><a class="social-link" href="https://www.youtube.com/c/borisonchikofficial">YouTube</a></li>
+    </ul>
+
+    <script src="script.js"></script>
+    <script src="snow.js"></script>
+    <script src="static.js"></script>
+
+
+    
+    <script>
+        // Функция для установки Cookie
+        function setCookie(name, value, days) {
+            let expires = "";
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/";
+        }
+
+        // Функция для получения Cookie
+        function getCookie(name) {
+            const nameEQ = name + "=";
+            const ca = document.cookie.split(';');
+            for (let i = 0; i < ca.length; i++) {
+                let c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+                if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+            }
+            return null;
+        }
+
+        // Функция для удаления Cookie
+        function eraseCookie(name) {
+            document.cookie = name + '=; Max-Age=-99999999;';  
+        }
+
+        // Пример использования
+        setCookie("userName", "Данила", 7); // Устанавливаем Cookie на 7 дней
+        console.log(getCookie("userName")); // Получаем значение Cookie
+        // eraseCookie("userName"); // Раскомментируйте, чтобы удалить Cookie
+
+        // Функция для проверки устройства
+        function loadScript() {
+            const isMobile = /Mobi|Android/i.test(navigator.userAgent); // Проверяем пользовательский агент
+
+            if (isMobile) {
+                // Если мобильное устройство, загружаем мобильный скрипт
+                const script = document.createElement('script');
+                script.src = 'id1_mobile.js'; // Путь к мобильному скрипту
+                document.body.appendChild(script);
+            } else {
+                // Если ПК, загружаем скрипт для ПК
+                const script = document.createElement('script');
+                script.src = 'id1_pc.js'; // Путь к скрипту для ПК
+                document.body.appendChild(script);
+            }
+        }
+
+        // Вызов функции загрузки скрипта
+        loadScript();
+    </script>
+
+
+
+    <script>
+        const navToggle = document.getElementById('nav-toggle');
+        const navList = document.getElementById('nav-list');
+
+        navToggle.addEventListener('click', () => {
+            navList.style.display = navList.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // Закрытие меню при клике вне его
+        window.addEventListener('click', (event) => {
+            if (!navToggle.contains(event.target) && !navList.contains(event.target)) {
+                navList.style.display = 'none';
+            }
+        });
+    </script>   
+</div>
+</body>
+</html>

@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="navigation.css">
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>BHStore ➭ Конфиденциальность</title>
+    <style>
+body, html {
+    font-family: 'Roboto', sans-serif; /* Устанавливаем шрифт Roboto */
+    background: 
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), /* Полупрозрачный черный цвет */
+        url('fon2.jpg'); /* Фоновое изображение */
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    width: 100%; /* Задаем ширину 100% */
+    height: 100%; /* Задаем высоту 100% */
+}
+
+
+#snowCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+        }
+
+h1 {
+    font-family: 'Roboto', sans-serif; /* Устанавливаем шрифт Roboto */
+    font-size: 38px;
+    text-shadow: 1px 1px 2px rgba(18, 18, 18, 1);
+}
+
+        .news-container {
+            max-width: 900px;
+            margin: 25px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 35px;
+        }
+
+        .image-container {
+            position: fixed; /* Фиксируем изображение */
+            top: 90px; /* Отступ сверху */
+            right: 1200px; /* Отступ справа */
+            z-index: 0; /* Убедитесь, что изображение выше других элементов */
+        }
+
+        #image {
+            width: 950px; /* Ширина изображения */
+            height: auto; /* Автоматическая высота */
+        }
+
+h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 38px;
+    text-shadow: 1px 1px 2px rgba(18, 18, 18, 1);
+}
+        
+/* Логотип */
+.logo2-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo2 {
+    border-radius: 50%; /* Делаем логотип круглым */
+    width: 90px;
+    margin-right: 15px;
+}
+
+
+        .agreement-container {
+            background: rgba(0, 0, 0, 0.5); /* Полупрозрачный черный фон */
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s forwards;
+            backdrop-filter: blur(10px); /* Эффект размытия фона */
+        }
+
+        .agreement-container2 {
+            margin-top: 50px; /* Отступ сверху на 10 пикселей */
+            background: rgba(0, 0, 0, 0.5); /* Полупрозрачный черный фон */
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            max-width: 800px;
+            margin: auto;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s forwards;
+            backdrop-filter: blur(10px); /* Эффект размытия фона */
+        }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        h3 {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        p, li {
+            line-height: 1.6;
+        }
+
+        ul {
+            margin: 10px 0 20px 20px;
+        }
+
+        @media (max-width: 600px) {
+            .agreement-container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            h2 {
+                font-size: 18px;
+            }
+        }
+
+
+/* Стили для футера с динамическим эффектом */
+.footer {
+    background: linear-gradient(135deg, rgb(13, 10, 41), rgb(48, 44, 99), rgb(35, 35, 62));
+    color: #ffffff;
+    padding: 20px;
+    text-align: center;
+    width: 100%; /* Задаем ширину 100% */
+    animation: fadeIn 1s ease-in-out;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для футера */
+    border-top: 2px solid rgba(255, 174, 0, 0.5); /* Верхняя граница */
+}
+
+/* Стили для контейнера кнопок в футере */
+.button-container {
+    margin-top: 10px; /* Отступ сверху от описания */
+}
+
+/* Описание кнопок */
+.button-description {
+    font-size: 18px;
+    color: #ffae00; /* Цвет текста */
+    margin-bottom: 10px; /* Отступ снизу от описания */
+}
+
+/* Стили для кнопок */
+.buttons {
+    display: flex;
+    justify-content: center; /* Центрирование кнопок */
+    gap: 15px; /* Отступ между кнопками */
+}
+
+/* Стиль кнопок */
+.dynamic-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60px; /* Ширина кнопки */
+    height: 60px; /* Высота кнопки */
+    background-color: var(--primary-color);
+    border-radius: 50%; /* Круглая форма */
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s; /* Плавный переход */
+    box-shadow: var(--box-shadow);
+    overflow: hidden; /* Скрыть переполнение */
+}
+
+/* Эффект при наведении на кнопку */
+.dynamic-button:hover {
+    background-color: var(--hover-bg-color); /* Цвет фона при наведении */
+    transform: translateY(-3px); /* Легкий подъем при наведении */
+    box-shadow: 0 8px 30px rgba(0, 255, 204, 0.8); /* Увеличение тени при наведении */
+}
+
+/* Стили для изображений внутри кнопок */
+.dynamic-button img {
+    width: 40px; /* Ширина изображения */
+    height: 40px; /* Высота изображения */
+    object-fit: cover; /* Сохранение пропорций изображения */
+}
+
+/* Стили для ссылок в футере */
+.footer-links {
+    margin: 10px 0;
+    display: flex;
+    justify-content: center; /* Центрируем ссылки */
+}
+
+.footer-links a {
+    color: #ffae00;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: color 0.5s, transform 0.5s;
+    position: relative; /* Для анимации */
+}
+
+.footer-links a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: #ffae00;
+    left: 0;
+    bottom: -5px; /* Расположение под ссылкой */
+    transform: scaleX(0);
+    transition: transform 0.5s ease;
+}
+
+.footer-links a:hover {
+    color: #fff4c9;
+    transform: scale(1.1);
+}
+
+.footer-links a:hover::after {
+    transform: scaleX(1); /* Анимация появления подчеркивания */
+}
+
+.footer p {
+    margin: 10px 0 0;
+    font-size: 0.9em;
+    opacity: 0.8; /* Немного прозрачности для текста */
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+.footer3 {
+    position: Inherit; /* Фиксированное позиционирование */
+    bottom: 0; /* Привязываем футер к нижней части экрана */
+    left: 0; /* Привязываем футер к левой стороне */
+    right: 0; /* Привязываем футер к правой стороне */
+    color: #ffffff;
+    padding: 20px; /* Отступы внутри футера */
+    text-align: center; /* Выравнивание текста по центру */
+    height: 80px; /* Фиксированная высота футера */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для футера */
+    border-top: 2px solid rgba(255, 196, 68, 0.5); /* Верхняя граница */
+    background: rgba(0, 0, 0, 0.7); /* Полупрозрачный черный фон */
+    overflow: hidden; /* Скрыть переполнение */
+    backdrop-filter: blur(5px); /* Эффект размытия фона */
+}
+
+.footer3::before {
+    content: '';
+    position: absolute; /* Абсолютное позиционирование */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('fon2.jpg') no-repeat center center; /* Фоновое изображение */
+    background-size: cover; /* Масштабирование изображения */
+    opacity: 0.6; /* Прозрачность фона */
+    z-index: 0; /* Поместить под текстом */
+}
+
+.footer3 > * {
+    position: relative; /* Относительное позиционирование для текста */
+    z-index: 1; /* Поместить текст выше фона */
+}
+
+.footer3-container {
+    display: flex; /* Используем flexbox для выравнивания элементов */
+    flex-direction: column; /* Вертикальное выравнивание */
+    align-items: center; /* Центрирование по горизонтали */
+    justify-content: center; /* Центрирование по вертикали */
+    height: 100%; /* Занимаем всю высоту футера */
+}
+
+.footer3-links {
+    margin: 10px 0;
+}
+
+.footer3-links a {
+    color: #e5ff00;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.footer3-links a:hover {
+    text-decoration: underline;
+    color: #ffcc00;
+    transform: scale(1.1);
+}
+
+.footer3 p {
+    margin: 10px 0 0;
+    font-size: 0.9em;
+} 
+
+
+.hh {
+    margin-right: 18px; /* Отступ направо на 10 пикселей */
+}
+
+
+    </style>
+</head>
+<body>
+    
+    <div class="banner2">
+        <div class="logo-container">
+            <img src="logotip.jpg" alt="Логотип" class="logo">
+            <h1 class="bh1">BHS ➭ Главная</h1>
+        </div>
+        <button class="toggle-btn" aria-label="Toggle Navigation">&#9776;</button> <!-- Кнопка для открытия/закрытия навигации -->
+        <nav class="navigation">
+            <ul class="nav-list">
+                <li class="nav-item"><a href="index.html" class="nav-link">Главная</a></li>
+                <li class="nav-item"><a href="news.html" class="nav-link">Новости</a></li>
+                <li class="nav-item"><a href="staff.html" class="nav-link">Персонал</a></li>
+                <li class="nav-item"><a href="docs.html" class="nav-link">Документация</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <canvas id="snowCanvas"></canvas>
+
+    
+    <main>
+        <div class="agreement-container2">
+            <h1 class="unselectable">Политика конфиденциальности</h1>
+            <p class="unselectable"><strong>Дата вступления в силу: 8 Февраля 2025г.</strong></p>
+            <p class="unselectable">Добро пожаловать в BHStore! Мы ценим вашу конфиденциальность и стремимся защитить ваши персональные данные. Данная Политика конфиденциальности описывает, как мы собираем, используем и защищаем информацию, которую вы предоставляете при использовании нашего сайта.</p>
+        </div>
+    </main>
+
+
+    <main>
+        <div class="agreement-container">
+            <h1 class="unselectable">1. Сбор информации</h1>
+            <p class="unselectable">В BHStore мы не требуем от пользователей создания учетных записей и не собираем личную информацию, такую как имя, адрес электронной почты или номер телефона, при просмотре нашего сайта. Однако мы можем собирать анонимные данные о вашем посещении, такие как:</p>
+            <ul>
+                <li class="unselectable">IP-адрес</li>
+                <li class="unselectable">Тип браузера</li>
+                <li class="unselectable">Страницы, которые вы посещаете</li>
+                <li class="unselectable">Время и дата вашего посещения</li>
+                <li class="unselectable">Источник перехода</li>
+            </ul>
+            <p class="unselectable">Эти данные используются исключительно для анализа и улучшения работы нашего сайта.</p>
+        </div>
+    </main>
+
+
+    <main>
+        <div class="agreement-container">
+            <h1 class="unselectable">2. Использование информации</h1>
+            <p class="unselectable">Информация, которую мы собираем, может использоваться для:</p>
+            <ul>
+                <li class="unselectable">Улучшения качества обслуживания и пользовательского опыта</li>
+                <li class="unselectable">Анализа тенденций и поведения пользователей на сайте</li>
+                <li class="unselectable">Оптимизации контента и функциональности сайта</li>
+            </ul>
+        </div>
+    </main>
+
+
+
+    <main>
+        <div class="agreement-container">
+            <h1 class="unselectable">3. Защита информации</h1>
+            <p class="unselectable">Мы принимаем все необходимые меры для защиты ваших данных. Мы используем современные технологии и протоколы безопасности для предотвращения несанкционированного доступа, раскрытия, изменения или уничтожения ваших данных.</p>
+        </div>
+    </main>
+
+
+
+    <main>
+        <div class="agreement-container">
+            <h1 class="unselectable">4. Cookies</h1>
+            <p class="unselectable">Наш сайт может использовать файлы cookie для улучшения пользовательского опыта. Cookies — это небольшие текстовые файлы, которые сохраняются на вашем устройстве при посещении сайта. Вы можете настроить свой браузер на отказ от использования cookies или на уведомление вас о их использовании. Однако это может ограничить функциональность нашего сайта.</p>
+        </div>
+    </main>
+
+
+
+    <main>
+        <div class="agreement-container">
+            <h1 class="unselectable">5. Ссылки на другие сайты</h1>
+            <p class="unselectable">Наш сайт может содержать ссылки на сторонние ресурсы. Мы не несем ответственности за содержание и политику конфиденциальности этих сайтов. Рекомендуем вам ознакомиться с политиками конфиденциальности на каждом из ресурсов, которые вы посещаете.</p>
+        </div>
+    </main>
+
+
+
+    <main>
+        <div class="agreement-container">
+            <h1 class="unselectable">6. Изменения в Политике конфиденциальности</h1>
+            <p class="unselectable">Мы оставляем за собой право вносить изменения в данную Политику конфиденциальности. Все изменения будут опубликованы на этой странице, и мы рекомендуем периодически проверять эту страницу на предмет обновлений. Ваше дальнейшее использование сайта после внесения изменений будет означать ваше согласие с новой Политикой конфиденциальности.</p>
+        </div>
+    </main>
+
+
+
+    <main>
+        <div class="agreement-container">
+            <h1 class="unselectable">7. Контактная информация</h1>
+            <p class="unselectable">Если у вас есть вопросы или предложения относительно нашей Политики конфиденциальности, пожалуйста, свяжитесь с нами по электронной почте: [вставьте адрес электронной почты].</p>
+        
+            <p class="unselectable">Спасибо, что выбрали BHStore!</p>
+        </div>
+    </main>
+
+
+
+    <footer class="footer3">
+        <div class="footer-container3">
+            <div class="footer-links3">
+                <a href="privacy.html" class="hh disabled">Конфиденциальность</a>
+                <a href="agreement.html">Соглашение</a>
+            </div>
+            <p>&copy; 2024-2025 ➥ BORISONCHIK • Все права защищены</p>
+        </div>
+    </footer>
+
+    <script src="ss2.js"></script>
+    <script src="script.js"></script>
+    <script src="script2.js"></script>
+    <script src="snow.js"></script>
+    <script src="static.js"></script>
+    <script src="navig.js"></script>
+
+    <script>
+        const navToggle = document.getElementById('nav-toggle');
+        const navList = document.getElementById('nav-list');
+    
+        navToggle.addEventListener('click', () => {
+            navList.style.display = navList.style.display === 'block' ? 'none' : 'block';
+        });
+    
+        // Закрытие меню при клике вне его
+        window.addEventListener('click', (event) => {
+            if (!navToggle.contains(event.target) && !navList.contains(event.target)) {
+                navList.style.display = 'none';
+            }
+        });
+    </script>      
+
+</body>
+</html>

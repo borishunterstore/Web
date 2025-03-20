@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="navigation.css">
+    <link rel="stylesheet" href="statics.css">
+    <script src="protect.js" defer></script>
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>BHS ➭ Главная</title>
+</head>
+
+<style>
+.footer3 {
+    border-radius: 20px; /* Скругление углов на 10 пикселей */
+    margin-top: 20px; /* Отступ сверху на 10 пикселей */
+    position: Inherit; /* Фиксированное позиционирование */
+    bottom: 0; /* Привязываем футер к нижней части экрана */
+    left: 0; /* Привязываем футер к левой стороне */
+    right: 0; /* Привязываем футер к правой стороне */
+    color: #ffffff;
+    padding: 20px; /* Отступы внутри футера */
+    text-align: center; /* Выравнивание текста по центру */
+    height: 80px; /* Фиксированная высота футера */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для футера */
+    border-top: 2px solid rgba(255, 196, 68, 0.5); /* Верхняя граница */
+    background: rgba(0, 0, 0, 0.7); /* Полупрозрачный черный фон */
+    overflow: hidden; /* Скрыть переполнение */
+    backdrop-filter: blur(5px); /* Эффект размытия фона */
+}
+
+.footer3::before {
+    content: '';
+    position: absolute; /* Абсолютное позиционирование */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('fon2.jpg') no-repeat center center; /* Фоновое изображение */
+    background-size: cover; /* Масштабирование изображения */
+    opacity: 0.6; /* Прозрачность фона */
+    z-index: 0; /* Поместить под текстом */
+}
+
+.footer3 > * {
+    position: relative; /* Относительное позиционирование для текста */
+    z-index: 1; /* Поместить текст выше фона */
+}
+
+.footer3-container {
+    display: flex; /* Используем flexbox для выравнивания элементов */
+    flex-direction: column; /* Вертикальное выравнивание */
+    align-items: center; /* Центрирование по горизонтали */
+    justify-content: center; /* Центрирование по вертикали */
+    height: 100%; /* Занимаем всю высоту футера */
+}
+
+.footer3-links {
+    margin: 10px 0;
+}
+
+.footer3-links a {
+    color: #e5ff00;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.footer3-links a:hover {
+    text-decoration: underline;
+    color: #ffcc00;
+    transform: scale(1.1);
+}
+
+.footer3 p {
+    margin: 10px 0 0;
+    font-size: 0.9em;
+}
+
+.hh {
+    margin-right: 18px; /* Отступ направо на 10 пикселей */
+}
+
+
+/* Анимация появления */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Стили для контейнера кнопок в футере */
+.button-container {
+    margin-top: 10px; /* Отступ сверху от описания */
+}
+
+/* Описание кнопок */
+.button-description {
+    font-size: 18px;
+    color: #ffae00; /* Цвет текста */
+    margin-bottom: 10px; /* Отступ снизу от описания */
+}
+
+/* Стили для кнопок */
+.buttons {
+    display: flex;
+    justify-content: center; /* Центрирование кнопок */
+    gap: 15px; /* Отступ между кнопками */
+}
+
+/* Стили для кнопок */
+.button {
+    background-color: rgba(255, 174, 0, 0.8); /* Фоновый цвет кнопок */
+    color: #ffffff; /* Цвет текста кнопки */
+    padding: 10px 20px; /* Отступы внутри кнопки */
+    border: none; /* Убираем границу */
+    border-radius: 5px; /* Скругленные углы кнопок */
+    font-size: 16px; /* Размер шрифта */
+    cursor: pointer; /* Указатель при наведении */
+    transition: background-color 0.3s, transform 0.3s; /* Плавные переходы */
+}
+
+/* Эффекты при наведении на кнопки */
+.button:hover {
+    background-color: rgba(255, 174, 0, 1); /* Изменение фона при наведении */
+    transform: translateY(-3px); /* Подъем кнопки */
+}
+
+/* Стили для иконок в кнопках (если используются) */
+.button-icon {
+    margin-right: 8px; /* Отступ между иконкой и текстом */
+}
+
+/* Стили для социальных иконок */
+.social-icons {
+    margin-top: 20px; /* Отступ сверху для иконок */
+}
+
+.social-icons a {
+    color: #ffffff; /* Цвет иконок */
+    font-size: 24px; /* Размер иконок */
+    margin: 0 10px; /* Отступ между иконками */
+    transition: color 0.3s; /* Плавный переход цвета */
+}
+
+.social-icons a:hover {
+    color: rgba(255, 174, 0, 1); /* Цвет иконок при наведении */
+}
+
+/* Стили для текста в футере */
+.footer-text {
+    font-size: 14px; /* Размер шрифта для текста */
+    color: #ffffff; /* Цвет текста */
+    margin-top: 15px; /* Отступ сверху */
+}
+
+/* Стили для ссылки в футере */
+.footer-link {
+    color: rgba(255, 174, 0, 0.8); /* Цвет ссылки */
+    text-decoration: none; /* Убираем подчеркивание */
+}
+
+.footer-link:hover {
+    text-decoration: underline; /* Подчеркивание при наведении */
+}
+
+/* Стиль кнопок */
+.dynamic-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60px; /* Ширина кнопки */
+    height: 60px; /* Высота кнопки */
+    background-color: var(--primary-color);
+    border-radius: 50%; /* Круглая форма */
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s; /* Плавный переход */
+    box-shadow: var(--box-shadow);
+    overflow: hidden; /* Скрыть переполнение */
+}
+
+/* Эффект при наведении на кнопку */
+.dynamic-button:hover {
+    background-color: var(--hover-bg-color); /* Цвет фона при наведении */
+    transform: translateY(-3px); /* Легкий подъем при наведении */
+    box-shadow: 0 8px 30px rgba(0, 255, 204, 0.8); /* Увеличение тени при наведении */
+}
+
+/* Стили для изображений внутри кнопок */
+.dynamic-button img {
+    width: 40px; /* Ширина изображения */
+    height: 40px; /* Высота изображения */
+    object-fit: cover; /* Сохранение пропорций изображения */
+}
+
+/* Стили для ссылок в футере */
+.footer-links {
+    margin: 10px 0;
+    display: flex;
+    justify-content: center; /* Центрируем ссылки */
+}
+
+.footer-links a {
+    color: #ffae00;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: color 0.5s, transform 0.5s;
+    position: relative; /* Для анимации */
+}
+
+.footer-links a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: #ffae00;
+    left: 0;
+    bottom: -5px; /* Расположение под ссылкой */
+    transform: scaleX(0);
+    transition: transform 0.5s ease;
+}
+
+.footer-links a:hover {
+    color: #fff4c9;
+    transform: scale(1.1);
+}
+
+.footer-links a:hover::after {
+    transform: scaleX(1); /* Анимация появления подчеркивания */
+}
+
+.footer p {
+    margin: 10px 0 0;
+    font-size: 0.9em;
+    opacity: 0.8; /* Немного прозрачности для текста */
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+
+.scroll-button {
+    background-color: #007bff; /* Цвет фона кнопки */
+    color: white; /* Цвет текста */
+    border: none; /* Убираем рамку */
+    padding: 10px 20px; /* Отступы */
+    border-radius: 5px; /* Скругление углов */
+    cursor: pointer; /* Курсор в виде указателя */
+    transition: background-color 0.3s; /* Плавный переход цвета фона */
+}
+
+.scroll-button:hover {
+    background-color: #0056b3; /* Цвет фона при наведении */
+}
+
+.bh1 {
+   text-align: center;
+   font-size: 34px;
+   margin-bottom: 20px;
+}
+
+
+
+
+
+.statictic {
+    background: rgba(255, 255, 255, 0);
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0);
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+}
+
+.statictic-title {
+    text-align: center;
+    color: #ffffff;
+    font-size: 74px;
+    margin-bottom: 20px;
+}
+
+.statictic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.statictic-item {
+    background: #3b3b3b38;
+    border-radius: 10px;
+    padding: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.statictic-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.statictic-image {
+    width: 9%;
+    border-radius: 0px;
+    margin-bottom: 0px;
+}
+
+h3 {
+    color: #007bff;
+    margin-bottom: 10px;
+}
+
+.unselectable {
+    user-select: none;
+}
+
+.statictic-price, .statictic-purchases {
+    display: block;
+    margin-top: 5px;
+    font-weight: bold;
+    color: #e4e4e4;
+}
+
+@media (max-width: 600px) {
+    .statictic-grid {
+        grid-template-columns: 1fr; /* Один столбец на маленьких экранах */
+    }
+}
+
+
+</style>
+
+<body>
+    <div class="banner2">
+        <div class="logo-container">
+            <img src="logotip.jpg" alt="Логотип" class="logo">
+            <h1 class="bh1 textzagalovok">BHS ➭ Главная</h1>
+        </div>
+        <button class="toggle-btn" aria-label="Toggle Navigation">&#9776;</button> <!-- Кнопка для открытия/закрытия навигации -->
+        <nav class="navigation">
+            <ul class="nav-list">
+                <li class="nav-item"><a href="index.html" class="nav-link" class="disabled">Главная</a></li>
+                <li class="nav-item"><a href="news.html" class="nav-link">Новости</a></li>
+                <li class="nav-item"><a href="staff.html" class="nav-link">Персонал</a></li>
+                <li class="nav-item"><a href="docs.html" class="nav-link">Документация</a></li>
+            </ul>
+        </nav>
+    </div>
+    
+
+
+
+    
+
+
+    <section id="about" class="about">
+        <h2 class="statictic-title unselectable textzagalovok">О нас</h2>
+        <div class="about-content">
+            <img src="logotip.jpg" alt="Логотип" class="about-logo no-interaction">
+            <div class="text-content">
+                <p class="unselectable">Мы — команда профессионалов, мы не только профисионально настраиваем Discord сервера, но и делаем крутые сайты и у нас есть очень много других товаров.</p>
+                <p class="unselectable"><strong>Почему выбирают нас?</strong></p>
+                <ul>
+                    <li class="unselectable"><strong>Качество и скорость</strong> ➪ Оперативная работа с высокими стандартами.</li>
+                    <li class="unselectable"><strong>Положительные отзывы</strong> ➪ Наши клиенты ценят наш труд.</li>
+                    <li class="unselectable"><strong>Быстрая поддержка</strong> ➪ Оперативная помощь в решении вопросов.</li>
+                    <li class="unselectable"><strong>Бонусы и скидки</strong> ➪ Акции для наших клиентов.</li>
+                    <li class="unselectable"><strong>Удобный сайт</strong> ➪ Процесс заказа и общения максимально комфортен.</li>
+                </ul>
+                <p class="unselectable">Мы уверены, что сможем удовлетворить ваши ожидания. Свяжитесь с нами, и давайте сделаем ваш проект успешным вместе!</p>
+            </div>
+        </div>
+    </section>
+
+    
+    <div class="divider"></div>
+    <section id="products" class="products">
+        <h2 class="statictic-title unselectable textzagalovok">Товары</h2>
+        <div class="product-grid">
+            <div class="product-item hit">
+                <img src="avatar2.png" alt="Товар" class="product-image no-interaction">
+                <h3 class="unselectable">Создание аватарок</h3>
+                <p class="unselectable">Дизайн, и красивое изображение, Качество и многое другое...</p>
+                <span class="price unselectable">От 72₽</span>
+                <span class="purchases unselectable">Куплено 9 раз</span>
+                <a href="picture.html" class="product-link">Подробнее</a>
+            </div>
+            <div class="product-item">
+                <img src="srv2.png" alt="Товар" class="product-image no-interaction">
+                <h3 class="unselectable">Настраивание Discord</h3>
+                <p class="unselectable">Боты, Настройка сервера, Роли каналы категории, Права доступа, Роли, Текста, Дизайн.</p>
+                <span class="price unselectable">От 650₽</span>
+                <span class="purchases unselectable">Куплено 7 раз</span>
+                <a href="discord.html" class="product-link">Подробнее</a>
+            </div>
+            <div class="product-item">
+                <img src="mounting2.png" alt="Товар" class="product-image no-interaction">
+                <h3 class="unselectable">Создание монтажа</h3>
+                <p class="unselectable">Анимации, Профисиональное монтирование.</p>
+                <span class="price unselectable">От 210₽</span>
+                <span class="purchases unselectable">Куплено 1 раз</span>
+                <a href="mounting.html" class="product-link">Подробнее</a>
+            </div>
+            <div class="product-item">
+                <img src="preview2.png" alt="Товар" class="product-image no-interaction">
+                <h3 class="unselectable">Создание превью</h3>
+                <p class="unselectable">Дизайн, Изображение, и многое другое.</p>
+                <span class="price unselectable">От 82₽</span>
+                <span class="purchases unselectable">Куплено 1 раз</span>
+                <a href="preview.html" class="product-link">Подробнее</a>
+            </div>
+            <div class="product-item">
+                <img src="tg2.png" alt="Товар" class="product-image no-interaction">
+                <h3 class="unselectable">Создание Telegram бота</h3>
+                <p class="unselectable">Коды, Система, и многое другое.</p>
+                <span class="price unselectable">От 72₽</span>
+                <span class="purchases unselectable">Куплено 0 раз</span>
+                <a href="telegram.html" class="product-link">Подробнее</a>
+            </div>
+            <div class="product-item">
+                <img src="website2.png" alt="Товар" class="product-image no-interaction">
+                <h3 class="unselectable">Создание сайта</h3>
+                <p class="unselectable">Дизайн, Оформление, Текста, Изображения, Коды, Анимации.</p>
+                <span class="price unselectable">От 850₽</span>
+                <span class="purchases unselectable">Куплено 0 раз</span>
+                <a href="website.html" class="product-link">Подробнее</a>
+            </div>
+            <div class="product-item new">
+                <img src="minecraft2.png" alt="Товар" class="product-image no-interaction">
+                <h3 class="unselectable">Minecraft фишки</h3>
+                <p class="unselectable">Моды, Плагины, Коды.</p>
+                <span class="price unselectable">От 1.000₽</span>
+                <span class="purchases unselectable">Куплено 0 раз</span>
+                <a href="minecraft.html" class="product-link">Подробнее</a>
+            </div>
+            <div class="product-item soon">
+                <img src="roblox2.jpg" alt="Товар" class="product-image no-interaction">
+                <h3 class="unselectable">Roblox фишки</h3>
+                <p class="unselectable">Моды, Плагины, Коды.</p>
+                <span class="price unselectable">От 1.000₽</span>
+                <span class="purchases unselectable">Куплено 0 раз</span>
+                <a href="roblox.html" class="product-link">Подробнее</a>
+            </div>
+        </div>
+    </section>
+    
+
+
+    <section id="statictic" class="statictic">
+        <h2 class="statictic-title unselectable textzagalovok">Статистика</h2>
+        <div class="main-block">
+            <div class="side-block left">
+                <div class="profile">
+                    <img src="https://cdn-icons-png.flaticon.com/128/3914/3914367.png" alt="Profile Picture" class="profile-pic">
+                    <h2 class="nickname">Никнейм</h2>
+                    <p class="input-text">Введите что-то...</p>
+                </div>
+                <hr class="divider">
+                <div class="status">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F871391218393813032.gif%3Fv%3D1&w=64&q=75" alt="Offline Icon" class="status-icon">
+                    <p class="status-text">Оффлайн</p>
+                </div>
+            </div>
+            
+            <div class="side-block right">
+                <div class="profile">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F854459180898713652.png%3Fv%3D1&w=64&q=75" alt="Profile Picture" class="profile-pic">
+                    <h2 class="nickname">Никнейм</h2>
+                    <p class="input-text">Введите что-то...</p>
+                </div>
+                <hr class="divider">
+                <div class="status">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F871391218393813032.gif%3Fv%3D1&w=64&q=75" alt="Offline Icon" class="status-icon">
+                    <p class="status-text">Оффлайн</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    
+
+    
+    
+    
+
+
+
+
+
+    <section id="contact" class="contact">
+        <h2 class="statictic-title unselectable">Поддержка</h2>
+        <div class="social-links">
+            <a href="https://vk.com/fastvideo_zeny" class="social-button" target="_blank">
+                <img src="https://img.icons8.com/?size=64&id=43258&format=png" alt="VK" class="social-icon" target="_blank">
+            </a>
+            <a href="https://t.me/BorisHunterStore" class="social-button" target="_blank">
+                <img src="https://img.icons8.com/?size=64&id=103814&format=png" alt="Telegram" class="social-icon" target="_blank">
+            </a>
+        </div>
+    </section>    
+
+    <footer class="footer3">
+        <div class="footer-container3">
+            <div class="footer-links3">
+                <a href="privacy.html" class="hh">Конфиденциальность</a>
+                <a href="agreement.html">Соглашение</a>
+            </div>
+            <p>&copy; 2024-2025 ➥ BORISONCHIK • Все права защищены</p>
+        </div>
+    </footer>
+
+    <button class="scroll-to-top" id="scrollToTopBtn">&#8679;</button>
+
+    <script src="script.js"></script>
+    <script src="snow.js"></script>
+    <script src="static.js"></script>
+    <script src="navig.js"></script>
+
+
+    <script>
+document.getElementById('nav-toggle').addEventListener('click', function() {
+    const navList = document.getElementById('nav-list');
+    navList.classList.toggle('show'); // Переключаем класс для отображения/скрытия меню
+});
+
+
+
+        const navToggle = document.getElementById('nav-toggle');
+        const navList = document.getElementById('nav-list');
+    
+        navToggle.addEventListener('click', () => {
+            navList.style.display = navList.style.display === 'block' ? 'none' : 'block';
+        });
+    
+        // Закрытие меню при клике вне его
+        window.addEventListener('click', (event) => {
+            if (!navToggle.contains(event.target) && !navList.contains(event.target)) {
+                navList.style.display = 'none';
+            }
+        });
+
+
+
+
+        document.getElementById('scrollToProducts').addEventListener('click', function() {
+            const aboutSection = document.getElementById('products');
+            aboutSection.scrollIntoView({ behavior: 'smooth' });
+        });
+
+
+
+
+
+
+
+
+        const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+
+// Показать/скрыть кнопку в зависимости от прокрутки
+window.onscroll = function() {
+    if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+        scrollToTopBtn.classList.add('show');
+    } else {
+        scrollToTopBtn.classList.remove('show');
+    }
+};
+
+// Прокрутка вверх при нажатии на кнопку
+scrollToTopBtn.onclick = function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+    </script>
+</body>
+</html>

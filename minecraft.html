@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles2.css">
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>BHS ➭ Minecraft</title>
+    <style>
+
+        /* Общие стили для тела и фона */
+        body, html {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, rgba(10, 10, 30, 1) 0%, rgba(0, 0, 0, 1) 100%);
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Убираем прокрутку */
+        }
+
+        /* Стили для канваса снега (или звезд) */
+        #snowCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Чтобы не мешать взаимодействию с другими элементами */
+        }
+
+        /* Основные стили для основной части */
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+        }
+
+
+        /* Стили для баннера */
+        .banner {
+            background: rgba(28, 28, 28, 0.8);
+            padding: 15px;
+            text-align: center;
+            border-bottom: 2px solid #00ffcc;
+            animation: fadeIn 1s ease-in-out;
+            height: 80px;
+            box-shadow: 0 4px 10px rgba(0, 255, 204, 0.3);
+        }
+
+        .banner-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 100%;
+        }
+
+        /* Логотип */
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        /* Навигация */
+        .navigation {
+            position: relative;
+        }
+
+        .nav-list {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-item {
+            margin: 0 15px;
+            position: relative;
+        }
+
+        .nav-item a {
+            color: #ffae00;
+            text-decoration: none;
+            padding: 5px 0;
+            transition: color 0.3s, transform 0.3s;
+        }
+
+        .nav-item a:hover {
+            color: #00ffcc;
+            transform: scale(1.1);
+        }
+
+        .nav-item a::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: #00ffcc;
+            left: 0;
+            bottom: -5px;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-item a:hover::after {
+            transform: scaleX(1);
+        }
+
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+
+        
+
+
+.product-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    height: 65vh; /* Центрирование по вертикали */
+    perspective: 1000px; /* Для 3D эффектов */
+}
+
+/* Стили для карточки продукта */
+.product-card {
+    background: rgba(20, 20, 40, 0.9);
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    max-width: 350px;
+    transition: transform 0.4s, box-shadow 0.4s;
+    margin: 30px;
+    position: relative;
+    text-align: center;
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    animation: float 3s ease-in-out infinite; /* Анимация плавающего эффекта */
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.product-card:hover {
+    transform: scale(1.05) rotateY(5deg);
+    box-shadow: 0 30px 60px rgba(255, 255, 255, 0.3);
+}
+
+/* Анимация фона изображения */
+.product-image {
+    background-size: cover;
+    background-position: center;
+    height: 200px;
+    transition: transform 0.4s, opacity 0.4s;
+    position: relative;
+    overflow: hidden;
+}
+
+.product-card:hover .product-image {
+    transform: scale(1.1) rotate(2deg);
+    opacity: 0.9; /* Изменение прозрачности при наведении */
+}
+
+/* Заголовок и описание */
+.product-title {
+    font-size: 1.8em;
+    margin: 15px 0;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
+}
+
+.product-description {
+    font-size: 1em;
+    color: white;
+    padding: 0 15px;
+    margin: 0 0 8px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Стили для цены */
+.product-date {
+    font-size: 1.2em;
+    color: white;
+    margin: 10px 0;
+    padding: 5px 10px;
+    background-color: rgba(255, 0, 0, 0.7);
+    border-radius: 5px;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    transition: transform 0.3s, background-color 0.3s;
+    cursor: pointer;
+}
+
+.product-date:hover {
+    background-color: rgba(255, 0, 0, 1);
+    transform: scale(1.05);
+}
+
+.product-date:active {
+    transform: scale(0.95);
+}
+
+/* Кнопка */
+.product-button {
+    display: inline-block;
+    background: linear-gradient(90deg, rgba(154, 255, 46, 1) 0%, rgba(255, 225, 0, 1) 100%);
+    color: white;
+    font-size: 1.5em;
+    padding: 12px 24px;
+    margin: 20px 0;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+}
+
+.product-button:hover {
+    background: linear-gradient(90deg, rgba(255, 225, 0, 1) 0%, rgba(154, 255, 46, 1) 100%);
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+}
+
+.product-button:active {
+    transform: scale(0.95);
+}
+
+/* Звездный фон */
+.product-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('https://steamuserimages-a.akamaihd.net/ugc/978865225524143290/D90AC5929C692741F01CB14FC1FA352CE7C42708/?imw=512&amp;imh=297&amp;ima=fit&amp;impolicy=Letterbox&amp;imcolor=%23000000&amp;letterbox=true') repeat;
+    opacity: 0.1; /* Настройте прозрачность звездного фона */
+    z-index: 0; /* Задний план */
+}
+
+.product-card h2, .product-card p {
+    position: relative;
+    z-index: 1; /* Чтобы текст был на переднем плане */
+}
+
+/* Анимация пульсации для карточки */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.02);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.product-card:hover {
+    animation: pulse 1.5s infinite; /* Пульсация при наведении */
+}
+
+/* Звездные эффекты */
+@keyframes twinkling {
+    0%, 100% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+.product-image::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 20%, transparent 20%);
+    animation: twinkling 2s infinite alternate;
+    opacity: 0.5;
+    pointer-events: none; /* Чтобы не мешать взаимодействию с кнопками */
+}
+
+
+/* Стили для футера */
+.footer {
+    background: linear-gradient(135deg, rgb(13, 10, 41), rgb(48, 44, 99), rgb(35, 35, 62));
+    color: #ffffff;
+    padding: 20px;
+    text-align: center;
+    width: 100%;
+    animation: fadeIn 1s ease-in-out;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    border-top: 2px solid rgba(255, 174, 0, 0.5);
+    position: relative; /* Изменено с fixed на relative */
+    bottom: 0; /* Закрепление футера внизу контента */
+}
+
+/* Анимация появления */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.footer-links {
+    margin: 10px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.footer-links a {
+    color: #ffae00;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: color 0.5s, transform 0.5s;
+    position: relative;
+}
+
+.footer-links a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px; /* Добавлена точка с запятой */
+    background: #ffae00;
+    left: 0;
+    bottom: -5px;
+    transform: scaleX(0);
+    transition: transform 0.5s ease;
+}
+
+.footer-links a:hover {
+    color: #fff4c9;
+    transform: scale(1.1);
+}
+
+.footer-links a:hover::after {
+    transform: scaleX(1);
+}
+
+.footer p {
+    margin: 10px 0 0;
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+/* Стили для контейнера, чтобы футер всегда был внизу */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Заставляет тело занимать всю высоту */
+}
+
+.main-content {
+    flex: 1; /* Позволяет основному контенту занимать оставшееся пространство */
+}
+
+/* Адаптивные стили для карточек */
+@media (min-width: 768px) {
+    .product-card {
+        flex: 1 1 calc(25% - 40px); /* 4 карточки в строке с учетом отступов */
+    }
+}
+
+@media (max-width: 767px) {
+    .product-card {
+        flex: 1 1 calc(50% - 40px); /* 2 карточки в строке на мобильных устройствах */
+    }
+}
+
+@media (max-width: 480px) {
+    .product-card {
+        flex: 1 1 100%; /* 1 карточка в строке на маленьких экранах */
+    }
+}
+
+    </style>
+</head>
+<body>
+    
+    <header class="banner unselectable">
+        <div class="banner-content unselectable">
+            <div class="logo-container unselectable">
+                <img src="logotip.jpg" alt="Логотип" class="logo no-interaction">
+                <h1 class="unselectable">BHS ➭ Discord</h1>
+            </div>
+            <nav class="navigation">
+                <ul class="nav-list">
+                    <li class="nav-item"><a href="index.html">Главная страница</a></li>
+                    <li class="nav-item"><a href="news.html">Новости</a></li>
+                    <li class="nav-item"><a href="staff.html">Персонал</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <canvas id="snowCanvas"></canvas>
+    <div class="product-container">
+            <div class="product-card">
+                <div class="product-image" style="background-image: url('https://avatars.mds.yandex.net/i?id=236a9326d22aa36493889bc31f19cfa4c7bcd700-5450429-images-thumbs&n=13');"></div>
+                <div class="product-date">599₽</div>
+                <h2 class="product-title">Эмодзи в HD</h2>
+                <p class="product-description">Описание:</p>
+                <h2 class="product-description">...</h2>
+                <p class="product-description">В товар входит:</p>
+                <h2 class="product-description">1. Исходный код HD</h2>
+                <h2 class="product-description">2. Ресурс-Пак</h2>
+                <a href="#" class="product-button">Купить товар</a>
+            </div>
+        <div class="product-card">
+                <div class="product-image" style="background-image: url('https://avatars.mds.yandex.net/i?id=236a9326d22aa36493889bc31f19cfa4c7bcd700-5450429-images-thumbs&n=13');"></div>
+                <div class="product-date">599₽</div>
+                <h2 class="product-title">TabPremium</h2>
+                <p class="product-description">Описание:</p>
+                <h2 class="product-description">...</h2>
+                <p class="product-description">В товар входит:</p>
+                <h2 class="product-description">1. Исходный код TAB</h2>
+                <h2 class="product-description">2. Исходный код ScoreBoard</h2>
+                <h2 class="product-description">3. Исходный код для донатов</h2>
+                <a href="#" class="product-button">Купить товар</a>
+        </div>
+        <div class="product-card">
+                <div class="product-image" style="background-image: url('https://avatars.mds.yandex.net/i?id=5fd558abd2e51a8e701aa2e93b2758e808635b3e-12421548-images-thumbs&n=13');"></div>
+                <div class="product-date">299₽</div>
+                <h2 class="product-title">CMI</h2>
+                <p class="product-description">Установка, настройка плагина TabPremium в который входит - "Tab", "ScoreBoard".</p>
+                <a href="#" class="product-button">Купить товар</a>
+        </div>
+        <div class="product-card">
+                <div class="product-image" style="background-image: url('https://yandex-images.clstorage.net/9j6fh3d84/b4b2524lAxc/8MGdtP_bkwE49jEc_2Sa5pVr4kbUKWmXLLpu44E00mRhqXNwkL9v7VYQCsR68QGSf1BTxkPay7B3UWXwatJYGPDEzqYtHYUU6XDkHv-l2mHCOyYBwqh-0bwte7PWYsVlYKb9-I2iNbLMmwOPJ2PXxX7RgIBHnsXp8wSm8yrORlnzTZw-OgwcS_dmtVL8KNcgxitqiYmndZ0mqDI-wW2W-fjrc3TFLPf1QhnLBiRhXgK_Ww2aj98Lr2HAKHghCcCbsYLZ-rBJGUt6YHOauqVdKQei6kGKIbbfZ2c9vEDj2zU2a_Z6R6zws0UVhwgnKxGOcp3C1oOQguigTWcyJQRGmvTOEXJ6RpzFOCC2F_CpHahI5OqPDuN1mKHk_XYCrFD1NOlwfEnjObJDGYIJYeFXwvobw9_Pk0fnL8BkPCsOQVR6Rxx4tgyRjD4n_N9xadhqgqMqRgHi_59lL7p9je_UuH1ht7gHqXfzDhIGRKCtU0cyWwsQRV2Bqi_D6HugCoJY9E-Wtn5DnYy9bPSUMK_Qo8tp5QJL7X2R7CA6_MEvVHo3K3k1hWG4vwaTg8zg5RSAe5mPX4NVA2tjRCozYAHMWDBMHHlxzZgAeSbxVzruku3C4KpFR6P6lKEs_TwCpRl_ei0_Ow0s-j1A2wGEbaccDTrWz9nGWUulrwfvuqLMTZD0At86-cYdirGhvJl65Boji6Zux0RqtJ0sqXZ6RWBf8LFsNnPFZzN8zJpOSywlEYz-G42QjpbOqq6B4Tjvxs1asUxc_nVIVUz36T2UMCOWacch40lN6HqdLSOzdolp3jXxL7A6TCB6_ApQAMhlL13P-VAMUY_ZBuJqTqdyIkmHnLMBmby3iRiDeiE-FbUuVyyIaqKFgmL0H-hucXTIJVQ08uV_fUfuMfwC2EkJ4SDVB_6YSx_JHkwqocUgemcDDpt-Bpg2dYuSgjdkc1X24JrgxGTtBkHtdR8gb3o_hE');"></div>
+                <div class="product-date">199₽</div>
+                <h2 class="product-title">ACubelets</h2>
+                <p class="product-description">Установка, настройка плагина TabPremium в который входит - "Tab", "ScoreBoard".</p>
+                <a href="#" class="product-button">Купить товар</a>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="privacy.html">Политика конфиденциальности</a>
+            <a href="agreement.html">Пользовательское соглашение</a>
+        </div>
+        <p>&copy; 2024-2025 ➥ BORISONCHIK • Все права защищены</p>
+    </footer>
+
+
+    <script src="script.js"></script>
+    <script src="script2.js"></script>
+    <script src="snow.js"></script>
+    <script src="static.js"></script>
+    
+</body>
+</html>

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="navigation.css">
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>BHS ➭ Персонал</title>
+    <style>
+body, html {
+    font-family: 'Roboto', sans-serif; /* Устанавливаем шрифт Roboto */
+    background: 
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), /* Полупрозрачный черный цвет */
+        url('fon2.jpg'); /* Фоновое изображение */
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    width: 100%; /* Задаем ширину 100% */
+    height: 100%; /* Задаем высоту 100% */
+}
+
+        #snowCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+        }
+
+h1 {
+    font-family: 'Roboto', sans-serif; /* Устанавливаем шрифт Roboto */
+    font-size: 38px;
+    text-shadow: 1px 1px 2px rgba(18, 18, 18, 1);
+}
+
+        .news-container {
+            max-width: 900px;
+            margin: 25px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 35px;
+        }
+
+        .image-container {
+            position: fixed; /* Фиксируем изображение */
+            top: 90px; /* Отступ сверху */
+            right: 1200px; /* Отступ справа */
+            z-index: 0; /* Убедитесь, что изображение выше других элементов */
+        }
+
+        #image {
+            width: 950px; /* Ширина изображения */
+            height: auto; /* Автоматическая высота */
+        }
+
+.banner-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+}
+
+
+
+
+        
+:root {
+    --primary-color: #ff5233cc; /* Основной цвет */
+    --secondary-color: #c7c7c7; /* Цвет текста */
+    --bg-color: linear-gradient(to bottom, rgba(156, 156, 156, 0.363), rgba(70, 70, 70, 0.363)), url('fon2.jpg'); /* Градиент + изображение */
+    --hover-bg-color: rgba(210, 200, 221, 0.233); /* Цвет фона при наведении */
+    --box-shadow: 5px 7px 8px rgba(255, 174, 69, 0.76); /* Тень */
+}
+
+/* Стили для контейнера новостей */
+.news-container {
+    max-width: 900px;
+    margin: 25px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 35px;
+}
+
+/* Стили для отдельного элемента новости */
+.news-item {
+    background: var(--bg-color);
+    border-radius: 15px;
+    padding: 25px;
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+    animation: slideIn 0.5s ease forwards;
+    opacity: 0;
+    position: relative;
+    box-shadow: var(--box-shadow);
+    overflow: hidden; /* Скрыть переполнение */
+}
+
+/* Эффект при наведении на элемент новости */
+.news-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 40px rgba(255, 153, 85, 0.8);
+    background: var(--hover-bg-color);
+}
+
+/* Новый стиль для даты */
+@font-face {
+    font-family: 'Roblox Doors'; /* Название шрифта */
+    src: url('path/to/doors-font.ttf') format('truetype'); /* Укажите правильный путь к файлу шрифта */
+}
+
+.news-date {
+    background-color: var(--primary-color);
+    color: rgb(255, 255, 255);
+    padding: 5px 10px;
+    border-radius: 5px;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: 'Roboto', sans-serif; /* Применение шрифта Roboto */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Добавление тени для улучшения читаемости */
+}
+
+/* Стили для заголовка новости */
+.news-title {
+    font-size: 24px;
+    margin: 0 0 10px;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 1px; /* Межбуквенное расстояние */
+    font-family: 'Roblox Doors', sans-serif; /* Установка шрифта */
+}
+
+/* Стили для содержимого новости */
+.news-content {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--secondary-color);
+    font-family: 'Roblox Doors', sans-serif; /* Применение шрифта */
+}
+
+/* Стили для изображения новости */
+.news-image {
+    width: 5%;
+    height: auto;
+    border-radius: 0px;
+    margin-bottom: 0px;
+    transition: transform 0.3s; /* Плавный переход */
+}
+
+.news-image:hover {
+    transform: scale(1.05); /* Увеличение изображения при наведении */
+}
+
+/* Стиль должности - Разработчик */
+.dev-image {
+    width: 7%; /* Настройте ширину изображения */
+    height: auto; /* Автоматическая высота для сохранения пропорций */
+    position: absolute; /* Позволяет управлять положением изображения */
+    top: 33px; /* Настройте вертикальное положение (вверх/вниз) */
+    right: 565px; /* Настройте горизонтальное положение (влево/вправо) */
+    transition: transform 0.3s; /* Плавный переход */
+    z-index: 1; /* Убедитесь, что изображение находится выше других элементов */
+}
+
+.dev-image:hover {
+    transform: scale(1.05); /* Увеличение изображения при наведении */
+}
+
+/* Стиль должности - Менеджер */
+.help-image {
+    width: 7%; /* Настройте ширину изображения */
+    height: auto; /* Автоматическая высота для сохранения пропорций */
+    position: absolute; /* Позволяет управлять положением изображения */
+    top: 33px; /* Настройте вертикальное положение (вверх/вниз) */
+    right: 500px; /* Настройте горизонтальное положение (влево/вправо) */
+    transition: transform 0.3s; /* Плавный переход */
+    z-index: 1; /* Убедитесь, что изображение находится выше других элементов */
+}
+
+.help-image:hover {
+    transform: scale(1.05); /* Увеличение изображения при наведении */
+}
+/* Стили для заголовка новости */
+.news-title {
+    font-size: 24px;
+    margin: 0 0 10px;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 1px; /* Межбуквенное расстояние */
+}
+
+/* Стили для содержимого новости */
+.news-content {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--secondary-color);
+}
+
+/* Стили для изображения новости */
+.news-image {
+    width: 5%;
+    height: auto;
+    border-radius: -14px;
+    margin-bottom: -5px;
+    transition: transform 0.3s; /* Плавный переход */
+}
+
+.news-image:hover {
+    transform: scale(1.05); /* Увеличение изображения при наведении */
+}
+
+/* Стили для кнопки "Читать далее" */
+.read-more {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 15px;
+    background-color: var(--primary-color);
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    text-decoration: none;
+    transition: background-color 0.3s, transform 0.3s; /* Плавный переход */
+}
+
+.read-more:hover {
+    background-color: darken(var(--primary-color), 10%); /* Темнее при наведении */
+    transform: translateY(-2px); /* Легкий подъем при наведении */
+}
+
+/* Анимация появления */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Дополнительные медиа-запросы для адаптивности */
+@media (max-width: 600px) {
+    .news-title {
+        font-size: 20px; /* Уменьшение размера заголовка на мобильных устройствах */
+    }
+    .news-content {
+        font-size: 14px; /* Уменьшение размера текста на мобильных устройствах */
+    }
+    .read-more {
+        font-size: 14px; /* Уменьшение размера кнопки на мобильных устройствах */
+    }
+}
+
+
+
+
+
+
+/* Стили для контейнера кнопок */
+.button-container {
+    margin-top: 20px; /* Отступ сверху от описания */
+    text-align: center; /* Центрирование содержимого */
+}
+
+/* Описание кнопок */
+.button-description {
+    font-size: 18px;
+    color: var(--secondary-color);
+    margin-bottom: 15px; /* Отступ снизу от описания */
+}
+
+/* Стили для кнопок */
+.buttons {
+    display: flex;
+    justify-content: center; /* Центрирование кнопок */
+    gap: 15px; /* Отступ между кнопками */
+}
+
+/* Стиль кнопок */
+.dynamic-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60px; /* Ширина кнопки */
+    height: 60px; /* Высота кнопки */
+    background-color: var(--primary-color);
+    border-radius: 50%; /* Круглая форма */
+    transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s; /* Плавный переход */
+    box-shadow: var(--box-shadow);
+    overflow: hidden; /* Скрыть переполнение */
+}
+
+/* Эффект при наведении на кнопку */
+.dynamic-button:hover {
+    background-color: var(--hover-bg-color); /* Цвет фона при наведении */
+    transform: translateY(-3px); /* Легкий подъем при наведении */
+    box-shadow: 0 8px 30px rgba(255, 255, 255, 0); /* Увеличение тени при наведении */
+}
+
+/* Стили для изображений внутри кнопок */
+.dynamic-button-y img {
+    width: 70px; /* Ширина изображения */
+    height: 70px; /* Высота изображения */
+    object-fit: cover; /* Сохранение пропорций изображения */
+}
+
+/* Стили для изображений внутри кнопок */
+.dynamic-button-v img {
+    width: 70px; /* Ширина изображения */
+    height: 70px; /* Высота изображения */
+    object-fit: cover; /* Сохранение пропорций изображения */
+}
+
+/* Стили для изображений внутри кнопок */
+.dynamic-button-t img {
+    width: 70px; /* Ширина изображения */
+    height: 70px; /* Высота изображения */
+    object-fit: cover; /* Сохранение пропорций изображения */
+}
+
+/* Анимация появления кнопок */
+@keyframes buttonFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Применение анимации к кнопкам */
+.buttons a {
+    animation: buttonFadeIn 0.5s ease forwards;
+    opacity: 0; /* Начальная прозрачность */
+}
+
+
+
+
+
+.footer3 {
+    position: Inherit; /* Фиксированное позиционирование */
+    bottom: 0; /* Привязываем футер к нижней части экрана */
+    left: 0; /* Привязываем футер к левой стороне */
+    right: 0; /* Привязываем футер к правой стороне */
+    color: #ffffff;
+    padding: 20px; /* Отступы внутри футера */
+    text-align: center; /* Выравнивание текста по центру */
+    height: 80px; /* Фиксированная высота футера */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для футера */
+    border-top: 2px solid rgba(255, 196, 68, 0.5); /* Верхняя граница */
+    background: rgba(0, 0, 0, 0.7); /* Полупрозрачный черный фон */
+    overflow: hidden; /* Скрыть переполнение */
+    backdrop-filter: blur(5px); /* Эффект размытия фона */
+}
+
+.footer3::before {
+    content: '';
+    position: absolute; /* Абсолютное позиционирование */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('fon2.jpg') no-repeat center center; /* Фоновое изображение */
+    background-size: cover; /* Масштабирование изображения */
+    opacity: 0.6; /* Прозрачность фона */
+    z-index: 0; /* Поместить под текстом */
+}
+
+.footer3 > * {
+    position: relative; /* Относительное позиционирование для текста */
+    z-index: 1; /* Поместить текст выше фона */
+}
+
+.footer3-container {
+    display: flex; /* Используем flexbox для выравнивания элементов */
+    flex-direction: column; /* Вертикальное выравнивание */
+    align-items: center; /* Центрирование по горизонтали */
+    justify-content: center; /* Центрирование по вертикали */
+    height: 100%; /* Занимаем всю высоту футера */
+}
+
+.footer3-links {
+    margin: 10px 0;
+}
+
+.footer3-links a {
+    color: #e5ff00;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.footer3-links a:hover {
+    text-decoration: underline;
+    color: #ffcc00;
+    transform: scale(1.1);
+}
+
+.footer3 p {
+    margin: 10px 0 0;
+    font-size: 0.9em;
+}
+
+
+        /* Адаптивные стили */
+        @media (max-width: 768px) {
+            .nav-item {
+                display: block;
+                margin: 10px 0;
+            }
+
+            .news-container {
+                padding: 10px;
+            }
+
+            .news-item {
+                margin: 10px 0;
+            }
+        }
+
+
+        /* Анимации */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Адаптивные стили */
+        @media (max-width: 768px) {
+            .nav-item {
+                display: block;
+                margin: 10px 0;
+            }
+
+            .news-container {
+                padding: 10px;
+            }
+
+            .news-item {
+                margin: 10px 0;
+            }
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .bh1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        
+        .news-container {
+            max-width: 900px;
+            margin: 25px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 35px;
+        }
+
+        .image-container {
+            position: fixed; /* Фиксируем изображение */
+            top: 90px; /* Отступ сверху */
+            right: 1250px; /* Отступ справа */
+            z-index: 0; /* Убедитесь, что изображение выше других элементов */
+        }
+
+        #image {
+            width: 850px; /* Ширина изображения */
+            height: auto; /* Автоматическая высота */
+        }
+
+        .bh1 {
+            text-align: center;
+            font-size: 34px;
+            margin-bottom: 20px;
+        }
+
+
+        .hh {
+    margin-right: 18px; /* Отступ направо на 10 пикселей */
+}
+    </style>
+</head>
+<body>
+    <div class="banner2">
+        <div class="logo-container">
+            <img src="logotip.jpg" alt="Логотип" class="logo">
+            <h1 class="bh1 textzagalovok">BHS ➭ Персонал</h1>
+        </div>
+        <button class="toggle-btn" aria-label="Toggle Navigation">&#9776;</button> <!-- Кнопка для открытия/закрытия навигации -->
+        <nav class="navigation">
+            <ul class="nav-list">
+                <li class="nav-item"><a href="index.html" class="nav-link">Главная</a></li>
+                <li class="nav-item"><a href="news.html" class="nav-link">Новости</a></li>
+                <li class="nav-item"><a href="staff.html" class="nav-link" class="disabled">Персонал</a></li>
+                <li class="nav-item"><a href="docs.html" class="nav-link">Документация</a></li>
+            </ul>
+        </nav>
+    </div>
+
+<!--    <div class="image-container no-interaction">
+        <img src="fons.png" alt="" id="image" />
+    </div> --->
+
+    <div class="news-container unselectable">
+        <div class="news-item unselectable">
+            <div class="news-date unselectable">#1</div>
+            <h2 class="news-title"><img src="https://cdn3.emoji.gg/emojis/77451-stafficonids.png" alt="" class="dev-image no-interaction unselectable"></h2>
+            <h2 class="news-title"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F702493067667701870.png%3Fv%3D1&w=64&q=75" alt="" class="news-image no-interaction unselectable"> Borisonchik</h2>
+            <p class="news-content unselectable">Главный человек в компании</p>
+            <div class="button-container">
+                    <div class="buttons">
+                        <a href="https://www.youtube.com/@BorisonchikOfficial" class="dynamic-button-y" target="_blank">
+                            <img src="https://img.icons8.com/?size=64&id=JWGSSssbEjaA&format=png" alt="YouTube" />
+                        </a>
+                        <a href="https://vk.com/barisonchikofficial" class="dynamic-button-v" target="_blank">
+                            <img src="https://img.icons8.com/?size=64&id=43258&format=png" alt="VK" />
+                        </a>
+                        <a href="https://t.me/BarisonchikOfficial" class="dynamic-button-t" target="_blank">
+                            <img src="https://img.icons8.com/?size=64&id=103814&format=png" alt="Telegram" />
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        <div class="news-item">
+            <div class="news-date unselectable">#2</div>
+            <h2 class="news-title"><img src="https://cdn3.emoji.gg/emojis/11276-stafficonids.png" alt="" class="help-image no-interaction unselectable"></h2>
+            <h2 class="news-title"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1003264416860602439.png%3Fv%3D1&w=64&q=75" alt="" class="news-image no-interaction unselectable"> Panda Play Game</h2>
+            <p class="news-content unselectable">Помощник компании</p>
+            <div class="button-container">
+                <div class="buttons">
+                    <a href="https://www.youtube.com/@playgame703" class="dynamic-button-y" target="_blank">
+                        <img src="https://img.icons8.com/?size=64&id=JWGSSssbEjaA&format=png" alt="YouTube" />
+                    </a>
+                    <a href="https://vk.com/id596694068" class="dynamic-button-v" target="_blank">
+                        <img src="https://img.icons8.com/?size=64&id=43258&format=png" alt="VK" />
+                    </a>
+                    <a href="https://t.me/panda_playgame1" class="dynamic-button-t" target="_blank">
+                        <img src="https://img.icons8.com/?size=64&id=103814&format=png" alt="Telegram" />
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer3">
+            <div class="footer-container3">
+                <div class="footer-links3">
+                    <a href="privacy.html" class="hh">Конфиденциальность</a>
+                    <a href="agreement.html">Соглашение</a>
+                </div>
+                <p>&copy; 2024-2025 ➥ BORISONCHIK • Все права защищены</p>
+            </div>
+        </footer>
+        
+
+        <script src="navig.js"></script>
+        <script src="static.js"></script>
+
+    <script>
+        const navToggle = document.getElementById('nav-toggle');
+        const navList = document.getElementById('nav-list');
+    
+        navToggle.addEventListener('click', () => {
+            navList.style.display = navList.style.display === 'block' ? 'none' : 'block';
+        });
+    
+        // Закрытие меню при клике вне его
+        window.addEventListener('click', (event) => {
+            if (!navToggle.contains(event.target) && !navList.contains(event.target)) {
+                navList.style.display = 'none';
+            }
+        });
+    </script>    
+</body>
+</html>
