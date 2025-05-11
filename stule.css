@@ -1,0 +1,403 @@
+body, html {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+#snowCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+main {
+    position: relative;
+    z-index: 1;
+    padding: 20px;
+}
+
+.banner {
+    cursor: context-menu;
+    background: linear-gradient(to bottom, rgba(18, 18, 18, 0.5), rgba(18, 18, 18, 1)), url('banner.png'); /* Изображение для ПК */
+    background-size: cover; /* Заполняет весь баннер, сохраняя пропорции */
+    background-position: center; /* Центрируем изображение */
+    height: 19.9vh; /* Высота баннера */
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    position: relative; /* Для размещения кнопки */
+    color: white; /* Цвет текста */
+}
+
+/* Для мобильных устройств */
+@media (max-width: 768px) {
+    .banner {
+        background: linear-gradient(to bottom, rgba(18, 18, 18, 0.5), rgba(18, 18, 18, 1)), url('banner-m.png'); /* Изображение для мобильных */
+        background-size: contain; /* Изображение полностью помещается в баннер */
+        height: 25vh; /* Увеличиваем высоту для мобильных */
+        padding: 0 10px; /* Уменьшаем отступы */
+    }
+}
+
+@media (max-width: 480px) {
+    .banner {
+        height: 30vh; /* Еще больше высота для маленьких экранов */
+        padding: 0 5px; /* Уменьшаем отступы */
+    }
+
+    .banner h1, .banner p {
+        font-size: 1.5em; /* Увеличиваем размер шрифта */
+    }
+}
+
+/* Логотип */
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+    border-radius: 50%; /* Делаем логотип круглым */
+    object-fit: cover; /* Сохраняем пропорции изображения */
+}
+
+h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 38px;
+    text-shadow: 1px 1px 2px rgba(18, 18, 18, 1);
+}
+
+/* Навигация */
+.navigation {
+    margin: 20px;
+    position: relative;
+}
+
+.nav-toggle {
+    cursor: pointer;
+    width: 50px;
+    height: auto;
+    transition: transform 0.3s;
+}
+
+.nav-toggle:hover {
+    transform: scale(1.1);
+}
+
+.nav-list {
+    display: none; /* Скрыть список по умолчанию */
+    list-style-type: none; /* Убрать маркеры списка */
+    padding: 0; /* Убрать отступы */
+    margin: 0; /* Убрать отступы */
+    position: absolute; /* Позволяет позиционировать меню */
+    top: 0; /* Выравнивание по верхней части триггера */
+    right: 100%; /* Позиционируем меню слева от триггера */
+    background: #333; /* Фон меню */
+    border-radius: 5px; /* Закругление углов */
+    z-index: 10; /* Чтобы меню было поверх других элементов */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Тень для меню */
+    animation: fadeIn 0.3s; /* Анимация появления */
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px); /* Сдвиг вверх при появлении */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0); /* Восстановление позиции */
+    }
+}
+
+.nav-item {
+    margin: 5px 0; /* Отступы между элементами списка */
+}
+
+.nav-item a {
+    color: #ffffff;
+    text-decoration: none;
+    padding: 10px 15px; /* Отступы вокруг текста */
+    display: block; /* Чтобы вся область была кликабельной */
+    transition: background 0.3s, color 0.3s; /* Плавный переход цвета фона и текста */
+}
+
+.nav-item a:hover {
+    background: #ffab00; /* Фон при наведении */
+    color: #333; /* Цвет текста при наведении */
+    border-radius: 5px; /* Закругление углов при наведении */
+}
+
+/* Дополнительные стили для активного пункта меню */
+.nav-item a.active {
+    background: #ffab00; /* Фон для активного пункта */
+    color: #333; /* Цвет текста для активного пункта */
+    font-weight: bold; /* Жирный шрифт для активного пункта */
+}
+
+/* Анимации */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+    .nav-item {
+        display: block;
+        margin: 10px 0;
+    }
+
+    .news-container {
+        padding: 10px;
+    }
+
+    .news-item {
+        margin: 10px 0;
+    }
+}
+
+.agreement-container {
+    background: rgba(0, 0, 0, 0.5); /* Полупрозрачный черный фон */
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.5s forwards;
+    backdrop-filter: blur(10px); /* Эффект размытия фона */
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 20px;
+    margin-top: 20px;
+}
+
+h3 {
+    font-size: 20px;
+    margin-top: 20px;
+}
+
+p, li {
+    line-height: 1.6;
+}
+
+ul {
+    margin: 10px 0 20px 20px;
+}
+
+@media (max-width: 600px) {
+    .agreement-container {
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 20px;
+    }
+
+    h2 {
+        font-size: 18px;
+    }
+}
+
+/* Стили для футера с динамическим эффектом */
+.footer {
+    background: rgba(0, 0, 0, 0.8);
+    color: #ffffff;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.footer-links {
+    margin: 10px 0;
+}
+
+.footer-links a {
+    color: #00ffcc;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.footer-links a:hover {
+    text-decoration: underline;
+    color: #ffcc00;
+    transform: scale(1.1);
+}
+
+.footer p {
+    margin: 10px 0 0;
+    font-size: 0.9em;
+}
+
+/* Дополнительные стили для кнопок */
+.button {
+    background: #ffab00; /* Цвет фона кнопки */
+    color: #333; /* Цвет текста кнопки */
+    padding: 10px 20px; /* Отступы внутри кнопки */
+    border: none; /* Убрать рамку */
+    border-radius: 5px; /* Закругление углов */
+    cursor: pointer; /* Изменение курсора при наведении */
+    transition: background 0.3s; /* Плавный переход цвета фона */
+}
+
+.button:hover {
+    background: #ffd700; /* Цвет фона кнопки при наведении */
+}
+
+/* Стили для форм */
+form {
+    margin: 20px 0;
+}
+
+input[type="text"],
+input[type="email"],
+textarea {
+    width: 100%; /* Занять всю ширину контейнера */
+    padding: 10px; /* Отступы внутри полей ввода */
+    border: 1px solid #ccc; /* Рамка поля ввода */
+    border-radius: 5px; /* Закругление углов */
+    margin-bottom: 10px; /* Отступ снизу */
+}
+
+input[type="submit"] {
+    background: #ffab00; /* Цвет фона кнопки отправки */
+    color: #333; /* Цвет текста кнопки отправки */
+    border: none; /* Убрать рамку */
+    border-radius: 5px; /* Закругление углов */
+    cursor: pointer; /* Изменение курсора при наведении */
+    padding: 10px 15px; /* Отступы внутри кнопки */
+    transition: background 0.3s; /* Плавный переход цвета фона */
+}
+
+input[type="submit"]:hover {
+    background: #ffd700; /* Цвет фона кнопки отправки при наведении */
+}
+
+/* Стили для карточек */
+.card {
+    background: #fff; /* Белый фон карточки */
+    border-radius: 8px; /* Закругление углов */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Тень для карточки */
+    padding: 20px; /* Отступы внутри карточки */
+    margin: 15px 0; /* Отступы между карточками */
+    transition: transform 0.3s; /* Плавный переход при наведении */
+}
+
+.card:hover {
+    transform: translateY(-5px); /* Подъем карточки при наведении */
+}
+
+/* Стили для сообщений об ошибках */
+.error-message {
+    background: #ffcccc; /* Светло-красный фон для ошибок */
+    color: #d8000c; /* Темно-красный цвет текста */
+    border: 1px solid #d8000c; /* Рамка для сообщения об ошибке */
+    border-radius: 5px; /* Закругление углов */
+    padding: 10px; /* Отступы внутри */
+    margin: 10px 0; /* Отступы сверху и снизу */
+}
+
+/* Стили для уведомлений */
+.success-message {
+    background: #ccffcc; /* Светло-зеленый фон для успеха */
+    color: #4caf50; /* Зеленый цвет текста */
+    border: 1px solid #4caf50; /* Рамка для сообщения об успехе */
+    border-radius: 5px; /* Закругление углов */
+    padding: 10px; /* Отступы внутри */
+    margin: 10px 0; /* Отступы сверху и снизу */
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 768px) {
+    .card {
+        margin: 10px 0; /* Уменьшение отступов для мобильных */
+        padding: 15px; /* Уменьшение отступов внутри карточки */
+    }
+
+    .footer {
+        text-align: center; /* Центрирование текста в футере на мобильных */
+    }
+
+    .footer-links {
+        display: flex;
+        flex-direction: column; /* Вертикальное расположение ссылок */
+        align-items: center; /* Центрирование по горизонтали */
+    }
+}
+
+/* Стили для загрузчика */
+.loader {
+    border: 4px solid #f3f3f3; /* Светлый фон */
+    border-top: 4px solid #ffab00; /* Цвет верхней части */
+    border-radius: 50%; /* Круглая форма */
+    width: 40px; /* Ширина загрузчика */
+    height: 40px; /* Высота загрузчика */
+    animation: spin 1s linear infinite; /* Анимация вращения */
+    margin: auto; /* Центрирование загрузчика */
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Стили для кнопок с иконками */
+.button-icon {
+    display: flex;
+    align-items: center; /* Вертикальное выравнивание иконки и текста */
+}
+
+.button-icon img {
+    margin-right: 8px; /* Отступ между иконкой и текстом */
+    width: 20px; /* Ширина иконки */
+    height: 20px; /* Высота иконки */
+}
+
+
+
+
+
+.no-interaction {
+    pointer-events: none; /* Отключает все взаимодействия с элементом */
+    user-select: none; /* Запрещает выделение текста/изображения */
+}
+
+.disabled {
+    pointer-events: none; /* Отключает взаимодействие с элементом */
+    color: gray; /* Цвет текста, чтобы показать, что ссылка неактивна */
+    text-decoration: none; /* Убирает подчеркивание */
+    cursor: default; /* Изменяет курсор на стандартный, чтобы показать, что элемент не кликабельный */
+}

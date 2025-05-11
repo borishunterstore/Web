@@ -1,0 +1,106 @@
+* {
+    box-sizing: border-box;
+}
+
+.main-block {
+    display: flex;
+    background: rgba(30, 30, 60, 0.8);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+    overflow: hidden;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.side-block {
+    flex: 1;
+    background: linear-gradient(165deg, #21fff4, #21b9ff, #216fff);
+    padding: 20px;
+    border-radius: 20px;
+    margin: 10px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+
+.side-block:hover {
+    transform: scale(1.05);
+}
+
+.profile {
+    margin-bottom: 70px;
+    position: relative;
+}
+
+.profile-pic {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 3px solid #ff8656;
+    transition: transform 0.3s;
+}
+
+.profile-pic:hover {
+    transform: rotate(15deg);
+}
+
+.nickname {
+    font-size: 1.5em;
+    margin: 10px 0;
+}
+
+.input-text {
+    font-size: 0.9em;
+    color: #cccccc;
+}
+
+.divider {
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    margin: 10px 0;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.status-icon {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+    transition: transform 0.3s;
+}
+
+.status-icon:hover {
+    transform: scale(1.2);
+}
+
+.status-text {
+    font-size: 1.2em;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.status-icon {
+    animation: pulse 2s infinite;
+}

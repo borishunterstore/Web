@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;700&display=swap" rel="stylesheet">
+    <title>Ошибка 404 - BHSTORE</title>
+<style>
+@font-face {
+    font-family: 'MyCustomFont'; /* Укажите имя шрифта */
+    src: url('Doors\ Cyrillic\ Font.ttf') format('truetype'); /* Укажите правильный путь к файлу шрифта */
+    font-weight: normal;
+    font-style: normal;
+}
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('banner.png'); /* Замените на свой фон */
+            background-size: cover;
+            filter: blur(8px);
+            z-index: -1;
+            animation: backgroundAnimation 15s ease infinite;
+        }
+
+        @keyframes backgroundAnimation {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        .container {
+            background-color: rgba(20, 20, 20, 0.9);
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        .container:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 60px rgba(255, 255, 255, 0.2);
+        }
+
+        .error-title {
+            font-size: 72px;
+            margin-bottom: 20px;
+            text-shadow: 
+                -1px -1px #ff0000,
+                -1px 1px #ff9029,
+                1px -1px #ffb13b,
+                1px 1px #ffc954,
+                -2px -2px #ecff3d,
+                -2px 2px #48ff57,
+                2px -2px #47ffda,
+                2px 2px #4cccff; 
+        }
+
+        .error-message {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        .company-name {
+            font-size: 36px;
+            font-weight: bold;
+            color: #00ffcc; /* Цвет для названия компании */
+            margin-bottom: 20px;
+        }
+
+        .back-button {
+            display: inline-block;
+            padding: 15px 30px;
+            font-size: 18px;
+            color: #ffffff;
+            background-color: #ff007f; /* Яркая кнопка */
+            border-radius: 5px;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+            transition:
+                background-color 0.3s ease,
+                transform 0.3s ease-in-out,
+                box-shadow 0.3s ease-in-out; 
+        }
+
+        .back-button:hover {
+            background-color: #00ffcc; /* Цвет при наведении */
+            box-shadow:
+                inset -4px -4px rgba(255, 255, 255, 0.5),
+                inset -4px -4px rgba(255, 255, 255, 0.5),
+                inset -4px -4px rgba(255, 255, 255, 0.5),
+                inset -4px -4px rgba(255,             255, 255, 0.5);
+            transform: translateY(-3px);
+        }
+
+        .back-button::after {
+            content: "";
+            position: absolute; 
+            top: -10%; 
+            left: -10%; 
+            right: -10%; 
+            bottom: -10%; 
+            z-index: -1; 
+            border-radius: .25em; 
+            background: #00ffcc; 
+            filter: hue-rotate(-30deg); 
+            transition: .5s; 
+            opacity: .7; 
+        }
+
+        .back-button:hover::after { 
+            opacity: .9; 
+        }
+
+        .suggestions {
+            margin-top: 30px;
+            font-size: 18px;
+            color: #ffffff;
+        }
+
+        .suggestion-item {
+            margin: 10px 0;
+            text-decoration: none;
+            color: #00ffcc;
+            transition: color 0.3s ease;
+        }
+
+        .suggestion-item:hover {
+            color: #ff007f;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: .9; }
+            50% { opacity: .6; }
+        }
+
+        h1.glitch {
+            position: relative; 
+            animation: flicker .15s infinite alternate-reverse; 
+            text-shadow:
+                rgb(255, 7, 127)   .05em   .05em   .05em,
+                rgb(7, 255, 204)   -.05em   -.05em   .05em,
+                rgb(7, 204, 255)   -.05em   -.05em   .05em;
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-size: 14px;
+            color: #ffffff;
+        }
+</style>
+
+</head>
+<body>
+    <div class="background"></div>
+    <div class="container">
+        <h1 class="error-title glitch">Ошибка <span style="color:#00ffcc;">404</span></h1>
+        <p class="error-message">Страница не найдена</p>
+        <p class="company-name">BHSTORE</p>
+        <a href="/" class="back-button">Вернуться на главную</a>
+<style>
+            :root {
+                --button-padding: 3px 6px;
+                --button-font-size: 12px;
+                --button-border-radius: 10px;
+            }
+            
+            .message-button1 {
+                display: inline-block;
+                margin: 1px auto;
+                padding: var(--button-padding);
+                color: #ffffff;
+                border: none;
+                border-radius: var(--button-border-radius);
+                font-size: var(--button-font-size);
+                text-align: center;
+                text-decoration: none;
+                transition: background 0.5s ease, transform 0.2s ease, box-shadow 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .iconbs {
+                vertical-align: middle;
+                margin-right: 3px;
+                width: 36px;
+                height: 36px;
+            }
+            
+            .message-button {
+                display: inline-block;
+                margin: 20px auto;
+                padding: 15px 30px;
+                background: linear-gradient(135deg, #7d7f80, #636162);
+                color: #ffffff;
+                border: none;
+                border-radius: 50px;
+                font-size: 18px;
+                text-align: center;
+                text-decoration: none;
+                box-shadow: 0 4px 15px rgba(255, 190, 153, 0.7);
+                transition: background 0.5s ease, transform 0.2s ease, box-shadow 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .message-button:before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 300%;
+                height: 300%;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 50%;
+                transform: translate(-50%, -50%) scale(0);
+                transition: transform 0.5s ease;
+                z-index: 0;
+            }
+            
+            .message-button:hover:before {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            
+            .message-button:hover {
+                background: linear-gradient(135deg, #636162, #7d7f80);
+                transform: translateY(-5px);
+                box-shadow: 0 8px 30px rgba(255, 190, 153, 0.7);
+            }
+            
+            .message-button:active {
+                transform: translateY(2px);
+                box-shadow: 0 4px 15px rgba(255, 163, 42, 0.5);
+            }
+            
+            
+            @media (max-width: 768px) {
+                .message-button {
+                    padding: 12px 24px;
+                    font-size: 16px;
+                }
+            }
+            
+            .product-details {
+                max-height: 0;
+                opacity: 0;
+                overflow: hidden;
+                transition: max-height 0.5s ease, opacity 0.5s ease;
+            }
+            
+            .product-details.visible {
+                max-height: 200px;
+                opacity: 1;
+            }
+            
+            .arrow {
+                cursor: pointer;
+                transition: transform 0.3s ease;
+            }
+            
+            .arrow.rotated {
+                transform: rotate(180deg);
+            }
+            
+            .statictic-title2 {
+                text-align: center;
+                color: #ffffff;
+            }
+</style>
+<style>
+                .textzagalovokk1 {
+                    font-family: 'MyCustomFont', sans-serif;
+                    letter-spacing: 5px;
+                    margin: 0;
+                    padding: 0;
+                    text-shadow: 
+                        -1px -1px 0 #000,  
+                         1px -1px 0 #000,
+                        -1px  1px 0 #000,
+                         1px  1px 0 #000;
+                    color: #fff;
+                    font-size: 73px;
+                    text-align: center;
+                    border-radius: 10px;
+                }
+        
+                .textzagalovokk2 {
+                    font-family: 'MyCustomFont', sans-serif;
+                    letter-spacing: 5px;
+                    margin: 0;
+                    padding: 0;
+                    text-shadow: 
+                        -1px -1px 0 #000,  
+                         1px -1px 0 #000,
+                        -1px  1px 0 #000,
+                         1px  1px 0 #000;
+                    color: #fff;
+                    font-size: 53px;
+                    text-align: center;
+                    border-radius: 10px;
+                }
+        
+                .textzagalovokk3 {
+                    font-family: 'MyCustomFont', sans-serif;
+                    letter-spacing: 5px;
+                    margin: 0;
+                    padding: 0;
+                    text-shadow: 
+                        -1px -1px 0 #000,  
+                         1px -1px 0 #000,
+                        -1px  1px 0 #000,
+                         1px  1px 0 #000;
+                    color: #fff;
+                    font-size: 33px;
+                    text-align: center;
+                    border-radius: 10px;
+                }
+        
+                .textzagalovokk4 {
+                    font-family: 'MyCustomFont', sans-serif;
+                    letter-spacing: 5px;
+                    margin: 0;
+                    padding: 0;
+                    text-shadow: 
+                        -1px -1px 0 #000,  
+                         1px -1px 0 #000,
+                        -1px  1px 0 #000,
+                         1px  1px 0 #000;
+                    color: #fff;
+                    text-align: center;
+                    border-radius: 10px;
+                }
+</style>
+<style>
+    /* Основные стили для футера */
+    .footer {
+        position: relative;
+        padding: 0;
+        overflow: hidden;
+        text-align: center;
+        perspective: 100px;
+        transform: translateY(100%);
+        animation: slideIn 0.5s forwards;
+    }
+
+    .footer-content {
+        max-width: 20px; /* Увеличиваем ширину для лучшего отображения */
+        margin: 0 auto; /* Центрируем содержимое */
+    }
+
+    .footer-title {
+        font-size: 3.5rem;
+        margin-bottom: 10px;
+        text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+    }
+
+    .footer-title2,
+    .footer-title3 {
+        text-shadow: 0 0 50px rgba(255, 144, 18, 0.8);
+    }
+
+    .footer-description {
+    font-size: 0.95rem;
+    margin-bottom: 0px;
+    color: #ccc;
+    word-break: keep-all; /* Предотвращает разбиение слов */
+}
+
+    .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0;
+    }
+
+    .footer-links li {
+        display: inline; /* Горизонтальное отображение ссылок */
+        margin: 0 15px;
+    }
+
+    .footer-links a {
+        color: #ffa24c;
+        text-decoration: none;
+        transition: color 0.3s, transform 0.3s; /* Плавный переход при наведении */
+    }
+
+    .footer-links a:hover {
+        color: #ff7d31; /* Цвет при наведении */
+        transform: scale(1.1) rotateY(10deg); /* Эффект при наведении */
+    }
+
+    .footer-bottom {
+        margin-top: 20px;
+        font-size: 0.9rem;
+        color: #ccc;
+    }
+
+    .social-links {
+        margin-top: 10px; /* Отступ сверху для социальных ссылок */
+    }
+
+    .social-icon {
+        margin: 0 5px; /* Отступы между иконками */
+        color: #fff; 
+        text-decoration: none; 
+        transition: color 0.3s, transform 0.3s; 
+        font-size: 1.5rem; 
+    }
+
+    .social-icon:hover {
+       color: #00ffcc; 
+       transform: scale(1.1); 
+   }
+
+   /* Анимации */
+   @keyframes slideIn {
+       from { transform: translateY(100%); }
+       to { transform: translateY(0); }
+   }
+
+   @keyframes twinkle {
+      from, to { opacity: 0.5; }
+      50% { opacity: 1; }
+   }
+
+   /* Звезды и планеты */
+   .stars,
+   .planets,
+   .comets {
+       position:absolute; 
+       width:100%; 
+       height:100%; 
+       z-index:-1; 
+   }
+   
+   .stars {
+       background:url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1006683100153131069.png%3Fv%3D1&w=64&q=75') repeat; 
+       animation: twinkle 10s infinite; 
+   }
+   
+   .planets {
+       background:url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1040126355662184508.gif%3Fv%3D1&w=64&q=75') no-repeat center center / contain; 
+       animation: @rotate{30s infinite linear}; 
+   }
+   
+   @keyframes rotate { from { transform : rotate(0deg); } to { transform : rotate(360deg); } }
+   
+   .comets {
+       background:url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1305930171055996928.gif%3Fv%3D1&w=64&q=75') no-repeat center center / contain; 
+       animation: @comet{15s infinite linear}; 
+   }
+   
+   @keyframes comet { 
+      from { transform : translateX(-100%) translateY(-50%) ; opacity :1 ; } 
+      to { transform : translateX(100%) translateY(-50%) ; opacity :0 ; } 
+   }
+
+   /* Медиа-запросы для адаптивности */
+   @media (max-width :768px) {
+      .footer { padding :30px10px ; }  
+      .footer-title { font-size :2rem ; }  
+      .footer-description { font-size :0.9rem ; }  
+      .footer-links { margin :10px0 ; }  
+      .footer-links li { display:block ; margin :10px0 ; }  
+      .footer-bottom { font-size :0.8rem ; }  
+      .social-icon { font-size :1.2rem ; }  
+   }
+   
+   @media (max-width :480px) {
+      .footer-title { font-size :1.5rem ; }  
+      .footer-description { font-size :0.8rem ; }  
+      .footer-links a { font-size :0.9rem ; }  
+   }
+</style>
+
+            <footer class="footer unselectable">
+                <div class="footer-content">
+                    <div class="logo">
+                        <p><svg fill="#FE3635" url="logotip.jpg" viewBox="0 0 97.89 97.32"> </svg></p>
+                    </div>
+                    <h2 class="footer-title textzagalovokk3">BHStore</h2>
+                    <p class="footer-description textzagalovokk3">Спасибо, ч то выбираете нас!</p>
+                    <ul class="footer-links">
+                        <li><a href="index.html" class="hover-link disabled2">Главная</a></li>
+                        <li><a href="news.html" class="hover-link">Новости</a></li>
+                        <li><a href="staff.html" class="hover-link">Персонал</a></li>
+                        <li><a href="docs.html" class="hover-link">Документация</a></li>
+                        <li><a href="agreement.html" class="hover-link">Соглашение</a></li>
+                        <li><a href="privacy.html" class="hover-link">Конфидициальность</a></li>
+                    </ul>
+                </div>
+                <div class="footer-bottom textzagalovokk3">
+                    <p>&copy; 2024 — 2025 ➥ BORISONCHIK • Все права защищены</p>
+                    <div class="social-links">
+                            <h2 class="textzagalovokk3 unselectable"></h2>
+                            <div class="social-links">
+                                <a href="https://vk.com/fastvideo_zeny" class="social-button" target="_blank">
+                                    <img src="https://cdn3.emoji.gg/emojis/2473-vkwhite.png" alt="VK" class="social-icon" target="_blank">
+                                </a>
+                                <a href="https://t.me/BorisHunterStore" class="social-button" target="_blank">
+                                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1285048903003017328.gif%3Fv%3D1&w=64&q=75" alt="Telegram" class="social-icon" target="_blank">
+                                </a>
+                                <a href="https://discord.gg/YfZxXXeW6D" class="social-button" target="_blank">
+                                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F925704033640013854.gif%3Fv%3D1&w=64&q=75" alt="Discord" class="social-icon" target="_blank">
+                                </a>
+                                <a href="https://bhstore.statusmate.ru/" class="social-button" target="_blank">
+                                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F776905900694831135.gif%3Fv%3D1&w=64&q=75" alt="Discord" class="social-icon" target="_blank">
+                                </a>
+                            </div>
+                    </div>
+                </div>
+            </footer>
+
+        <div class="footer">
+            <p>&copy; 2023 BHSTORE. Все права защищены.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин</title>
+</head>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+}
+
+.product-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.product {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.cart {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+</style>
+<body>
+    <h1>Магазин товаров</h1>
+    <div class="product-list">
+        <div class="product">
+            <h2>Товар 1</h2>
+            <p>Цена: 700₽</p>
+            <button onclick="addToCart(700)">Добавить в корзину</button>
+        </div>
+        <div class="product">
+            <h2>Товар 2</h2>
+            <p>Цена: 300₽</p>
+            <button onclick="addToCart(300)">Добавить в корзину</button>
+        </div>
+        <div class="product">
+            <h2>Товар 3</h2>
+            <p>Цена: 150₽</p>
+            <button onclick="addToCart(150)">Добавить в корзину</button>
+        </div>
+        <!-- Добавьте больше товаров по желанию -->
+    </div>
+    <div class="cart">
+        <h2>Корзина</h2>
+        <p id="totalPrice">Итого: 0₽</p>
+    </div>
+
+    <script>
+    
+    let total = 0;
+
+        function addToCart(price) {
+            total += price;
+            document.getElementById('totalPrice').innerText = `Итого: ${total}₽`;
+        }
+        
+        </script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+.carousel-container {
+    width: calc(3 * (240px + 15px)); /* Ширина для 3 карточек с отступами */
+    overflow: hidden; /* Скрываем элементы, выходящие за пределы контейнера */
+    display: flex;
+    flex-direction: column; /* Вертикальное направление */
+    align-items: center; /* Центрирование по горизонтали */
+    position: relative; /* Для позиционирования кнопок */
+    background-color: #2c2f33; /* Темный фон */
+    border-radius: 15px; /* Закругленные углы */
+    padding: 20px; /* Отступы внутри контейнера */
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.7); /* Тень для контейнера */
+}
+
+.carousel-buttons {
+    display: flex; /* Горизонтальное расположение кнопок */
+    justify-content: space-between; /* Размещение кнопок по краям */
+    width: 100%; /* Ширина на весь контейнер */
+}
+
+.main-container {
+    display: flex; /* Горизонтальное расположение карточек */
+    transition: transform 0.5s ease-in-out; /* Плавный переход при перемещении */
+}
+
+.profile-card {
+    width: 300px; /* Ширина каждой карточки */
+    margin-right: 15px; /* Отступ между карточками */
+    position: relative;
+    background: linear-gradient(145deg, #40444b, #2c2f33);
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 
+                inset 0 -5px 20px rgba(255, 255, 255, 0.1);
+    padding: 25px;
+    color: #ffffff;
+}
+
+.profile-card:last-child {
+    margin-right: 0; /* Убираем отступ у последней карточки справа */
+}
+
+.carousel-button {
+    margin-top: 15px;
+    background: linear-gradient(135deg, #7289da, #5b6eae); /* Градиент в стиле Discord */
+    border: none;
+    color: #ffffff;
+    font-size: 24px; 
+    cursor: pointer;
+    padding: 15px; 
+    border-radius: 8px; 
+}
+
+.carousel-button:hover {
+   background: linear-gradient(135deg, #5b6eae, #7289da); 
+   transform: translateY(-3px); 
+   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7); 
+}
+
+.carousel-button:active {
+   transform: scale(0.95); 
+   box-shadow: inset -1px -1px rgba(255,255,255,.1), inset -2px -2px rgba(255,255,255,.05);
+}
+
+
+
+
+.number-badge {
+    position: absolute; /* Абсолютное позиционирование */
+    top: 10px; /* Отступ сверху */
+    right: 10px; /* Отступ справа */
+    background: linear-gradient(135deg, rgba(255, 0, 150, 0.8), rgba(0, 204, 255, 0.8)); /* Градиентный фон */
+    color: #fff; /* Цвет текста */
+    padding: 10px 15px; /* Отступы внутри элемента */
+    border-radius: 12px; /* Закругленные углы */
+    font-size: 15px; /* Размер шрифта */
+    font-family: 'Comic Sans MS', cursive, sans-serif; /* Шрифт в стиле аниме */
+    box-shadow: 0 4px 20px rgba(255, 0, 150, 0.5), 
+                inset 0 -2px 5px rgba(255, 255, 255, 0.1); /* Тень для эффекта глубины */
+    transform: perspective(500px) rotateY(10deg); /* Эффект перспективы и поворота */
+    animation: pulseAnimation 1.5s infinite alternate, glowAnimation 1s infinite alternate; /* Анимация пульсации и свечения */
+}
+
+@keyframes pulseAnimation {
+    from {
+        transform: perspective(500px) rotateY(10deg) scale(1);
+        box-shadow: 0 4px 20px rgba(255, 0, 150, 0.5), 
+                    inset 0 -2px 5px rgba(255, 255, 255, 0.1);
+    }
+    to {
+        transform: perspective(500px) rotateY(10deg) scale(1.05);
+        box-shadow: 0 6px 30px rgba(255, 0, 150, 0.7), 
+                    inset 0 -2px 5px rgba(255, 255, 255, 0.2);
+    }
+}
+
+@keyframes glowAnimation {
+    from {
+        text-shadow: 
+            -1px -1px #ff00a6,
+            -1px   #ff00a6,
+            -1px +1px #ff00a6,
+            +1px -1px #ff00a6,
+            +1px   #ff00a6,
+            +1px +1px #ff00a6;
+    }
+    to {
+        text-shadow: 
+            -2px -2px #00ccff,
+            -2px   #00ccff,
+            -2px +2px #00ccff,
+            +2px -2px #00ccff,
+            +2px   #00ccff,
+            +2px +2px #00ccff;
+    }
+}
+
+.avatar-section {
+    position: relative;
+    text-align: center;
+}
+
+.avatar-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid #00ffcc;
+}
+
+.player-name {
+    font-size: 26px;
+    margin: 12px 0;
+    color: #00bcd4;
+}
+
+.reactions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 12px 0;
+}
+
+.reaction {
+    display: flex;
+    align-items: center;
+}
+
+.reaction-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+}
+
+.rating {
+    display: flex;
+    align-items: center;
+}
+
+.rating-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+}
+
+.notification {
+    display: flex;
+    align-items: center;
+    margin: 12px 0;
+}
+
+.notification-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+}
+
+.product {
+    margin: -5px 0;
+}
+
+.product-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.product-details {
+    display: none; /* Изначально скрыт */
+    margin-top: 10px;
+    background-color: #333;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.product-details.visible {
+    display: block; /* Показываем блок при добавлении класса visible */
+}
+
+.product-details p {
+    margin: 0;
+    color: #d1d1d1;
+}
+
+.description {
+    margin: 12px 0;
+    font-size: 14px;
+    color: #d1d1d1;
+    line-height: 1.5;
+}
+
+.message-button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 15px;
+    background-color: #00bcd4;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.message-button:hover {
+    background-color: #0097a7;
+}
+
+.hidden {
+    display: none;
+}
+
+
+@media only screen and (max-width: 768px) {
+    .carousel-container {
+        width: calc(100% - 20px); /* Уменьшаем ширину для мобильных устройств */
+        padding: 15px; /* Увеличиваем отступы для лучшего восприятия */
+    }
+
+    .profile-card {
+        width: calc(100% - 20px); /* Уменьшаем ширину карточки для мобильных устройств */
+        margin-right: 0;
+        margin-bottom: 20px; /* Увеличиваем отступ между карточками */
+    }
+    
+    .main-container {
+        flex-direction: column; /* Вертикальное расположение карточек */
+    }
+
+    .carousel-button {
+        font-size: 20px; /* Уменьшаем размер шрифта кнопок */
+        padding: 12px; /* Уменьшаем отступы кнопок */
+        border-radius: 10px; /* Закругляем углы кнопок для более современного вида */
+    }
+
+    .number-badge {
+        font-size: 14px; /* Уменьшаем размер шрифта для значка номера */
+        padding: 8px 12px; /* Уменьшаем отступы внутри значка номера */
+    }
+    
+    .avatar-image {
+        width: 70px; /* Уменьшаем размер аватара */
+        height: 70px;
+    }
+
+    .player-name {
+        font-size: 22px; /* Уменьшаем размер шрифта имени игрока */
+    }
+
+    .description {
+        font-size: 14px; /* Оставляем размер шрифта описания прежним для лучшей читаемости */
+    }
+
+    .message-button {
+        padding: 10px 15px; /* Оставляем отступы кнопки сообщения прежними для удобства на мобильных устройствах */
+        font-size: 16px; /* Увеличиваем размер шрифта кнопки сообщения для удобства на мобильных устройствах */
+    }
+    
+    .reactions, .rating, .notification { 
+        flex-direction: column; /* Вертикальное расположение элементов реакций и уведомлений на мобильных устройствах */
+        align-items: flex-start; /* Выравнивание по левому краю для лучшего восприятия */
+    }
+    
+    .reaction, .rating-icon, .notification-icon { 
+        margin-bottom: 5px; /* Добавляем отступ между элементами реакций и уведомлений */
+    }
+}

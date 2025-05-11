@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="docs.css">
+    <link rel="stylesheet" href="navigation.css">
+    <link rel="stylesheet" href="statics.css">
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>BHStore ➭ Главная</title>
+</head>
+<style>
+body, html {
+    cursor: context-menu;
+    font-family: 'Roboto', sans-serif;
+    background: 
+        linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), 
+        url('fon2.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    height: 100%;
+}
+
+/* Анимация фона */
+@keyframes backgroundAnimation {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
+/* Баннер */
+.banner2 {
+    cursor: context-menu;
+    background: linear-gradient(to bottom, rgba(18, 18, 18, 0.7), rgba(18, 18, 18, 1)), url('banner.png') no-repeat center center;
+    background-size: cover;
+    height: 19.9vh;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    position: relative;
+    color: white;
+    animation: fadeIn 1s ease-in-out; /* Плавное появление */
+}
+
+/* Мобильные стили */
+@media (max-width: 768px) {
+    .banner2 {
+        background: linear-gradient(to bottom, rgba(18, 18, 18, 0.7), rgba(18, 18, 18, 1)), url('banner-m.png') no-repeat center center;
+        background-size: contain;
+        height: 25vh;
+        padding: 0 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .banner2 {
+        height: 30vh;
+        padding: 0 5px;
+    }
+
+    .banner2 h1, .banner2 p {
+        font-size: 1.5em;
+    }
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    border-radius: 50%;
+    width: 90px;
+    margin-right: 15px;
+}
+
+h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 28px;
+    text-shadow: 1px 1px 2px rgba(18, 18, 18, 1);
+}
+
+/* Футер */
+.footer3 {
+    border-radius: 20px;
+    margin-top: 20px;
+    position: relative;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    color: #ffffff;
+    padding: 20px;
+    text-align: center;
+    height: 80px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    border-top: 2px solid rgba(255, 196, 68, 0.5);
+    background: rgba(0, 0, 0, 0.7);
+    overflow: hidden;
+    backdrop-filter: blur(5px);
+}
+
+.footer3::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('fon2.jpg') no-repeat center center;
+    background-size: cover;
+    opacity: 0.6;
+    z-index: 0;
+}
+
+.footer3 > * {
+    position: relative;
+    z-index: 1;
+}
+
+.footer3-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.footer3-links {
+    margin: 10px 0;
+}
+
+.footer3-links a {
+    color: #e5ff00;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.footer3-links a:hover {
+    text-decoration: underline;
+    color: #ffcc00;
+    transform: scale(1.1);
+}
+
+.footer3 p {
+    margin: 10px 0 0;
+    font-size: 0.9em;
+}
+
+/* Анимация появления */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Кнопки с иконками */
+.button-container {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.button-description {
+    font-size: 18px;
+    color: #ffffff;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.button-icon {
+    margin-right: 8px;
+    font-size: 20px;
+}
+
+/* Социальные иконки */
+.social-icons {
+    margin-top: 20px;
+}
+
+.social-icons a {
+    color: #ffffff;
+    font-size: 24px;
+    margin: 0 10px;
+    transition: color 0.3s;
+}
+
+.social-icons a:hover {
+    color: rgba(255, 174, 0, 1);
+}
+
+/* Стиль для ссылок в футере */
+.footer-links {
+    margin: 10px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.footer-links a {
+    color: #ffae00;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: color 0.5s, transform 0.5s;
+    position: relative;
+}
+
+.footer-links a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: #ffae00;
+    left: 0;
+    bottom: -5px;
+    transform: scaleX(0);
+    transition: transform 0.5s ease;
+}
+
+.footer-links a:hover {
+    color: #fff4c9;
+    transform: scale(1.1);
+}
+
+.footer-links a:hover::after {
+    transform: scaleX(1);
+}
+
+/* FAQ стили */
+.faqr {
+    width: 90%;
+    max-width: 600px;
+    margin: 20px auto;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.faq-item {
+    background: #1a1a1a; /* Темный фон */
+    border: 1px solid #333; /* Темная граница */
+    border-radius: 10px;
+    margin: 10px 0;
+    transition: background 0.3s, border-color 0.3s;
+}
+
+.faq-title {
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 18px;
+    color: #ffc267; /* Цвет заголовка */
+    position: relative;
+}
+
+.toggle-icon {
+    transition: transform 0.3s;
+    font-size: 20px;
+}
+
+.faq-content {
+    padding: 15px;
+    display: none; /* Скрываем контент по умолчанию */
+    color: #e0e0e0; /* Цвет текста */
+    font-size: 16px;
+    border-top: 1px solid #444; /* Граница сверху для контента */
+}
+
+.faq-item.active .faq-content {
+    display: block; /* Показываем контент, когда активен */
+}
+
+.faq-item.active .toggle-icon {
+    transform: rotate(180deg); /* Поворачиваем иконку при открытии */
+}
+
+.faq-item:hover {
+    background: #2a2a2a; /* Немного темнее при наведении */
+    border-color: #666; /* Меняем цвет границы при наведении */
+}
+
+/* Медиазапрос для мобильных устройств */
+@media (max-width: 600px) {
+    .faq-title {
+        font-size: 16px; /* Уменьшаем размер шрифта заголовка */
+        padding: 12px; /* Уменьшаем отступы */
+    }
+
+    .toggle-icon {
+        font-size: 18px; /* Уменьшаем размер иконки */
+    }
+
+    .faq-content {
+        font-size: 14px; /* Уменьшаем размер шрифта контента */
+        padding: 10px; /* Уменьшаем отступы для контента */
+    }
+
+    .faq-item {
+        margin: 5px 0; /* Уменьшаем отступы между элементами */
+    }
+}
+
+/* Общие стили для кнопок прокрутки */
+.scroll-button, .scroll-button2 {
+    background-color: #007bff; /* Цвет фона кнопки */
+    color: white; /* Цвет текста */
+    border: none; /* Убираем рамку */
+    padding: 10px 20px; /* Отступы */
+    border-radius: 5px; /* Скругление углов */
+    cursor: pointer; /* Курсор в виде указателя */
+    transition: background-color 0.3s; /* Плавный переход цвета фона */
+}
+
+.scroll-button:hover, .scroll-button2:hover {
+    background-color: #0056b3; /* Цвет фона при наведении */
+}
+
+/* Стиль заголовков */
+.bh1 {
+    text-align: center;
+    font-size: 34px;
+    margin-bottom: 20px;
+}
+
+/* Статистика */
+.statictic {
+    background: rgba(255, 255, 255, 0);
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0);
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+}
+
+.statictic-title {
+    text-align: center;
+    color: #ffffff;
+    font-size: 74px;
+    margin-bottom: 20px;
+}
+
+.statictic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.statictic-item {
+    background: rgba(75, 75, 75, 0.8); /* Полупрозрачный фон */
+    border-radius: 10px;
+    padding: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.statictic-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.statictic-image {
+    width: 100%; /* Ширина изображения */
+    border-radius: 0px;
+    margin-bottom: 10px;
+}
+
+h3 {
+    color: #ffc267;
+    margin-bottom: 10px;
+}
+
+.unselectable {
+    user-select: none;
+}
+
+.statictic-price, .statictic-purchases {
+    display: block;
+    margin-top: 5px;
+    font-weight: bold;
+    color: #e4e4e4;
+}
+
+/* Адаптивные стили для статистики */
+
+@media (max-width: 768px) {
+    .statictic-title {
+        font-size: 48px; /* Уменьшаем размер заголовка для мобильных устройств */
+    }
+
+    .statictic-grid {
+        grid-template-columns: 1fr; /* Один столбец на мобильных устройствах */
+    }
+
+    .statictic-item {
+        padding: 10px; /* Уменьшаем внутренние отступы */
+    }
+
+    .statictic-price, .statictic-purchases {
+        font-size: 14px; /* Уменьшаем размер шрифта для цен и покупок */
+    }
+}
+
+
+
+
+
+
+
+/* Общие стили для кнопок */
+.button {
+    background-image: url('https://www.transparenttextures.com/patterns/asfalt-light.png'); /* Текстурированный фон */
+    background-color: #b3b3b3; /* Основной цвет фона */
+    color: #000000;
+    padding: 10px 20px; /* Увеличенное пространство вокруг текста */
+    border: 0.75px solid #ffffff; /* Белая граница */
+    border-radius: 12px; /* Более округлые углы */
+    font-size: 25px; /* Увеличенный размер шрифта */
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s, box-shadow 0.3s, border-color 0.3s; /* Плавный переход для границы */
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Центрирование текста по горизонтали */
+    width: 160px; /* Ширина кнопки */
+    height: 60px; /* Высота кнопки */
+    margin: 0 auto; /* Центрирование кнопки по горизонтали */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Более выраженная тень */
+}
+
+/* Эффекты при наведении */
+.button:hover {
+    background-color: #a1a1a1; /* Изменение цвета фона при наведении */
+    transform: translateY(-5px); /* Подъем кнопки */
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4); /* Более глубокая тень */
+    border-color: #FFD700; /* Изменение цвета границы при наведении */
+}
+
+/* Эффекты при нажатии */
+.button:active {
+    transform: translateY(-2px); /* Небольшое движение вниз при нажатии */
+    box-shadow: 0 20px 100px rgba(0, 0, 0, 0.2); /* Уменьшение тени */
+}
+
+/* Дополнительный стиль для эффекта фокуса */
+.button:focus {
+    outline: none; /* Убираем стандартный контур фокуса */
+    border-color: #0e0e0e; /* Цвет границы при фокусе */
+    box-shadow: 0 0 0 1px rgba(59, 59, 59, 0.5); /* Внешний контур при фокусе */
+}
+
+/* Стили для родительского контейнера, чтобы кнопка была по центру страницы */
+.button-container {
+    display: flex;
+    justify-content: center; /* Центрирование по горизонтали */
+    align-items: center; /* Центрирование по вертикали, если контейнер имеет высоту */
+    height: 100vh; /* Высота контейнера на весь экран */
+}
+
+
+/* Адаптация под мобильные устройства */
+@media (max-width: 600px) {
+    .button {
+        padding: 15px 25px; /* Увеличенные отступы для мобильных */
+        font-size: 20px; /* Уменьшенный размер шрифта для мобильных */
+        width: 80%; /* Ширина кнопки на 80% от родительского контейнера */
+        max-width: 160px; /* Максимальная ширина кнопки */
+        height: auto; /* Высота кнопки автоматически подстраивается под содержимое */
+        margin: 10px auto; /* Центрирование кнопки по горизонтали и отступ сверху/снизу */
+    }
+}
+
+
+
+
+
+/* Стили для модальных окон */
+.modal {
+    display: none; /* Скрываем модальное окно по умолчанию */
+    position: fixed;
+    z-index: 1000; /* Обеспечиваем, чтобы модальное окно было поверх всего */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Позволяем прокрутку если необходимо */
+    background-color: rgba(0, 0, 0, 0.7); /* Полупрозрачный фон */
+}
+
+.modal-content {
+    background-color: #1e1e1e; /* Темный фон для контента */
+    margin: 15% auto; /* Центрируем модальное окно */
+    padding: 20px;
+    border: 1px solid #444; /* Темная граница */
+    border-radius: 10px;
+    width: 80%; /* Ширина модального окна */
+    max-width: 600px; /* Максимальная ширина */
+}
+
+.close {
+    color: #aaa; /* Цвет крестика */
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: white; /* Цвет крестика при наведении */
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Заголовки в модальном окне */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    font-size: 24px;
+    color: #ffc267; /* Цвет заголовка */
+}
+
+/* Основной текст в модальном окне */
+.modal-body {
+    color: #e0e0e0; /* Цвет текста */
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+/* Кнопка в модальном окне */
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.modal-button {
+    background: linear-gradient(65deg, rgb(0, 26, 255), rgba(75, 168, 255));
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.modal-button:hover {
+    background: linear-gradient(135deg, rgb(0, 26, 255), rgba(75, 168, 255));
+}
+
+/* Анимация появления модального окна */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-content {
+    animation: modalFadeIn 0.3s ease; /* Анимация появления модального окна */
+}
+
+/* Стили для кнопок в статистике */
+.statictic-button {
+    background: linear-gradient(65deg, rgb(0, 26, 255), rgba(75, 168, 255));
+    color: #ffffff;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.3s;
+    margin-top: 10px; /* Отступ сверху */
+}
+
+.statictic-button:hover {
+    background: linear-gradient(135deg, rgb(0, 26, 255), rgba(75, 168, 255));
+    transform: translateY(-3px);
+}
+
+/* Основные стили для контейнера */
+.container {
+    background: #121212; /* Темный фон для всего контейнера */
+    color: #e0e0e0; /* Цвет текста */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для контейнера */
+}
+
+/* Стили для заголовка страницы */
+.page-header {
+    text-align: center;
+    font-size: 36px;
+    color: #ffc267; /* Цвет заголовка */
+    margin-bottom: 20px;
+}
+
+/* Стили для разделов */
+.section {
+    margin-bottom: 30px; /* Отступ между разделами */
+}
+
+/* Адаптивные стили для всего интерфейса */
+@media (max-width: 600px) {
+    .page-header {
+        font-size: 28px; /* Уменьшаем размер заголовка */
+    }
+
+    .button, .modal-button, .statictic-button {
+        font-size: 16px; /* Уменьшаем размер шрифта кнопок */
+        padding: 8px 16px; /* Уменьшаем отступы кнопок */
+    }
+
+    .faq-title {
+        font-size: 16px; /* Уменьшаем размер заголовка FAQ */
+    }
+
+    .faq-content {
+        font-size: 14px; /* Уменьшаем размер шрифта контента FAQ */
+    }
+}
+
+
+
+
+
+
+
+body {
+    background-color: #121212; /* Темный фон */
+    color: #e0e0e0; /* Светлый текст */
+    font-family: 'Roboto', sans-serif; /* Шрифт, похожий на стиль киберпанка */
+    margin: 0;
+    padding: 0;
+}
+
+.sectionOsnov {
+    padding: 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.titleOsnov {
+    font-size: 48px;
+    color: #00ffcc; /* Неоновый цвет заголовка */
+    text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc; /* Неоновый эффект */
+    margin-bottom: 20px;
+    animation: glow 1.5s infinite alternate; /* Анимация свечения */
+}
+
+.blockOsnov {
+    background-color: rgba(30, 30, 30, 0.8); /* Полупрозрачный фон блока */
+    border: 2px solid #00ffcc; /* Неоновая рамка */
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 0 15px rgba(0, 255, 204, 0.5); /* Тень для блока */
+    transition: transform 0.3s; /* Плавный переход при наведении */
+}
+
+.blockOsnov:hover {
+    transform: scale(1.05); /* Увеличение блока при наведении */
+}
+
+.subtitleOsnov {
+    font-size: 24px;
+    color: #ff4081; /* Яркий цвет для подзаголовка */
+    margin: 10px 0;
+}
+
+.textOsnov {
+    font-size: 18px;
+    color: #e0e0e0; /* Цвет текста */
+}
+
+.linkOsnov {
+    color: #00ffcc; /* Цвет ссылки */
+    text-decoration: none; /* Убираем подчеркивание */
+    position: relative;
+}
+
+.linkOsnov::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -5px;
+    width: 100%;
+    height: 2px;
+    background: #00ffcc; /* Цвет подчеркивания */
+    transform: scaleX(0);
+    transition: transform 0.3s ease; /* Плавный переход */
+}
+
+.linkOsnov:hover::after {
+    transform: scaleX(1); /* Появление подчеркивания при наведении */
+}
+
+@keyframes glow {
+    0% {
+        text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
+    }
+    100% {
+        text-shadow: 0 0 20px #00ffcc, 0 0 30px #00ffcc;
+    }
+}
+</style>
+
+<body>
+    <div class="banner2">
+        <div class="logo-container">
+            <img src="logotip.jpg" alt="Логотип" class="logo">
+            <h1 class="bh1 textzagalovok">BHS ➭ Документация</h1>
+        </div>
+        <button class="toggle-btn" aria-label="Toggle Navigation">☰</button> <!-- Кнопка для открытия/закрытия навигации -->
+        <nav class="navigation">
+            <ul class="nav-list">
+                <li class="nav-itemv"><a href="index.html">Вернуться</a></li>
+                <li class="nav-item"><a href="#about" onclick="changeContent('about')">Основное</a></li>
+                <li class="nav-item"><a href="#faq" onclick="changeContent('faq')">FAQ</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    
+    <main id="main-content" class="section">
+        <section id="about" class="sectionOsnov active">
+            <h1 class="titleOsnov">1 Основное</h1>
+            <div class="blockOsnov">
+                <h3 class="subtitleOsnov">Дата открытия</h3>
+                <p class="textOsnov">27 Января 2024г. (11:33 МСК)</p>
+            </div>
+            <div class="blockOsnov">
+                <h3 class="subtitleOsnov">Полная карта сайта</h3>
+                <p class="textOsnov"><a href="#map" class="linkOsnov" onclick="changeContent('map')">Перейти</a></p>
+            </div>
+        </section>
+        
+        <section id="faq" class="section">
+            <h1>FAQ</h1>
+            <div class="faqr">
+                <div class="faq-item">
+                    <h3 class="faq-title">
+                        Как часто у вас проходят скидки или акции?
+                        <span class="toggle-icon">+</span>
+                    </h3>
+                    <p class="faq-content">Скидки или акции проводятся в честь праздника, в честь сезона, в честь однодневных праздников на подобие 8 марта или 23 февраля.</p>
+                </div>
+                <div class="faq-item">
+                    <h3 class="faq-title">
+                        Как часто у вас обновляются товары?
+                        <span class="toggle-icon">+</span>
+                    </h3>
+                    <p class="faq-content">Товары обновляются регулярно, в зависимости от поступления новых коллекций.</p>
+                </div>
+                <div class="faq-item">
+                    <h3 class="faq-title">
+                        Где можно ознакомиться с документами?
+                        <span class="toggle-icon">+</span>
+                    </h3>
+                    <p class="faq-content">Пользовательское соглашение - <a href="agreement.html" class="button hh7" target="_blank">Перейти</a></p>
+                    <p class="faq-content">Политика конфиденциальности - <a href="privacy.html" class="button hh7" target="_blank">Перейти</a></p>
+                </div>
+                <div class="faq-item">
+                    <h3 class="faq-title">
+                        Как обратиться к руководителю проекта?
+                        <span class="toggle-icon">+</span>
+                    </h3>
+                    <p class="faq-content">Директор интернет-магазина - <a href="id1.html" class="button hh7" target="_blank">Перейти</a></p>
+                </div>
+            </div>
+            
+        </section>
+<style>
+/* Общие стили для секции карты сайта */
+.section {
+    color: #e0e0e0; /* Светлый цвет текста */
+    padding: 40px; /* Внутренние отступы */
+    border-radius: 10px; /* Закругленные углы */
+    max-width: 1000px; /* Максимальная ширина секции */
+    margin: 30px auto; /* Центрирование секции */
+}
+
+h1 {
+    text-align: center; /* Центрирование заголовка */
+    font-family: 'Orbitron', sans-serif; /* Шрифт в стиле киберпанка */
+    font-size: 3em; /* Размер шрифта */
+    margin-bottom: 30px; /* Отступ снизу */
+    color: #00ffcc; /* Яркий цвет заголовка */
+}
+
+.block {
+    margin-bottom: 25px; /* Отступ между блоками */
+    background-color: #1e1e1e; /* Фон блока */
+    padding: 50px; /* Внутренние отступы блока */
+    border-radius: 10px; /* Закругленные углы блока */
+    border-left: 5px solid #ff7739; /* Левый бордер для акцента */
+}
+
+.header {
+    display: flex; /* Используем flexbox для выравнивания */
+    align-items: center; /* Вертикальное центрирование */
+    margin-bottom: 20px; /* Отступ между заголовками */
+    padding: 10px; /* Внутренние отступы */
+    border-radius: 10px; /* Закругленные углы */
+    text-align: center; /* Центрирование текста */
+}
+
+h2 {
+    font-family: 'Orbitron', sans-serif; /* Шрифт для заголовков блоков */
+    font-size: 2.5em; /* Увеличенный размер шрифта */
+    color: #ff633c; /* Яркий цвет заголовков блоков */
+    letter-spacing: 2px; /* Увеличенное расстояние между буквами */
+    margin-left: 10px; /* Отступ слева от иконки */
+    text-shadow: 
+        1px 1px 0 rgba(0, 0, 0, 0.5),  
+        -1px -1px 0 rgba(0, 0, 0, 0.5),
+        1px -1px 0 rgba(0, 0, 0, 0.5),
+        -1px 1px 0 rgba(0, 0, 0, 0.5); /* Тень для текста */
+}
+
+.section-icon {
+    width: 70px;
+    height: 70px;
+    font-size: 2.5em; /* Размер иконки */
+    display: flex; /* Используем flexbox для центрирования содержимого */
+    justify-content: center; /* Горизонтальное центрирование */
+    align-items: center; /* Вертикальное центрирование */
+    margin-right: 10px; /* Отступ справа от иконки */
+}
+
+.table-row {
+    display: flex; /* Использование flexbox для выравнивания */
+    justify-content: space-between; /* Распределение пространства между элементами */
+    align-items: center; /* Центрирование по вертикали */
+    padding: 12px 12px; /* Внутренние отступы для строк */
+    border-bottom: 1px solid #333; /* Нижняя граница строки */
+}
+
+.table-row:last-child {
+    border-bottom: none; /* Убираем границу у последней строки */
+}
+
+h4 {
+    font-family: 'Roboto', sans-serif; /* Шрифт для заголовков строк */
+    font-size: 1.3em; /* Размер шрифта */
+    margin: 0; /* Убираем отступы */
+    color: #ffffff; /* Белый цвет текста */
+}
+
+a {
+    text-decoration: none; /* Убираем подчеркивание */
+    color: #6e3afd; /* Цвет ссылок */
+    font-weight: bold; /* Жирный текст */
+    transition: color 0.3s, transform 0.3s; /* Плавный переход цвета и трансформации */
+}
+
+a:hover {
+    color: #926aff; /* Цвет ссылок при наведении */
+    transform: scale(1.02); /* Увеличение ссылки при наведении */
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+    .section {
+        padding: 20px; /* Уменьшаем внутренние отступы на мобильных устройствах */
+        margin: 15px; /* Уменьшаем отступы */
+    }
+
+    h1 {
+        font-size: 2em; /* Уменьшаем размер заголовка */
+        margin-bottom: 20px; /* Уменьшаем отступ снизу */
+    }
+
+    .block {
+        padding: 30px; /* Уменьшаем внутренние отступы блока */
+    }
+
+    h2 {
+        font-size: 1.5em; /* Уменьшаем размер заголовков блоков */
+    }
+
+    .table-row {
+        flex-direction: column; /* Меняем направление на колонку для мобильных */
+        align-items: flex-start; /* Выравнивание по левому краю */
+        padding: 10px 0; /* Уменьшаем внутренние отступы для строк */
+    }
+
+    h4 {
+        font-size: 1.2em; /* Уменьшаем размер шрифта для заголовков строк */
+    }
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+    .section-icon {
+        width: 45px; /* Уменьшаем ширину изображения на мобильных устройствах */
+        height: 45px; /* Уменьшаем высоту изображения на мобильных устройствах */
+        margin: 0px; /* Уменьшаем отступы */
+    }
+}
+</style>
+<section id="map" class="section">
+    <h1>КАРТА САЙТА</h1>
+    <div class="block">
+        <div class="header">
+            <span class="section-icon"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1004474212712460318.gif%3Fv%3D1&w=64&q=75" alt="" class="section-icon"></span> <!-- Иконка перед текстом -->
+            <h2 style="margin: auto">Главное</h2>
+        </div>
+        <div class="table-row">
+            <h4 style="margin-right: 5px;">Главная</h4>
+            <a href="index.html">Перейти</a>
+        </div>
+        <div class="table-row">
+            <h4>Новости</h4>
+            <a href="news.html">Перейти</a>
+        </div>
+        <div class="table-row">
+            <h4>Персонал</h4>
+            <a href="staff.html">Перейти</a>
+        </div>
+        <div class="table-row">
+            <h4>Документация</h4>
+            <a href="docs.html">Перейти</a>
+        </div>
+    </div>
+    <div class="block">
+        <div class="header">
+            <span class="section-icon"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1260681882929070080.gif%3Fv%3D1&w=64&q=75" alt="" class="section-icon" style="width: 90px; height: 90px;"></span>
+            <h2 style="margin: auto">Товары</h2>
+        </div>
+        <div class="table-row">
+            <h4>Аватарки</h4>
+            <a href="picture.html">Перейти</a>
+        </div>
+        <div class="table-row">
+            <h4>Discord</h4>
+            <a href="discord.html">Перейти</a>
+        </div>
+        <div class="table-row">
+            <h4>Монтаж</h4>
+            <a href="mounting.html">Перейти</a>
+        </div>
+        <div class="table-row">
+            <h4>Превью</h4>
+            <a href="preview.html">Перейти</a>
+        </div>
+        <div class="table-row">
+            <h4>TG бота</h4>
+            <a href="telegram.html">Перейти</a>
+        </div>
+        <div class="table-row">
+            <h4>Сайт</h4>
+            <a href="website.html">Перейти</a>
+        </div>
+        <div class="table-row">
+            <h4>Minecraft</h4>
+            <a href="minecraft.html">Перейти</a>
+        </div>
+        <div class="table-row">
+            <h4>Roblox</h4>
+            <a href="roblox.html">Перейти</a>
+        </div>
+    </div>
+    <div class="block">
+        <div class="header">
+            <span class="section-icon"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1043035682538537031.gif%3Fv%3D1&w=64&q=75" alt="" class="section-icon"></span>
+            <h2 style="margin: auto">Документы</h2>
+        </div>
+        <div class="table-row">
+            <h4>Соглашение</h4>
+            <a href="agreement.html">Перейти</a>
+        </div>
+        <div class="table-row">
+            <h4 style="margin-right: 25px;">Конфиденциальность</h4>
+            <a href="privacy.html">Перейти</a>
+        </div>
+    </div>
+</section>
+    </main>
+
+<style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #0c0c0c;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .footer {
+            position: relative;
+            padding: 40px 20px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7));
+            overflow: hidden;
+            text-align: center;
+            perspective: 1000px;
+            transform: translateY(100%);
+            animation: slideIn 0.5s forwards;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .footer-title3 {
+            font-size: 1.1rem;
+            text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+        }
+        
+        .footer-title2 {
+            text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+        }
+        
+        .footer-title {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+        }
+        
+        .footer-description {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+        
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        
+        .footer-links li {
+            display: inline;
+            margin: 0 15px;
+        }
+        
+        .footer-links a {
+            color: #ffa24c;
+            text-decoration: none;
+            transition: color 0.3s, transform 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: #ff7d31;
+            transform: scale(1.1) rotateY(10deg);
+        }
+        
+        .footer-bottom {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        
+        .social-links {
+            margin-top: 10px;
+        }
+        
+        .social-icon {
+            margin: 0 10px;
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s, transform 0.3s;
+            font-size: 1.5rem;
+        }
+        
+        .social-icon:hover {
+            color: #00ffcc;
+            transform: scale(1.2);
+        }
+        
+        @keyframes slideIn {
+            0% {
+                transform: translateY(100%);
+            }
+            100% {
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .footer {
+                padding: 30px 10px;
+            }
+        
+            .footer-title {
+                font-size: 2rem;
+            }
+        
+            .footer-description {
+                font-size: 0.9rem;
+            }
+        
+            .footer-links {
+                margin: 10px 0;
+            }
+        
+            .footer-links li {
+                display: block;
+                margin: 10px 0;
+            }
+        
+            .footer-bottom {
+                font-size: 0.8rem;
+            }
+        
+            .social-icon {
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .footer-title {
+                font-size: 1.5rem;
+            }
+        
+            .footer-description {
+                font-size: 0.8rem;
+            }
+        
+            .footer-links a {
+                font-size: 0.9rem;
+            }
+        }
+        
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+        
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1006683100153131069.png%3Fv%3D1&w=64&q=75') repeat;
+            animation: twinkle 10s infinite;
+            z-index: -1;
+        }
+        
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .planets {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1040126355662184508.gif%3Fv%3D1&w=64&q=75') no-repeat;
+            background-size: contain;
+            animation: rotate 30s infinite linear;
+        }
+        
+        .comets {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1305930171055996928.gif%3Fv%3D1&w=64&q=75') no-repeat;
+            animation: comet 15s infinite linear;
+        }
+        
+        @keyframes comet {
+            0% {
+                transform: translateX(-100%) translateY(-50%);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100%) translateY(-50%);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .star {
+            position: absolute;
+        }
+        
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes comet {
+            0% {
+                transform: translateX(-100%) translateY(-50%);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100%) translateY(-50%);
+                opacity: 0;
+            }
+        }
+
+        .textzagalovokk1 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            font-size: 73px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .textzagalovokk2 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            font-size: 53px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .textzagalovokk3 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            font-size: 33px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .textzagalovokk4 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            text-align: center;
+            border-radius: 10px;
+        }
+</style>
+
+<link rel="stylesheet" href="rat.css">
+<footer class="footer unselectable">
+    <div class="footer-content">
+        <div class="logo">
+            <p><svg fill="#FE3635" url="logotip.jpg" viewBox="0 0 97.89 97.32"> </svg></p>
+        </div>
+        <h2 class="footer-title textzagalovokk3">BHStore</h2>
+        <p class="footer-description textzagalovokk3">Спасибо, ч то выбираете нас!</p>
+        <ul class="footer-links">
+            <li><a href="index.html" class="hover-link">Главная</a></li>
+            <li><a href="news.html" class="hover-link">Новости</a></li>
+            <li><a href="staff.html" class="hover-link">Персонал</a></li>
+            <li><a href="docs.html" class="hover-link">Документация</a></li>
+            <li><a href="agreement.html" class="hover-link">Соглашение</a></li>
+            <li><a href="privacy.html" class="hover-link">Конфидициальность</a></li>
+        </ul>
+    </div>
+    <div class="footer-bottom textzagalovokk3">
+        <p>&copy; 2024 — 2025 ➥ BORISONCHIK • Все права защищены</p>
+        <div class="social-links">
+                <h2 class="textzagalovokk3 unselectable"></h2>
+                <div class="social-links">
+                    <a href="https://vk.com/fastvideo_zeny" class="social-button" target="_blank">
+                        <img src="https://cdn3.emoji.gg/emojis/2473-vkwhite.png" alt="VK" class="social-icon" target="_blank">
+                    </a>
+                    <a href="https://t.me/BorisHunterStore" class="social-button" target="_blank">
+                        <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1285048903003017328.gif%3Fv%3D1&w=64&q=75" alt="Telegram" class="social-icon" target="_blank">
+                    </a>
+                    <a href="https://discord.gg/YfZxXXeW6D" class="social-button" target="_blank">
+                        <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F925704033640013854.gif%3Fv%3D1&w=64&q=75" alt="Discord" class="social-icon" target="_blank">
+                    </a>
+                    <a href="https://bhstore.statusmate.ru/" class="social-button" target="_blank">
+                        <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F776905900694831135.gif%3Fv%3D1&w=64&q=75" alt="Discord" class="social-icon" target="_blank">
+                    </a>
+                </div>
+        </div>
+    </div>
+</footer>
+
+    <script src="faq.js"></script>
+    <script src="script.js"></script>
+    <script src="snow.js"></script>
+    <script src="static.js"></script>
+    <script src="navig.js"></script>
+    <script src="docs.js"></script>
+    <script src="static.js"></script>
+
+<script>
+document.getElementById('nav-toggle').addEventListener('click', function() {
+    const navList = document.getElementById('nav-list');
+    navList.classList.toggle('show');
+});
+
+        const navToggle = document.getElementById('nav-toggle');
+        const navList = document.getElementById('nav-list');
+    
+        navToggle.addEventListener('click', () => {
+            navList.style.display = navList.style.display === 'block' ? 'none' : 'block';
+        });
+    
+        // Закрытие меню при клике вне его
+        window.addEventListener('click', (event) => {
+            if (!navToggle.contains(event.target) && !navList.contains(event.target)) {
+                navList.style.display = 'none';
+            }
+        });
+
+        document.getElementById('scrollToProducts').addEventListener('click', function() {
+            const aboutSection = document.getElementById('products');
+            aboutSection.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+
+window.onscroll = function() {
+    if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+        scrollToTopBtn.classList.add('show');
+    } else {
+        scrollToTopBtn.classList.remove('show');
+    }
+};
+
+scrollToTopBtn.onclick = function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+</script>
+</body>
+</html>

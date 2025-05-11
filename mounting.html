@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="navigation.css">
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>BHS ➭ Монтаж</title>
+    <style>
+        body, html {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('fon2.jpg');
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            width: 100%;
+            height: 100%;
+        }
+
+        #snowCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+        }
+
+        /* Стили для баннера */
+        .banner2 {
+            background: linear-gradient(to bottom, rgba(18, 18, 18, 0.7), rgba(18, 18, 18, 1)), url('fon.gif');
+            background-size: cover;
+            background-position: center;
+            height: 18vh;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            border-radius: 50%;
+            width: 90px;
+            margin-right: 15px;
+            transition: transform 0.3s;
+        }
+
+        .logo:hover {
+            transform: scale(1.1);
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 38px;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+        }
+
+        .product-container2 {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin-bottom: 30px;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .product-item2 {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .product-item2:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .product-image2 {
+            width: 100%;
+            border-radius: 15px;
+            transition: opacity 0.5s, transform 0.5s;
+        }
+
+        .product-image2:hover {
+            opacity: 0.8;
+            transform: scale(1.1);
+        }
+
+        .status-container2 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .status-image2 {
+            width: 25px;
+            margin-right: 5px;
+        }
+
+        .service-container2 {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .animation-item2 {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px;
+            width: 300px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .animation-item2:hover {
+            transform: translateY(-5px            );
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        h2 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-align: center;
+            color: #00bcd4;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        hr {
+            border: 1px solid #ff843d;
+            margin: 20px 0;
+        }
+
+        .unselectable2 {
+            user-select: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Адаптивные стили */
+        @media (max-width: 768px) {
+            h2 {
+                font-size: 2em;
+            }
+
+            .product-item2, .animation-item2 {
+                width: 90%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h2 {
+                font-size: 1.5em;
+            }
+
+            .status-image2 {
+                width: 20px;
+            }
+
+            .logo {
+                width: 70px; /* Уменьшение размера логотипа на мобильных */
+            }
+
+            h1 {
+                font-size: 28px; /* Уменьшение размера заголовка на мобильных */
+            }
+        }
+
+        /* Курсор */
+        body {
+            cursor: url('cursor.png'), auto; /* Замените на путь к вашему кастомному курсору */
+        }
+    </style>
+</head>
+<body>
+    <canvas id="snowCanvas"></canvas>
+
+
+    <div class="banner2">
+        <div class="logo-container">
+            <img src="logotip.jpg" alt="Логотип" class="logo">
+            <h1 class="nazvanie">BHS ➭ Discord</h1>
+        </div>
+        <button class="toggle-btn" aria-label="Toggle Navigation">&#9776;</button>
+        <nav class="navigation">
+            <ul class="nav-list">
+                <li class="nav-item"><a href="index.html" class="nav-link" class="disabled">Главная</a></li>
+                <li class="nav-item"><a href="news.html" class="nav-link">Новости</a></li>
+                <li class="nav-item"><a href="staff.html" class="nav-link">Персонал</a></li>
+                <li class="nav-item"><a href="docs.html" class="nav-link">Документация</a></li>
+            </ul>
+        </nav>
+    </div>
+
+
+    <main class="product-page2">
+        <h2 class="unselectable2 textzagalovokk3">Монтаж</h2>
+        <div class="dividerD"></div>
+<style>
+:root {
+  --primary-color: #ff845f;
+  --secondary-color: #1e1e1e;
+  --tertiary-color: #2a2a2a;
+  --neon-color: rgba(252, 168, 99, 0.5);
+  --animation-duration: 0.5s;
+  --easing: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --tag-bg: linear-gradient(90deg, #5865F2, #2F3196);
+  --tag-text-color: #fff;
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 24px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--tertiary-color), var(--secondary-color));
+  box-shadow:
+    0 0 20px var(--neon-color),
+    0 0 40px var(--neon-color),
+    0 0 60px var(--neon-color),
+    0 0 80px var(--neon-color)/50%;
+  transition: transform var(--animation-duration);
+}
+
+.status-container:hover {
+  transform: scale(1.07);
+}
+
+.status-block {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 10px;
+  border-radius: 12px;
+  border: 2px solid #caff4f;
+  background: linear-gradient(135deg, var(--tertiary-color), var(--secondary-color));
+  box-shadow:
+    0 0 10px var(--neon-color),
+    0 0 20px var(--neon-color)/50%;
+}
+
+.status-text2 {
+  color: var(--primary-color);
+  font-family: 'Orbitron', sans-serif;
+  font-weight: bold;
+  font-size: 2.00em;
+  -webkit-text-stroke: 1.1px #ffd587;
+  text-stroke: 1.2px #000;
+  background: linear-gradient(120deg, var(--primary-color) 0%, var(--primary-color) 50%, var(--primary-color) 50%);
+  background-size: 200% 250%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-text var(--animation-duration) infinite var(--easing);
+}
+
+.status-tag {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  padding: 4px 8px;
+  border-radius: 3px;
+  background: var(--tag-bg);
+  color: var(--tag-text-color);
+  font-size: 0.875em;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translateY(5px);
+  animation: tag-animation var(--animation-duration) infinite var(--easing);
+}
+
+.status-tag::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--tag-text-color);
+  margin-right: 4px;
+}
+
+@keyframes gradient-text {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes tag-animation {
+  0%, 100% {
+    transform: translateY(5px);
+  }
+  50% {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 767px) and (platform: android) {
+  .status-container {
+    padding: 12px;
+    border-radius: 6px;
+  }
+
+  .status-block {
+    padding: 10px;
+    border-radius: 8px;
+  }
+
+  .status-text2 {
+    font-size: 1.3em;
+    -webkit-text-stroke: 0.8px #ffd587;
+    text-stroke: 0.8px #000;
+  }
+}
+
+        .DDC {
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            font-size: 17px;
+            text-align: center;
+            padding-top: 10px;
+        }
+</style>
+        <div class="product-container2">
+            <div class="product-item2">
+                <img src="montaz.png" alt="Товар 1" class="product-image2">
+                <p class="DDC unselectable2">Создаем качественный, проработанный монтаж для ваших роликов.</p>
+                <p class="status-container2">
+                     
+                    <div class="status-block">
+                        <span class="status-text2"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F759383796960591872.gif%3Fv%3D1&w=64&q=75" alt="Статус" class="status-image2"> Статус - Доступен</span>
+                    </div>
+                </p>
+            </div>
+        </div>
+
+<style>
+body {
+    background-color: #121212; /* Темный фон для Cyberpunk стиля */
+    color: #e0e0e0; /* Светлый цвет текста */
+    font-family: 'Arial', sans-serif;
+}
+
+.product-page2 {
+    padding: 20px;
+}
+
+.unselectable2 {
+    user-select: none; /* Запрет выделения текста */
+}
+
+.dividerD {
+    position: relative; /* Для позиционирования псевдоэлементов */
+    height: 2px; /* Высота разделителя */
+    background-color: transparent; /* Прозрачный фон для основного элемента */
+    margin: 20px 0; /* Отступы сверху и снизу */
+}
+
+.dividerD::before {
+    content: '';
+    position: absolute;
+    left: 0; /* Начинаем с левой стороны */
+    width: 100%; /* Ширина 100% */
+    height: 100%; /* Высота 100% */
+    background: linear-gradient(to left, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.3)); /* Градиент от правой к левой */
+    border-radius: 1px; /* Скругление краев для плавного перехода */
+}
+
+/* Добавим анимацию для эффекта уменьшения высоты */
+@keyframes shrink {
+    from {
+        height: 10px; /* Начальная высота справа */
+    }
+    to {
+        height: 2px; /* Конечная высота слева */
+    }
+}
+
+.dividerD::before {
+    animation: shrink 0.5s forwards; /* Применяем анимацию к псевдоэлементу */
+}
+
+.product-container2 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.product-item2 {
+    background-color: rgba(30, 30, 30, 0.8); /* Полупрозрачный фон */
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(131, 97, 255, 0.5); /* Неоновая тень */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Анимация при наведении */
+}
+
+.product-item2:hover {
+    transform: scale(1.02); /* Увеличение при наведении */
+    box-shadow: 0 8px 40px rgb(240, 73, 255); /* Увеличенная неоновая тень */
+}
+
+
+.containerd1 {
+    width: 100px; /* Задает ширину контейнера */
+    height: 520px;
+    background-color: rgba(70, 70, 70, 0.8);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 20 20px 20px rgba(255, 111, 111, 0.61);
+    display: flex;
+    flex-direction: column;
+}
+
+
+
+
+.bottom-image {
+    width: 98.8%; /* Задает ширину изображения на 100% контейнера */
+    max-width: 100%; /* Ограничивает максимальную ширину изображения */
+    height: auto; /* Поддерживает пропорции изображения */
+    border-radius: 0 0 10px 10px; /* Скругление нижних углов изображения */
+    margin-top: auto; /* Отодвигает изображение вниз */
+    padding-top: 45px; /* Отступ сверху для изображения */
+    object-fit: cover; /* Заполняет контейнер, сохраняя пропорции */
+    transition: none; /* Убираем любые переходы для наведения */
+}
+
+.bottom-image:hover {
+    transform: none; /* Убираем любые трансформации при наведении */
+}
+
+.containerd2 {
+    width: 100px; /* Задает ширину контейнера */
+    height: 520px;
+    background-color: rgba(30, 30, 30, 0.8); /* Пример фона */
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 20px rgba(111, 138, 255, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+.service-container2 {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: nowrap; /* Позволяет переносить блоки на следующую строку */
+    gap: 20px; /* Отступ между блоками */
+}
+
+.animation-item2 {
+    width: calc(50% - 10px); /* Устанавливает ширину блоков с учетом отступа */
+    background-color: rgba(45, 45, 45, 0.9); /* Темный фон для блоков услуг */
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 20px rgba(255, 186, 147, 0.5);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-icon {
+    width: 20px; /* Размер иконки */
+    height: auto; 
+    margin-right: 10px; /* Отступ между иконкой и текстом */
+}
+
+/* Стили для заголовков услуг */
+.service-montage h3,
+.service-quality h3 {
+   color: #ffb272; /* Цвет заголовков услуг */
+   text-shadow: 0 0 5px #ffab5c; /* Неоновый эффект для заголовков */
+   transition: color 0.3s ease; /* Плавный переход цвета при наведении */
+}
+
+.service-montage h3:hover,
+.service-quality h3:hover {
+   color: #ff4081; /* Цвет заголовка при наведении */
+}
+
+/* Стили для пунктов услуг с анимацией при наведении */
+.DiscordD {
+    display: flex; /* Используем flexbox для выравнивания элементов */
+    justify-content: space-between; /* Размещаем элементы по краям */
+    align-items: center; /* Центрируем элементы по вертикали */
+    padding: 10px; /* Отступы вокруг всей строки */
+    background-color: rgba(255, 255, 255, 0.1); /* Полупрозрачный фон для эффекта таблицы */
+    border-radius: 5px; /* Скругление углов */
+    margin-bottom: 10px; /* Отступ между строками */
+}
+
+.service-description {
+    flex-grow: 1; /* Заставляет текст занимать доступное пространство */
+    margin-right: 10px; /* Отступ между текстом и ценой */
+}
+
+.DiscordC {
+    color: #ff3b3b; /* Цвет текста */
+    font-weight: bold; /* Полужирный шрифт */
+    font-size: 1.2em; /* Увеличенный размер шрифта */
+    font-family: 'Arial Black', sans-serif; /* Шрифт */
+    text-shadow: 
+        1px 1px 0 rgba(0, 0, 0, 0.5),  /* Черный контур */
+        2px 2px 0 rgba(255, 255, 255, 0.3), /* Белый контур */
+        3px 3px 0 rgba(0, 0, 0, 0.5); /* Дополнительный черный контур */
+    padding: 5px; /* Отступы вокруг текста */
+    border-radius: 5px; /* Скругление углов */
+}
+
+.DiscordD:hover {
+   transform: scale(1.02); /* Увеличение при наведении на пункт услуги */
+   background-color: rgba(255,255,255,0.15); /* Изменение фона при наведении */
+   font-weight: bold; /* Жирный текст при наведении */
+}
+
+/* Медиа-запросы для мобильных устройств */
+@media (max-width: 768px) {
+    .product-page2 {
+        padding: 10px; /* Уменьшаем отступы */
+    }
+    
+    .product-item2 {
+        padding: 10px; /* Уменьшаем внутренние отступы */
+        margin-bottom: 15px; /* Уменьшаем отступ между элементами */
+    }
+    
+    .containerd1 {
+        width: 90%; /* Увеличиваем ширину контейнера для мобильных устройств */
+        height: auto; /* Автоматическая высота */
+    }    
+
+    .containerd3 {
+        width: 90%; /* Увеличиваем ширину контейнера для мобильных устройств */
+        height: auto; /* Автоматическая высота */
+    }
+
+.containerd4 {
+    width: 90%; /* Увеличиваем ширину контейнера для мобильных устройств */
+    height: auto; /* Автоматическая высота */
+}
+
+.containerd5 {
+    width: 90%; /* Увеличиваем ширину контейнера для мобильных устройств */
+    height: auto; /* Автоматическая высота */
+    display: flex; /* Используем flexbox для управления расположением */
+    flex-direction: column; /* Располагаем элементы в колонку */
+    margin: 0 auto; /* Центрируем контейнер */
+}
+
+.containerd6 {
+    width: 90%; /* Увеличиваем ширину контейнера для мобильных устройств */
+    height: auto; /* Автоматическая высота */
+}
+    
+    .bottom-image {
+        display: none;
+    }
+    
+    .service-container2 {
+        flex-direction: column; /* Меняем направление на колонку для мобильных устройств */
+        align-items: center; /* Центрируем элементы */
+    }
+    
+    .animation-item2 {
+        width: 100%; /* Устанавливаем ширину блока на 100% */
+        margin-bottom: 15px; /* Уменьшаем отступ между блоками */
+    }
+    
+    .service-icon {
+        width: 18px; /* Уменьшаем размер иконки */
+    }
+    
+    .DiscordD {
+        font-size: 12px; /* Уменьшаем размер шрифта для мобильных устройств */
+        padding: 10px; /* Уменьшаем внутренние отступы */
+    }
+}
+
+/* Дополнительные медиа-запросы для очень маленьких экранов */
+@media (max-width: 480px) {
+    .product-item2 {
+        margin-bottom: 10px; /* Уменьшаем отступ для очень маленьких экранов */
+    }
+    
+    .service-container2 {
+        gap: 10px; /* Уменьшаем отступ между блоками */
+    }
+    
+    .animation-item2 {
+        padding: 10px; /* Уменьшаем внутренние отступы */
+    }
+}
+</style>
+
+<style>
+.tooltip-container {
+    position: relative; /* Для позиционирования дочерних элементов */
+    display: flex; /* Используем flexbox для выравнивания элементов */
+    align-items: center; /* Центрируем элементы по вертикали */
+}
+
+.button-like {
+    border-radius: 5px; /* Скругление углов */
+    cursor: pointer; /* Указатель курсора */
+    color: #ffffff; /* Цвет текста */
+}
+
+.button-like:hover {
+    background-color: rgba(255, 255, 255, 0.1); /* Изменение фона при наведении */
+}
+
+.tooltip {
+    visibility: hidden; /* Скрываем текст по умолчанию */
+    background-color: rgba(30, 30, 30, 0.9); /* Фон для подсказки */
+    color: #ffffff; /* Цвет текста подсказки */
+    text-align: center; /* Выравнивание текста по центру */
+    border-radius: 5px; /* Скругление углов */
+    padding: 5px; /* Отступы */
+    position: absolute; /* Абсолютное позиционирование */
+    z-index: 1; /* Устанавливаем порядок отображения */
+    bottom: 125%; /* Позиционируем сверху кнопки */
+    left: 50%; /* Центрируем по горизонтали */
+    transform: translateX(-50%); /* Центрируем по горизонтали */
+    opacity: 0; /* Начальная прозрачность */
+    transition: opacity 0.3s; /* Плавный переход прозрачности */
+}
+
+.tooltip-container:hover .tooltip {
+    visibility: visible; /* Показываем текст при наведении */
+    opacity: 1; /* Делаем текст видимым */
+}
+
+.tooltip-icon {
+            border-radius: 50%;
+            width: 50px;
+            margin-right: 15px;
+            transition: transform 0.3s;
+        }
+</style>
+        <h2 class="unselectable2">Подробности</h2>
+        <div class="dividerD"></div>
+        <div class="service-container2">
+            <div class="animation-item2 service-montage2 containerd1">
+                <div class="tooltip-container">
+                    <div class="tooltip"><img src="Exclamation mark.png" alt="" class="tooltip-icon" style="width: 30px; height: 30px;"> Этот пункт обязателен</div>
+                    <span class="button-like"><img src="https://cdn3.emoji.gg/emojis/32451-information.png" alt="" class="tooltip-icon"></span>
+                    <h2 class="unselectable2 textvrem2">Время монтажа</h2>
+                </div>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F994645942701658122.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 1 минута <span class="DiscordC">+9₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F994645942701658122.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 5 минут <span class="DiscordC">+12₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F994645942701658122.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 10 минут <span class="DiscordC">+17₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F994645942701658122.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 30 минут <span class="DiscordC">+23₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F994645942701658122.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 60 минут <span class="DiscordC">+30₽</span></p>
+            </div>
+
+            <div class="animation-item2 service-quality2 containerd2" style="height: 440px;">
+                <div class="tooltip-container">
+                    <div class="tooltip"><img src="Exclamation mark.png" alt="" class="tooltip-icon" style="width: 30px; height: 30px;"> Этот пункт обязателен</div>
+                    <span class="button-like"><img src="https://cdn3.emoji.gg/emojis/32451-information.png" alt="" class="tooltip-icon"></span>
+                    <h2 class="unselectable2 textvrem2">Кач ество монтажа</h2>
+                </div>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F876849771841716266.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 480p (SD) <span class="DiscordC">+5₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F876849771841716266.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 720p (SD) <span class="DiscordC">+9₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F876849771841716266.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 1080p (HD) <span class="DiscordC">+15₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F876849771841716266.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 2К / 4К (FHD) <span class="DiscordC">+28₽</span></p>
+            </div>
+
+            <div class="animation-item2 service-montage2 containerd3" style="height: 480px;">
+                <div class="tooltip-container">
+                    <div class="tooltip"><img src="Exclamation mark.png" alt="" class="tooltip-icon" style="width: 30px; height: 30px;"> Этот пункт обязателен</div>
+                    <span class="button-like"><img src="https://cdn3.emoji.gg/emojis/32451-information.png" alt="" class="tooltip-icon"></span>
+                    <h2 class="unselectable2 textvrem2">Частота кадров</h2>
+                </div>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1264030913562546278.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 24 кадр. в сек. <span class="DiscordC">+4₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1264030913562546278.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 25 кадр. в сек. <span class="DiscordC">+10₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1264030913562546278.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 30 кадр. в сек. <span class="DiscordC">+14₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1264030913562546278.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 50 кадр. в сек. <span class="DiscordC">+18₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1264030913562546278.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 60 кадр. в сек. <span class="DiscordC">+20₽</span></p>
+            </div>
+        </div>
+        <style>
+.textvrem2 {
+    font-size: 40px;
+    word-spacing: 5px;
+    box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.664);
+    font-family: 'MyCustomFont', sans-serif;
+    letter-spacing: 5px;
+    margin: 0;
+    padding: 0;
+    text-shadow: 
+        -1px -1px 0 #000,  
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000;
+    color: #fff;
+    text-align: center;
+    border-radius: 10px;
+    flex-grow: 1; /* Позволяет заголовку занимать оставшееся пространство */
+}
+    </style>
+
+        <div class="service-container2">
+            <div class="animation-item2 service-montage2 containerd4" style="height: 330px;">
+                <div class="tooltip-container">
+                    <div class="tooltip"><img src="Exclamation mark.png" alt="" class="tooltip-icon" style="width: 30px; height: 30px;"> Этот пункт обязателен</div>
+                    <span class="button-like"><img src="https://cdn3.emoji.gg/emojis/32451-information.png" alt="" class="tooltip-icon"></span>
+                    <h2 class="unselectable2 textvrem2">Битрейт монтажа</h2>
+                </div>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1176103878610124872.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> Низкий битрейт <span class="DiscordC">+7₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1176103878610124872.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> Средний битрейт <span class="DiscordC">+16₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1176103878610124872.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> Высокий битрейт <span class="DiscordC">+26₽</span></p>
+            </div>
+            <div class="animation-item2 service-montage2 containerd1" style="height: 280px;">
+                <div class="tooltip-container">
+                    <div class="tooltip"><img src="Exclamation mark.png" alt="" class="tooltip-icon" style="width: 30px; height: 30px;"> Этот пункт обязателен</div>
+                    <span class="button-like"><img src="https://cdn3.emoji.gg/emojis/32451-information.png" alt="" class="tooltip-icon"></span>
+                    <h2 class="unselectable2 textvrem2">Соотношение экрана</h2>
+                </div>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1094626870051491943.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 9:16 <span class="DiscordC">+3₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F905920004623568896.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> 16:9 <span class="DiscordC">+10₽</span></p>
+            <!-- <img src="images2 (2).png" alt="" class="bottom-image" style="height: 1000px;" /> -->
+        </div>
+            <div class="animation-item2 service-montage2 containerd1" style="height: 1240px;">
+                <div class="tooltip-container">
+                    <div class="tooltip"><img src="No Exclamation mark.png" alt="" class="tooltip-icon" style="width: 30px; height: 30px;"> Этот пункт не обязателен</div>
+                    <span class="button-like"><img src="https://cdn3.emoji.gg/emojis/32451-information.png" alt="" class="tooltip-icon"></span>
+                    <h2 class="unselectable2 textvrem2">Дополнительные услуги</h2>
+                </div>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F985871488555028581.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> Заблюрить фрагменты. <span class="DiscordC">+2₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F990607075795157082.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> Добавить текста & Дизайн текста. <span class="DiscordC">+10₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F876080633510768650.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> Добавить стикеры. <span class="DiscordC">+8₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F897484322003632258.gif%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> Добавить анимации. <span class="DiscordC">+9₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F949006316628758598.gif%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> Добавить звуки. <span class="DiscordC">+5₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F949006316628758598.gif%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> Вырезать звуки. <span class="DiscordC">+5₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F990607083130998784.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon"> Добавить изображения. <span class="DiscordC">+10₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://cdn-icons-png.flaticon.com/128/1636/1636035.png" alt="" class="service-icon"> Фильтр видео. <span class="DiscordC">+7₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://cdn-icons-png.flaticon.com/128/302/302440.png" alt="" class="service-icon"> Изменение фона. <span class="DiscordC">+12₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://cdn-icons-png.flaticon.com/128/1454/1454954.png" alt="" class="service-icon"> Эффект видео. <span class="DiscordC">+8₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://cdn-icons-png.flaticon.com/128/4509/4509615.png" alt="" class="service-icon"> Добавить субтитры. <span class="DiscordC">+16₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://cdn-icons-png.flaticon.com/128/8468/8468424.png" alt="" class="service-icon"> Добавить озвучку субтитров. <span class="DiscordC">+32₽</span></p>
+                <p class="unselectable2 DiscordD"><img src="https://cdn-icons-png.flaticon.com/128/8542/8542722.png" alt="" class="service-icon"> Соединить отрезки видео в одном. <span class="DiscordC">+5₽</span></p>
+            </div>
+    </main>
+
+
+<style>
+        :root {
+            --button-padding: 3px 6px;
+            --button-font-size: 12px;
+            --button-border-radius: 10px;
+        }
+        
+        .message-button1 {
+            display: inline-block;
+            margin: 1px auto;
+            padding: var(--button-padding);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--button-border-radius);
+            font-size: var(--button-font-size);
+            text-align: center;
+            text-decoration: none;
+            transition: background 0.5s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .iconbs {
+            vertical-align: middle;
+            margin-right: 3px;
+            width: 36px;
+            height: 36px;
+        }
+        
+        .message-button {
+            display: inline-block;
+            margin: 20px auto;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #7d7f80, #636162);
+            color: #ffffff;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            text-align: center;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(255, 190, 153, 0.7);
+            transition: background 0.5s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .message-button:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s ease;
+            z-index: 0;
+        }
+        
+        .message-button:hover:before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .message-button:hover {
+            background: linear-gradient(135deg, #636162, #7d7f80);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(255, 190, 153, 0.7);
+        }
+        
+        .message-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 15px rgba(255, 163, 42, 0.5);
+        }
+        
+        
+        @media (max-width: 768px) {
+            .message-button {
+                padding: 12px 24px;
+                font-size: 16px;
+            }
+        }
+        
+        .product-details {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.5s ease;
+        }
+        
+        .product-details.visible {
+            max-height: 200px;
+            opacity: 1;
+        }
+        
+        .arrow {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .arrow.rotated {
+            transform: rotate(180deg);
+        }
+        
+        .statictic-title2 {
+            text-align: center;
+            color: #ffffff;
+        }
+</style>
+<style>
+        .textzagalovokk1 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            font-size: 73px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .textzagalovokk2 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            font-size: 53px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .textzagalovokk3 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            font-size: 33px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .textzagalovokk4 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            text-align: center;
+            border-radius: 10px;
+        }
+</style>
+<style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #0c0c0c;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .footer {
+            position: relative;
+            padding: 40px 20px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7));
+            overflow: hidden;
+            text-align: center;
+            perspective: 1000px;
+            transform: translateY(100%);
+            animation: slideIn 0.5s forwards;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .footer-title3 {
+            font-size: 1.1rem;
+            text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+        }
+        
+        .footer-title2 {
+            text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+        }
+        
+        .footer-title {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+        }
+        
+        .footer-description {
+            font-size: 1rem;
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+        
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        
+        .footer-links li {
+            display: inline;
+            margin: 0 15px;
+        }
+        
+        .footer-links a {
+            color: #ffa24c;
+            text-decoration: none;
+            transition: color 0.3s, transform 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: #ff7d31;
+            transform: scale(1.1) rotateY(10deg);
+        }
+        
+        .footer-bottom {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        
+        .social-links {
+            margin-top: 10px;
+        }
+        
+        .social-icon {
+            margin: 0 10px;
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s, transform 0.3s;
+            font-size: 1.5rem;
+        }
+        
+        .social-icon:hover {
+            color: #00ffcc;
+            transform: scale(1.2);
+        }
+        
+        @keyframes slideIn {
+            0% {
+                transform: translateY(100%);
+            }
+            100% {
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .footer {
+                padding: 30px 10px;
+            }
+        
+            .footer-title {
+                font-size: 2rem;
+            }
+        
+            .footer-description {
+                font-size: 0.9rem;
+            }
+        
+            .footer-links {
+                margin: 10px 0;
+            }
+        
+            .footer-links li {
+                display: block;
+                margin: 10px 0;
+            }
+        
+            .footer-bottom {
+                font-size: 0.8rem;
+            }
+        
+            .social-icon {
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .footer-title {
+                font-size: 1.5rem;
+            }
+        
+            .footer-description {
+                font-size: 0.8rem;
+            }
+        
+            .footer-links a {
+                font-size: 0.9rem;
+            }
+        }
+        
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+        
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1006683100153131069.png%3Fv%3D1&w=64&q=75') repeat;
+            animation: twinkle 10s infinite;
+            z-index: -1;
+        }
+        
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .planets {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1040126355662184508.gif%3Fv%3D1&w=64&q=75') no-repeat;
+            background-size: contain;
+            animation: rotate 30s infinite linear;
+        }
+        
+        .comets {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1305930171055996928.gif%3Fv%3D1&w=64&q=75') no-repeat;
+            animation: comet 15s infinite linear;
+        }
+        
+        @keyframes comet {
+            0% {
+                transform: translateX(-100%) translateY(-50%);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100%) translateY(-50%);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .star {
+            position: absolute;
+        }
+        
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes comet {
+            0% {
+                transform: translateX(-100%) translateY(-50%);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100%) translateY(-50%);
+                opacity: 0;
+            }
+        }
+</style>
+        
+        
+        <footer class="footer unselectable">
+            <div class="footer-content">
+                <div class="logo">
+                    <p><svg fill="#FE3635" url="logotip.jpg" viewBox="0 0 97.89 97.32"> </svg></p>
+                </div>
+                <h2 class="footer-title textzagalovokk3">BHStore</h2>
+                <p class="footer-description textzagalovokk3">Спасибо, ч то выбираете нас!</p>
+                <ul class="footer-links">
+                    <li><a href="index.html" class="hover-linkF disabled2">Главная</a></li>
+                    <li><a href="news.html" class="hover-linkF">Новости</a></li>
+                    <li><a href="staff.html" class="hover-linkF">Персонал</a></li>
+                    <li><a href="docs.html" class="hover-linkF">Документация</a></li>
+                    <li><a href="agreement.html" class="hover-linkF">Соглашение</a></li>
+                    <li><a href="privacy.html" class="hover-linkF">Конфидициальность</a></li>
+                </ul>
+            </div>
+            <div class="footer-bottom textzagalovokk3">
+                <p>&copy; 2024 — 2025 ➥ BORISONCHIK • Все права защищены</p>
+                <div class="social-links">
+                        <h2 class="textzagalovokk3 unselectable"></h2>
+                        <div class="social-links">
+                            <a href="https://vk.com/fastvideo_zeny" class="social-button" target="_blank">
+                                <img src="https://cdn3.emoji.gg/emojis/2473-vkwhite.png" alt="VK" class="social-icon" target="_blank">
+                            </a>
+                            <a href="https://t.me/BorisHunterStore" class="social-button" target="_blank">
+                                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1285048903003017328.gif%3Fv%3D1&w=64&q=75" alt="Telegram" class="social-icon" target="_blank">
+                            </a>
+                            <a href="https://discord.gg/YfZxXXeW6D" class="social-button" target="_blank">
+                                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F925704033640013854.gif%3Fv%3D1&w=64&q=75" alt="Discord" class="social-icon" target="_blank">
+                            </a>
+                            <a href="https://bhstore.statusmate.ru/" class="social-button" target="_blank">
+                                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F776905900694831135.gif%3Fv%3D1&w=64&q=75" alt="Discord" class="social-icon" target="_blank">
+                            </a>
+                        </div>
+                </div>
+            </div>
+        </footer>
+    
+    <script src="script.js"></script>
+    <script src="script2.js"></script>
+    <script src="snow.js"></script>
+    <script src="static.js"></script>
+    <script src="navig.js"></script>
+</body>
+</html>

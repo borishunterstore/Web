@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="navigation.css">
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>BHS ➭ Новости</title>
+
+
+<style>
+@font-face {
+    font-family: 'Doors Cyrillic Font.ttf'; /* Укажите имя шрифта */
+    src: url('Doors\ Cyrillic\ Font.ttf') format('truetype'); /* Укажите правильный путь к файлу шрифта */
+    font-weight: normal;
+    font-style: normal;
+}
+
+.logo-container22 {
+    display: flex;
+    align-items: center;
+}
+
+.logo22 {
+    border-radius: 50%;
+    width: 90px;
+    margin-right: 15px;
+}
+        
+:root {
+    --primary-color: #ff6f61; /* Основной цвет */
+    --secondary-color: #ffffff; /* Цвет текста */
+    --bg-color: linear-gradient(to bottom right, rgba(126, 126, 126, 0.253), rgba(51, 51, 51, 0.534)), url('fon2.jpg'); /* Градиент + изображение */
+    --hover-bg-color: rgba(104, 88, 88, 0.5); /* Цвет фона при наведении */
+    --box-shadow: 5px 7px 15px rgba(255, 138, 92, 0.6); /* Тень */
+}
+
+@font-face {
+    font-family: 'Russian Dollmaker';
+    src: url('BHStore/RussianDollmaker-Regular.ttf') format('truetype'); /* Укажите правильный путь к файлу шрифта */
+}
+
+.news-container {
+    max-width: 900px;
+    margin: 25px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 35px;
+}
+
+.news-item {
+    font-family: 'Russian Dollmaker', sans-serif;
+    background: var(--bg-color);
+    border-radius: 15px;
+    padding: 25px;
+    transition: transform 0.3s, box-shadow 0.3s, background 0.3s;
+    animation: slideIn 0.5s ease forwards;
+    opacity: 0;
+    position: relative;
+    box-shadow: var(--box-shadow);
+    overflow: hidden; /* Скрыть переполнение */
+}
+
+.news-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 30px rgba(255, 153, 85, 0.9);
+    background: var(--hover-bg-color);
+}
+
+.news-date {
+    background: linear-gradient(90deg, #ff6f61, #ffcc00); /* Градиент для даты */
+    color: var(--secondary-color);
+    padding: 5px 10px;
+    border-radius: 5px;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: 'Russian Dollmaker', sans-serif;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Добавление тени для улучшения читаемости */
+}
+
+.news-title {
+    font-size: 64px;
+    margin: 0 0 10px;
+    background: linear-gradient(90deg, #ff6f61, #ffcc00); /* Градиент для заголовка */
+    -webkit-background-clip: text; /* Обрезаем фон по тексту для эффекта градиента */
+    background-clip: text;
+    color: transparent; /* Делаем текст прозрачным для градиента */
+    text-transform: uppercase;
+    letter-spacing: 1px; /* Межбуквенное расстояние */
+    font-family: 'MyCustomFont', sans-serif; /* Используем ваш шрифт */
+}
+
+.news-content {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--secondary-color);
+    font-family: 'Russian Dollmaker', sans-serif;
+}
+
+.news-image {
+    width: 5%; /* Изображение занимает 100% ширины контейнера */
+    height: auto;
+    border-radius: 10px; /* Закругленные углы для изображения */
+    margin-bottom: 15px;
+    transition: transform 0.3s; /* Плавный переход */
+}
+
+.news-image:hover {
+    transform: scale(1.05); /* Увеличение изображения при наведении */
+}
+
+@media (max-width: 600px) {
+    .news-title {
+        font-size: 20px; /* Уменьшаем размер заголовка на мобильных */
+    }
+
+    .news-content {
+        font-size: 14px; /* Уменьшаем размер текста на мобильных */
+    }
+
+    .news-image {
+        width: 15%; /* Изображение занимает 100% ширины контейнера */
+    }
+
+    .news-date {
+        font-size: 12px; /* Уменьшаем размер даты на мобильных */
+    }
+
+    .news-item {
+        padding: 15px; /* Уменьшаем отступы на мобильных */
+    }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+    .news-title {
+        font-size: 62px; /* Уменьшаем размер заголовка для планшетов */
+    }
+
+    .news-content {
+        font-size: 15px; /* Уменьшаем размер текста для планшетов */
+    }
+
+    .news-image {
+        width: 8%; /* Изображение занимает 100% ширины контейнера */
+    }
+
+    .news-date {
+        font-size: 13px; /* Уменьшаем размер даты для планшетов */
+    }
+
+    .news-item {
+        padding: 20px; /* Уменьшаем отступы для планшетов */
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@font-face {
+    font-family: 'Roblox Doors'; /* Название шрифта */
+    src: url('path/to/Doors Cyrillic Font.ttf') format('truetype'); /* Укажите правильный путь к файлу шрифта */
+}
+
+.read-more {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 15px;
+    background-color: var(--primary-color);
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    text-decoration: none;
+    transition: background-color 0.3s, transform 0.3s; /* Плавный переход */
+    font-family: 'Roblox Doors', sans-serif; /* Применение шрифта */
+}
+
+.read-more:hover {
+    background-color: darken(var(--primary-color), 10%); /* Темнее при наведении */
+    transform: translateY(-2px); /* Легкий подъем при наведении */
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 600px) {
+    .news-title {
+        font-size: 20px; /* Уменьшение размера заголовка на мобильных устройствах */
+    }
+    .news-content {
+        font-size: 14px; /* Уменьшение размера текста на мобильных устройствах */
+    }
+    .read-more {
+        font-size: 14px; /* Уменьшение размера кнопки на мобильных устройствах */
+    }
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.bh1 {
+    text-align: center;
+    font-size: 34px;
+    margin-bottom: 20px;
+}
+
+.banner {
+    display: flex; /* Используем flexbox для выравнивания содержимого */
+    justify-content: space-between; /* Распределяем пространство между логотипом и навигацией */
+    align-items: center; /* Центрируем элементы по вертикали */
+    padding: 20px; /* Отступы для баннера */
+}
+
+.hh {
+    margin-right: 18px; /* Отступ направо на 10 пикселей */
+}
+</style>
+
+
+</head>
+<body>
+    <div class="banner2">
+        <div class="logo-container">
+            <img src="logotip.jpg" alt="Логотип" class="logo">
+            <h1 class="nazvanie">BHS ➭ Новости</h1>
+        </div>
+        <button class="toggle-btn" aria-label="Toggle Navigation">&#9776;</button> <!-- Кнопка для открытия/закрытия навигации -->
+        <nav class="navigation">
+            <ul class="nav-list">
+                <li class="nav-item"><a href="index.html" class="nav-link">Главная</a></li>
+                <li class="nav-item"><a href="news.html" class="nav-link" class="disabled">Новости</a></li>
+                <li class="nav-item"><a href="staff.html" class="nav-link">Персонал</a></li>
+                <li class="nav-item"><a href="docs.html" class="nav-link">Документация</a></li>
+            </ul>
+        </nav>
+    </div>
+
+<!--
+    <div class="image-container unselectable no-interaction">
+    <img src="fons.png" alt="" id="image" />
+    </div>
+-->
+
+    <div class="news-container unselectable">
+        <div class="news-item unselectable">
+            <div class="news-date unselectable">7 Февраля 2025</div>
+            <h2 class="news-title unselectable"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F830058395427274762.gif%3Fv%3D1&w=64&q=75" alt="" class="news-image unselectable no-interaction"> UPDATE</h2>
+            <p class="news-content unselectable">Полное обновление сайта, мы перешли на новый хостинг и на собственные коды, теперь мы можем сделать качественный и красивый сайт который порадует ваши глаза! Добавлена страница - "Персонал", а так же изменился дизайн, цены на товары и новое оформление.</p>
+    </div>
+        
+    <div class="news-item unselectable">
+        <div class="news-date unselectable">7 Февраля 2025</div>
+        <h2 class="news-title unselectable"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F852993296133128223.gif%3Fv%3D1&w=64&q=75" alt="" class="news-image unselectable no-interaction"> MINECRAFT</h2>
+        <p class="news-content unselectable">Обновление товаров в товаре "Minecraft Фишки", добавлены новые товары такие как - "Уникальные моды" и "Уникальные плагины".</p>
+        <a href="minecraft.html" class="read-more unselectable" target="_blank">Перейти</a>
+</div>
+
+    <div class="news-item unselectable">
+            <div class="news-date unselectable">2 Января 2025</div>
+            <h2 class="news-title unselectable"><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F888068973655126107.gif%3Fv%3D1&w=64&q=75" alt="" class="news-image unselectable no-interaction"> PROMOCODES</h2>
+            <p class="news-content unselectable">В нашем Discord сервере для покупателей которые купили хотябы 1 раз какой нибудь товар или услугу мы раздаем БЕСПЛАТНЫЕ промокоды на скидку на товары или услуги подробнее в нашем Discord</p>
+            <p class="news-content unselectable">Если вы уже являетесь покупателем, но у вас нету доступа свяжитесь с поддержкой!</p>
+            <a href="https://discord.gg/YfZxXXeW6D" class="read-more unselectable" target="_blank">Присоединиться</a>
+    </div>
+
+<style>
+        body {
+            margin: 0;
+            font-family: 'Roblox Doors', sans-serif;
+            background-color: #0c0c0c;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        .footer {
+            font-family: 'Doors Cyrillic Font.ttf';
+            position: relative;
+            padding: 40px 20px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7));
+            overflow: hidden;
+            text-align: center;
+            perspective: 1000px;
+            transform: translateY(100%);
+            animation: slideIn 0.5s forwards;
+        }
+        
+        .footer-content {
+            font-family: 'Doors Cyrillic Font.ttf';
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .footer-title3 {
+            font-family: 'Doors Cyrillic Font.ttf';
+            font-size: 1.1rem;
+            text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+        }
+        
+        .footer-title2 {
+            font-family: 'Doors Cyrillic Font.ttf';
+            text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+        }
+        
+        .footer-title {
+            font-family: 'Doors Cyrillic Font.ttf';
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+        }
+        
+        .footer-description {
+            font-family: 'Doors Cyrillic Font.ttf';
+            font-size: 1rem;
+            margin-bottom: 20px;
+            color: #ccc;
+        }
+        
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        
+        .footer-links li {
+            display: inline;
+            margin: 0 15px;
+        }
+        
+        .footer-links a {
+            color: #ffa24c;
+            text-decoration: none;
+            transition: color 0.3s, transform 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: #ff7d31;
+            transform: scale(1.1) rotateY(10deg);
+        }
+        
+        .footer-bottom {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+        
+        .social-links {
+            margin-top: 10px;
+        }
+        
+        .social-icon {
+            margin: 0 10px;
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s, transform 0.3s;
+            font-size: 1.5rem;
+        }
+        
+        .social-icon:hover {
+            color: #00ffcc;
+            transform: scale(1.2);
+        }
+        
+        @keyframes slideIn {
+            0% {
+                transform: translateY(100%);
+            }
+            100% {
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .footer {
+                padding: 30px 10px;
+            }
+        
+            .footer-title {
+                font-size: 2rem;
+            }
+        
+            .footer-description {
+                font-size: 0.9rem;
+            }
+        
+            .footer-links {
+                margin: 10px 0;
+            }
+        
+            .footer-links li {
+                display: block;
+                margin: 10px 0;
+            }
+        
+            .footer-bottom {
+                font-size: 0.8rem;
+            }
+        
+            .social-icon {
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .footer-title {
+                font-size: 1.5rem;
+            }
+        
+            .footer-description {
+                font-size: 0.8rem;
+            }
+        
+            .footer-links a {
+                font-size: 0.9rem;
+            }
+        }
+        
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+        
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1006683100153131069.png%3Fv%3D1&w=64&q=75') repeat;
+            animation: twinkle 10s infinite;
+            z-index: -1;
+        }
+        
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .planets {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1040126355662184508.gif%3Fv%3D1&w=64&q=75') no-repeat;
+            background-size: contain;
+            animation: rotate 30s infinite linear;
+        }
+        
+        .comets {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1305930171055996928.gif%3Fv%3D1&w=64&q=75') no-repeat;
+            animation: comet 15s infinite linear;
+        }
+        
+        @keyframes comet {
+            0% {
+                transform: translateX(-100%) translateY(-50%);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100%) translateY(-50%);
+                opacity: 0;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .star {
+            position: absolute;
+        }
+        
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes comet {
+            0% {
+                transform: translateX(-100%) translateY(-50%);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100%) translateY(-50%);
+                opacity: 0;
+            }
+        }
+</style>
+        
+        
+        <footer class="footer unselectable">
+            <div class="footer-content">
+                <div class="logo">
+                    <p><svg fill="#FE3635" url="logotip.jpg" viewBox="0 0 97.89 97.32"> </svg></p>
+                </div>
+                <h2 class="footer-title textzagalovokk3">BHStore</h2>
+                <p class="footer-description textzagalovokk3">Спасибо, ч то выбираете нас!</p>
+                <ul class="footer-links">
+                    <li><a href="index.html" class="hover-link">Главная</a></li>
+                    <li><a href="news.html" class="hover-link">Новости</a></li>
+                    <li><a href="staff.html" class="hover-link">Персонал</a></li>
+                    <li><a href="docs.html" class="hover-link">Документация</a></li>
+                    <li><a href="agreement.html" class="hover-link">Соглашение</a></li>
+                    <li><a href="privacy.html" class="hover-link">Конфидициальность</a></li>
+                </ul>
+            </div>
+            <div class="footer-bottom textzagalovokk3">
+                <p>&copy; 2024 — 2025 ➥ BORISONCHIK • Все права защищены</p>
+                <div class="social-links">
+                        <h2 class="textzagalovokk3 unselectable"></h2>
+                        <div class="social-links">
+                            <a href="https://vk.com/fastvideo_zeny" class="social-button" target="_blank">
+                                <img src="https://cdn3.emoji.gg/emojis/2473-vkwhite.png" alt="VK" class="social-icon" target="_blank">
+                            </a>
+                            <a href="https://t.me/BorisHunterStore" class="social-button" target="_blank">
+                                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1285048903003017328.gif%3Fv%3D1&w=64&q=75" alt="Telegram" class="social-icon" target="_blank">
+                            </a>
+                            <a href="https://discord.gg/YfZxXXeW6D" class="social-button" target="_blank">
+                                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F925704033640013854.gif%3Fv%3D1&w=64&q=75" alt="Discord" class="social-icon" target="_blank">
+                            </a>
+                            <a href="https://bhstore.statusmate.ru/" class="social-button" target="_blank">
+                                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F776905900694831135.gif%3Fv%3D1&w=64&q=75" alt="Discord" class="social-icon" target="_blank">
+                            </a>
+                        </div>
+                </div>
+            </div>
+        </footer>
+    
+
+    <script src="navig.js"></script>
+    <script src="static.js"></script>
+
+        <script>
+            const navToggle = document.getElementById('nav-toggle');
+            const navList = document.getElementById('nav-list');
+    
+            navToggle.addEventListener('click', () => {
+                navList.style.display = navList.style.display === 'block' ? 'none' : 'block';
+            });
+    
+            // Закрытие меню при клике вне его
+            window.addEventListener('click', (event) => {
+                if (!navToggle.contains(event.target) && !navList.contains(event.target)) {
+                    navList.style.display = 'none';
+                }
+            });
+        </script>   
+</body>
+</html>

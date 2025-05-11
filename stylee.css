@@ -1,0 +1,1059 @@
+body, html {
+    cursor: context-menu;
+    font-family: 'Roboto', sans-serif;
+    background: 
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5));
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    height: 100%;
+}
+
+
+@font-face {
+    font-family: 'MyCustomFont'; /* Укажите имя шрифта */
+    src: url('Doors\ Cyrillic\ Font.ttf') format('truetype'); /* Укажите правильный путь к файлу шрифта */
+    font-weight: normal;
+    font-style: normal;
+}
+
+.banner2 {
+    cursor: context-menu;
+    background: linear-gradient(to bottom, rgba(18, 18, 18, 0.5), rgba(18, 18, 18, 1)), url('bannersite.png');
+    background-size: cover;
+    background-position: center;
+    height: 19.9vh; /* Высота по умолчанию */
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    position: relative; /* Для размещения кнопки */
+    color: white; /* Цвет текста */
+    transition: height 0.3s ease; /* Плавный переход высоты */
+}
+
+.banner2.sticky {
+    position: fixed; /* Закрепляем баннер */
+    top: 0; /* Прикрепляем к верхней части экрана */
+    left: 0; /* По горизонтали */
+    right: 0; /* По горизонтали */
+    height: 10vh; /* Уменьшаем высоту при прокрутке */
+    z-index: 1000; /* Устанавливаем выше других элементов */
+}
+
+/* Для мобильных устройств */
+@media (max-width: 768px) {
+    .banner2 {
+        background: linear-gradient(to bottom, rgba(18, 18, 18, 0.5), rgba(18, 18, 18, 1)), url('bannersite-mobile.png');
+        background-size: contain;
+        height: 20vh; /* Высота для мобильных */
+        padding: 0 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .banner2 {
+        height: 30vh; /* Высота для маленьких экранов */
+        padding: 0 5px;
+    }
+
+    .banner2 h1, .banner2 p {
+        font-size: 1.5em; /* Увеличиваем размер шрифта */
+    }
+}
+
+/* Добавьте временное содержимое для прокрутки */
+.content {
+    height: 200vh; /* Высота для тестирования прокрутки */
+    background: #f0f0f0; /* Цвет фона для контента */
+}
+
+
+
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    border-radius: 50%;
+    width: 90px;
+    margin-right: 15px;
+}
+
+h1 {
+    font-family: 'MyCustomFont', sans-serif; /* Используем ваш шрифт */
+    font-size: 28px; /* Уменьшил размер заголовка для лучшего отображения */
+    text-shadow: 1px 1px 2px rgba(18, 18, 18, 1);
+}
+
+
+
+
+
+
+
+
+
+
+
+/* Стили для раздела "О нас" */
+.about {
+    background: linear-gradient(135deg, rgba(25, 25, 25, 1), rgba(0, 0, 0, 0.8));
+    padding: 80px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden; /* Скрываем избыток для анимации */
+    color: #ffffff; /* Цвет текста */
+}
+
+.about-content {
+    display: flex;
+    align-items: center; /* Выравнивание по центру по вертикали */
+    justify-content: center; /* Центрирование содержимого */
+    max-width: 1200px; /* Ограничение ширины контента */
+    margin: 0 auto; /* Центрирование на странице */
+    position: relative; /* Для позиционирования внутренних элементов */
+    z-index: 1; /* Помещаем выше фона */
+}
+
+.about-logo {
+    border-radius: 50%; /* Делаем логотип круглым */
+    width: 550px; /* Измените размер изображения по желанию */
+    margin-right: 40px; /* Отступ справа от логотипа */
+    transition: transform 0.5s ease, opacity 0.5s ease; /* Плавная анимация */
+    opacity: 0.9; /* Свечение логотипа */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для логотипа */
+}
+
+.about-logo:hover {
+    transform: scale(1.1); /* Увеличение логотипа при наведении */
+    opacity: 1; /* Увеличение прозрачности */
+}
+
+/* Адаптация для мобильных устройств */
+@media (max-width: 768px) {
+    .about-content {
+        flex-direction: column; /* Вертикальная ориентация для мобильных */
+        text-align: center; /* Центрирование текста */
+    }
+
+    .about-logo {
+        width: 300px; /* Уменьшаем размер логотипа для мобильных */
+        margin-right: 0; /* Убираем отступ справа */
+        margin-bottom: 20px; /* Добавляем отступ снизу */
+    }
+}
+
+/* Адаптация для более крупных экранов */
+@media (min-width: 1200px) {
+    .about-logo {
+        width: 600px; /* Увеличиваем размер логотипа на крупных экранах */
+    }
+}
+
+h2 {
+    font-size: 66px;
+    margin-bottom: 20px;
+    color: #ff00ff; /* Яркий цвет заголовка */
+    text-shadow: 3px 3px 6px rgba(233, 233, 233, 0.9); /* Тень для заголовка */
+    animation: fadeIn 1s ease forwards; /* Анимация появления заголовка */
+}
+
+
+
+
+.text-content {
+    padding: 20px; /* Отступы вокруг содержимого */
+    background-color: #b3b3b300; /* Светлый фон для контента */
+    border-radius: 10px; /* Скругление углов контейнера */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Тень для контейнера */
+}
+
+.text-content p {
+    font-size: 18px; /* Размер текста */
+    line-height: 1.6; /* Высота строки для удобства чтения */
+    margin-bottom: 15px; /* Отступ между параграфами */
+    opacity: 0; /* Изначально скрываем текст */
+    transform: translateY(20px); /* Сдвиг вниз для анимации */
+    animation: fadeInUp 0.8s forwards; /* Анимация появления текста */
+    color: #ffffff; /* Цвет текста */
+    font-family: 'Arial', sans-serif; /* Шрифт текста */
+    border-left: 4px solid #ff774e; /* Контур слева */
+    padding-left: 10px; /* Отступ от контурной линии */
+}
+
+.text-content ul {
+    list-style-type: none; /* Убираем стандартные маркеры списка */
+    padding: 0;
+}
+
+.text-content ul li {
+    background: linear-gradient(to bottom, rgba(117, 117, 117, 0.8), rgba(39, 39, 39, 0.6)), url(''); /* Фон с градиентом */
+    background-size: cover; /* Обложка фона */
+    padding: 15px; /* Увеличенный отступ */
+    margin: 10px 0; /* Вертикальный отступ между пунктами списка */
+    border-radius: 8px; /* Скругление углов */
+    transition: background 0.3s, transform 0.3s, box-shadow 0.3s; /* Плавная анимация фона и трансформации */
+    color: #fafafa; /* Цвет текста */
+    font-family: 'Arial', sans-serif; /* Шрифт текста */
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.452); /* Тень для элемента списка */
+}
+
+.text-content ul li:hover {
+    background: linear-gradient(to bottom, rgba(117, 117, 117, 0.8), rgba(39, 39, 39, 0.6)), url(''); /* Фон с градиентом */
+    transform: scale(1.05); /* Легкое увеличение элемента списка при наведении */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Увеличение тени при наведении */
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Ключевые кадры для анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Эффект фона с анимацией */
+.about::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('path/to/your/background-image.jpg'); /* Добавьте изображение фона */
+    background-size: cover;
+    background-position: center;
+    opacity: 0.1; /* Низкая прозрачность фона */
+    z-index: 0; /* Установить под контент */
+    animation: pulse 10s infinite; /* Пульсирующая анимация фона */
+}
+
+/* Анимация пульсации фона */
+@keyframes pulse {
+    0% {
+        opacity: 0.1;
+    }
+    50% {
+        opacity: 0.2; /* Увеличиваем до 0.2 для создания эффекта пульсации */
+    }
+    100% {
+        opacity: 0.1;
+    }
+}
+
+/* Дополнительные стили для улучшения визуала */
+.about-content h2, .text-content p {
+    transition: transform 0.3s ease, color 0.3s ease; /* Плавная анимация для текста */
+}
+
+.about-content h2:hover {
+    color: #ffcc00; /* Изменение цвета заголовка при наведении */
+    transform: translateY(-5px); /* Легкое поднятие заголовка при наведении */
+}
+
+.text-content p:hover {
+    color: rgb(255, 255, 255); /* Изменение цвета текста при наведении */
+}
+
+/* Эффект тени для текста */
+.text-content p {
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5); /* Тень для абзацев */
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Стили для продуктов */
+.products {
+    padding: 60px 40px;
+    background: linear-gradient(135deg, rgba(34, 34, 34, 1), rgba(18, 18, 18, 1));
+    color: #ffffff; /* Текст по умолчанию белый */
+    border: 1px solid rgba(255, 141, 255, 0.5); /* Розовая рамка для эффекта киберпанка */
+    position: relative;
+    overflow: hidden; /* Скрытие переполнения */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7); /* Тень для секции */
+    border-radius: 20px; /* Округление углов секции */
+}
+
+.products-title {
+    text-align: center;
+    font-size: 66px;
+    margin-bottom: 30px;
+    text-shadow: 0 0 10px rgba(78, 78, 78, 0.8); /* Эффект светящегося текста */
+    font-family: 'Roboto', sans-serif; /* Шрифт для современного вида */
+    animation: fadeIn 1s ease-in; /* Анимация появления заголовка */
+}
+
+/* Анимация появления заголовка */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Адаптивная сетка */
+    gap: 30px;
+    max-width: 1200px; /* Максимальная ширина сетки */
+    margin: 0 auto; /* Центрирование сетки */
+}
+
+.product-item {
+    position: relative; /* Позволяет использовать абсолютное позиционирование для дочерних элементов */
+    background-color: rgba(50, 50, 50, 0.9); /* Более темный фон для контраста */
+    border: 2px solid transparent;
+    border-radius: 30px;
+    padding: 15px;
+    text-align: center;
+    transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s; /* Плавные переходы */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    overflow: hidden; /* Чтобы скрыть переполнение */
+}
+
+.product-item:hover {
+    transform: translateY(-10px) scale(1.05); /* Увеличение и подъем при наведении */
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); /* Добавление тени для глубины */
+    border-color: rgba(255, 159, 70, 0.8); /* Изменение цвета рамки при наведении */
+}
+
+.product-image {
+    width: 100%; /* Ширина остается 100% */
+    height: 150px; /* Высота изображения */
+    object-fit: cover; /* Обеспечивает сохранение пропорций */
+    border-radius: 10px;
+    transition: transform 0.3s ease; /* Плавное увеличение */
+}
+
+.product-item:hover .product-image {
+    transform: scale(1.1); /* Увеличение изображения при наведении */
+}
+
+.product-link {
+    display: inline-flex; /* Используем flex для выравнивания */
+    flex-direction: column; /* Вертикальное выравнивание */
+    align-items: center; /* Центрирование по горизонтали */
+    justify-content: flex-end; /* Выравнивание по вертикали */
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #666666, #949494); /* Градиент для кнопки */
+    border-radius: 30px;
+    text-decoration: none;
+    color: rgba(18, 18, 18, 1);
+    transition: background 0.3s, transform 0.3s, box-shadow 0.3s; /* Плавные переходы */
+    font-weight: bold; /* Жирное начертание */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для кнопки */
+    position: relative; /* Для позиционирования псевдоэлемента */
+}
+
+.product-link:hover {
+    background: linear-gradient(135deg, #949494, #666666); /* Изменение градиента при наведении */
+    transform: translateY(-3px); /* Легкий подъем при наведении на кнопку */
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4); /* Увеличение тени для кнопки */
+}
+
+.price {
+    font-size: 1.5em; /* Размер шрифта */
+    color: #ff5722; /* Цвет текста */
+    font-weight: bold; /* Жирное начертание */
+    margin: 15px 0; /* Отступ вокруг цены */
+    text-shadow: 0 0 5px rgba(255, 87, 34, 0.8); /* Эффект светящегося текста */
+}
+
+.purchases {
+    font-size: 0.9em; /* Размер шрифта */
+    color: rgba(255, 255, 255, 0.7); /* Цвет текста */
+    font-style: italic; /* Курсив */
+}
+
+.product-item.hit::before,
+.product-item.soon::before,
+.product-item.new::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: bold;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    z-index: 99; /* Высокий уровень стекирования */
+    transition: background 0.3s; /* Плавный переход фона */
+}
+
+
+
+
+
+
+
+
+.product-item.new::before {
+    background: rgb(145, 98, 255); /* Цвет фона */
+    color: #fff; /* Цвет текста */
+    content: 'NEW'; /* Добавляем текст "NEW" */
+    font-family: 'MyCustomFont', sans-serif; /* Используем ваш шрифт */
+    font-size: 19px; /* Размер шрифта */
+    padding: 5px 10px; /* Отступы вокруг текста */
+    border-radius: 20px; /* Округление углов */
+    position: absolute; /* Позиционирование */
+    top: 10px; /* Положение по вертикали */
+    right: 10px; /* Положение по горизонтали */
+    transition: opacity 0.3s, transform 0.3s; /* Плавный переход для эффектов */
+    letter-spacing: 1px; /* Отступ между буквами */
+    text-shadow: 
+        -1px -1px 0 #000,  
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000; /* Черный контур вокруг текста */
+}
+
+
+.product-item.hit::before {
+    background: rgb(229, 98, 255); /* Цвет фона */
+    color: #fff; /* Цвет текста */
+    content: 'ХИТ ПРОДАЖ'; /* Добавляем текст "NEW" */
+    font-family: 'MyCustomFont', sans-serif; /* Используем ваш шрифт */
+    font-size: 19px; /* Размер шрифта */
+    padding: 5px 10px; /* Отступы вокруг текста */
+    border-radius: 20px; /* Округление углов */
+    position: absolute; /* Позиционирование */
+    top: 10px; /* Положение по вертикали */
+    right: 10px; /* Положение по горизонтали */
+    transition: opacity 0.3s, transform 0.3s; /* Плавный переход для эффектов */
+    letter-spacing: 1px; /* Отступ между буквами */
+    text-shadow: 
+        -1px -1px 0 #000,  
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000; /* Черный контур вокруг текста */
+}
+
+.product-item.soon::before {
+    background: rgb(98, 114, 255); /* Цвет фона */
+    color: #fff; /* Цвет текста */
+    content: 'СКОРО'; /* Добавляем текст "NEW" */
+    font-family: 'MyCustomFont', sans-serif; /* Используем ваш шрифт */
+    font-size: 19px; /* Размер шрифта */
+    padding: 5px 10px; /* Отступы вокруг текста */
+    border-radius: 20px; /* Округление углов */
+    position: absolute; /* Позиционирование */
+    top: 10px; /* Положение по вертикали */
+    right: 10px; /* Положение по горизонтали */
+    transition: opacity 0.3s, transform 0.3s; /* Плавный переход для эффектов */
+    letter-spacing: 1px; /* Отступ между буквами */
+    text-shadow: 
+        -1px -1px 0 #000,  
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000; /* Черный контур вокруг текста */
+}
+
+.product-item:hover::before {
+    background: rgba(255, 0, 255, 0.8); /* Изменение фона при наведении */
+    color: #fff; /* Цвет текста */
+}
+
+@media (max-width: 768px) {
+    .products-title {
+        font-size: 48px; /* Уменьшение размера заголовка на мобильных устройствах */
+    }
+
+    .price {
+        font-size: 1.2em; /* Уменьшение размера цены на мобильных устройствах */
+    }
+
+    .product-link {
+        padding: 8px 15px; /* Уменьшение отступов для кнопки на мобильных устройствах */
+    }
+}
+
+
+
+
+
+
+
+
+/* Основные стили для раздела "Контакты" */
+.contact {
+    text-align: center;
+    padding: 60px 20px;
+    margin-top: 20px;
+    color: #ffffff;
+    border: 2px solid #6669ff;
+    border-radius: 15px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden; /* Скрытие переполнения */
+}
+
+/* Анимация фона */
+.contact::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(102, 105, 255, 0.1);
+    border-radius: 15px;
+    z-index: 0;
+    animation: pulse 6s infinite; /* Анимация пульсации */
+}
+
+/* Анимация пульсации */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.contact h2 {
+    font-size: 2.5rem; /* Увеличенный размер заголовка */
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1; /* Повышение уровня стекирования */
+    text-shadow: 0 0 10px rgba(102, 105, 255, 0.8); /* Эффект светящегося текста */
+}
+
+/* Стили для ссылок */
+.social-links {
+    margin-top: 20px;
+    z-index: 1; /* Повышение уровня стекирования */
+    position: relative;
+}
+
+/* Стили для кнопок социальных сетей */
+.social-button {
+    margin: 0 10px;
+    display: inline-block;
+    transition: transform 0.3s, box-shadow 0.3s; /* Плавные переходы */
+}
+
+.social-button:hover {
+    transform: translateY(-5px); /* Подъем кнопки при наведении */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); /* Тень при наведении */
+}
+
+/* Стили для изображений */
+.social-icon {
+    width: 64px; /* Ширина изображения */
+    height: 64px; /* Высота изображения */
+    transition: transform 0.3s, filter 0.3s; /* Плавные переходы */
+}
+
+/* Эффект при наведении */
+.social-button:hover .social-icon {
+    transform: scale(1.2); /* Увеличение размера изображения */
+    filter: drop-shadow(0 0 10px rgba(102, 105, 255, 0.8)); /* Эффект тени */
+}
+
+/* Дополнительные стили для текста */
+.contact p {
+    font-size: 1.2rem; /* Размер текста */
+    margin-top: 20px;
+    z-index: 1; /* Повышение уровня стекирования */
+    position: relative;
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+    .contact h2 {
+        font-size: 2rem; /* Уменьшение размера заголовка на мобильных устройствах */
+    }
+
+    .social-icon {
+        width: 48px; /* Уменьшение размера иконок на мобильных устройствах */
+        height: 48px;
+    }
+
+    .contact p {
+        font-size: 1rem; /* Уменьшение размера текста на мобильных устройствах */
+    }
+}
+
+
+
+
+
+
+/* Футер */
+.footer {
+    background: linear-gradient(135deg, rgb(163, 163, 163).192), rgba(43, 43, 43, 0.192);
+    padding: 40px 20px; /* Увеличено пространство для лучшего восприятия */
+    text-align: center;
+    position: relative; /* Для позиционирования снежинок */
+    overflow: hidden; /* Скрытие переполнения */
+    color: #ffffff; /* Цвет текста */
+    font-family: 'Arial', sans-serif; /* Шрифт */
+}
+
+/* Основной контейнер для контента */
+.container {
+    display: flex; /* Используем flexbox для центрирования */
+    justify-content: flex-end; /* Выравнивание по правому краю */
+    align-items: center; /* Центрирование по вертикали */
+    height: 100vh; /* Высота контейнера на весь экран */
+    padding: 20px; /* Отступы */
+    background: linear-gradient(135deg, rgb(163, 163, 163).192), rgba(43, 43, 43, 0.192);
+}
+
+/* Контейнер с содержимым */
+.content {
+    max-width: 400px; /* Максимальная ширина контейнера */
+    margin: 20px; /* Отступы вокруг контейнера */
+    padding: 30px; /* Внутренние отступы */
+    background: rgba(50, 50, 50, 0.9); /* Фон контейнера */
+    border-radius: 15px; /* Скругление углов */
+    box-shadow: 0 4px 30px rgba(0, 255, 255, 0.5); /* Тень для глубины */
+    animation: fadeIn 1s ease-in-out; /* Анимация появления */
+}
+
+/* Заголовки */
+h1, h3 {
+    color: #00ffcc; /* Цвет заголовков */
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.7); /* Эффект свечения */
+    margin-bottom: 15px;
+}
+
+/* Параграфы */
+p {
+    line-height: 1.6;
+    margin-bottom: 15px;
+    color: #ffffff; /* Цвет текста параграфов */
+    transition: color 0.3s ease; /* Плавный переход цвета */
+}
+
+p:hover {
+    color: #00ffcc; /* Цвет текста при наведении */
+}
+
+/* Анимация появления контейнера */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px); /* Начальная позиция */
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0); /* Конечная позиция */
+    }
+}
+
+
+
+
+
+
+/* Снежинки */
+.snowflake {
+    position: absolute;
+    top: -20px;
+    color: white;
+    font-size: 2em;
+    opacity: 0.2;
+    pointer-events: none;
+    animation: fall linear infinite;
+}
+
+/* Анимация падения снежинок */
+@keyframes fall {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateY(101vh) translateX(calc(-50% + random(100vw))); /* Эффект случайного движения */
+    }
+}
+
+/* Анимация поворота */
+@keyframes rotateIn {
+    from {
+        transform: rotate(-200deg);
+        opacity: 0;
+    }
+    to {
+        transform: rotate(0deg);
+        opacity: 1;
+    }
+}
+
+/* Анимация появления с подъемом */
+@keyframes fadeInUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Анимация при загрузке */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Дополнительные стили для текста футера */
+.footer p {
+    margin: 10px 0;
+    font-size: 0.9rem; /* Размер текста */
+    animation: fadeInUp 0.5s ease forwards; /* Анимация появления текста */
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+    .footer {
+        padding: 20px 10px; /* Уменьшение отступов на мобильных устройствах */
+    }
+
+    .navigation a {
+        font-size: 1rem; /* Уменьшение размера шрифта на мобильных устройствах */
+    }
+
+    .snowflake {
+        font-size: 1.5em; /* Уменьшение размера снежинок на мобильных устройствах */
+    }
+}
+
+
+
+
+
+
+
+
+
+/* Основной контейнер */
+.container {
+    display: flex; /* Используем flexbox для центрирования */
+    justify-content: flex-end; /* Выравнивание по правому краю */
+    align-items: center; /* Центрирование по вертикали */
+    height: 100vh; /* Высота контейнера на весь экран */
+    padding: 20px; /* Отступы */
+    background: rgba(0, 0, 0, 0.8); /* Полупрозрачный фон */
+}
+
+/* Контейнер соглашения */
+.agreement-container {
+    max-width: 400px; /* Максимальная ширина контейнера */
+    margin: 20px; /* Отступы вокруг контейнера */
+    padding: 30px; /* Внутренние отступы */
+    background: rgba(30, 30, 30, 0.9); /* Фон контейнера */
+    border-radius: 15px; /* Скругление углов */
+    box-shadow: 0 4px 30px rgba(0, 255, 255, 0.5); /* Тень для глубины */
+    animation: fadeIn 1s ease-in-out; /* Анимация появления */
+}
+
+/* Заголовки */
+h1, h3 {
+    color: #ff9c40; /* Цвет заголовков */
+    text-shadow: 0 0 10px rgba(82, 82, 82, 0.7); /* Эффект свечения */
+    margin-bottom: 15px;
+    position: relative;
+}
+
+/* Анимация заголовков */
+h1::after, h3::after {
+    content: '';
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: #fda14b; /* Цвет нижней линии */
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    transform: scaleX(0);
+    transition: transform 0.5s ease;
+}
+
+h1:hover::after, h3:hover::after {
+    transform: scaleX(0.75); /* Анимация при наведении */
+}
+
+/* Параграфы */
+p {
+    line-height: 1.6;
+    margin-bottom: 15px;
+    color: #ffffff; /* Цвет текста параграфов */
+    transition: color 0.3s ease, transform 0.3s ease; /* Плавный переход цвета и трансформации */
+}
+
+p:hover {
+    color: rgb(255, 99, 37); /* Цвет текста при наведении */
+    transform: translateY(-2px); /* Легкий подъем текста при наведении */
+}
+
+/* Анимация появления контейнера */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px); /* Начальная позиция */
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0); /* Конечная позиция */
+    }
+}
+
+/* Дополнительные стили для ссылок */
+a {
+    color: #ff5c47; /* Цвет ссылок */
+    text-decoration: none; /* Убираем подчеркивание */
+    transition: color 0.3s ease, text-shadow 0.3s ease; /* Плавные переходы для ссылок */
+}
+
+a:hover {
+    color: #ffffff; /* Цвет ссылки при наведении */
+    text-shadow: 0 0 15px rgba(255, 112, 56, 0.8); /* Эффект свечения при наведении */
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+    .agreement-container {
+        padding: 20px; /* Уменьшение отступов на мобильных устройствах */
+    }
+
+    h1 {
+        font-size: 1.8rem; /* Уменьшение размера заголовка на мобильных устройствах */
+    }
+
+    h3 {
+        font-size: 1.5rem; /* Уменьшение размера подзаголовка на мобильных устройствах */
+    }
+
+    p {
+        font-size: 0.9rem; /* Уменьшение размера текста на мобильных устройствах */
+    }
+}
+
+
+/* Кнопки */
+button {
+    background-color: #ffb171;
+    color: #2c2c2c;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+    background-color: #ffc423;
+    transform: scale(1.05);
+}
+
+/* Препятствие копированию текста */
+.unselectable {
+    user-select: none; /* Отключает выделение текста */
+    -webkit-user-select: none; /* Для Safari */
+    -moz-user-select: none; /* Для Firefox */
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0); /* Прозрачный фон */
+    pointer-events: auto; /* Включает взаимодействие с оверлеем */
+}
+
+
+
+/* Ссылки */
+a {
+    color: #ffcc7f;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #ff9e2e;
+}
+
+/* Анимация фона */
+@keyframes backgroundAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+
+
+
+
+
+.no-interaction {
+    pointer-events: none; /* Отключает все взаимодействия с элементом */
+    user-select: none; /* Запрещает выделение текста/изображения */
+}
+
+.disabled {
+    pointer-events: none; /* Отключает взаимодействие с элементом */
+    color: gray; /* Цвет текста, чтобы показать, что ссылка неактивна */
+    text-decoration: none; /* Убирает подчеркивание */
+    cursor: default; /* Изменяет курсор на стандартный, чтобы показать, что элемент не кликабельный */
+}
+
+
+.section {
+    padding: 100px 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+        /* Стили для кнопки "Наверх" */
+        .scroll-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #00ffcc;
+            color: #000;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.3s, transform 0.3s;
+            z-index: 100;
+            opacity: 0; /* Изначально скрыта */
+            visibility: hidden; /* Изначально скрыта */
+            transition: opacity 0.3s, visibility 0.3s; /* Плавный переход для видимости */
+        }
+
+        .scroll-to-top.show {
+            opacity: 1; /* Показать кнопку */
+            visibility: visible; /* Установить видимость */
+        }
+
+        .scroll-to-top:hover {
+            background-color: #ffcc00;
+            transform: scale(1.1);
+        }
+
+/* Кнопки прокрутки вниз */
+.scroll-button {
+    background-color: #00ffcc;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    color: #000;
+    cursor: pointer;
+    margin: 10px;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.scroll-button:hover {
+    background-color: #ffcc00;
+    transform: scale(1.05);
+}
+
+
+
+
+
+.textzagalovok {
+    font-family: 'MyCustomFont', sans-serif; /* Используем ваш шрифт */
+    letter-spacing: 5px; /* Отступ между буквами */
+    text-shadow: 
+        -1px -1px 0 #000,  
+         1px -1px 0 #000,
+        -1px  1px 0 #000,
+         1px  1px 0 #000; /* Черный контур вокруг текста */
+}
+
+/* Медиа-запрос для мобильных устройств */
+@media (max-width: 768px) {
+    .textzagalovok {
+        font-size: 24px; /* Уменьшаем размер шрифта для мобильных устройств */
+        letter-spacing: 2px; /* Уменьшаем отступы между буквами */
+        text-shadow: 
+            -0.5px -0.5px 0 #000,  
+             0.5px -0.5px 0 #000,
+            -0.5px  0.5px 0 #000,
+             0.5px  0.5px 0 #000; /* Уменьшаем контур текста */
+    }
+}
+
+/* Дополнительный медиа-запрос для очень маленьких экранов */
+@media (max-width: 480px) {
+    .textzagalovok {
+        font-size: 18px; /* Еще больше уменьшаем размер шрифта */
+        letter-spacing: 1px; /* Уменьшаем отступы между буквами */
+        text-shadow: 
+            -0.3px -0.3px 0 #000,  
+             0.3px -0.3px 0 #000,
+            -0.3px  0.3px 0 #000,
+             0.3px  0.3px 0 #000; /* Уменьшаем контур текста еще больше */
+    }
+}

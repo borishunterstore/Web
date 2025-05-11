@@ -1,0 +1,230 @@
+.toggle-btn {
+    background: none;
+    border-style: outset;
+    border-color: #ffa46800;
+    background-color: #ff6340cc;
+    color: #ffffff;
+    font-size: 40px;
+    cursor: context-menu;
+    margin-left: auto;
+    display: none;
+    z-index: 1000;
+    transition: color 0.3s;
+}
+
+.toggle-btn:hover {
+    background-color: #ff5733;
+    color: #ffffff;
+    border-color: #ff5733;
+}
+
+.navigation {
+    display: flex;
+    margin-left: auto;
+    background: none;
+}
+
+.nav-list {
+    background: none;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.nav-item {
+    font-family: 'Roboto', sans-serif; /* Применяем шрифт Roboto */
+    background: none;
+    margin-left: 20px;
+}
+
+.nav-item a {
+    background: none;
+    color: #ffcc5f;
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 500;
+    padding: 10px;
+    transition: color 0.3s, background 0.3s;
+}
+
+.nav-item a:hover {
+    color: #fff;
+    font-weight: bold; /* Add this line */
+}
+
+@media (max-width: 768px) {
+    .toggle-btn {
+        display: block;
+    }
+
+    .navigation {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background-color: rgba(18, 18, 18, 0.788);
+        width: 100%;
+        z-index: 1199;
+    }
+
+    .navigation.active {
+        display: flex;
+    }
+
+    .nav-list {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 0;
+    }
+
+    .nav-item {
+        margin: 10px 10px;
+        width: 100%;
+    }
+
+    .nav-item a {
+        padding: 15px;
+        display: block;
+    }
+}
+
+.nav-item a.custom-color {
+    color: #ff5733;
+}
+
+.toggle-btn .custom-color {
+    color: #ff5733;
+}
+
+.toggle-btnv {
+    background: none;
+    border-style: outset;
+    border-color: #d7ff68;
+    color: #ffffff;
+    font-size: 40px;
+    cursor: context-menu;
+    margin-left: auto;
+    display: none;
+    z-index: 1000;
+    transition: color 0.3s;
+}
+
+.navigationv {
+    display: flex;
+    margin-left: auto;
+    background: none;
+}
+
+.nav-listv {
+    background: none;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.nav-itemv {
+    background: none;
+    margin-left: 20px;
+}
+
+.nav-itemv a {
+    font-family: 'Roboto', sans-serif; /* Применяем шрифт Roboto */
+    background: none;
+    color: #ff725f;
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 500;
+    padding: 10px;
+    transition: color 0.3s, background 0.3s;
+}
+
+.nav-itemv a:hover {
+    color: #fff;
+    font-weight: bold; /* Add this line */
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
+    .toggle-btnv {
+        display: block;
+    }
+
+    .navigationv {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background-color: rgba(18, 18, 18, 0.788);
+        width: 100%;
+        z-index: 1199;
+    }
+
+    .navigationv.active {
+        display: flex;
+    }
+
+    .nav-listv {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 10px 0;
+    }
+
+    .nav-itemv {
+        margin: 10px 10px;
+        width: 100%;
+    }
+
+    .nav-itemv a {
+        padding: 15px;
+        display: block;
+    }
+}
+
+.nav-itemv a.custom-color {
+    color: #ff5733;
+}
+
+.toggle-btnv .custom-color {
+    color: #ff5733;
+}
+
+
+
+
+
+
+
+
+.nav-list {
+    list-style: none;
+    padding: 0;
+    justify-content: space-around;
+}
+
+.nav-item {
+    position: relative;
+}
+
+.nav-label {
+    display: none; /* Hide labels by default */
+    margin-top: 5px;
+    font-size: 32px;
+    text-align: center;
+}
+
+/* Media query for mobile devices */
+@media (max-width: 768px) {
+    .nav-label {
+        display: block; /* Show labels on mobile */
+    }
+
+    .nav-item img {
+        margin-bottom: 5px; /* Add space between icon and label */
+    }
+}

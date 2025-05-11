@@ -1,0 +1,2160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="navigation.css">
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>BHS ➭ Discord</title>
+
+        <!-- Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-WC5PDTV8R2"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+    
+          gtag('config', 'G-WC5PDTV8R2');
+        </script>
+        <!-- End Google Analytics -->
+
+        <!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5MVJN9MV');</script>
+    <!-- End Google Tag Manager -->
+
+    <!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5MVJN9MV"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    
+    <style>
+body, html {
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('fon2.jpg');
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    width: 100%;
+    height: 100%;
+    animation: backgroundFade 0.5s ease-in-out; /* Эффект появления фона */
+
+    cursor: url('cursor.png'), auto; /* Замените на путь к вашему изображению курсора */
+}
+
+main {
+    cursor: url('cursor.png'), auto; /* Замените на путь к вашему изображению курсора */
+}
+
+@keyframes backgroundFade {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+#snowCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+main {
+    position: relative;
+    z-index: 1;
+    padding: 20px;
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    border-radius: 50%;
+    width: 90px;
+    margin-right: 15px;
+    transition: transform 0.3s;
+}
+
+.logo:hover {
+    transform: scale(1.1);
+}
+
+h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 38px;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+    animation: fadeIn 1s ease-in-out; /* Эффект появления заголовка */
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.product-container2 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin-bottom: 30px;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.product-item2 {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    width: 90%;
+}
+
+.product-item2:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 60px rgba(0, 0, 0, 0.5);
+}
+
+.product-image2 {
+    width: 100%;
+    border-radius: 15px;
+    transition: opacity 0.5s, transform 0.5s;
+}
+
+.product-image2:hover {
+    opacity: 0.8;
+    transform: scale(1.1);
+}
+
+.status-container2 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.status-image2 {
+    width: 25px;
+    margin-right: 5px;
+}
+
+.service-container2 {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.animation-item2 {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px;
+    width: 300px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    animation: fadeIn 1s ease-in-out; /* Эффект появления анимационных элементов */
+}
+
+.animation-item2:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+}
+
+h2 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-align: center;
+    color: #00bcd4;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+    animation: fadeIn 1s ease-in-out; /* Эффект появления заголовков второго уровня */
+}
+
+hr {
+    border: 1px solid #ff843d;
+    margin: 20px 0;
+}
+
+.unselectable2 {
+    user-select: none;
+}
+
+/* Курсор */
+body {
+    cursor: url('cursor.png'), auto; /* Измените на путь к вашему кастомному курсору */
+}
+
+/* Эффекты прокрутки */
+html {
+    scroll-behavior: smooth; /* Плавная прокрутка */
+}
+
+/* Анимация появления блоков */
+@keyframes blockFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.block {
+    opacity: 0;
+    animation: blockFadeIn 1s forwards; /* Эффект появления для блоков */
+}
+
+.block:nth-child(1) {
+    animation-delay: 0.2s;
+}
+.block:nth-child(2) {
+    animation-delay: 0.4s;
+}
+.block:nth-child(3) {
+    animation-delay: 0.6s;
+}
+
+/* Дополнительные стили для кнопок */
+button {
+    background-color: #00bcd4;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+button:hover {
+    background-color: #ff843d;
+    transform: scale(1.05);
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h2 {
+                font-size: 2em;
+            }
+
+            .product-item2, .animation-item2 {
+                width: 90%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h2 {
+                font-size: 1.5em;
+            }
+
+            .status-image2 {
+                width: 20px;
+            }
+
+            .logo {
+                width: 70px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+        }
+
+
+.button-toggle {
+    cursor: url('path/to/your/hand-cursor.png'), pointer; /* Курсор в виде руки для кнопок */
+}
+
+#cartItems li {
+    cursor: url('path/to/your/hover-cursor.png'), pointer; /* Курсор для элементов списка */
+}
+    </style>
+</head>
+<body>
+    <canvas id="snowCanvas"></canvas>
+
+    <div class="banner2">
+        <div class="logo-container">
+            <img src="logotip.jpg" alt="Логотип" class="logo">
+            <h1 class="nazvanie">BHS ➭ Discord</h1>
+        </div>
+        <button class="toggle-btn" aria-label="Toggle Navigation">&#9776;</button>
+        <nav class="navigation">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">
+                        <img src="CS-INDEX-IMAGE-1.png" alt="" style="width: 65px; height: 65px;">
+                        <span class="nav-label" style="margin: 0px;">Главная</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="news.html" class="nav-link">
+                        <img src="https://cdn3.emoji.gg/emojis/4426-news.png" alt="" style="width: 65px; height: 65px;">
+                        <span class="nav-label">Новости</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="staff.html" class="nav-link">
+                        <img src="https://cdn3.emoji.gg/emojis/5593-education.png" alt="" style="width: 65px; height: 65px;">
+                        <span class="nav-label">Персонал</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="docs.html" class="nav-link">
+                        <img src="https://cdn3.emoji.gg/emojis/5139-help.png" alt="" style="width: 65px; height: 65px;">
+                        <span class="nav-label">Документация</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>        
+    </div>
+
+
+    <main class="product-page2">
+        <div style="display: flex; justify-content: center;">
+            <h2 class="unselectable2 textzagalovokk3">Discord</h2><a class="comment-author label dd" style=""></a>
+        </div>
+        <div class="dividerD"></div>
+<style>
+    @media (prefers-color-scheme: dark) {
+    :root {
+        --main-red: #ff6666;
+        --main-red-hover: #ff5f5f;
+    }
+}
+:root {
+    --main-red: #a3ff66;
+    --main-red-hover: #ee5f5f;
+}
+
+.label.dd:after {
+    content: var(--text, "Доступно");
+    padding-right: 3px;
+}
+
+            :root {
+              --primary-color: #ff845f;
+              --secondary-color: #1e1e1e;
+              --tertiary-color: #2a2a2a;
+              --neon-color: rgba(252, 168, 99, 0.5);
+              --animation-duration: 0.5s;
+              --easing: cubic-bezier(0.645, 0.045, 0.355, 1);
+              --tag-bg: linear-gradient(90deg, #5865F2, #2F3196);
+              --tag-text-color: #fff;
+            }
+            
+            .status-container {
+              display: flex;
+              align-items: center;
+              position: relative;
+              padding: 24px;
+              border-radius: 16px;
+              background: linear-gradient(135deg, var(--tertiary-color), var(--secondary-color));
+              box-shadow:
+                0 0 20px var(--neon-color),
+                0 0 40px var(--neon-color),
+                0 0 60px var(--neon-color),
+                0 0 80px var(--neon-color)/50%;
+              transition: transform var(--animation-duration);
+            }
+            
+            .status-container:hover {
+              transform: scale(1.07);
+            }
+            
+            .status-block {
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              padding: 10px 10px;
+              border-radius: 12px;
+              border: 2px solid #caff4f;
+              background: linear-gradient(135deg, var(--tertiary-color), var(--secondary-color));
+              box-shadow:
+                0 0 10px var(--neon-color),
+                0 0 20px var(--neon-color)/50%;
+            }
+            
+            .status-text2 {
+              color: var(--primary-color);
+              font-family: 'Orbitron', sans-serif;
+              font-weight: bold;
+              font-size: 2.00em;
+              -webkit-text-stroke: 1.1px #ffd587;
+              text-stroke: 1.2px #000;
+              background: linear-gradient(120deg, var(--primary-color) 0%, var(--primary-color) 50%, var(--primary-color) 50%);
+              background-size: 200% 250%;
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              animation: gradient-text var(--animation-duration) infinite var(--easing);
+            }
+            
+            .status-tag {
+              position: absolute;
+              top: 100%;
+              left: 0;
+              padding: 4px 8px;
+              border-radius: 3px;
+              background: var(--tag-bg);
+              color: var(--tag-text-color);
+              font-size: 0.875em;
+              font-weight: 500;
+              line-height: 1;
+              white-space: nowrap;
+              transform: translateY(5px);
+              animation: tag-animation var(--animation-duration) infinite var(--easing);
+            }
+            
+            .status-tag::before {
+              content: "";
+              display: inline-block;
+              width: 4px;
+              height: 4px;
+              border-radius: 50%;
+              background: var(--tag-text-color);
+              margin-right: 4px;
+            }
+            
+            @keyframes gradient-text {
+              0% {
+                background-position: 0% 50%;
+              }
+              50% {
+                background-position: 100% 50%;
+              }
+              100% {
+                background-position: 0% 50%;
+              }
+            }
+            
+            @keyframes tag-animation {
+              0%, 100% {
+                transform: translateY(5px);
+              }
+              50% {
+                transform: translateY(0);
+              }
+            }
+            
+            @media (max-width: 767px) and (platform: android) {
+              .status-container {
+                padding: 12px;
+                border-radius: 6px;
+              }
+            
+              .status-block {
+                padding: 10px;
+                border-radius: 8px;
+              }
+            
+              .status-text2 {
+                font-size: 1.3em;
+                -webkit-text-stroke: 0.8px #ffd587;
+                text-stroke: 0.8px #000;
+              }
+            }
+            
+                    .DDC {
+                        margin: 0;
+                        padding: 0;
+                        text-shadow: 
+                            -1px -1px 0 #000,  
+                             1px -1px 0 #000,
+                            -1px  1px 0 #000,
+                             1px  1px 0 #000;
+                        color: #fff;
+                        font-size: 17px;
+                        text-align: center;
+                        padding-top: 10px;
+                    }
+</style>
+        <div class="product-container2">
+            <div class="product-item2">
+                <img src="assets_task_01jtrpgc6tfyd8eafjde9w17rz_1746733192_img_0.webp" alt="Товар 1" class="product-image2">
+                <p class="DDC unselectable2">Создаём качественный Discord сервер и настраиваем так как вы хотите!</p>
+            </div>
+        </div>
+
+<style>
+            body {
+                background-color: #121212;
+                color: #e0e0e0;
+                font-family: 'Arial', sans-serif;
+            }
+            
+            .product-page2 {
+                padding: 20px;
+            }
+            
+            .unselectable2 {
+                user-select: none;
+            }
+            
+            .dividerD {
+                position: relative;
+                height: 2px;
+                background-color: transparent;
+                margin: 20px 0;
+            }
+            
+            .dividerD::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(to left, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.3));
+                border-radius: 1px;
+            }
+            
+            @keyframes shrink {
+                from {
+                    height: 10px;
+                }
+                to {
+                    height: 2px;
+                }
+            }
+            
+            .dividerD::before {
+                animation: shrink 0.5s forwards;
+            }
+            
+            .product-container2 {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .product-item2 {
+                background-color: rgba(30, 30, 30, 0.8);
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 20px;
+                box-shadow: 0 4px 20px rgba(131, 97, 255, 0.5);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            
+            .product-item2:hover {
+                transform: scale(1.02);
+                box-shadow: 0 8px 40px rgb(240, 73, 255);
+            }
+            
+.containerd1 {
+    width: 100px;
+    height: 530px;
+    background-color: rgba(70, 70, 70, 0.8);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 20px 20px 20px rgba(255, 111, 111, 0.61);
+    display: flex;
+    flex-direction: column;
+}
+
+.containerd2 {
+    width: 100px;
+    height: 2002px;
+    background-color: rgba(30, 30, 30, 0.8);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 20px rgba(111, 138, 255, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Медиазапросы для адаптации */
+@media (max-width: 768px) {
+    .containerd1 {
+    width: 10px;
+    height: 10px;
+    background-color: rgba(70, 70, 70, 0.8);
+    border-radius: 10px;
+    box-shadow: 20px 20px 20px rgba(255, 111, 111, 0.61);
+}
+
+.containerd2 {
+    width: 100px;
+    height: 1720px;
+    background-color: rgba(30, 30, 30, 0.8);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 20px rgba(111, 138, 255, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+}
+
+/* Медиазапросы для адаптации */
+@media (max-width: 916px) {
+    .containerd1 {
+    width: 100px;
+    height: 700px;
+    background-color: rgba(70, 70, 70, 0.8);
+    border-radius: 10px;
+    box-shadow: 20px 20px 20px rgba(255, 111, 111, 0.61);
+}
+
+.containerd2 {
+    width: 100px;
+    height: 2420px;
+    background-color: rgba(30, 30, 30, 0.8);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 20px rgba(111, 138, 255, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+}
+
+
+/* Медиазапросы для адаптации */
+@media (max-width: 976px) {
+    .containerd1 {
+    width: 100px;
+    height: 690px;
+    background-color: rgba(70, 70, 70, 0.8);
+    border-radius: 10px;
+    box-shadow: 20px 20px 20px rgba(255, 111, 111, 0.61);
+}
+
+.containerd2 {
+    width: 100px;
+    height: 2030px;
+    background-color: rgba(30, 30, 30, 0.8);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 20px rgba(111, 138, 255, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+}
+
+
+/* Медиазапросы для адаптации */
+@media (max-width: 1016px) {
+    .containerd1 {
+    width: 100px;
+    height: 620px;
+    background-color: rgba(70, 70, 70, 0.8);
+    border-radius: 10px;
+    box-shadow: 20px 20px 20px rgba(255, 111, 111, 0.61);
+}
+
+.containerd2 {
+    width: 100px;
+    height: 1930px;
+    background-color: rgba(30, 30, 30, 0.8);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 20px rgba(111, 138, 255, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+}
+
+@media (max-width: 480px) {
+    .containerd1 {
+    width: 10px;
+    height: 10px;
+    background-color: rgba(70, 70, 70, 0.8);
+    border-radius: 10px;
+    box-shadow: 20px 20px 20px rgba(255, 111, 111, 0.61);
+}
+
+.containerd2 {
+    width: 100px;
+    height: 1702px;
+    background-color: rgba(30, 30, 30, 0.8);
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 20px rgba(111, 138, 255, 0.5);
+    display: flex;
+    flex-direction: column;
+}
+}
+
+            .bottom-image {
+                width: 98.8%;
+                max-width: 100%;
+                height: auto;
+                border-radius: 0 0 10px 10px;
+                margin-top: auto;
+                padding-top: 45px;
+                object-fit: cover;
+                transition: none;
+            }
+            
+            .bottom-image:hover {
+                transform: none;
+            }
+            
+            .service-container2 {
+                display: flex;
+                justify-content: space-between;
+                flex-wrap: nowrap;
+                gap: 20px;
+            }
+            
+            .animation-item2 {
+                width: calc(50% - 10px);
+                background-color: rgba(45, 45, 45, 0.9);
+                border-radius: 10px;
+                padding: 15px;
+                box-shadow: 0 5px 50px rgba(37, 37, 37, 0.5);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            
+            .service-icon {
+                width: 20px;
+                height: auto; 
+                margin-right: 10px;
+            }
+            
+            .service-montage h3,
+            .service-quality h3 {
+               color: #ffb272;
+               text-shadow: 0 0 5px #ffab5c;
+               transition: color 0.3s ease;
+            }
+            
+            .service-montage h3:hover,
+            .service-quality h3:hover {
+               color: #ff4081;
+            }
+            
+            .DiscordD {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px;
+                background-color: rgba(255, 255, 255, 0.1);
+                border-radius: 5px;
+                margin-bottom: 10px;
+            }
+            
+            .service-description {
+                flex-grow: 1;
+                margin-right: 10px;
+            }
+            
+            .DiscordC {
+                color: #ff3b3b;
+                font-weight: bold;
+                font-size: 1.2em;
+                font-family: 'Arial Black', sans-serif;
+                text-shadow: 
+                    1px 1px 0 rgba(0, 0, 0, 0.5),
+                    2px 2px 0 rgba(255, 255, 255, 0.3),
+                    3px 3px 0 rgba(0, 0, 0, 0.5);
+                padding: 5px;
+                border-radius: 5px;
+            }
+            
+            .DiscordD:hover {
+               transform: scale(1.02);
+               background-color: rgba(255,255,255,0.15);
+               font-weight: bold;
+            }
+            
+            @media (max-width: 768px) {
+                .product-page2 {
+                    padding: 10px;
+                }
+                
+                .product-item2 {
+                    padding: 10px;
+                    margin-bottom: 15px;
+                }
+                
+                .containerd1 {
+                    width: 90%;
+                    height: auto;
+                }    
+            
+                .containerd3 {
+                    width: 90%;
+                    height: auto;
+                }
+            
+            .containerd4 {
+                width: 90%;
+                height: auto;
+            }
+            
+            .containerd5 {
+                width: 90%;
+                height: auto;
+                display: flex;
+                flex-direction: column;
+                margin: 0 auto;
+            }
+            
+            .containerd6 {
+                width: 90%;
+                height: auto;
+            }
+                
+                .bottom-image {
+                    display: none;
+                }
+                
+                .service-container2 {
+                    flex-direction: column;
+                    align-items: center;
+                }
+                
+                .animation-item2 {
+                    width: 100%;
+                    margin-bottom: 15px;
+                }
+                
+                .service-icon {
+                    width: 18px;
+                }
+                
+                .DiscordD {
+                    font-size: 12px;
+                    padding: 10px;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .product-item2 {
+                    margin-bottom: 10px;
+                }
+                
+                .service-container2 {
+                    gap: 10px;
+                }
+                
+                .animation-item2 {
+                    padding: 10px;
+                }
+            }
+
+
+
+.label:after {
+    color: var(--main-red);
+    border: 1px solid;
+    border-color: var(--main-red);
+    -webkit-border-radius: 3px;
+    border-radius: 3px;
+    font-size: 10px;
+    line-height: 1;
+    padding: 1px 2px 2px;
+    margin: -2px 0 0 5px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+
+
+
+
+.l9f- {
+    padding: 3px 12px;
+    display: flex
+;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    border: 2px solid;
+    border-radius: var(--radius);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--main);
+    border-color: var(--color);
+}
+._0f7D {
+    position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: pointer;
+}
+a {
+    color: var(--color-red);
+    text-decoration: none;
+}
+* {
+    margin: 0;
+    padding: 0;
+    border: none;
+    outline: none;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+user agent stylesheet
+a:-webkit-any-link {
+    color: -webkit-link;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.C57q {
+    display: flex
+;
+    margin-bottom: 5px;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 500;
+}
+.N8hB {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: flex
+;
+    color: var(--main);
+}
+style attribute {
+    --color-red: #ffa2a2ff;
+    --color-pink: #dcbedbff;
+    --color-purple: #ff0000ff;
+    --color-yellow: #a68c40ff;
+    --color-green: #71ffafff;
+    --color-gray: #747474ff;
+    --main: #ebebebff;
+}
+body[data-theme=tr-dark] {
+    --shadow-color: rgba(38, 38, 38, .9);
+    --background-tr: transparent;
+    --block: rgba(51, 51, 51, .9);
+    --block-inner: rgba(39, 39, 39, .85);
+    --border: #414141;
+    --head: rgba(49, 49, 49, .9);
+    --head-hover: 
+ color-mix(in srgb, var(--head) 88%, black 12%);
+    --input: #242424;
+    --input-hover: 
+ color-mix(in srgb, var(--input) 88%, black 12%);
+    --input-active: #272727;
+    --color-gray: #555;
+    --color-gray-hover: 
+ color-mix(in srgb, var(--color-gray) 92%, black 8%);
+    --main: #fff;
+    --main-hover: 
+ color-mix(in srgb, var(--main) 92%, black 8%);
+    --minor: #b8b8b8;
+}
+
+:root {
+    --rt-color-white: #fff;
+    --rt-color-dark: #222;
+    --rt-color-success: #8dc572;
+    --rt-color-error: #be6464;
+    --rt-color-warning: #f0ad4e;
+    --rt-color-info: #337ab7;
+    --rt-opacity: 0.9;
+    --rt-transition-show-delay: 0.15s;
+    --rt-transition-closing-delay: 0.15s;
+}
+:root {
+    --rt-color-white: #fff;
+    --rt-color-dark: #222;
+    --rt-color-success: #8dc572;
+    --rt-color-error: #be6464;
+    --rt-color-warning: #f0ad4e;
+    --rt-color-info: #337ab7;
+    --rt-opacity: .9;
+    --rt-transition-show-delay: .15s;
+    --rt-transition-closing-delay: .15s;
+}
+:root {
+    --radius: 10px;
+    --radius-small: 6px;
+    --max-width: 1390px;
+    --color-blue: #56b7ff;
+    --color-black: #242424;
+    --color-red: #ff6666;
+    --color-pink: #b12ead;
+    --color-green: #3cce7b;
+    --color-purple: #9954d8;
+    --color-yellow: #f2b800;
+    --main-permanent: #fff;
+}
+*::selection {
+    background-color: var(--color-red);
+    color: #fff;
+    text-shadow: none;
+}
+*::selection {
+    background-color: var(--color-red);
+    color: #fff;
+    text-shadow: none;
+}
+*::selection {
+    background-color: var(--color-red);
+    color: #fff;
+    text-shadow: none;
+}
+*::selection {
+    background-color: var(--color-red);
+    color: #fff;
+    text-shadow: none;
+}
+*::selection {
+    background-color: var(--color-red);
+    color: #fff;
+    text-shadow: none;
+}
+*::selection {
+    background-color: var(--color-red);
+    color: #fff;
+    text-shadow: none;
+}
+*::selection {
+    background-color: var(--color-red);
+    color: #fff;
+    text-shadow: none;
+}
+*::selection {
+    background-color: var(--color-red);
+    color: #fff;
+    text-shadow: none;
+}
+*::selection {
+    background-color: var(--color-red);
+    color: #fff;
+    text-shadow: none;
+}
+*::selection {
+    background-color: var(--color-red);
+    color: #fff;
+    text-shadow: none;
+}
+*::selection {
+    background-color: var(--color-red);
+    color: #fff;
+    text-shadow: none;
+}
+*::selection {
+    background-color: var(--color-red);
+    color: #fff;
+    text-shadow: none;
+}
+*::selection {
+    background-color: var(--color-red);
+    color: #fff;
+    text-shadow: none;
+}
+</style>
+
+<div style="display: flex; justify-content: center;">
+    <h2 class="unselectable2 textzagalovokk3">Подробности</h2>
+    
+</div>
+<div class="dividerD"></div>
+<div class="service-container2">
+    <div class="animation-item2 containerd1"> <!-- Оформление -->
+                <h2 class="unselectable2 textvrem2" style="display: flex; justify-content: center;">Оформление</h2>
+                <p class="unselectable2 DiscordD">
+                    <img src="https://cdn3.emoji.gg/emojis/3280-text.png" alt="" class="service-icon">
+                    Красивое оформление каналов <span class="DiscordC">+09₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(9, 'Красивое оформление каналов', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F875378106490322964.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Красивое оформление ролей <span class="DiscordC">+09₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(9, 'Красивое оформление ролей', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F851875769968885761.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Красивое оформление категорий <span class="DiscordC">+09₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(9, 'Красивое оформление категорий', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F943313044400906304.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Красивое оформление текстов <span class="DiscordC">+09₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(9, 'Красивое оформление текстов', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F997829299509936148.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Красивое оформление изображений с текстом <span class="DiscordC">+09₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(9, 'Красивое оформление изображений с текстом', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+            </div>
+
+<style>
+        .textvrem2 {
+          font-size: 40px;
+          word-spacing: 5px;
+          box-shadow: 10px 10px 10px rgba(0, 0, 0, 0.664);
+          font-family: 'MyCustomFont', sans-serif;
+                letter-spacing: 5px;
+                margin: 0;
+                padding: 0;
+                text-shadow: 
+                    -1px -1px 0 #000,  
+                     1px -1px 0 #000,
+                    -1px  1px 0 #000,
+                     1px  1px 0 #000;
+                color: #fff;
+                text-align: center;
+                border-radius: 10px;
+        }
+
+        .unselectable2 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border: 2px solid rgba(32, 32, 32, 0.1);
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.service-icon {
+    margin-right: 10px;
+}
+
+.DiscordC {
+    font-weight: bold;
+    color: #4CAF50;
+    margin-left: auto;
+}
+
+.button-card {
+    margin-left: 80px;
+    background-color: #ffffff5e;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.button-card:hover {
+    background-color: #e9e9e9;
+    transform: translateY(-2px);
+}
+
+.button-card:active {
+    transform: translateY(0);
+}
+
+
+.cart {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background-color: #2C2F33;
+    border: 1px solid #23272A;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    display: none;
+    color: #FFFFFF;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.cart h2 {
+    margin: 0;
+    font-size: 24px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    animation: slideIn 0.5s ease;
+}
+
+.cart p {
+    margin: 5px 0 0;
+    font-size: 18px;
+}
+
+
+@keyframes slideIn {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+#itemList {
+    list-style-type: none;
+    padding: 0;
+    margin: 10px 0;
+    color: #FFFFFF;
+}
+
+.item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #FFFFFF;
+}
+
+.item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.item-name {
+    flex: 1;
+}
+
+.item-price {
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+
+@keyframes updateQuantity {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+
+.button-toggle {
+    background-color: #ffffff5e;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    margin-left: 10px;
+}
+
+.button-toggle.rotated {
+    background-color: #ffffff5e;
+    transform: rotate(180deg);
+}
+
+.button-toggle:hover {
+    background-color: #ffffff9e;
+}
+
+@media (max-width: 480px) {
+    .textvrem2 {
+        font-size: 24px;
+    }
+
+    .button-card {
+        margin-left: 10px;
+        font-size: 14px;
+    }
+
+    .cart {
+        bottom: 10px;
+        left: 10px;
+        padding: 15px;
+    }
+
+    .cart h2 {
+        font-size: 20px;
+    }
+
+    .item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .item-price {
+        margin-left: 0;
+        margin-top: 5px;
+    }
+}
+
+
+@media (min-width: 481px) and (max-width: 768px) {
+    .textvrem2 {
+        font-size: 32px;
+    }
+
+    .button-card {
+        margin-left: 20px;
+        font-size: 15px;
+    }
+
+    .cart {
+        bottom: 15px;
+        left: 15px;
+        padding: 18px;
+    }
+
+    .cart h2 {
+        font-size: 22px;
+    }
+
+    .item {
+        flex-direction: row;
+    }
+
+    .item-price {
+        margin-left: 10px;
+    }
+}
+
+
+@media (min-width: 769px) {
+    .textvrem2 {
+        font-size: 40px;
+    }
+
+    .button-card {
+        margin-left: 80px;
+        font-size: 16px;
+    }
+
+    .cart {
+        bottom: 20px;
+        left: 20px;
+        padding: 20px;
+    }
+
+    .cart h2 {
+        font-size: 24px;
+    }
+
+    .item {
+        flex-direction: row;
+    }
+
+    .item-price {
+        margin-left: 20px;
+    }
+}
+
+
+.price-animation {
+    animation: updateTotal 0.5s forwards; /* Анимация изменения цены */
+}
+
+@keyframes updateTotal {
+    0% { color: #FFD700; }
+    50% { color: #FF4500; }
+    100% { color: #FFFFFF; }
+}
+
+.add-animation {
+    animation: addItem 0.5s forwards; /* Анимация добавления товара */
+}
+
+@keyframes addItem {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.remove-animation {
+    animation: addItem 0.5s forwards; /* Анимация удаления товара */
+}
+
+@keyframes removeItem {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(0.9); }
+    100% { transform: scale(0); opacity: 0; }
+}
+
+#cartItems {
+    transition: opacity 0.5s ease;
+}
+
+#cartItems.show {
+    display: block;
+    opacity: 1; /* Появление блока */
+}
+
+#cartItems.hide {
+    opacity: 0; /* Скрытие блока */
+    display: none; /* Убираем из потока */
+}
+
+.button-toggle {
+    background: transparent;
+    border: none;
+    color: #ff0000;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.button-toggle.rotated {
+    transform: rotate(180deg); /* Поворот кнопки */
+}
+</style>
+
+    <div class="animation-item2 containerd2"> <!-- Настройка -->
+                <h2 class="unselectable2 textvrem2" style="display: flex; justify-content: center;">Настройка</h2>
+
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F883777341686435910.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Настроить модерацию бота <span class="DiscordC">+26₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(26, 'Настроить модерацию бота', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1221623663175139359.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Настроить авто модерацию бота <span class="DiscordC">+44₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(44, 'Настроить авто модерацию бота', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1113812036397322272.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Настроить права ролей <span class="DiscordC">+33₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(33, 'Настроить права ролей', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1113812036397322272.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Настроить права каналов <span class="DiscordC">+33₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(33, 'Настроить права каналов', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://cdn3.emoji.gg/emojis/4135-create-category.png" alt="" class="service-icon">
+                    Настроить права категорий <span class="DiscordC">+33₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(33, 'Настроить права категорий', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F967448200036368414.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Авто-Публикация из соц-сетей <span class="DiscordC">+16₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(16, 'Авто-Публикация из соц-сетей', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F967127134902583366.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Система уровней (JuniperBot) <span class="DiscordC">+27₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(27, 'Система уровней (JuniperBot)', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F971470803331846185.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Система экономики (JuniperBot) <span class="DiscordC">+92₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(92, 'Система экономики (JuniperBot)', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F829042014293065788.gif%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Система Приветствия / Прощания <span class="DiscordC">+19₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(19, 'Система Приветствия / Прощания', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://cdn3.emoji.gg/emojis/6137-auditlog-mobile.png" alt="" class="service-icon">
+                    Журнал аудита (Один канал) <span class="DiscordC">+12₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(12, 'Журнал аудита (Один канал)', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://cdn3.emoji.gg/emojis/6137-auditlog-mobile.png" alt="" class="service-icon">
+                    Журнал аудита (Разные каналы) <span class="DiscordC">+24₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(24, 'Журнал аудита (Разные каналы)', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://cdn3.emoji.gg/emojis/1161-music.png" alt="" class="service-icon">
+                    Музыкальный канал "Создать комнату" и "Настроть комнату" <span class="DiscordC">+30₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(30, 'Музыкальный канал', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://cdn3.emoji.gg/emojis/7354-emoji.png" alt="" class="service-icon">
+                    Добавить эмодзи <span class="DiscordC">+50₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(50, 'Добавить эмодзи', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F985746008422092880.gif%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Веселые штучки <span class="DiscordC">+40₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(40, 'Веселые штучки', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://cdn3.emoji.gg/emojis/4971-stickers.png" alt="" class="service-icon">
+                    Добавить стикеры <span class="DiscordC">+50₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(50, 'Добавить стикеры', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://cdn3.emoji.gg/emojis/2963-soundbar-white.png" alt="" class="service-icon">
+                    Добавить звуковую панель <span class="DiscordC">+50₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(50, 'Добавить звуковую панель', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1049683235581481023.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Настроить адаптацию <span class="DiscordC">+29₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(29, 'Настроить адаптацию', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F979612173598855209.png%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Сделать картинки или баннеры <span class="DiscordC">+85₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(85, 'Сделать картинки или баннеры', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1098996842311716976.gif%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Настроить бота для партнёрств <span class="DiscordC">+45₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(45, 'Настроить бота для партнёрств', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F743583726256128103.gif%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Настроить бота для инвайтов <span class="DiscordC">+45₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(45, 'Настроить бота для инвайтов', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+                
+                <p class="unselectable2 DiscordD">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F810141406138990623.gif%3Fv%3D1&w=64&q=75" alt="" class="service-icon">
+                    Настроить систему пиара для сервера <span class="DiscordC">+70₽</span>
+                    <button class="button-card" id="toggleButton1" onclick="toggleCartItem(70, 'Настроить систему пиара для сервера', this)">
+                        <img id="toggleIcon1" src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;"> </button>
+                </p>
+            </div>
+        </div>
+    </main>
+<style>
+    #totalPrice {
+    display: inline;
+    margin-bottom: 35px;
+}
+
+.beta-tag {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    z-index: 1001;
+}
+
+.beta-tag img {
+    width: 30px;
+    height: auto;
+}
+
+</style>
+    <div class="cart" id="cart" style="display: none;">
+        <h2 style="color:rgb(255, 179, 156)">
+            <div class="beta-tag">
+                <img src="https://cdn3.emoji.gg/emojis/9357-beta-testing-from-vega.png" alt="BETA" />
+            </div>Корзина 
+            <button class="button-toggle" id="toggleButton" onclick="toggleCartItems()">▼</button>
+        </h2>
+        <p id="totalPrice">Итого: 0₽</p> (<span id="itemCount">0</span> товаров)
+        <div id="cartItems" style="display: none;">
+            <a itemprop="genre" class="l9f- _0f7D" style="--color: var(--color-gray); --hover: #666;"><ul id="itemList"></ul></a>
+        </div>
+    </div>
+
+
+<script>
+    let totalAmount = 0;
+    let cartItems = {};
+
+    function toggleCartItem(price, itemName, button) {
+        if (cartItems[itemName]) {
+            removeFromCart(itemName, button);
+        } else {
+            addToCart(price, itemName, button);
+        }
+    }
+    
+    function addToCart(price, itemName, button) {
+        totalAmount += price;
+        cartItems[itemName] = price;
+        button.querySelector('img').src = "https://cdn3.emoji.gg/emojis/3882-changeable-status-delete-dark.png";
+        button.style.backgroundColor = "#ff6f6f";
+        button.classList.add('add-animation');
+        updateCart();
+    } 
+
+    function removeFromCart(itemName, button) {
+        totalAmount -= cartItems[itemName];
+        delete cartItems[itemName];
+        button.innerHTML = `<img src="https://cdn3.emoji.gg/emojis/4974-discord-create-channel-dark.png" alt="Добавить в корзину" style="height: 20px; width: 20px;">`;
+        button.style.backgroundColor = "";
+        button.classList.add('remove-animation');
+        updateCart();
+    }
+
+    function updateCart() {
+        const totalPriceElement = document.getElementById('totalPrice');
+        const cartElement = document.getElementById('cart');
+        const itemListElement = document.getElementById('itemList');
+        const itemCountElement = document.getElementById('itemCount');
+
+        totalPriceElement.textContent = `Итого: ${totalAmount}₽`;
+
+        const itemCount = Object.keys(cartItems).length;
+        itemCountElement.textContent = itemCount;
+
+        if (totalAmount > 0) {
+            cartElement.style.display = 'block';
+            updateItemList();
+        } else {
+            cartElement.style.display = 'none';
+            itemListElement.innerHTML = '';
+        }
+    }
+        
+    function updateItemList() {
+        const itemListElement = document.getElementById('itemList');
+        itemListElement.innerHTML = '';
+
+        let itemCount = 0;
+
+        for (const item in cartItems) {
+            const li = document.createElement('li');
+            li.textContent = `${item} - ${cartItems[item]}₽`;
+            itemListElement.appendChild(li);
+            itemCount++;
+        }
+
+        console.log(`Количество добавленных товаров: ${itemCount}`);
+    }
+
+    function toggleCartItems() {
+        const cartItemsElement = document.getElementById('cartItems');
+        const toggleButton = document.getElementById('toggleButton');
+
+        if (cartItemsElement.style.display === 'none' || cartItemsElement.style.display === '') {
+            cartItemsElement.style.display = 'block';
+            toggleButton.classList.add('rotated');
+        } else {
+            cartItemsElement.style.display = 'none';
+            toggleButton.classList.remove('rotated');
+        }
+    }
+</script>
+
+<style>
+        :root {
+            --button-padding: 3px 6px;
+            --button-font-size: 12px;
+            --button-border-radius: 10px;
+        }
+        
+        .message-button1 {
+            display: inline-block;
+            margin: 1px auto;
+            padding: var(--button-padding);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--button-border-radius);
+            font-size: var(--button-font-size);
+            text-align: center;
+            text-decoration: none;
+            transition: background 0.5s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .iconbs {
+            vertical-align: middle;
+            margin-right: 3px;
+            width: 36px;
+            height: 36px;
+        }
+        
+        .message-button {
+            display: inline-block;
+            margin: 20px auto;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #7d7f80, #636162);
+            color: #ffffff;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            text-align: center;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(255, 190, 153, 0.7);
+            transition: background 0.5s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .message-button:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s ease;
+            z-index: 0;
+        }
+        
+        .message-button:hover:before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .message-button:hover {
+            background: linear-gradient(135deg, #636162, #7d7f80);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(255, 190, 153, 0.7);
+        }
+        
+        .message-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 15px rgba(255, 163, 42, 0.5);
+        }
+        
+        
+        @media (max-width: 768px) {
+            .message-button {
+                padding: 12px 24px;
+                font-size: 16px;
+            }
+        }
+        
+        .product-details {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.5s ease;
+        }
+        
+        .product-details.visible {
+            max-height: 200px;
+            opacity: 1;
+        }
+        
+        .arrow {
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .arrow.rotated {
+            transform: rotate(180deg);
+        }
+        
+        .statictic-title2 {
+            text-align: center;
+            color: #ffffff;
+        }
+</style>
+<style>
+        .textzagalovokk1 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            font-size: 73px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .textzagalovokk2 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            font-size: 53px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .textzagalovokk3 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            font-size: 33px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .textzagalovokk4 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            text-align: center;
+            border-radius: 10px;
+        }
+</style>
+
+
+<style>
+    body {
+        margin: 0;
+        font-family: 'Arial', sans-serif;
+        background-color: #0c0c0c;
+        color: #fff;
+        overflow-x: hidden;
+    }
+    
+    .footer {
+        position: relative;
+        padding: 40px 20px;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7));
+        overflow: hidden;
+        text-align: center;
+        perspective: 1000px;
+        transform: translateY(100%);
+        animation: slideIn 0.5s forwards;
+    }
+    
+    .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .footer-title3 {
+        font-size: 1.1rem;
+        text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+    }
+    
+    .footer-title2 {
+        text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+    }
+    
+    .footer-title {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+    }
+    
+    .footer-description {
+        font-size: 1rem;
+        margin-bottom: 20px;
+        color: #ccc;
+    }
+    
+    .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0;
+    }
+    
+    .footer-links li {
+        display: inline;
+        margin: 0 15px;
+    }
+    
+    .footer-links a {
+        font-weight: bold; /* Add this line */
+        color: #ffa24c;
+        text-decoration: none;
+        transition: color 0.3s, transform 0.3s;
+    }
+    
+    .footer-links a:hover {
+        font-weight: bold; /* Add this line */
+        color: #ff7d31;
+        transform: scale(1.1) rotateY(10deg);
+    }
+    
+    .footer-bottom {
+        margin-top: 20px;
+        font-size: 0.9rem;
+        color: #ccc;
+    }
+    
+    .social-links {
+        margin-top: 10px;
+    }
+    
+    .social-icon {
+        margin: 0 10px;
+        color: #fff;
+        text-decoration: none;
+        transition: color 0.3s, transform 0.3s;
+        font-size: 1.5rem;
+    }
+    
+    .social-icon:hover {
+        color: #00ffcc;
+        transform: scale(1.2);
+    }
+    
+    @keyframes slideIn {
+        0% {
+            transform: translateY(100%);
+        }
+        100% {
+            transform: translateY(0);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .footer {
+            padding: 30px 10px;
+        }
+    
+        .footer-title {
+            font-size: 2rem;
+        }
+    
+        .footer-description {
+            font-size: 0.9rem;
+        }
+    
+        .footer-links {
+            margin: 10px 0;
+        }
+    
+        .footer-links li {
+            display: block;
+            margin: 10px 0;
+        }
+    
+        .footer-bottom {
+            font-size: 0.8rem;
+        }
+    
+        .social-icon {
+            font-size: 1.2rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .footer-title {
+            font-size: 1.5rem;
+        }
+    
+        .footer-description {
+            font-size: 0.8rem;
+        }
+    
+        .footer-links a {
+            font-size: 0.9rem;
+        }
+    }
+    
+    @keyframes twinkle {
+        0%, 100% {
+            opacity: 0.5;
+        }
+        50% {
+            opacity: 1;
+        }
+    }
+    
+    .stars {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1006683100153131069.png%3Fv%3D1&w=64&q=75') repeat;
+        animation: twinkle 10s infinite;
+        z-index: -1;
+    }
+    
+    @keyframes rotate {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    
+    .planets {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1040126355662184508.gif%3Fv%3D1&w=64&q=75') no-repeat;
+        background-size: contain;
+        animation: rotate 30s infinite linear;
+    }
+    
+    .comets {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1305930171055996928.gif%3Fv%3D1&w=64&q=75') no-repeat;
+        animation: comet 15s infinite linear;
+    }
+    
+    @keyframes comet {
+        0% {
+            transform: translateX(-100%) translateY(-50%);
+            opacity: 1;
+        }
+        100% {
+            transform: translateX(100%) translateY(-50%);
+            opacity: 0;
+        }
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideIn {
+        from {
+            transform: translateY(-20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    .star {
+        position: absolute;
+    }
+    
+    @keyframes rotate {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+    
+    @keyframes comet {
+        0% {
+            transform: translateX(-100%) translateY(-50%);
+            opacity: 1;
+        }
+        100% {
+            transform: translateX(100%) translateY(-50%);
+            opacity: 0;
+        }
+    }
+    </style>
+    
+    
+    <footer class="footer unselectable">
+        <div class="footer-content">
+            <div class="logo">
+                <p><svg fill="#FE3635" url="logo.jpg" viewBox="0 0 97.89 97.32"> </svg></p>
+            </div>
+            <h2 class="footer-title textzagalovokk3">BHStore</h2>
+            <p class="footer-description textzagalovokk3">Спасибо, ч то выбираете наш сервис!</p>
+            <ul class="footer-links">
+                <li><a href="index.html" class="hover-link disabled2">Главная</a></li>
+                <li><a href="news.html" class="hover-link">Новости</a></li>
+                <li><a href="staff.html" class="hover-link">Персонал</a></li>
+                <li><a href="docs.html" class="hover-link">Документация</a></li>
+                <li><a href="agreement.html" class="hover-link">Соглашение</a></li>
+                <li><a href="privacy.html" class="hover-link">Конфидициальность</a></li>
+            </ul>
+        </div>
+        <div class="footer-bottom textzagalovokk3">
+            <p>&copy; 2024 — 2025 ➥ BORISONCHIK • Все права защищены</p>
+            <div class="social-links">
+                    <h2 class="textzagalovokk3 unselectable"></h2>
+                    <div class="social-links">
+                        <a href="https://vk.com/fastvideo_zeny" class="social-button" target="_blank">
+                            <img src="https://cdn-icons-png.flaticon.com/128/1216/1216744.png" alt="VK" class="social-icon" target="_blank">
+                        </a>
+                        <a href="https://t.me/BorisHunterStore" class="social-button" target="_blank">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5619/5619028.png" alt="Telegram" class="social-icon" target="_blank">
+                        </a>
+                        <a href="https://discord.gg/YfZxXXeW6D" class="social-button" target="_blank">
+                            <img src="https://cdn-icons-png.flaticon.com/128/2335/2335279.png" alt="Discord" class="social-icon" target="_blank">
+                        </a>
+                        <a href="status.html" class="social-button" target="_blank">
+                            <img src="https://cdn-icons-png.flaticon.com/128/5818/5818918.png" alt="Discord" class="social-icon" target="_blank">
+                        </a>
+                    </div>
+            </div>
+        </div>
+    </footer>
+
+    
+    <script src="index-button.js"></script>
+    <script src="banner.js"></script>
+    <script src="script.js"></script>
+    <script src="script2.js"></script>
+    <script src="snow.js"></script>
+    <script src="static.js"></script>
+    <script src="navig.js"></script>
+</body>
+</html>

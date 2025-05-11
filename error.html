@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>BHS ➭ Ошибка</title>
+    <style>body, html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #ffffff;
+        background-color: #2e2e2e;
+        font-family: 'Roboto', sans-serif;
+        overflow: hidden; /* Отключаем прокрутку */
+        animation: backgroundAnimation 15s ease infinite; /* Анимация фона */
+    }
+    
+    .error-container {
+        text-align: center;
+        padding: 60px 40px;
+        border-radius: 20px;
+        animation: fadeIn 0.5s ease-in-out, bounce 1s infinite alternate; /* Добавляем анимацию */
+        position: relative;
+        overflow: hidden; /* Скрываем переполнение */
+    }
+    
+    h1 {
+        font-size: 48px;
+        color: #ff4d4d; /* Ярко-красный цвет для ошибки */
+        text-shadow: 0 0 20px rgba(255, 77, 77, 0.7);
+        margin-bottom: 20px;
+        position: relative;
+    }
+    
+    p {
+        font-size: 22px;
+        margin: 15px 0;
+        line-height: 1.6;
+        color: #cccccc; /* Светло-серый цвет текста */
+    }
+    
+    a {
+        color: #00ffcc; /* Цвет ссылки */
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s, transform 0.3s; /* Плавный переход цвета и трансформации */
+    }
+    
+    a:hover {
+        color: #ffcc00; /* Цвет ссылки при наведении */
+        transform: scale(1.05); /* Увеличение ссылки при наведении */
+    }
+    
+    .bt2 {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 20px;
+        padding: 15px 30px; /* Увеличенные отступы для кнопки */
+        background: linear-gradient(135deg, #1a1a1a, #333333);
+        border-radius: 30px;
+        text-decoration: none;
+        color: #00ffcc;
+        transition: background 0.3s, transform 0.3s, box-shadow 0.3s, filter 0.3s;
+        font-weight: bold;
+        font-size: 18px; /* Размер шрифта кнопки */
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для кнопки */
+    }
+    
+    .bt2 img {
+        width: 32px; /* Ширина изображения */
+        height: 32px; /* Высота изображения */
+        margin-right: 10px; /* Отступ между изображением и текстом */
+        transition: transform 0.3s; /* Плавный переход для изображения */
+    }
+    
+    .bt2:hover {
+        background: linear-gradient(135deg, #333333, #1a1a1a);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
+        filter: brightness(1.1);
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@media (max-width: 768px) {
+    h1 {
+        font-size: 32px; /* Уменьшение заголовка на мобильных */
+    }
+
+    p {
+        font-size: 18px; /* Уменьшение текста на мобильных */
+    }
+
+    .bt2 {
+        padding: 12px 20px; /* Уменьшение отступов для кнопки на мобильных */
+        font-size: 16px; /* Уменьшение размера шрифта кнопки на мобильных */
+    }
+}
+    </style>
+    <script>
+        // Проверка VPN или ошибки
+        function checkVPN() {
+            // Здесь должна быть логика проверки VPN. 
+            // Для примера, просто переходим на index.html, если VPN не обнаружен.
+            const isUsingVPN = false; // Замените на вашу логику проверки
+            
+            // Здесь можно добавить условие для проверки ошибки
+            const hasError = true; // Замените на вашу логику проверки ошибки
+
+            if (!isUsingVPN && !hasError) {
+                window.location.href = 'index.html'; // Переход на главную страницу
+            }
+        }
+
+        window.onload = checkVPN; // Проверка при загрузке страницы
+    </script>
+</head>
+<body>
+    <div class="error-container">
+        <h1>Ошибка доступа</h1>
+        <p>Ваш IP-адрес не соответствует разрешенному. Пожалуйста, отключите VPN или проверьте настройки сети.</p>
+        <p>
+            <a href="https://discord.gg/YfZxXXeW6D" class="bt2">
+                <img src="https://cdn-icons-png.flaticon.com/128/3917/3917689.png" alt=""> Перейти
+            </a>
+        </p>
+    </div>
+</body>
+</html>

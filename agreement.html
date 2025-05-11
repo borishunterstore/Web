@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="navigation.css">
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>BHS ➭ Соглашение</title>
+    <style>
+body, html {
+    font-family: 'Roboto', sans-serif; /* Устанавливаем шрифт Roboto */
+    background: 
+        linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), /* Полупрозрачный черный цвет */
+        url('fon2.jpg'); /* Фоновое изображение */
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    width: 100%; /* Задаем ширину 100% */
+    height: 100%; /* Задаем высоту 100% */
+}
+
+        #snowCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+        }
+
+/* Стили для баннера */
+.banner2 {
+    background: linear-gradient(to bottom, rgba(18, 18, 18, 0.5), rgba(18, 18, 18, 1)), url('fon.gif'); /* Градиент + изображение */
+    background-size: cover;
+    background-position: center;
+    height: 18vh; /* Полный экран */
+    display: flex;
+    align-items: center; /* Выравнивание содержимого по центру */
+    padding: 0 20px; /* Отступы по бокам */
+}
+
+h1 {
+    font-family: 'Roboto', sans-serif; /* Устанавливаем шрифт Roboto */
+    font-size: 38px;
+    text-shadow: 1px 1px 2px rgba(18, 18, 18, 1);
+}
+
+        .news-container {
+            max-width: 900px;
+            margin: 25px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 35px;
+        }
+
+        .image-container {
+            position: fixed; /* Фиксируем изображение */
+            top: 90px; /* Отступ сверху */
+            right: 1200px; /* Отступ справа */
+            z-index: 0; /* Убедитесь, что изображение выше других элементов */
+        }
+
+        #image {
+            width: 950px; /* Ширина изображения */
+            height: auto; /* Автоматическая высота */
+        }
+
+/* Стили для баннера */
+.banner2 {
+    background: linear-gradient(to bottom, rgba(18, 18, 18, 0.5), rgba(18, 18, 18, 1)), url('fon.gif'); /* Градиент + изображение */
+    background-size: cover;
+    background-position: center;
+    height: 18vh; /* Полный экран */
+    display: flex;
+    align-items: center; /* Выравнивание содержимого по центру */
+    padding: 0 20px; /* Отступы по бокам */
+}
+
+
+h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 38px;
+    text-shadow: 1px 1px 2px rgba(18, 18, 18, 1);
+}
+
+
+        
+                .agreement-container {
+                    background: rgba(0, 0, 0, 0.5); /* Полупрозрачный черный фон */
+                    border-radius: 8px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+                    padding: 20px;
+                    max-width: 800px;
+                    margin: auto;
+                    opacity: 0;
+                    transform: translateY(20px);
+                    animation: fadeInUp 0.5s forwards;
+                    backdrop-filter: blur(10px); /* Эффект размытия фона */
+                }
+        
+                @keyframes fadeInUp {
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+        
+                h1 {
+                    font-size: 24px;
+                    margin-bottom: 20px;
+                }
+        
+                h2 {
+                    font-size: 20px;
+                    margin-top: 20px;
+                }
+        
+                h3 {
+                    font-size: 20px;
+                    margin-top: 20px;
+                }
+
+                h4 {
+                    font-size: 16px;
+                    margin-top: 10px;
+                }
+        
+                p, li {
+                    line-height: 1.6;
+                }
+        
+                ul {
+                    margin: 10px 0 20px 20px;
+                }
+        
+                @media (max-width: 600px) {
+                    .agreement-container {
+                        padding: 15px;
+                    }
+        
+                    h1 {
+                        font-size: 20px;
+                    }
+        
+                    h2 {
+                        font-size: 18px;
+                    }
+                }
+        
+        
+        /* Стили для футера с динамическим эффектом */
+        .footer {
+            background: linear-gradient(135deg, rgb(13, 10, 41), rgb(48, 44, 99), rgb(35, 35, 62));
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+            width: 100%; /* Задаем ширину 100% */
+            animation: fadeIn 1s ease-in-out;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для футера */
+            border-top: 2px solid rgba(255, 174, 0, 0.5); /* Верхняя граница */
+        }
+        
+        /* Стили для контейнера кнопок в футере */
+        .button-container {
+            margin-top: 10px; /* Отступ сверху от описания */
+        }
+        
+        /* Описание кнопок */
+        .button-description {
+            font-size: 18px;
+            color: #ffae00; /* Цвет текста */
+            margin-bottom: 10px; /* Отступ снизу от описания */
+        }
+        
+        /* Стили для кнопок */
+        .buttons {
+            display: flex;
+            justify-content: center; /* Центрирование кнопок */
+            gap: 15px; /* Отступ между кнопками */
+        }
+        
+        /* Стиль кнопок */
+        .dynamic-button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 60px; /* Ширина кнопки */
+            height: 60px; /* Высота кнопки */
+            background-color: var(--primary-color);
+            border-radius: 50%; /* Круглая форма */
+            transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s; /* Плавный переход */
+            box-shadow: var(--box-shadow);
+            overflow: hidden; /* Скрыть переполнение */
+        }
+        
+        /* Эффект при наведении на кнопку */
+        .dynamic-button:hover {
+            background-color: var(--hover-bg-color); /* Цвет фона при наведении */
+            transform: translateY(-3px); /* Легкий подъем при наведении */
+            box-shadow: 0 8px 30px rgba(0, 255, 204, 0.8); /* Увеличение тени при наведении */
+        }
+        
+        /* Стили для изображений внутри кнопок */
+        .dynamic-button img {
+            width: 40px; /* Ширина изображения */
+            height: 40px; /* Высота изображения */
+            object-fit: cover; /* Сохранение пропорций изображения */
+        }
+        
+        .footer3 {
+    position: Inherit; /* Фиксированное позиционирование */
+    bottom: 0; /* Привязываем футер к нижней части экрана */
+    left: 0; /* Привязываем футер к левой стороне */
+    right: 0; /* Привязываем футер к правой стороне */
+    color: #ffffff;
+    padding: 20px; /* Отступы внутри футера */
+    text-align: center; /* Выравнивание текста по центру */
+    height: 80px; /* Фиксированная высота футера */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для футера */
+    border-top: 2px solid rgba(255, 196, 68, 0.5); /* Верхняя граница */
+    background: rgba(0, 0, 0, 0.7); /* Полупрозрачный черный фон */
+    overflow: hidden; /* Скрыть переполнение */
+    backdrop-filter: blur(5px); /* Эффект размытия фона */
+}
+
+.footer3::before {
+    content: '';
+    position: absolute; /* Абсолютное позиционирование */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('fon2.jpg') no-repeat center center; /* Фоновое изображение */
+    background-size: cover; /* Масштабирование изображения */
+    opacity: 0.6; /* Прозрачность фона */
+    z-index: 0; /* Поместить под текстом */
+}
+
+.footer3 > * {
+    position: relative; /* Относительное позиционирование для текста */
+    z-index: 1; /* Поместить текст выше фона */
+}
+
+.footer3-container {
+    display: flex; /* Используем flexbox для выравнивания элементов */
+    flex-direction: column; /* Вертикальное выравнивание */
+    align-items: center; /* Центрирование по горизонтали */
+    justify-content: center; /* Центрирование по вертикали */
+    height: 100%; /* Занимаем всю высоту футера */
+}
+
+.footer3-links {
+    margin: 10px 0;
+}
+
+.footer3-links a {
+    color: #e5ff00;
+    margin: 0 15px;
+    text-decoration: none;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.footer3-links a:hover {
+    text-decoration: underline;
+    color: #ffcc00;
+    transform: scale(1.1);
+}
+
+.footer3 p {
+    margin: 10px 0 0;
+    font-size: 0.9em;
+}
+            
+            
+            
+            
+        .product-link2 {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #666666, #949494); /* Градиент для кнопки */
+    border-radius: 30px;
+    text-decoration: none;
+    color: rgba(18, 18, 18, 1);
+    transition: background 0.3s, transform 0.3s, box-shadow 0.3s; /* Плавные переходы */
+    font-weight: bold; /* Жирное начертание */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для кнопки */
+}
+
+.product-link2:hover {
+    background: linear-gradient(135deg, #949494, #666666); /* Изменение градиента при наведении */
+    transform: translateY(-3px); /* Легкий подъем при наведении на кнопку */
+    box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4); /* Увеличение тени для кнопки */
+}
+            
+            
+.hh {
+    margin-right: 18px; /* Отступ направо на 10 пикселей */
+}
+
+.hh2 {
+    margin-left: 13px; /* Отступ слева на 18 пикселей */
+}
+            
+            </style>
+</head>
+<body>
+    
+    <div class="banner2">
+        <div class="logo-container">
+            <img src="logotip.jpg" alt="Логотип" class="logo">
+            <h1 class="bh1">BHS ➭ Главная</h1>
+        </div>
+        <button id="nav-toggle" class="toggle-btn" aria-label="Toggle Navigation">&#9776;</button>
+        <nav class="navigation">
+            <ul id="nav-list" class="nav-list">
+                <li class="nav-item"><a href="index.html" class="nav-link">Главная</a></li>
+                <li class="nav-item"><a href="news.html" class="nav-link">Новости</a></li>
+                <li class="nav-item"><a href="staff.html" class="nav-link">Персонал</a></li>
+                <li class="nav-item"><a href="docs.html" class="nav-link">Документация</a></li>
+            </ul>
+        </nav>        
+    </div>
+
+    <canvas id="snowCanvas"></canvas>
+    
+    <main>
+        <div class="agreement-container">
+            <div class="overlay"></div>
+            <h1 class="unselectable">Пользовательское соглашение</h1>
+            <p class="unselectable"><strong>Настоящее Пользовательское соглашение (далее - "Соглашение") регулирует отношения между вами (далее - "Пользователь") и интернет-магазином BHStore (далее - "Магазин") в отношении использования услуг и товаров, представленных на сайте.</strong></p>       
+        </div>
+    </main>
+    
+    <main>
+        <div class="agreement-container">
+            <div class="overlay"></div>
+            <h1 class="unselectable">1. Общие положения</h1>
+            <p class="unselectable">1.1. Настоящее Соглашение является публичной офертой и в соответствии с положениями статьи 435 Гражданского кодекса Российской Федерации считается предложением Магазина заключить договор купли-продажи товаров, представленных на сайте.</p>
+            <p class="unselectable">1.2. Пользователь, заказывая услугу / товар, подтверждает, что ознакомлен с условиями настоящего Соглашения, понимает и принимает их.</p>        
+        </div>
+    </main>
+
+    <main>
+        <div class="agreement-container">
+            <div class="overlay"></div>
+            <h1 class="unselectable">2. Предмет Соглашения</h1>
+            <p class="unselectable">2.1. Магазин предоставляет Пользователю возможность приобрести услуги / товары, представленные на сайте, а также предоставляет доступ к информации о товарах, ценах и условиях их приобретения.</p>
+            <p class="unselectable">2.2. Настоящее Соглашение регулирует порядок размещения заказов, оплаты, доставки товаров, а также права и обязанности сторон.</p>     
+        </div>
+    </main>
+
+    <main>
+        <div class="agreement-container">
+            <div class="overlay"></div>
+            <h1 class="unselectable">3. Права и обязанности сторон</h1>
+    
+            <h3 class="unselectable">3.1. Обязанности Магазина</h3>
+            <p class="unselectable">3.1.1. Обеспечить Пользователю доступ к информации о товарах, ценах и условиях их приобретения.</p>
+            <p class="unselectable">3.1.2. В срок, оговоренный в условиях окончания работы, осуществить отправку заказанных услуг / товаров.</p>
+            <p class="unselectable">3.1.3. Обеспечить конфиденциальность персональных данных Пользователя в соответствии с действующим законодательством.</p>
+    
+            <h3 class="unselectable">3.2. Обязанности Пользователя</h3>
+            <p class="unselectable">3.2.1. Предоставить корректные и полные данные для оформления заказа.</p>
+            <p class="unselectable">3.2.2. Ознакомиться с условиями настоящего Соглашения и принять их.</p>
+            <p class="unselectable">3.2.3. Оплатить заказанные товары в соответствии с выбранным способом оплаты.</p> 
+        </div>
+    </main>
+
+    <main>
+        <div class="agreement-container">
+            <div class="overlay"></div>
+            <h1 class="unselectable">4. Цена и порядок оплаты</h1>
+            <p class="unselectable">4.1. Оплата осуществляется в первую очередь, потом уже отдаётся услуга / товар</p>
+            <p class="unselectable">4.1. Цены на товары указаны на сайте Магазина и могут изменяться без предварительного уведомления.</p>
+            <p class="unselectable">4.2. Оплата товаров производится любым из доступных на сайте способов (банковская карта, электронные платежные системы и т.д.).</p>
+        </div>
+    </main>
+
+    <main>
+        <div class="agreement-container">
+            <div class="overlay"></div>
+            <h1 class="unselectable">5. Доставка услуг / товаров</h1>
+            <p class="unselectable">5.1. Доставка услуги / товара осуществляется в срок, оговорённый с Пользователем</p>
+            <p class="unselectable">5.2. Пользователь обязуется принять услугу / товар в момент его доставки.</p>
+            <p class="unselectable">5.3. В случае, если услуга / товар не был доставлен по вине Пользователя (неправильные данные, не принял услугу / товар и т.д.), Магазин вправе взимать дополнительную плату за повторный отправ товара (минимальное допустимое время ожидания от 1 до 3 дней, после окончания срока товар возвращается продавцу).</p>        
+        </div>
+    </main>
+
+    <main>
+        <div class="agreement-container">
+            <div class="overlay"></div>
+            <h1 class="unselectable">6. Возврат и обмен товаров</h1>
+            <p class="unselectable">6.1. Пользователь имеет право на возврат или обмен товара в соответствии с действующим законодательством РФ.</p>
+            <p class="unselectable">6.2. Возврат товара возможен при условии сохранения его товарного вида и целостности.</p>
+            <p class="unselectable">6.3. Возврат средств осуществляется в сроки, установленные Магазином (возврат осуществляется до 7 дней от даты покупки).</p>        
+        </div>
+    </main>
+
+
+    <main>
+        <div class="agreement-container">
+            <div class="overlay"></div>
+            <h1 class="unselectable">7. Ответственность сторон</h1>
+            <p class="unselectable">7.1. Магазин не несет ответственности за убытки, понесенные Пользователем в результате использования товаров, приобретенных в Магазине.</p>
+            <p class="unselectable">7.2. Пользователь несет полную ответственность за достоверность предоставленных данных и последствия, вызванные их недостоверностью.</p>
+        </div>
+    </main>
+
+
+    <main>
+        <div class="agreement-container">
+            <div class="overlay"></div>
+            <h1 class="unselectable">8. Защита персональных данных</h1>
+            <p class="unselectable">8.1. Магазин принимает все необходимые меры для защиты персональных данных Пользователя в соответствии с действующим законодательством.</p>
+            <p class="unselectable">8.2. Пользователь дает согласие на обработку своих персональных данных, предоставленных при регистрации и оформлении заказа.</p>
+            <p class="unselectable">8.2.1. Магазин размещает ваши данные для страницы "Отзывов" используются следующие данные :</p>
+            <h4 class="unselectable">• Страна</p>
+            <h4 class="unselectable">• Дата покупки</p>
+            <h4 class="unselectable">• Сообщение отзыва</p>
+            <p class="unselectable">8.3. Пользователь имеет право в любой момент отозвать свое согласие на обработку персональных данных, уведомив об этом Магазин.</p>    
+        </div>
+    </main>
+
+
+    <main>
+        <div class="agreement-container">
+            <div class="overlay"></div>
+            <h1 class="unselectable">9. Изменения в Соглашении</h1>
+            <p class="unselectable">9.1. Магазин оставляет за собой право вносить изменения в настоящее Соглашение без предварительного уведомления Пользователя.</p>
+            <p class="unselectable">9.2. Изменения вступают в силу с момента их публикации на сайте, если иное не предусмотрено условиями изменения.</p>  
+        </div>
+    </main>
+
+
+    <main>
+        <div class="agreement-container">
+            <div class="overlay"></div>
+            <h1 class="unselectable">10. Заключительные положения</h1>
+            <p class="unselectable">10.1. Настоящее Соглашение регулируется законодательством Российской Федерации.</p>
+            <p class="unselectable">10.2. Все споры, возникающие в процессе выполнения настоящего Соглашения, разрешаются в соответствии с действующим законодательством РФ.</p>
+            <p class="unselectable">10.3. В случае, если какое-либо положение настоящего Соглашения будет признано недействительным, остальные положения остаются в силе.</p> 
+        </div>
+    </main>
+
+
+    <main>
+        <div class="agreement-container">
+            <div class="overlay"></div>
+            <h1 class="">11. Контактная информация</h1>
+            <p class="">11.1. Для получения дополнительной информации Пользователь может обратиться по следующим контактам:</p>
+            <p class="">Telegram Бот <a href="https://t.me/Meentioned_bot" class="product-link2 hh2">Перейти</a></p>            
+        </div>
+    </main>
+
+
+    <footer class="footer3">
+        <div class="footer-container3">
+            <div class="footer-links3">
+                <a href="privacy.html" class="hh">Конфиденциальность</a>
+                <a href="agreement.html" class="disabled">Соглашение</a>
+            </div>
+            <p>&copy; 2024-2025 ➥ BORISONCHIK • Все права защищены</p>
+        </div>
+    </footer>
+
+    <script src="ss2.js"></script>
+    <script src="script.js"></script>
+    <script src="script2.js"></script>
+    <script src="snow.js"></script>
+    <script src="static.js"></script>
+    <script src="navig.js"></script>
+
+    <script>
+        const navToggle = document.getElementById('nav-toggle');
+        const navList = document.getElementById('nav-list');
+    
+        navToggle.addEventListener('click', () => {
+            navList.style.display = navList.style.display === 'block' ? 'none' : 'block';
+        });
+    
+        // Закрытие меню при клике вне его
+        window.addEventListener('click', (event) => {
+            if (!navToggle.contains(event.target) && !navList.contains(event.target)) {
+                navList.style.display = 'none';
+            }
+        });
+    </script>      
+
+</body>
+</html>

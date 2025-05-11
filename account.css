@@ -1,0 +1,431 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #121212;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+/* Стили для баннера */
+.banner {
+    background: linear-gradient(90deg, #ff8f8f, #ff5c5c, #ff2f2f), linear-gradient(to bottom, rgba(18, 18, 18, 0.5), rgba(18, 18, 18, 1)), url('fon.gif'); /* Градиент + изображение */
+    background-size: cover;
+    background-position: center;
+    height: 7vh; /* Высота баннера */
+    display: flex;
+    justify-content: flex-start; /* Выравнивание содержимого влево */
+    align-items: center; /* Выравнивание содержимого по центру */
+    position: relative; /* Позиционирование при наведении */
+    padding: 20px; /* Отступы внутри баннера */
+    text-align: left; /* Выравнивание текста влево */
+    border-radius: 0 0 20px 20px; /* Закругление нижних углов */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Тень для баннера */
+    animation: slideIn 1s ease-in-out; /* Анимация появления */
+    transition: background 0.5s ease; /* Плавный переход фона */
+}
+
+.banner:hover {
+    background: linear-gradient(90deg, #ff5c5c, #ff2f2f, #ff8f8f), linear-gradient(to bottom, rgba(18, 18, 18, 0.6), rgba(18, 18, 18, 1)), url('fon.gif'); /* Изменение фона при наведении */
+}
+
+.banner::after {
+    content: '';
+    position: absolute;
+    top: 0; 
+    left: 0; 
+    right: 0; 
+    bottom: 0; 
+    background: rgba(18, 18, 18, 0.3); /* Более темный полупрозрачный цвет */
+    border-radius: 0 0 20px 20px; /* Закругление нижних углов */
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    position: relative; /* Логотип внутри контейнера */
+    margin-right: 20px; /* Отступ справа для логотипа */
+}
+
+.logo {
+    border-radius: 50%; /* Делаем логотип круглым */
+    width: 90px;
+    height: 90px; /* Установка высоты для логотипа */
+    object-fit: cover; /* Обеспечение правильного отображения изображения */
+    transition: transform 0.3s ease; /* Плавный переход для эффекта при наведении */
+}
+
+.logo:hover {
+    transform: scale(1.1); /* Увеличение логотипа при наведении */
+}
+
+/* Стили для заголовка секции */
+.section-title {
+    color: #ffffff; /* Цвет текста заголовка */
+    margin: 0; /* Убираем отступы */
+    font-size: 2em; /* Размер шрифта заголовка */
+    text-shadow: 0 0 10px rgba(96, 152, 255, 0.8); /* Тень для текста */
+    transition: color 0.3s ease; /* Плавный переход цвета текста */
+}
+
+.banner:hover .section-title {
+    color: #ffed4a; /* Изменение цвета текста при наведении */
+}
+
+
+.profile-container {
+    display: flex;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    flex-wrap: wrap;
+    justify-content: center; /* Центрируем содержимое */
+}
+
+.profile-content {
+    display: flex; /* Используем flexbox для размещения блоков */
+    justify-content: space-between; /* Распределяем блоки по краям контейнера */
+    width: 100%; /* Занимает всю ширину родительского контейнера */
+    padding: 20px; /* Отступы внутри контейнера */
+    box-sizing: border-box; /* Учитываем отступы и границы в ширине */
+    display: flex; /* Используем flexbox для размещения блоков */
+    justify-content: space-between; /* Распределяем блоки по краям контейнера */
+    width: 100%; /* Занимает всю ширину родительского контейнера */
+    flex-wrap: wrap; /* Позволяет блокам переноситься на новую строку */
+}
+
+.settings, .info {
+    flex: 1 1 calc(50% - 20px); /* Каждый блок занимает 50% ширины с учетом отступов */
+    max-width: calc(50% - 20px); /* Ограничиваем максимальную ширину каждого блока */
+    background: #1e1e1e;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 10px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.5s;
+}
+
+.products {
+    background: #1e1e1e;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 10px;
+    max-width: 600px; /* Ограничиваем максимальную ширину */
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.5s;
+}
+
+/* Стили для заголовка секции */
+.section-title {
+    color: #628cff;
+    margin-bottom: 15px;
+    font-size: 1.8em;
+    border-bottom: 2px solid #71c6ff;
+    padding-bottom: 5px;
+    text-shadow: 0 0 5px rgba(96, 152, 255, 0.8);
+}
+
+.settings-container {
+    display: flex;
+    align-items: flex-start; /* Выравнивание по верхнему краю */
+    margin-bottom: 20px;
+}
+
+.settings-module {
+    flex: 1; /* Занимает оставшееся пространство */
+    max-width: 500px; /* Максимальная ширина модуля */
+    margin-right: 20px; /* Отступ справа для кнопки */
+}
+
+.setting-item {
+    margin-bottom: 20px;
+}
+
+.setting-item label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.setting-item input,
+.setting-item select {
+    width: 90%;
+    padding: 12px;
+    border: 1px solid #1900ff;
+    border-radius: 10px;
+    background-color: #333;
+    color: #fff;
+    margin-bottom: 15px;
+    transition: border-color 0.3s, transform 0.2s;
+}
+
+.setting-item input:focus,
+.setting-item select:focus {
+    border-color: #00c8ff;
+    outline: none;
+    transform: scale(1.02);
+}
+
+.save-button, .save-button2, .save-card {
+    background-color: rgb(81, 255, 0);
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    font-size: 1em;
+}
+
+.delete-wallet {
+    background-color: #ff1111;
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    font-size: 1em;
+}
+
+.create-wallet {
+    background-color: #11ff11;
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    font-size: 1em;
+}
+
+.toggle-card {
+    background-color: rgb(255, 187, 0);
+    color: #000;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    font-size: 1em;
+}
+
+.save-button:hover {
+    background-color: rgb(131, 255, 82);
+    transform: translateY(-2px);
+}
+
+.delete-wallet:hover {
+    background-color: rgb(255, 82, 82);
+    transform: translateY(-2px);
+}
+
+.create-wallet:hover {
+    background-color: rgb(131, 255, 82);
+    transform: translateY(-2px);
+}
+
+.toggle-card:hover {
+    background-color: rgb(131, 255, 82);
+    transform: translateY(-2px);
+}
+
+.product-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.product-item img {
+    width: 80px;
+    height: 80px;
+    margin-right: 15px;
+    border-radius: 5px;
+}
+
+.footer {
+    background: linear-gradient(90deg, #00ffcc, #00c8ff);
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid #333;
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translate
+        translateY(0);
+        opacity: 1;
+    }
+}
+
+.wallet-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.no-wallet {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .profile-container {
+        flex-direction: column;
+    }
+
+    .settings, .info {
+        flex: 1 1 100%;
+        max-width: none;
+    }
+
+    .products {
+        flex: 1 1 100%;
+        max-width: none;
+    }
+}
+
+@keyframes buttonHover {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.save-button:hover, .delete-wallet:hover, .create-wallet:hover, .toggle-card:hover {
+    animation: buttonHover 0.5s ease-in-out;
+}
+
+.product-item {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 10px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.product-item:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 20px rgba(0, 255, 255, 0.5);
+}
+
+.footer {
+    color: #ffffff;
+    font-size: 0.9em;
+}
+
+h1, h2, h3 {
+    text-shadow: 0 0 5px rgba(0, 255, 255, 0.8);
+}
+
+a {
+    color: #00ffcc;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: #00c8ff;
+    text-decoration: underline;
+}
+
+
+.error-message {
+    color: red;
+    display: none;
+    margin-top: 5px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+td {
+    padding: 12px;
+}
+
+td strong {
+    color: #d4d4d4;
+    font-size: 16px;
+    font-family: 'Roboto', sans-serif;
+}
+
+.info-block {
+    background: linear-gradient(145deg, #0f0c29, #241d64);
+    color: white;
+    padding: 6px 15px;
+    border-radius: 20px;
+    display: inline-block;
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.info-block:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.payment-method-container {
+    max-width: 300px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.payment-method-container label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #333;
+    font-weight: bold;
+}
+
+.payment-method-select {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    background-color: #fff;
+    color: #555;
+    cursor: pointer;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.payment-method-select:hover {
+    border-color: #007bff;
+}
+
+.payment-method-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    outline: none;
+}
+
+.payment-method-select option {
+    padding: 10px;
+    background-color: #fff;
+    color: #555;
+}

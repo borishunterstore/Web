@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Готовность сайта</title>
+</head>
+<style>
+/* Основные стили для всего документа */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #1e1e2f; /* Темный фон */
+    color: #ffffff; /* Белый цвет текста */
+    margin: 100px;
+    padding: 100px;
+}
+
+/* Контейнер для контента */
+.container {
+    max-width: 800px; /* Ширина контейнера */
+    margin: 0 auto; /* Центрирование контейнера */
+    padding: 20px;
+    border-radius: 16px; /* Закругленные углы */
+    background-color: #2a2c36; /* Цвет контейнера */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7); /* Тень для контейнера */
+    transition: transform 0.3s, box-shadow 0.3s; /* Плавные переходы */
+}
+
+.container:hover {
+    transform: translateY(-5px); /* Подъем контейнера при наведении */
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.9); /* Увеличение тени при наведении */
+}
+
+/* Заголовок */
+.title {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 32px; /* Размер шрифта заголовка */
+    font-weight: bold; /* Жирный шрифт */
+    border-bottom: 3px solid #7289da; /* Подчеркивание заголовка */
+    padding-bottom: 10px; /* Отступ снизу */
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Тень для текста заголовка */
+}
+
+/* Таблица статусов */
+.status-table {
+    width: 100%;
+    border-collapse: collapse; /* Убираем двойные границы */
+    transition: background-color 0.3s; /* Плавный переход фона таблицы */
+}
+
+.status-table th, .status-table td {
+    padding: 15px;
+    border-bottom: 1px solid #444; /* Цвет границ таблицы */
+    text-align: left;
+    position: relative; /* Для анимации */
+}
+
+/* Эффект при наведении на строки таблицы */
+.status-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.05); /* Подсветка строки при наведении */
+}
+
+/* Статус */
+.status {
+    font-size: 28px; /* Увеличенный размер шрифта для статуса */
+    text-align: center; /* Центрируем статус */
+    transition: transform 0.3s; /* Плавный переход для анимации */
+}
+
+/* Стиль для статуса "Готов" */
+.ready {
+    color: #43b581; /* Зеленый цвет для галочки */
+}
+
+.ready:hover {
+    transform: scale(1.05); /* Увеличение при наведении */
+}
+
+/* Стиль для статуса "Не готов" */
+.not-ready {
+    color: #f04747; /* Красный цвет для крестика */
+}
+
+.not-ready:hover {
+    transform: scale(1.05); /* Увеличение при наведении */
+}
+
+/* Анимация для иконок статуса */
+.status::before {
+    display: inline-block;
+    width: 30px; /* Ширина иконки */
+    height: 30px; /* Высота иконки */
+    margin-right: 8px; /* Отступ справа */
+    transition: transform 0.3s; /* Плавный переход для анимации */
+}
+
+/* Анимация для готового статуса */
+.ready::before {
+    content: '';
+    display: inline-block; /* Позволяет задавать размеры */
+    width: 39px; /* Ширина изображения */
+    height: 39px; /* Высота изображения */
+    background-image: url('https://cdn3.emoji.gg/emojis/59866-pixelcheck.png'); /* URL изображения */
+    background-size: contain; /* Масштабирование изображения */
+    background-repeat: no-repeat; /* Не повторять изображение */
+    margin-right: 8px; /* Отступ справа от изображения */
+}
+
+/* Анимация для неготового статуса */
+.not-ready::before {
+    content: '';
+    display: inline-block; /* Позволяет задавать размеры */
+    width: 39px; /* Ширина изображения */
+    height: 39px; /* Высота изображения */
+    background-image: url('https://cdn3.emoji.gg/emojis/40806-pixelcross.png'); /* URL изображения */
+    background-size: contain; /* Масштабирование изображения */
+    background-repeat: no-repeat; /* Не повторять изображение */
+    margin-right: 8px; /* Отступ справа от изображения */
+}
+
+/* Стили для ссылок */
+a {
+    color: #7289da; /* Цвет ссылок */
+    text-decoration: none; /* Убираем подчеркивание */
+    transition: color 0.3s, text-shadow 0.3s; /* Плавный переход цвета и тени */
+}
+
+a:hover {
+    color: #5b6eae; /* Темнее при наведении */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); /* Эффект свечения при наведении */
+    text-decoration: underline; /* Подчеркивание при наведении */
+}
+
+/* Дополнительные стили для кнопок (если есть) */
+.button {
+    background-color: #7289da; /* Цвет кнопки */
+    color: #ffffff; /* Цвет текста кнопки */
+    padding: 10px 20px; /* Отступы */
+    border: none; /* Убираем границы */
+    border-radius: 8px; /* Закругленные углы */
+    cursor: pointer; /* Указатель при наведении */
+    font-size: 16px; /* Размер шрифта кнопки */
+    transition: background-color 0.3s, transform 0.3s; /* Плавные переходы */
+}
+
+.button:hover {
+    background-color: #5b6eae; /* Цвет кнопки при наведении */
+    transform: translateY(-2px); /* Подъем кнопки при наведении */
+}
+</style>
+<body>
+    <div class="container">
+        <h2 class="title">Основной сайт</h2>
+        <table class="status-table">
+            <thead>
+                <tr>
+                    <th>Страница</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Главная страница</td>
+                    <td class="status ready"></td>
+                </tr>
+                <tr>
+                    <td>Новости</td>
+                    <td class="status ready"></td>
+                </tr>
+                <tr>
+                    <td>Персонал</td>
+                    <td class="status not-ready"></td>
+                </tr>
+                <tr>
+                    <td>Документация</td>
+                    <td class="status not-ready"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+    <div class="container" style="margin-top: 80px;">
+        <h2 class="title">Старницы товаров</h2>
+        <table class="status-table">
+            <thead>
+                <tr>
+                    <th>Страница</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Аватарки</td>
+                    <td class="status ready"></td>
+                </tr>
+                <tr>
+                    <td>Discord</td>
+                    <td class="status ready"></td>
+                </tr>
+                <tr>
+                    <td>Монтаж</td>
+                    <td class="status not-ready"></td>
+                </tr>
+                <tr>
+                    <td>Превью</td>
+                    <td class="status not-ready"></td>
+                </tr>
+                <tr>
+                    <td>TG Бота</td>
+                    <td class="status ready"></td>
+                </tr>
+                <tr>
+                    <td>Сайт</td>
+                    <td class="status ready"></td>
+                </tr>
+                <tr>
+                    <td>Minecraft</td>
+                    <td class="status not-ready"></td>
+                </tr>
+                <tr>
+                    <td>Roblox</td>
+                    <td class="status not-ready"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="navigation.css">
+    <link rel="stylesheet" href="statics.css">
+    <script src="manifest.json" defer></script>
+    <link rel="icon" href="logo.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>BHS ➭ Главная</title>
+</head>
+
+
+<style>
+    .hh {
+        margin-right: 18px;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    .button-container {
+        margin-top: 10px;
+    }
+    
+    .button-description {
+        font-size: 18px;
+        color: #ffae00;
+        margin-bottom: 10px;
+    }
+    
+    .buttons {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+    }
+    
+    .button {
+        background-color: rgba(255, 174, 0, 0.8);
+        color: #ffffff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.3s;
+    }
+
+    .button:hover {
+        background-color: rgba(255, 174, 0, 1);
+        transform: translateY(-3px);
+    }
+
+    .button-icon {
+        margin-right: 8px;
+    }
+    
+    .social-icons {
+        margin-top: 20px;
+    }
+    
+    .social-icons a {
+        color: #ffffff;
+        font-size: 24px;
+        margin: 0 10px;
+        transition: color 0.3s;
+    }
+    
+    .social-icons a:hover {
+        color: rgba(255, 174, 0, 1);
+    }
+    
+    .footer-text {
+        font-size: 14px;
+        color: #ffffff;
+        margin-top: 15px;
+    }
+    
+    .footer-link {
+        color: rgba(255, 174, 0, 0.8);
+        text-decoration: none;
+    }
+    
+    .footer-link:hover {
+        text-decoration: underline;
+    }
+
+    .dynamic-button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 60px;
+        height: 60px;
+        background-color: var(--primary-color);
+        border-radius: 50%;
+        transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+        box-shadow: var(--box-shadow);
+        overflow: hidden;
+    }
+    
+    .dynamic-button:hover {
+        background-color: var(--hover-bg-color);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0, 255, 204, 0.8);
+    }
+    
+    .dynamic-button img {
+        width: 40px;
+        height: 40px;
+        object-fit: cover;
+    }
+    
+    .scroll-button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    
+    .scroll-button:hover {
+        background-color: #0056b3;
+    }
+    
+    .bh1 {
+       text-align: center;
+       font-size: 34px;
+       margin-bottom: 20px;
+    }
+
+    .statictic {
+        background: rgba(255, 255, 255, 0);
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0);
+        padding: 20px;
+        max-width: 800px;
+        margin: auto;
+    }
+    
+    .statictic-title {
+        text-align: center;
+        color: #ffffff;
+        font-size: 74px;
+        margin-bottom: 20px;
+    }
+    
+    .statictic-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    
+    .statictic-item {
+        background: #3b3b3b38;
+        border-radius: 10px;
+        padding: 15px;
+        transition: transform 0.3s, box-shadow 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .statictic-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .statictic-image {
+        width: 9%;
+        border-radius: 0px;
+        margin-bottom: 0px;
+    }
+    
+    h3 {
+        color: #007bff;
+        margin-bottom: 10px;
+    }
+    
+    .unselectable {
+        user-select: none;
+    }
+    
+    .statictic-price, .statictic-purchases {
+        display: block;
+        margin-top: 5px;
+        font-weight: bold;
+        color: #e4e4e4;
+    }
+    
+    @media (max-width: 600px) {
+        .statictic-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+
+    .fol {
+        background-image: url(banner.png);
+    }
+</style>
+
+
+<body>
+    <div class="banner2">
+        <div class="logo-container">
+            <img src="logotip.jpg" alt="Логотип" class="logo">
+            <h1 class="nazvanie">BHS ➭ Главная</h1>
+        </div>
+        <button class="toggle-btn" aria-label="Toggle Navigation">&#9776;</button>
+        <nav class="navigation">
+            <ul class="nav-list">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link disabled">
+                        <img src="CS-INDEX-IMAGE-1.png" alt="" style="width: 65px; height: 65px;">
+                        <span class="nav-label">Home</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="news.html" class="nav-link">
+                        <img src="https://cdn3.emoji.gg/emojis/4426-news.png" alt="" style="width: 65px; height: 65px;">
+                        <span class="nav-label">News</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="staff.html" class="nav-link">
+                        <img src="https://cdn3.emoji.gg/emojis/5593-education.png" alt="" style="width: 65px; height: 65px;">
+                        <span class="nav-label">Staff</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="docs.html" class="nav-link">
+                        <img src="https://cdn3.emoji.gg/emojis/5139-help.png" alt="" style="width: 65px; height: 65px;">
+                        <span class="nav-label">Docs</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>        
+    </div>
+    
+
+    <section id="about" class="about unselectable">
+        <h2 class="statictic-title unselectable textzagalovok footer-title2">О нас</h2>
+        <div class="about-content">
+            <img src="logotip.jpg" alt="" class="about-logo no-interaction">
+            <div class="text-content">
+                <h2 class="footer-title textzagalovokk3">BHStore</h2>
+                <p class="unselectable">Мы — команда профессионалов, мы не только профисионально настраиваем Discord сервера, но и делаем крутые сайты и у нас есть очень много других товаров.</p>
+                <p class="unselectable"><strong>Почему выбирают нас?</strong></p>
+                <ul>
+                    <li class="unselectable"><strong class="footer-title3 textzagalovokk4">Кач ество и скорость</strong> ➪ Оперативная работа с высокими стандартами.</li>
+                    <li class="unselectable"><strong class="footer-title3 textzagalovokk4">Положительные отзывы</strong> ➪ Наши клиенты ценят наш труд.</li>
+                    <li class="unselectable"><strong class="footer-title3 textzagalovokk4">Быстрая поддержка</strong> ➪ Оперативная помощь в решении вопросов.</li>
+                    <li class="unselectable"><strong class="footer-title3 textzagalovokk4">Бонусы и скидки</strong> ➪ Акции для наших клиентов.</li>
+                    <li class="unselectable"><strong class="footer-title3 textzagalovokk4">Удобный сайт</strong> ➪ Процесс заказа и общения максимально комфортен.</li>
+                </ul>
+                <p class="unselectable">Мы уверены, что сможем удовлетворить ваши ожидания. Свяжитесь с нами, и давайте сделаем ваш проект успешным вместе!</p>
+            </div>
+        </div>
+    </section>
+
+
+    <div class="divider"></div>
+<style>
+
+.tovarcolorindex {
+  font-family: 'MyCustomFont', sans-serif;
+  letter-spacing: 5px;
+  margin: 0;
+  padding: 0;
+  text-shadow:
+    -1px -1px 0 #000,
+     1px -1px 0 #000,
+    -1px  1px 0 #000,
+     1px  1px 0 #000;
+  color: #fff;
+  font-size: 35px;
+  text-align: center;
+  border-radius: 15px;
+  position: relative;
+  overflow: visible;
+}
+
+.tovarcolorindex::after {
+  margin-bottom: -5px;
+  position: absolute;
+  bottom: 0;
+  left: 0%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 2px;
+  background-color: #fff;
+  transition: width 0.5s ease-in-out;
+}
+
+.tovarcolorindex:hover::after {
+  width: 100%;
+}
+
+</style>
+    <section id="products" class="products unselectable">
+        <h2 class="statictic-title unselectable textzagalovokk1 footer-title2">Товары</h2>
+        <div class="product-grid">
+            <div class="product-item">
+                <div class="product-item-new">
+                    <img src="https://cdn3.emoji.gg/emojis/9587-insights.png" alt="" style="width: 32px; height: 32px;">
+                </div>
+                <p class="number-products-label"><img src="https://cdn3.emoji.gg/emojis/3999-number-1.png" alt="" style="width: 32px; height: 32px;"></p>
+                <img src="avatar2.png" alt="Товар" class="product-image no-interaction" style="margin-bottom: 15px;">
+                <h3 class="unselectable tovarcolorindex">Аватарок</h3>
+                <p class="unselectable">Мы создаем крутые аватарки и логотипы для YouTube, Instagram и т.д.</p>
+                <span class="price unselectable">От 72₽</span>
+                <span class="purchases unselectable">Куплено 9 раз</span>
+                <a id="picture" href="picture.html" class="product-link">Подробнее</a>
+            </div>
+            <div class="product-item">
+                <p class="number-products-label"><img src="https://cdn3.emoji.gg/emojis/5675-number-2.png" alt="" style="width: 32px; height: 32px;"></p>
+                <img src="srv2.png" alt="Товар" class="product-image no-interaction" style="margin-bottom: 15px;">
+                <h3 class="unselectable tovarcolorindex">Discord</h3>
+                <p class="unselectable">Боты, Настройка сервера, Роли каналы категории, Права доступа, Роли, Текста, Дизайн.</p>
+                <span class="price unselectable">От 650₽</span>
+                <span class="purchases unselectable">Куплено 8 раз</span>
+                <a id="discord" href="discord.html" class="product-link">Подробнее</a>
+            </div>
+            <div class="product-item">
+                <p class="number-products-label"><img src="https://cdn3.emoji.gg/emojis/7711-number-3.png" alt="" style="width: 32px; height: 32px;"></p>
+                <img src="mounting2.png" alt="Товар" class="product-image no-interaction" style="margin-bottom: 15px;">
+                <h3 class="unselectable tovarcolorindex">Монтажа</h3>
+                <p class="unselectable">Качественный монтаж, переходы эффекты, вставки, графики и т.д.</p>
+                <span class="price unselectable">От 210₽</span>
+                <span class="purchases unselectable">Куплено 1 раз</span>
+                <a id="mounting" href="mounting.html" class="product-link">Подробнее</a>
+            </div>
+            <div class="product-item">
+                <p class="number-products-label"><img src="https://cdn3.emoji.gg/emojis/9315-number-4.png" alt="" style="width: 32px; height: 32px;"></p>
+                <img src="preview2.png" alt="Товар" class="product-image no-interaction" style="margin-bottom: 15px;">
+                <h3 class="unselectable tovarcolorindex">Превью</h3>
+                <p class="unselectable">Сделаем превью под ваше описание для вашего видео-ролика!</p>
+                <span class="price unselectable">От 82₽</span>
+                <span class="purchases unselectable">Куплено 1 раз</span>
+                <a id="preview" href="preview.html" class="product-link">Подробнее</a>
+            </div>
+            <div class="product-item">
+                <p class="number-products-label"><img src="https://cdn3.emoji.gg/emojis/2905-number-5.png" alt="" style="width: 32px; height: 32px;"></p>
+                <img src="tg2.png" alt="Товар" class="product-image no-interaction" style="margin-bottom: 15px;">
+                <h3 class="unselectable tovarcolorindex">TG бот</h3>
+                <p class="unselectable">Коды, тескта, переходы качественно все готово.</p>
+                <span class="price unselectable">От 72₽</span>
+                <span class="purchases unselectable">Куплено 0 раз</span>
+                <a id="telegram" href="telegram.html" class="product-link">Подробнее</a>
+            </div>
+            <div class="product-item">
+                <p class="number-products-label"><img src="https://cdn3.emoji.gg/emojis/8959-number-6.png" alt="" style="width: 32px; height: 32px;"></p>
+                <img src="website2.png" alt="Товар" class="product-image no-interaction" style="margin-bottom: 15px;">
+                <h3 class="unselectable tovarcolorindex">Сайта</h3>
+                <p class="unselectable">Дизайн, Оформление, Текста, Изображения, Коды, Анимации.</p>
+                <span class="price unselectable">От 850₽</span>
+                <span class="purchases unselectable">Куплено 0 раз</span>
+                <a id="website" href="website.html" class="product-link">Подробнее</a>
+            </div>
+            <div class="product-item">
+                <div class="product-item-new">
+                    <img src="https://cdn3.emoji.gg/emojis/4512-new-msg-1.png" alt="" style="width: 32px; height: 32px;"><img src="https://cdn3.emoji.gg/emojis/7768-new-msg-2.png" alt="" style="width: 32px; height: 32px;">
+                </div>
+                <p class="number-products-label"><img src="https://cdn3.emoji.gg/emojis/7324-number-7.png" alt="" style="width: 32px; height: 32px;"></p>
+                <img src="minecraft2.png" alt="Товар" class="product-image no-interaction" style="margin-bottom: 15px;">
+                <h3 class="unselectable tovarcolorindex">Minecraft</h3>
+                <p class="unselectable">Моды, ресурс-паки, плагины готовые крутые качественные.</p>
+                <span class="price unselectable">От 1.000₽</span>
+                <span class="purchases unselectable">Куплено 0 раз</span>
+                <a id="minecraft" href="minecraft.html" class="product-link">Подробнее</a>
+            </div>
+            <div class="product-item soon">
+                <p class="number-products-label"><img src="https://cdn3.emoji.gg/emojis/2133-number-8.png" alt="" style="width: 32px; height: 32px;"></p>
+                <img src="roblox2.jpg" alt="Товар" class="product-image no-interaction" style="margin-bottom: 15px;">
+                <h3 class="unselectable tovarcolorindex">Roblox</h3>
+                <p class="unselectable">Моды, плагины для Roblox проектов или карт крутые.</p>
+                <span class="price unselectable">От 1.000₽</span>
+                <span class="purchases unselectable">Куплено 0 раз</span>
+                <a id="roblox" href="roblox.html" class="product-link">Подробнее</a>
+            </div>
+        </div>
+    </section>
+    
+
+<style>
+        .textzagalovokk1 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            font-size: 73px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .textzagalovokk2 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            font-size: 53px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .textzagalovokk3 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            font-size: 33px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        .textzagalovokk4 {
+            font-family: 'MyCustomFont', sans-serif;
+            letter-spacing: 5px;
+            margin: 0;
+            padding: 0;
+            text-shadow: 
+                -1px -1px 0 #000,  
+                 1px -1px 0 #000,
+                -1px  1px 0 #000,
+                 1px  1px 0 #000;
+            color: #fff;
+            text-align: center;
+            border-radius: 10px;
+        }
+</style>
+
+<link rel="stylesheet" href="rat.css">
+<section id="statictic" class="statictic unselectable">
+        <h2 class="textzagalovokk1 footer-title2">Последние</h2>
+        <h2 class="textzagalovokk2 footer-title2">Отзывы</h2>
+
+        <style>
+            :root {
+                --button-padding: 3px 6px;
+                --button-font-size: 12px;
+                --button-border-radius: 10px;
+            }
+
+            .message-button1 {
+                display: inline-block;
+                margin: 1px auto;
+                padding: var(--button-padding);
+                color: #ffffff;
+                border: none;
+                border-radius: var(--button-border-radius);
+                font-size: var(--button-font-size);
+                text-align: center;
+                text-decoration: none;
+                transition: background 0.5s ease, transform 0.2s ease, box-shadow 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .iconbs {
+                vertical-align: middle;
+                margin-right: 3px;
+                width: 20px;
+                height: 20px;
+            }
+            
+            .message-button {
+                display: inline-block;
+                margin: 20px auto;
+                padding: 15px 30px;
+                background: linear-gradient(135deg, #7d7f80, #636162);
+                color: #ffffff;
+                border: none;
+                border-radius: 50px;
+                font-size: 18px;
+                text-align: center;
+                text-decoration: none;
+                box-shadow: 0 4px 15px rgba(255, 190, 153, 0.7);
+                transition: background 0.5s ease, transform 0.2s ease, box-shadow 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+        .message-button:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s ease;
+            z-index: 0;
+        }
+
+        .message-button:hover:before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .message-button:hover {
+            background: linear-gradient(135deg, #636162, #7d7f80);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(255, 190, 153, 0.7);
+        }
+
+        .message-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 4px 15px rgba(255, 163, 42, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .message-button {
+                padding: 12px 24px;
+                font-size: 16px;
+            }
+        }
+
+        .product-details {
+    max-height: 0; 
+    opacity: 0; 
+    overflow: hidden; 
+    transition: max-height 0.5s ease, opacity 0.5s ease; 
+}
+
+.product-details.visible { 
+    max-height: 200px; /* Убедитесь, что это значение достаточно для вашего контента */
+    opacity: 1; 
+}
+
+            .arrow { 
+              cursor: pointer; 
+              transition: transform 0.3s ease; 
+            }
+
+            .arrow.rotated { 
+              transform: rotate(180deg); 
+            }
+            
+            .statictic-title2 { 
+              text-align:center; 
+              color:#ffffff; 
+            }
+
+            
+    </style>
+
+<div class="carousel-container">
+    <div class="main-container" id="carousel">
+    <script src="peremotca.js"></script>
+    <script src="rat.js"></script>
+
+    <div class="profile-card">
+        <div class="number-badge">#1</div>
+        <div class="avatar-section">
+            <img src="https://cdn.discordapp.com/avatars/854283249210490880/2b3f94c5eace8ab817481d84000df4f8.webp?size=80" alt="Profile Picture" class="avatar-image">
+            <h2 class="player-name">calt123</h2>
+            <div class="reactions">
+                <div class="reaction">
+                    <a href="https://discord.com/channels/1241001251907309701/1241001252373135417/1338832464780464191" class="message-button1">
+                        <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1009056292255576204.png%3Fv%3D1&w=64&q=75" alt="" class="iconbs">
+                    </a>
+                </div>
+                <div class="rating">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F762420681580609587.png%3Fv%3D1&w=64&q=75" alt="Rating Icon" class="rating-icon">
+                    <p class="rating-text">10 из 10</p>
+                </div>
+            </div>
+            <hr class="separator">
+            <div class="notification">
+                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F929262627081838602.gif%3Fv%3D1&w=64&q=75" alt="Date Icon" class="notification-icon">
+                <p class="notification-text">11 Февраля 2025г.</p>
+            </div>
+            <div class="product">
+                <div class="product-info">
+                    <p class="product-text">Товар</p>
+                    <span class="arrow" onclick="toggleDetails(this)">▼</span>
+                </div>
+                <div class="product-details">
+                    <p><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1260681882929070080.gif%3Fv%3D1&w=64&q=75" alt="Reaction Icon" class="reaction-icon"> Настройки Discord сервера</p>
+                </div>
+            </div>
+            <div class="product">
+                <div class="product-info">
+                    <p class="product-text">Комментарий</p>
+                    <span class="arrow" onclick="toggleDetails(this)">▼</span>
+                </div>
+                <div class="product-details">
+                    <p>Настроил дс сервер ну хорошо</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-card">
+        <div class="number-badge">#2</div>
+        <div class="avatar-section">
+            <img src="https://cdn.discordapp.com/avatars/854283249210490880/2b3f94c5eace8ab817481d84000df4f8.webp?size=80" alt="Profile Picture" class="avatar-image">
+            <h2 class="player-name">calt123</h2>
+            <div class="reactions">
+                <div class="reaction">
+                    <a href="https://discord.com/channels/1241001251907309701/1241001252373135417/1338832464780464191" class="message-button1">
+                        <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1009056292255576204.png%3Fv%3D1&w=64&q=75" alt="" class="iconbs">
+                    </a>
+                </div>
+                <div class="rating">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F762420681580609587.png%3Fv%3D1&w=64&q=75" alt="Rating Icon" class="rating-icon">
+                    <p class="rating-text">10 из 10</p>
+                </div>
+            </div>
+            <hr class="separator">
+            <div class="notification">
+                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F929262627081838602.gif%3Fv%3D1&w=64&q=75" alt="Date Icon" class="notification-icon">
+                <p class="notification-text">11 Февраля 2025г.</p>
+            </div>
+            <div class="product">
+                <div class="product-info">
+                    <p class="product-text">Товар</p>
+                    <span class="arrow" onclick="toggleDetails(this)">▼</span>
+                </div>
+                <div class="product-details">
+                    <p><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1260681882929070080.gif%3Fv%3D1&w=64&q=75" alt="Reaction Icon" class="reaction-icon"> Настройки Discord сервера</p>
+                </div>
+            </div>
+            <div class="product">
+                <div class="product-info">
+                    <p class="product-text">Комментарий</p>
+                    <span class="arrow" onclick="toggleDetails(this)">▼</span>
+                </div>
+                <div class="product-details">
+                    <p>Настроил дс сервер ну хорошо</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-card">
+        <div class="number-badge">#1</div>
+        <div class="avatar-section">
+            <img src="https://cdn.discordapp.com/avatars/854283249210490880/2b3f94c5eace8ab817481d84000df4f8.webp?size=80" alt="Profile Picture" class="avatar-image">
+            <h2 class="player-name">calt123</h2>
+            <div class="reactions">
+                <div class="reaction">
+                    <a href="https://discord.com/channels/1241001251907309701/1241001252373135417/1338832464780464191" class="message-button1">
+                        <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1009056292255576204.png%3Fv%3D1&w=64&q=75" alt="" class="iconbs">
+                    </a>
+                </div>
+                <div class="rating">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F762420681580609587.png%3Fv%3D1&w=64&q=75" alt="Rating Icon" class="rating-icon">
+                    <p class="rating-text">10 из 10</p>
+                </div>
+            </div>
+            <hr class="separator">
+            <div class="notification">
+                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F929262627081838602.gif%3Fv%3D1&w=64&q=75" alt="Date Icon" class="notification-icon">
+                <p class="notification-text">11 Февраля 2025г.</p>
+            </div>
+            <div class="product">
+                <div class="product-info">
+                    <p class="product-text">Товар</p>
+                    <span class="arrow" onclick="toggleDetails(this)">▼</span>
+                </div>
+                <div class="product-details">
+                    <p><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1260681882929070080.gif%3Fv%3D1&w=64&q=75" alt="Reaction Icon" class="reaction-icon"> Настройки Discord сервера</p>
+                </div>
+            </div>
+            <div class="product">
+                <div class="product-info">
+                    <p class="product-text">Комментарий</p>
+                    <span class="arrow" onclick="toggleDetails(this)">▼</span>
+                </div>
+                <div class="product-details">
+                    <p>Настроил дс сервер ну хорошо</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-card">
+        <div class="number-badge">#2</div>
+        <div class="avatar-section">
+            <img src="https://cdn.discordapp.com/avatars/854283249210490880/2b3f94c5eace8ab817481d84000df4f8.webp?size=80" alt="Profile Picture" class="avatar-image">
+            <h2 class="player-name">calt123</h2>
+            <div class="reactions">
+                <div class="reaction">
+                    <a href="https://discord.com/channels/1241001251907309701/1241001252373135417/1338832464780464191" class="message-button1">
+                        <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1009056292255576204.png%3Fv%3D1&w=64&q=75" alt="" class="iconbs">
+                    </a>
+                </div>
+                <div class="rating">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F762420681580609587.png%3Fv%3D1&w=64&q=75" alt="Rating Icon" class="rating-icon">
+                    <p class="rating-text">10 из 10</p>
+                </div>
+            </div>
+            <hr class="separator">
+            <div class="notification">
+                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F929262627081838602.gif%3Fv%3D1&w=64&q=75" alt="Date Icon" class="notification-icon">
+                <p class="notification-text">11 Февраля 2025г.</p>
+            </div>
+            <div class="product">
+                <div class="product-info">
+                    <p class="product-text">Товар</p>
+                    <span class="arrow" onclick="toggleDetails(this)">▼</span>
+                </div>
+                <div class="product-details">
+                    <p><img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1260681882929070080.gif%3Fv%3D1&w=64&q=75" alt="Reaction Icon" class="reaction-icon"> Настройки Discord сервера</p>
+                </div>
+            </div>
+            <div class="product">
+                <div class="product-info">
+                    <p class="product-text">Комментарий</p>
+                    <span class="arrow" onclick="toggleDetails(this)">▼</span>
+                </div>
+                <div class="product-details">
+                    <p>Настроил дс сервер ну хорошо</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="carousel-buttons">
+    <button class="carousel-button" id="prevButton">&#9664;</button>
+    <button class="carousel-button" id="nextButton">&#9654;</button>
+</div>
+</div>
+
+<script src="peremotca.js"></script>
+<script src="rat.js"></script>
+</section>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background-color: #0c0c0c;
+    color: #fff;
+    overflow-x: hidden;
+}
+
+.footer {
+    position: relative;
+    padding: 40px 20px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.7));
+    overflow: hidden;
+    text-align: center;
+    perspective: 1000px;
+    transform: translateY(100%);
+    animation: slideIn 0.5s forwards;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-title3 {
+    font-size: 1.1rem;
+    text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+}
+
+.footer-title2 {
+    text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+}
+
+.footer-title {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(255, 144, 18, 0.8);
+}
+
+.footer-description {
+    font-size: 1rem;
+    margin-bottom: 20px;
+    color: #ccc;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0;
+}
+
+.footer-links li {
+    display: inline;
+    margin: 0 15px;
+}
+
+.footer-links a {
+    font-weight: bold; /* Add this line */
+    color: #ffa24c;
+    text-decoration: none;
+    transition: color 0.3s, transform 0.3s;
+}
+
+.footer-links a:hover {
+    font-weight: bold; /* Add this line */
+    color: #ff7d31;
+    transform: scale(1.1) rotateY(10deg);
+}
+
+.footer-bottom {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #ccc;
+}
+
+.social-links {
+    margin-top: 10px;
+}
+
+.social-icon {
+    margin: 0 10px;
+    color: #fff;
+    text-decoration: none;
+    transition: color 0.3s, transform 0.3s;
+    font-size: 1.5rem;
+}
+
+.social-icon:hover {
+    color: #00ffcc;
+    transform: scale(1.2);
+}
+
+@keyframes slideIn {
+    0% {
+        transform: translateY(100%);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .footer {
+        padding: 30px 10px;
+    }
+
+    .footer-title {
+        font-size: 2rem;
+    }
+
+    .footer-description {
+        font-size: 0.9rem;
+    }
+
+    .footer-links {
+        margin: 10px 0;
+    }
+
+    .footer-links li {
+        display: block;
+        margin: 10px 0;
+    }
+
+    .footer-bottom {
+        font-size: 0.8rem;
+    }
+
+    .social-icon {
+        font-size: 1.2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer-title {
+        font-size: 1.5rem;
+    }
+
+    .footer-description {
+        font-size: 0.8rem;
+    }
+
+    .footer-links a {
+        font-size: 0.9rem;
+    }
+}
+
+@keyframes twinkle {
+    0%, 100% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+.stars {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1006683100153131069.png%3Fv%3D1&w=64&q=75') repeat;
+    animation: twinkle 10s infinite;
+    z-index: -1;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.planets {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1040126355662184508.gif%3Fv%3D1&w=64&q=75') no-repeat;
+    background-size: contain;
+    animation: rotate 30s infinite linear;
+}
+
+.comets {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: url('https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1305930171055996928.gif%3Fv%3D1&w=64&q=75') no-repeat;
+    animation: comet 15s infinite linear;
+}
+
+@keyframes comet {
+    0% {
+        transform: translateX(-100%) translateY(-50%);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(100%) translateY(-50%);
+        opacity: 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.star {
+    position: absolute;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes comet {
+    0% {
+        transform: translateX(-100%) translateY(-50%);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(100%) translateY(-50%);
+        opacity: 0;
+    }
+}
+</style>
+
+
+<footer class="footer unselectable">
+    <div class="footer-content">
+        <div class="logo">
+            <p><svg fill="#FE3635" url="logo.jpg" viewBox="0 0 97.89 97.32"> </svg></p>
+        </div>
+        <h2 class="footer-title textzagalovokk3">BHStore</h2>
+        <p class="footer-description textzagalovokk3">Спасибо, ч то выбираете наш сервис!</p>
+        <ul class="footer-links">
+            <li><a href="index.html" class="hover-link disabled2">Главная</a></li>
+            <li><a href="news.html" class="hover-link">Новости</a></li>
+            <li><a href="staff.html" class="hover-link">Персонал</a></li>
+            <li><a href="docs.html" class="hover-link">Документация</a></li>
+            <li><a href="agreement.html" class="hover-link">Соглашение</a></li>
+            <li><a href="privacy.html" class="hover-link">Конфидициальность</a></li>
+        </ul>
+    </div>
+    <div class="footer-bottom textzagalovokk3">
+        <p>&copy; 2024 — 2025 ➥ BORISONCHIK • Все права защищены</p>
+        <div class="social-links">
+                <h2 class="textzagalovokk3 unselectable"></h2>
+                <div class="social-links">
+                    <a href="https://vk.com/fastvideo_zeny" class="social-button" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/128/1216/1216744.png" alt="VK" class="social-icon" target="_blank">
+                    </a>
+                    <a href="https://t.me/BorisHunterStore" class="social-button" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/128/5619/5619028.png" alt="Telegram" class="social-icon" target="_blank">
+                    </a>
+                    <a href="https://discord.gg/YfZxXXeW6D" class="social-button" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/128/2335/2335279.png" alt="Discord" class="social-icon" target="_blank">
+                    </a>
+                    <a href="status.html" class="social-button" target="_blank">
+                        <img src="https://cdn-icons-png.flaticon.com/128/5818/5818918.png" alt="Discord" class="social-icon" target="_blank">
+                    </a>
+                </div>
+        </div>
+    </div>
+</footer>
+
+    <script src="script.js"></script>
+    <script src="snow.js"></script>
+    <script src="static.js"></script>
+    <script src="navig.js"></script>
+    <script src="footer.js"></script>
+
+<script>
+document.getElementById('nav-toggle').addEventListener('click', function() {
+    const navList = document.getElementById('nav-list');
+    navList.classList.toggle('show');
+});
+
+        const navToggle = document.getElementById('nav-toggle');
+        const navList = document.getElementById('nav-list');
+    
+        navToggle.addEventListener('click', () => {
+            navList.style.display = navList.style.display === 'block' ? 'none' : 'block';
+        });
+    
+
+        window.addEventListener('click', (event) => {
+            if (!navToggle.contains(event.target) && !navList.contains(event.target)) {
+                navList.style.display = 'none';
+            }
+        });
+
+        document.getElementById('scrollToProducts').addEventListener('click', function() {
+            const aboutSection = document.getElementById('products');
+            aboutSection.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        const scrollToTopBtn = document.getElementById('scrollToTopBtn');
+
+window.onscroll = function() {
+    if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+        scrollToTopBtn.classList.add('show');
+    } else {
+        scrollToTopBtn.classList.remove('show');
+    }
+};
+
+scrollToTopBtn.onclick = function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+</script>
+</body>
+</html>
