@@ -4,6 +4,7 @@ const axios = require('axios');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
 require('dotenv').config();
 
 const app = express();
@@ -12,8 +13,8 @@ const PORT = process.env.PORT || 3000;
 // Конфигурация
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'http://localhost:3000/auth/discord/callback';
-const BOT_API_URL = 'http://localhost:8080'; // URL Flask сервера бота
+const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'http://bhstore.netlify.app/auth/discord/callback';
+const BOT_API_URL = 'http://bhstore.netlify.app'; // URL Flask сервера бота
 
 console.log('🚀 Запуск BHStore Server...');
 console.log('✅ Client ID:', DISCORD_CLIENT_ID);
@@ -1708,6 +1709,688 @@ app.get('/api/user/:id/balance', (req, res) => {
         res.status(500).json({ 
             success: false, 
             error: 'Ошибка сервера' 
+        });
+    }
+});
+
+// ============================================
+// API для отзывов (reviews)
+// ============================================
+
+const reviewsFile = path.join(dataDir, 'reviews.json');
+
+// Инициализация файла отзывов
+if (!fs.existsSync(reviewsFile)) {
+    const defaultReviews = {
+        reviews: [
+            {
+                id: "rev_1738765432101",
+                userId: "123456789012345678",
+                name: "Алексей Петров",
+                avatar: "https://cdn.discordapp.com/embed/avatars/0.png",
+                rating: 5,
+                productId: "premium-1",
+                productName: "Premium Подписка",
+                text: "Отличный бот! Все функции работают идеально. Поддержка отвечает быстро, помогли с настройкой. Очень доволен покупкой!",
+                images: [],
+                verifiedPurchase: true,
+                verified: true,
+                helpful: 12,
+                createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+                updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+                adminReply: null
+            },
+            {
+                id: "rev_1738765432102",
+                userId: "234567890123456789",
+                name: "Екатерина Смирнова",
+                avatar: "https://cdn.discordapp.com/embed/avatars/1.png",
+                rating: 5,
+                productId: "service-1",
+                productName: "Музыкальный бот",
+                text: "Заказала музыкального бота для своего сервера. Сделали быстро, качественно. Теперь у нас отличная музыка на сервере!",
+                images: [],
+                verifiedPurchase: true,
+                verified: false,
+                helpful: 8,
+                createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+                updatedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+                adminReply: null
+            },
+            {
+                id: "rev_1738765432103",
+                userId: "345678901234567890",
+                name: "Дмитрий Иванов",
+                avatar: "https://cdn.discordapp.com/embed/avatars/2.png",
+                rating: 4,
+                productId: "premium-2",
+                productName: "Premium Годовая",
+                text: "Пользуюсь премиумом уже полгода. Всё супер, но хотелось бы больше команд. В остальном отлично, багов не замечал.",
+                images: [],
+                verifiedPurchase: true,
+                verified: true,
+                helpful: 5,
+                createdAt: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
+                updatedAt: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
+                adminReply: {
+                    text: "Спасибо за отзыв! Мы работаем над добавлением новых команд!",
+                    createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
+                    adminId: "992442453833547886"
+                }
+            }
+        ],
+        stats: {
+            totalReviews: 3,
+            averageRating: 4.7,
+            verifiedPurchases: 3,
+            totalHelpful: 25,
+            reviewsWithPhotos: 0,
+            lastUpdated: new Date().toISOString()
+        },
+        config: {
+            maxImagesPerReview: 3,
+            allowedImageTypes: ["image/jpeg", "image/png", "image/jpg"],
+            maxImageSize: 5242880,
+            minReviewLength: 10,
+            maxReviewLength: 1000,
+            reviewsPerPage: 6
+        }
+    };
+    fs.writeFileSync(reviewsFile, JSON.stringify(defaultReviews, null, 2));
+    console.log('✅ Файл отзывов создан');
+}
+
+// Загрузка отзывов
+let reviewsData = {};
+try {
+    reviewsData = JSON.parse(fs.readFileSync(reviewsFile, 'utf8'));
+    console.log(`✅ Загружено ${reviewsData.reviews?.length || 0} отзывов`);
+} catch {
+    reviewsData = { reviews: [], stats: { totalReviews: 0, averageRating: 0 } };
+}
+
+// Функция для сохранения отзывов
+function saveReviews() {
+    try {
+        fs.writeFileSync(reviewsFile, JSON.stringify(reviewsData, null, 2));
+    } catch (error) {
+        console.error('❌ Ошибка сохранения отзывов:', error.message);
+    }
+}
+
+// Функция для обновления статистики отзывов
+function updateReviewsStats() {
+    const reviews = reviewsData.reviews || [];
+    const totalReviews = reviews.length;
+    
+    if (totalReviews === 0) {
+        reviewsData.stats = {
+            totalReviews: 0,
+            averageRating: 0,
+            verifiedPurchases: 0,
+            totalHelpful: 0,
+            reviewsWithPhotos: 0,
+            lastUpdated: new Date().toISOString()
+        };
+        return;
+    }
+    
+    const averageRating = Number((reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1));
+    const verifiedPurchases = reviews.filter(r => r.verifiedPurchase).length;
+    const totalHelpful = reviews.reduce((sum, r) => sum + (r.helpful || 0), 0);
+    const reviewsWithPhotos = reviews.filter(r => r.images && r.images.length > 0).length;
+    
+    reviewsData.stats = {
+        totalReviews,
+        averageRating,
+        verifiedPurchases,
+        totalHelpful,
+        reviewsWithPhotos,
+        lastUpdated: new Date().toISOString()
+    };
+}
+
+// Настройка multer для загрузки изображений отзывов
+const reviewStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const uploadDir = path.join(__dirname, 'uploads', 'reviews');
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, 'review-' + uniqueSuffix + ext);
+    }
+});
+
+const uploadReviews = multer({ 
+    storage: reviewStorage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Неподдерживаемый формат файла. Разрешены: JPG, PNG'));
+        }
+    }
+});
+
+// GET /api/reviews - получение всех отзывов
+app.get('/api/reviews', (req, res) => {
+    try {
+        const { page = 1, limit = 10, filter = 'all' } = req.query;
+        
+        let reviews = [...(reviewsData.reviews || [])];
+        
+        // Применяем фильтры
+        if (filter === 'verified') {
+            reviews = reviews.filter(r => r.verifiedPurchase);
+        } else if (filter === 'with-photo') {
+            reviews = reviews.filter(r => r.images && r.images.length > 0);
+        } else if (filter === '5' || filter === '4' || filter === '3' || filter === '2' || filter === '1') {
+            reviews = reviews.filter(r => r.rating === parseInt(filter));
+        }
+        
+        // Сортируем по дате (новые сначала)
+        reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        // Пагинация
+        const startIndex = (page - 1) * limit;
+        const endIndex = startIndex + parseInt(limit);
+        const paginatedReviews = reviews.slice(startIndex, endIndex);
+        
+        res.json({
+            success: true,
+            reviews: paginatedReviews,
+            stats: reviewsData.stats,
+            pagination: {
+                total: reviews.length,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                totalPages: Math.ceil(reviews.length / limit)
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Ошибка получения отзывов:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Ошибка загрузки отзывов' 
+        });
+    }
+});
+
+// GET /api/reviews/:id - получение конкретного отзыва
+app.get('/api/reviews/:id', (req, res) => {
+    try {
+        const review = (reviewsData.reviews || []).find(r => r.id === req.params.id);
+        
+        if (!review) {
+            return res.status(404).json({
+                success: false,
+                error: 'Отзыв не найден'
+            });
+        }
+        
+        res.json({
+            success: true,
+            review
+        });
+        
+    } catch (error) {
+        console.error('❌ Ошибка получения отзыва:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Ошибка загрузки отзыва' 
+        });
+    }
+});
+
+// POST /api/reviews - создание нового отзыва
+app.post('/api/reviews', uploadReviews.array('images', 3), (req, res) => {
+    try {
+        const { userId, name, productId, productName, rating, text, verifiedPurchase } = req.body;
+        
+        console.log('📝 Получен запрос на создание отзыва:', { userId, name, productId, productName, rating });
+        
+        // Валидация
+        if (!userId || !name || !productId || !productName || !rating || !text) {
+            return res.status(400).json({
+                success: false,
+                error: 'Заполните все обязательные поля'
+            });
+        }
+        
+        if (text.length < 10) {
+            return res.status(400).json({
+                success: false,
+                error: 'Отзыв должен содержать минимум 10 символов'
+            });
+        }
+        
+        if (text.length > 1000) {
+            return res.status(400).json({
+                success: false,
+                error: 'Отзыв не может превышать 1000 символов'
+            });
+        }
+        
+        // Проверяем, не оставлял ли уже пользователь отзыв на этот товар
+        const existingReview = (reviewsData.reviews || []).find(
+            r => r.userId === userId && r.productId === productId
+        );
+        
+        if (existingReview) {
+            return res.status(400).json({
+                success: false,
+                error: 'Вы уже оставляли отзыв на этот товар'
+            });
+        }
+        
+        // Обработка загруженных изображений
+        const images = [];
+        if (req.files && req.files.length > 0) {
+            req.files.forEach(file => {
+                // Сохраняем относительный путь к изображению
+                images.push(`/uploads/reviews/${file.filename}`);
+            });
+        }
+        
+        // Получаем информацию о пользователе
+        const user = users[userId];
+        const avatar = user?.avatar 
+            ? `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}.png?size=64`
+            : `https://cdn.discordapp.com/embed/avatars/${Math.floor(Math.random() * 5)}.png`;
+        
+        // Проверяем, действительно ли пользователь покупал этот товар
+        let hasPurchased = false;
+        if (user && user.orders) {
+            hasPurchased = user.orders.some(order => 
+                order.productId === productId && 
+                (order.status === 'completed' || order.status === 'КУПЛЕНО')
+            );
+        }
+        
+        // Создание нового отзыва
+        const newReview = {
+            id: `rev_${Date.now()}`,
+            userId,
+            name,
+            avatar,
+            rating: parseInt(rating),
+            productId,
+            productName,
+            text,
+            images,
+            verifiedPurchase: hasPurchased, // Автоматически определяем по истории покупок
+            verified: user?.badges?.verified || false,
+            helpful: 0,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            adminReply: null
+        };
+        
+        // Добавляем отзыв
+        if (!reviewsData.reviews) {
+            reviewsData.reviews = [];
+        }
+        reviewsData.reviews.unshift(newReview);
+        
+        // Обновляем статистику
+        updateReviewsStats();
+        
+        // Сохраняем
+        saveReviews();
+        
+        console.log(`✅ Отзыв создан: ${newReview.id} от ${name}`);
+        
+        // Отправляем уведомление в Discord
+        const webhookUrl = 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
+        axios.post(webhookUrl, {
+            embeds: [{
+                title: '⭐ Новый отзыв!',
+                description: `**${name}** оставил отзыв на товар **${productName}**`,
+                color: 0xFEE75C,
+                fields: [
+                    { name: 'Оценка', value: '⭐'.repeat(parseInt(rating)), inline: true },
+                    { name: 'Подтвержденная покупка', value: hasPurchased ? '✅ Да' : '❌ Нет', inline: true },
+                    { name: 'Текст отзыва', value: text.substring(0, 200) + (text.length > 200 ? '...' : ''), inline: false }
+                ],
+                timestamp: new Date().toISOString()
+            }]
+        }).catch(err => console.error('Ошибка отправки вебхука:', err.message));
+        
+        res.json({
+            success: true,
+            message: 'Отзыв успешно добавлен',
+            review: {
+                id: newReview.id,
+                name: newReview.name,
+                rating: newReview.rating,
+                productName: newReview.productName,
+                createdAt: newReview.createdAt
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Ошибка создания отзыва:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Ошибка при создании отзыва: ' + error.message 
+        });
+    }
+});
+
+// POST /api/reviews/:id/helpful - отметка "полезно"
+app.post('/api/reviews/:id/helpful', (req, res) => {
+    try {
+        const { userId } = req.body;
+        const reviewId = req.params.id;
+        
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Необходимо указать userId'
+            });
+        }
+        
+        const reviewIndex = (reviewsData.reviews || []).findIndex(r => r.id === reviewId);
+        
+        if (reviewIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                error: 'Отзыв не найден'
+            });
+        }
+        
+        // Проверяем, не голосовал ли уже пользователь (можно хранить в отдельном поле)
+        // Для простоты просто увеличиваем счетчик
+        reviewsData.reviews[reviewIndex].helpful = (reviewsData.reviews[reviewIndex].helpful || 0) + 1;
+        
+        // Обновляем статистику
+        updateReviewsStats();
+        
+        // Сохраняем
+        saveReviews();
+        
+        res.json({
+            success: true,
+            message: 'Спасибо за оценку!',
+            helpful: reviewsData.reviews[reviewIndex].helpful
+        });
+        
+    } catch (error) {
+        console.error('❌ Ошибка отметки "полезно":', error.message);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Ошибка при отметке' 
+        });
+    }
+});
+
+// PUT /api/reviews/:id - обновление отзыва (только для автора или админа)
+app.put('/api/reviews/:id', (req, res) => {
+    try {
+        const { userId, text, rating } = req.body;
+        const reviewId = req.params.id;
+        
+        // Проверка авторизации
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return res.status(401).json({ success: false, error: 'Не авторизован' });
+        }
+        
+        const token = authHeader.replace('Bearer ', '');
+        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+        
+        const reviewIndex = (reviewsData.reviews || []).findIndex(r => r.id === reviewId);
+        
+        if (reviewIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                error: 'Отзыв не найден'
+            });
+        }
+        
+        // Проверка прав (только автор или админ)
+        const isAdmin = isAdminUser(decoded);
+        
+        if (reviewsData.reviews[reviewIndex].userId !== userId && !isAdmin) {
+            return res.status(403).json({
+                success: false,
+                error: 'Нет прав для редактирования этого отзыва'
+            });
+        }
+        
+        // Обновляем поля
+        if (text) {
+            if (text.length < 10 || text.length > 1000) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Текст отзыва должен быть от 10 до 1000 символов'
+                });
+            }
+            reviewsData.reviews[reviewIndex].text = text;
+        }
+        
+        if (rating) {
+            reviewsData.reviews[reviewIndex].rating = parseInt(rating);
+        }
+        
+        reviewsData.reviews[reviewIndex].updatedAt = new Date().toISOString();
+        
+        // Обновляем статистику
+        updateReviewsStats();
+        
+        // Сохраняем
+        saveReviews();
+        
+        res.json({
+            success: true,
+            message: 'Отзыв успешно обновлен',
+            review: reviewsData.reviews[reviewIndex]
+        });
+        
+    } catch (error) {
+        console.error('❌ Ошибка обновления отзыва:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Ошибка при обновлении отзыва' 
+        });
+    }
+});
+
+// DELETE /api/reviews/:id - удаление отзыва (только для админа)
+app.delete('/api/reviews/:id', (req, res) => {
+    try {
+        const reviewId = req.params.id;
+        
+        // Проверка авторизации
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return res.status(401).json({ success: false, error: 'Не авторизован' });
+        }
+        
+        const token = authHeader.replace('Bearer ', '');
+        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+        
+        // Проверка прав админа
+        if (!isAdminUser(decoded)) {
+            return res.status(403).json({
+                success: false,
+                error: 'Требуются права администратора'
+            });
+        }
+        
+        const reviewIndex = (reviewsData.reviews || []).findIndex(r => r.id === reviewId);
+        
+        if (reviewIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                error: 'Отзыв не найден'
+            });
+        }
+        
+        // Удаляем изображения с сервера
+        const review = reviewsData.reviews[reviewIndex];
+        if (review.images && review.images.length > 0) {
+            review.images.forEach(imagePath => {
+                const fullPath = path.join(__dirname, imagePath);
+                if (fs.existsSync(fullPath)) {
+                    fs.unlinkSync(fullPath);
+                }
+            });
+        }
+        
+        // Удаляем отзыв
+        reviewsData.reviews.splice(reviewIndex, 1);
+        
+        // Обновляем статистику
+        updateReviewsStats();
+        
+        // Сохраняем
+        saveReviews();
+        
+        console.log(`🗑️ Отзыв удален: ${reviewId}`);
+        
+        res.json({
+            success: true,
+            message: 'Отзыв успешно удален'
+        });
+        
+    } catch (error) {
+        console.error('❌ Ошибка удаления отзыва:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Ошибка при удалении отзыва' 
+        });
+    }
+});
+
+// POST /api/reviews/:id/reply - ответ администратора
+app.post('/api/reviews/:id/reply', (req, res) => {
+    try {
+        const { reply } = req.body;
+        const reviewId = req.params.id;
+        
+        // Проверка авторизации
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return res.status(401).json({ success: false, error: 'Не авторизован' });
+        }
+        
+        const token = authHeader.replace('Bearer ', '');
+        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+        
+        // Проверка прав админа
+        if (!isAdminUser(decoded)) {
+            return res.status(403).json({
+                success: false,
+                error: 'Требуются права администратора'
+            });
+        }
+        
+        if (!reply || reply.length < 5) {
+            return res.status(400).json({
+                success: false,
+                error: 'Ответ должен содержать минимум 5 символов'
+            });
+        }
+        
+        const reviewIndex = (reviewsData.reviews || []).findIndex(r => r.id === reviewId);
+        
+        if (reviewIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                error: 'Отзыв не найден'
+            });
+        }
+        
+        reviewsData.reviews[reviewIndex].adminReply = {
+            text: reply,
+            createdAt: new Date().toISOString(),
+            adminId: decoded.id,
+            adminName: decoded.username
+        };
+        
+        // Сохраняем
+        saveReviews();
+        
+        console.log(`💬 Ответ администратора на отзыв ${reviewId}`);
+        
+        res.json({
+            success: true,
+            message: 'Ответ успешно добавлен',
+            adminReply: reviewsData.reviews[reviewIndex].adminReply
+        });
+        
+    } catch (error) {
+        console.error('❌ Ошибка добавления ответа:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Ошибка при добавлении ответа' 
+        });
+    }
+});
+
+// GET /api/reviews/user/:userId - получение отзывов пользователя
+app.get('/api/reviews/user/:userId', (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        const userReviews = (reviewsData.reviews || []).filter(r => r.userId === userId);
+        
+        res.json({
+            success: true,
+            reviews: userReviews,
+            total: userReviews.length
+        });
+        
+    } catch (error) {
+        console.error('❌ Ошибка получения отзывов пользователя:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Ошибка загрузки отзывов' 
+        });
+    }
+});
+
+// GET /api/reviews/product/:productId - получение отзывов на товар
+app.get('/api/reviews/product/:productId', (req, res) => {
+    try {
+        const { productId } = req.params;
+        
+        const productReviews = (reviewsData.reviews || [])
+            .filter(r => r.productId === productId)
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        
+        const averageRating = productReviews.length > 0
+            ? Number((productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length).toFixed(1))
+            : 0;
+        
+        res.json({
+            success: true,
+            reviews: productReviews,
+            total: productReviews.length,
+            averageRating,
+            ratingCounts: {
+                5: productReviews.filter(r => r.rating === 5).length,
+                4: productReviews.filter(r => r.rating === 4).length,
+                3: productReviews.filter(r => r.rating === 3).length,
+                2: productReviews.filter(r => r.rating === 2).length,
+                1: productReviews.filter(r => r.rating === 1).length
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Ошибка получения отзывов на товар:', error.message);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Ошибка загрузки отзывов' 
         });
     }
 });

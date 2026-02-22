@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отзывы клиентов | BHStore</title>
+    <meta name="description" content="Реальные отзывы клиентов о BHStore. Узнайте, что говорят покупатели о нашем магазине Discord ботов и премиум функций.">
+    <meta name="keywords" content="отзывы, клиенты, bhstore, discord бот, отзывы о магазине">
+    <meta property="og:title" content="Отзывы клиентов BHStore">
+    <meta property="og:description" content="Реальные отзывы о магазине Discord ботов">
+    <meta property="og:image" content="/image/reviews-banner.jpg">
+    <link rel="stylesheet" href="css/news.css">
+    <link rel="stylesheet" href="css/general.css">
+    <link rel="stylesheet" href="css/review.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/image/logo.png">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="image/logo.png" alt="BHStore" style="width: 50px;">
+                <span class="logo-text">BHStore</span>
+            </a>
+            <div class="nav-menu">
+                <a href="/" class="nav-link"><i class="fas fa-home"></i> Главная</a>
+                <a href="/shop.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Магазин</a>
+                <a href="/news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
+                <a href="/faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
+                <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Правовая информация</a>
+            </div>
+            <div class="nav-auth">
+                <button id="authBtn" class="btn-discord">
+                    <i class="fab fa-discord"></i> Войти через Discord
+                </button>
+            </div>
+            <button class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div class="news-banner">
+        <img src="image/banner.jpg" alt="News Banner" class="news-banner-image">
+        <div class="news-banner-overlay">
+            <div class="news-banner-title">
+                Отзывы BHStore
+                <span>Все реальные отзывы</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="review-container">
+        <div class="review-stats" id="reviewStats">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-star"></i></div>
+                <div class="stat-value" id="avgRating">4.8</div>
+                <div class="stat-label">Средний рейтинг</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-comments"></i></div>
+                <div class="stat-value" id="totalReviews">0</div>
+                <div class="stat-label">Всего отзывов</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-value" id="verifiedReviews">0</div>
+                <div class="stat-label">С подтвержденной покупкой</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-heart"></i></div>
+                <div class="stat-value" id="helpfulCount">0</div>
+                <div class="stat-label">Полезных отзывов</div>
+            </div>
+        </div>
+
+        <h1 class="section-title">
+            <i class="fas fa-star"></i>
+            Отзывы наших клиентов
+        </h1>
+
+        <div class="review-filters">
+            <button class="filter-btn active" data-filter="all">
+                <i class="fas fa-globe"></i> Все отзывы
+            </button>
+            <button class="filter-btn" data-filter="5">
+                <i class="fas fa-star"></i> 5 звезд
+            </button>
+            <button class="filter-btn" data-filter="4">
+                <i class="fas fa-star"></i> 4 звезды
+            </button>
+            <button class="filter-btn" data-filter="3">
+                <i class="fas fa-star"></i> 3 звезды
+            </button>
+            <button class="filter-btn" data-filter="with-photo">
+                <i class="fas fa-camera"></i> С фото
+            </button>
+            <button class="filter-btn" data-filter="verified">
+                <i class="fas fa-check-circle"></i> Подтвержденные
+            </button>
+        </div>
+
+        <div id="reviewsGrid" class="reviews-grid">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Загрузка отзывов...</p>
+            </div>
+        </div>
+
+        <div id="pagination" class="pagination"></div>
+
+        <div class="add-review-section" id="addReviewSection" style="display: none;">
+            <h2 class="add-review-title">
+                <i class="fas fa-pen"></i>
+                Оставить отзыв
+            </h2>
+
+            <form id="reviewForm" class="review-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-user"></i>
+                            Ваше имя
+                        </label>
+                        <input type="text" id="reviewerName" class="form-input" readonly required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-tag"></i>
+                            Товар
+                        </label>
+                        <select id="reviewProduct" class="form-select" required>
+                            <option value="">Выберите товар</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-star"></i>
+                        Ваша оценка
+                    </label>
+                    <div class="rating-input">
+                        <div class="rating-stars-input" id="ratingStars">
+                            <i class="fas fa-star" data-rating="1"></i>
+                            <i class="fas fa-star" data-rating="2"></i>
+                            <i class="fas fa-star" data-rating="3"></i>
+                            <i class="fas fa-star" data-rating="4"></i>
+                            <i class="fas fa-star" data-rating="5"></i>
+                        </div>
+                        <span class="rating-text" id="ratingText">Отлично</span>
+                    </div>
+                    <input type="hidden" id="reviewRating" value="5">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-comment"></i>
+                        Ваш отзыв
+                    </label>
+                    <textarea id="reviewText" class="form-textarea" placeholder="Поделитесь впечатлениями о товаре..." required minlength="10" maxlength="1000"></textarea>
+                    <small style="color: var(--text-tertiary);">Минимум 10 символов, максимум 1000</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-images"></i>
+                        Фото (необязательно, до 3 шт.)
+                    </label>
+                    <div class="image-upload" id="imageUpload">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Нажмите для загрузки или перетащите фото</p>
+                        <small>PNG, JPG, JPEG до 5MB</small>
+                    </div>
+                    <input type="file" id="imageInput" accept="image/jpeg,image/png,image/jpg" multiple style="display: none;">
+                    <div id="imagePreview" class="image-preview"></div>
+                </div>
+
+                <div class="review-terms">
+                    <i class="fas fa-info-circle"></i>
+                    Нажимая "Отправить отзыв", вы подтверждаете, что приобрели данный товар в нашем магазине
+                </div>
+
+                <button type="submit" class="submit-review-btn" id="submitReviewBtn">
+                    <i class="fas fa-paper-plane"></i>
+                    Отправить отзыв
+                </button>
+            </form>
+        </div>
+
+        <div id="loginToReview" class="add-review-section" style="text-align: center; display: none;">
+            <i class="fas fa-lock" style="font-size: 3rem; color: var(--primary); margin-bottom: 20px;"></i>
+            <h3 style="color: white; margin-bottom: 15px;">Хотите оставить отзыв?</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 25px;">Авторизуйтесь через Discord, чтобы поделиться впечатлениями</p>
+            <a href="/auth.html" class="btn-primary" style="display: inline-block; text-decoration: none;">
+                <i class="fab fa-discord"></i> Войти через Discord
+            </a>
+        </div>
+    </div>
+
+    <div id="imageModal" class="image-modal" style="display: none;">
+        <div class="image-modal-content">
+            <button class="close-modal" onclick="closeImageModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <img id="modalImage" src="" alt="Просмотр изображения">
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>BHStore</h3>
+                <p>Магазин премиум функций для Discord бота AniMurk</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-discord"></i></a>
+                    <a href="#"><i class="fab fa-telegram"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Навигация</h3>
+                <a href="/">Главная</a>
+                <a href="/shop.html">Магазин</a>
+                <a href="/news.html">Новости</a>
+                <a href="/faq.html">FAQ</a>
+                <a href="/reviews.html">Отзывы</a>
+            </div>
+            <div class="footer-section">
+                <h3>Контакты</h3>
+                <p><i class="fas fa-envelope"></i> support@bhstore.com</p>
+                <p><i class="fab fa-discord"></i> borisonchik_yt</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 BHStore. Все права защищены.</p>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Инициализация API
+        const api = new BHStoreAPI();
+        let currentFilter = 'all';
+        let currentPage = 1;
+        const reviewsPerPage = 6;
+        let allReviews = [];
+        let totalPages = 1;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadReviews();
+            loadProducts();
+            checkAuth();
+            initEventListeners();
+        });
+
+        // Проверка авторизации
+        function checkAuth() {
+            const authData = api.getAuthData();
+            const addReviewSection = document.getElementById('addReviewSection');
+            const loginToReview = document.getElementById('loginToReview');
+            
+            if (authData.username && !authData.verificationCode) {
+                // Пользователь авторизован
+                addReviewSection.style.display = 'block';
+                loginToReview.style.display = 'none';
+                document.getElementById('reviewerName').value = authData.username;
+            } else {
+                // Не авторизован
+                addReviewSection.style.display = 'none';
+                loginToReview.style.display = 'block';
+            }
+        }
+
+        // Загрузка отзывов
+        async function loadReviews() {
+            try {
+                const response = await fetch('/api/reviews');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allReviews = data.reviews || [];
+                    renderReviews();
+                    updateStats();
+                } else {
+                    showNotification('Ошибка загрузки отзывов', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading reviews:', error);
+                showNotification('Ошибка загрузки отзывов', 'error');
+            }
+        }
+
+        // Загрузка товаров для формы
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/products');
+                const data = await response.json();
+                
+                if (data.success && data.products) {
+                    const select = document.getElementById('reviewProduct');
+                    data.products.forEach(product => {
+                        const option = document.createElement('option');
+                        option.value = product.id;
+                        option.textContent = product.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
+        }
+
+        // Рендер отзывов
+        function renderReviews() {
+            const grid = document.getElementById('reviewsGrid');
+            
+            // Фильтрация
+            let filteredReviews = filterReviews(allReviews, currentFilter);
+            
+            // Пагинация
+            totalPages = Math.ceil(filteredReviews.length / reviewsPerPage);
+            const startIndex = (currentPage - 1) * reviewsPerPage;
+            const paginatedReviews = filteredReviews.slice(startIndex, startIndex + reviewsPerPage);
+            
+            if (paginatedReviews.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-star"></i>
+                        <h3>Отзывы не найдены</h3>
+                        <p>Попробуйте изменить параметры фильтрации</p>
+                        <button class="btn-primary" onclick="resetFilters()">
+                            <i class="fas fa-redo"></i> Сбросить фильтры
+                        </button>
+                    </div>
+                `;
+            } else {
+                grid.innerHTML = paginatedReviews.map(review => createReviewCard(review)).join('');
+            }
+            
+            renderPagination();
+        }
+
+        // Фильтрация отзывов
+        function filterReviews(reviews, filter) {
+            if (filter === 'all') return reviews;
+            if (filter === 'verified') return reviews.filter(r => r.verifiedPurchase);
+            if (filter === 'with-photo') return reviews.filter(r => r.images && r.images.length > 0);
+            return reviews.filter(r => r.rating === parseInt(filter));
+        }
+
+        // Создание карточки отзыва
+        function createReviewCard(review) {
+            const date = new Date(review.createdAt).toLocaleDateString('ru-RU', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+            
+            const stars = generateStars(review.rating);
+            const verifiedClass = review.verifiedPurchase ? 'verified-purchase' : '';
+            
+            return `
+                <div class="review-card ${verifiedClass}" data-id="${review.id}">
+                    <div class="review-header">
+                        <img src="${review.avatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}" 
+                             alt="${escapeHtml(review.name)}" 
+                             class="reviewer-avatar"
+                             onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                        <div class="reviewer-info">
+                            <div class="reviewer-name">
+                                ${escapeHtml(review.name)}
+                                ${review.verified ? '<span class="verified-badge"><i class="fas fa-check"></i></span>' : ''}
+                            </div>
+                            <div class="review-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                ${date}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="review-rating">
+                        <div class="rating-stars">
+                            ${stars}
+                        </div>
+                        <span class="rating-value">${review.rating}.0</span>
+                    </div>
+                    
+                    <div class="review-product">
+                        <i class="fas fa-tag"></i>
+                        ${escapeHtml(review.productName)}
+                    </div>
+                    
+                    <div class="review-text">
+                        ${escapeHtml(review.text)}
+                    </div>
+                    
+                    ${review.images && review.images.length > 0 ? `
+                        <div class="review-images">
+                            ${review.images.map(img => `
+                                <img src="${img}" alt="Review image" class="review-image" onclick="openImageModal('${img}')">
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    ${review.adminReply ? `
+                        <div class="admin-reply">
+                            <div class="admin-reply-header">
+                                <i class="fas fa-headset"></i>
+                                Ответ администратора
+                            </div>
+                            <div class="admin-reply-text">
+                                ${escapeHtml(review.adminReply)}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="review-helpful">
+                        <div class="helpful-buttons">
+                            <button class="helpful-btn" onclick="markHelpful('${review.id}')">
+                                <i class="fas fa-thumbs-up"></i>
+                                Полезно (${review.helpful || 0})
+                            </button>
+                        </div>
+                        <span class="helpful-count">
+                            <i class="fas fa-users"></i>
+                            ${review.helpful || 0} человек считают полезным
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Генерация звезд
+        function generateStars(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= rating) {
+                    stars += '<i class="fas fa-star"></i>';
+                } else {
+                    stars += '<i class="fas fa-star empty"></i>';
+                }
+            }
+            return stars;
+        }
+
+        // Обновление статистики
+        function updateStats() {
+            const total = allReviews.length;
+            const avg = total > 0 
+                ? (allReviews.reduce((sum, r) => sum + r.rating, 0) / total).toFixed(1)
+                : '0.0';
+            const verified = allReviews.filter(r => r.verifiedPurchase).length;
+            const helpful = allReviews.reduce((sum, r) => sum + (r.helpful || 0), 0);
+            
+            document.getElementById('avgRating').textContent = avg;
+            document.getElementById('totalReviews').textContent = total;
+            document.getElementById('verifiedReviews').textContent = verified;
+            document.getElementById('helpfulCount').textContent = helpful;
+        }
+
+        // Рендер пагинации
+        function renderPagination() {
+            const pagination = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            // Кнопка "Назад"
+            html += `
+                <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            `;
+            
+            // Номера страниц
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    html += `
+                        <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
+                            ${i}
+                        </button>
+                    `;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    html += `<span class="pagination-dots">...</span>`;
+                }
+            }
+            
+            // Кнопка "Вперед"
+            html += `
+                <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+            
+            pagination.innerHTML = html;
+        }
+
+        // Смена страницы
+        window.changePage = function(page) {
+            currentPage = page;
+            renderReviews();
+            document.querySelector('.reviews-grid').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        // Сброс фильтров
+        window.resetFilters = function() {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector('[data-filter="all"]').classList.add('active');
+            currentFilter = 'all';
+            currentPage = 1;
+            renderReviews();
+        };
+
+        // Инициализация событий
+        function initEventListeners() {
+            // Фильтры
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    currentPage = 1;
+                    renderReviews();
+                });
+            });
+            
+            // Звезды рейтинга
+            initRatingStars();
+            
+            // Загрузка изображений
+            initImageUpload();
+            
+            // Отправка формы
+            document.getElementById('reviewForm').addEventListener('submit', submitReview);
+        }
+
+        // Инициализация звезд рейтинга
+        function initRatingStars() {
+            const stars = document.querySelectorAll('.rating-stars-input i');
+            const ratingInput = document.getElementById('reviewRating');
+            const ratingText = document.getElementById('ratingText');
+            
+            stars.forEach(star => {
+                star.addEventListener('mouseover', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    updateStars(rating);
+                });
+                
+                star.addEventListener('mouseout', function() {
+                    const currentRating = parseInt(ratingInput.value);
+                    updateStars(currentRating);
+                });
+                
+                star.addEventListener('click', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    ratingInput.value = rating;
+                    updateStars(rating);
+                    updateRatingText(rating);
+                });
+            });
+            
+            function updateStars(rating) {
+                stars.forEach(star => {
+                    const starRating = parseInt(star.dataset.rating);
+                    if (starRating <= rating) {
+                        star.classList.add('active');
+                    } else {
+                        star.classList.remove('active');
+                    }
+                });
+            }
+            
+            function updateRatingText(rating) {
+                const texts = ['Ужасно', 'Плохо', 'Нормально', 'Хорошо', 'Отлично'];
+                ratingText.textContent = texts[rating - 1];
+            }
+        }
+
+        // Инициализация загрузки изображений
+        function initImageUpload() {
+            const upload = document.getElementById('imageUpload');
+            const input = document.getElementById('imageInput');
+            const preview = document.getElementById('imagePreview');
+            let files = [];
+            
+            upload.addEventListener('click', () => input.click());
+            
+            upload.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                upload.style.borderColor = 'var(--primary)';
+                upload.style.background = 'rgba(37, 99, 235, 0.05)';
+            });
+            
+            upload.addEventListener('dragleave', () => {
+                upload.style.borderColor = 'var(--border-light)';
+                upload.style.background = 'none';
+            });
+            
+            upload.addEventListener('drop', (e) => {
+                e.preventDefault();
+                upload.style.borderColor = 'var(--border-light)';
+                upload.style.background = 'none';
+                
+                const droppedFiles = Array.from(e.dataTransfer.files);
+                handleFiles(droppedFiles);
+            });
+            
+            input.addEventListener('change', (e) => {
+                handleFiles(Array.from(e.target.files));
+            });
+            
+            function handleFiles(newFiles) {
+                const validFiles = newFiles.filter(file => {
+                    const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+                    const validSize = file.size <= 5 * 1024 * 1024; // 5MB
+                    
+                    if (!validTypes.includes(file.type)) {
+                        showNotification('Неподдерживаемый формат файла', 'error');
+                        return false;
+                    }
+                    
+                    if (!validSize) {
+                        showNotification('Файл слишком большой (макс. 5MB)', 'error');
+                        return false;
+                    }
+                    
+                    return true;
+                });
+                
+                if (files.length + validFiles.length > 3) {
+                    showNotification('Максимум 3 изображения', 'warning');
+                    return;
+                }
+                
+                files = [...files, ...validFiles];
+                renderPreviews();
+            }
+            
+            function renderPreviews() {
+                preview.innerHTML = '';
+                files.forEach((file, index) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const div = document.createElement('div');
+                        div.className = 'preview-image';
+                        div.style.backgroundImage = `url(${e.target.result})`;
+                        div.style.backgroundSize = 'cover';
+                        div.innerHTML = `
+                            <div class="remove-image" onclick="removeImage(${index})">
+                                <i class="fas fa-times"></i>
+                            </div>
+                        `;
+                        preview.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            window.removeImage = function(index) {
+                files.splice(index, 1);
+                renderPreviews();
+            };
+        }
+
+        // Отправка отзыва
+        async function submitReview(e) {
+            e.preventDefault();
+            
+            const authData = api.getAuthData();
+            if (!authData.id) {
+                showNotification('Необходимо авторизоваться', 'warning');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitReviewBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+            
+            try {
+                const formData = new FormData();
+                formData.append('userId', authData.id);
+                formData.append('name', document.getElementById('reviewerName').value);
+                formData.append('productId', document.getElementById('reviewProduct').value);
+                formData.append('productName', document.getElementById('reviewProduct').selectedOptions[0].text);
+                formData.append('rating', document.getElementById('reviewRating').value);
+                formData.append('text', document.getElementById('reviewText').value);
+                formData.append('verifiedPurchase', 'true');
+                
+                // Добавляем изображения
+                const imageInput = document.getElementById('imageInput');
+                if (imageInput.files.length > 0) {
+                    for (let i = 0; i < imageInput.files.length; i++) {
+                        formData.append('images', imageInput.files[i]);
+                    }
+                }
+                
+                const response = await fetch('/api/reviews', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification('Спасибо за ваш отзыв!', 'success');
+                    document.getElementById('reviewForm').reset();
+                    document.getElementById('imagePreview').innerHTML = '';
+                    document.getElementById('reviewRating').value = '5';
+                    updateStars(5);
+                    loadReviews();
+                } else {
+                    showNotification(data.error || 'Ошибка при отправке отзыва', 'error');
+                }
+            } catch (error) {
+                console.error('Error submitting review:', error);
+                showNotification('Ошибка при отправке отзыва', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Отправить отзыв';
+            }
+        }
+
+        // Пометка "полезно"
+        window.markHelpful = async function(reviewId) {
+            const authData = api.getAuthData();
+            
+            try {
+                const response = await fetch(`/api/reviews/${reviewId}/helpful`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userId: authData.id })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const review = allReviews.find(r => r.id === reviewId);
+                    if (review) {
+                        review.helpful = (review.helpful || 0) + 1;
+                        renderReviews();
+                        updateStats();
+                    }
+                    showNotification('Спасибо за оценку!', 'success');
+                } else {
+                    showNotification(data.error || 'Ошибка', 'warning');
+                }
+            } catch (error) {
+                console.error('Error marking helpful:', error);
+            }
+        };
+
+        // Открытие модального окна изображения
+        window.openImageModal = function(imageUrl) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            modalImage.src = imageUrl;
+            modal.style.display = 'flex';
+        };
+
+        window.closeImageModal = function() {
+            document.getElementById('imageModal').style.display = 'none';
+        };
+
+        // Уведомления
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Экранирование HTML
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return String(unsafe)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Закрытие модального окна по клику вне
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('image-modal')) {
+                closeImageModal();
+            }
+        });
+
+        // ESC для закрытия модального окна
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeImageModal();
+            }
+        });
+    </script>
+</body>
+</html>

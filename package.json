@@ -8,14 +8,14 @@
     "dev": "nodemon server.js",
     "build": "npm run obfuscate && npm run encrypt",
     "obfuscate": "javascript-obfuscator js/ --output dist/js/ --compact true --control-flow-flattening true --control-flow-flattening-threshold 0.75 --dead-code-injection true --dead-code-injection-threshold 0.4 --debug-protection true --debug-protection-interval true --disable-console-output true --identifier-names-generator hexadecimal --log false --rename-globals true --rotate-string-array true --self-defending true --string-array true --string-array-encoding rc4 --string-array-threshold 0.75 --transform-object-keys true --unicode-escape-sequence true"
-  
   },
   "dependencies": {
-    "javascript-obfuscator": "^4.0.0",
-    "express": "^4.18.2",
     "axios": "^1.6.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "javascript-obfuscator": "^4.0.0",
+    "multer": "^2.0.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
