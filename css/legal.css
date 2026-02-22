@@ -1,0 +1,497 @@
+/* legal.css - Профессиональный дизайн для страницы правовой информации */
+:root {
+    /* Цветовая палитра - профессиональная, спокойная */
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --primary-light: #60a5fa;
+    --secondary: #7c3aed;
+    --accent: #10b981;
+    --gray-50: #525252;
+    --gray-100: #dddddd;
+    --gray-200: #ffffff;
+    --gray-300: #2c2c2c;
+    --gray-400: #ffffff;
+    --gray-500: #111213;
+    --gray-600: #ffffff;
+    --gray-700: #000000;
+    --gray-800: #cccccc;
+    --gray-900: #ffffff;
+    
+    /* Основные цвета */
+    --text-primary: var(--gray-900);
+    --text-secondary: var(--gray-600);
+    --text-tertiary: var(--gray-500);
+    --bg-body: var(--gray-50);
+    --bg-card: #646464;
+    --border-light: var(--gray-200);
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    
+    /* Размеры */
+    --header-height: 70px;
+    --container-width: 1280px;
+    --border-radius: 12px;
+    --border-radius-lg: 16px;
+    
+    /* Анимации */
+    --transition-fast: 0.15s ease;
+    --transition-base: 0.2s ease;
+    --transition-slow: 0.3s ease;
+}
+
+/* Сброс и базовые стили */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("../image/banner.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    color: var(--text-primary);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+}
+
+/* Баннер с изображением */
+.legal-banner {
+    background: linear-gradient(105deg, #1e2b4a 0%, #2d3b5e 100%);
+    margin: 30px auto 40px;
+    max-width: var(--container-width);
+    border-radius: 24px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--shadow-xl);
+}
+
+.banner-image {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    display: block;
+    opacity: 0.9;
+    transition: transform var(--transition-slow);
+}
+
+.legal-banner:hover .banner-image {
+    transform: scale(1.02);
+}
+
+.banner-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(30, 43, 74, 0.9) 0%, rgba(45, 59, 94, 0.7) 50%, transparent 100%);
+    display: flex;
+    align-items: center;
+    padding: 0 60px;
+}
+
+.banner-title {
+    color: white;
+    font-size: 2.8rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    max-width: 600px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.banner-title span {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 400;
+    opacity: 0.9;
+    margin-top: 12px;
+    color: var(--gray-200);
+}
+
+/* Основной контейнер */
+.legal-container {
+    max-width: var(--container-width);
+    margin: 0 auto 60px;
+    padding: 0 24px;
+}
+
+/* Навигация по разделам - компактная */
+.legal-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 40px;
+    padding: 12px;
+    background: var(--bg-card);
+    border-radius: 50px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-light);
+}
+
+.legal-nav-item {
+    padding: 10px 24px;
+    background: transparent;
+    border: none;
+    border-radius: 40px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.legal-nav-item i {
+    font-size: 1rem;
+    color: var(--gray-400);
+    transition: color var(--transition-fast);
+}
+
+.legal-nav-item:hover {
+    background: var(--gray-100);
+    color: var(--primary);
+}
+
+.legal-nav-item:hover i {
+    color: var(--primary);
+}
+
+.legal-nav-item.active {
+    background: var(--primary);
+    color: white;
+}
+
+.legal-nav-item.active i {
+    color: white;
+}
+
+/* Секции */
+.legal-section {
+    background: var(--bg-card);
+    border-radius: var(--border-radius-lg);
+    padding: 32px 36px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-light);
+    transition: all var(--transition-base);
+}
+
+.legal-section:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--gray-300);
+}
+
+/* Заголовки */
+.section-main-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 40px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.section-main-title i {
+    font-size: 2rem;
+    color: var(--primary);
+    background: var(--gray-100);
+    padding: 12px;
+    border-radius: 16px;
+}
+
+.legal-section h2 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    margin: 32px 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.legal-section h2:first-of-type {
+    margin-top: 0;
+}
+
+.legal-section h2 i {
+    font-size: 1.4rem;
+    color: var(--primary);
+}
+
+.legal-section h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 24px 0 16px;
+    padding-left: 12px;
+    border-left: 4px solid var(--primary);
+    background: linear-gradient(to right, var(--gray-50), transparent);
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+}
+
+/* Текст */
+.legal-section p {
+    font-size: 0.95rem;
+    color: #d5b9ff;
+    margin-bottom: 12px;
+    padding: 8px 16px;
+    background: #515151;
+    border-radius: 8px;
+    border: 1px solid #ffffff;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.legal-section p[data-number] {
+    padding-left: 48px;
+}
+
+.legal-section p[data-number]::before {
+    content: attr(data-number);
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--primary);
+    color: white;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
+}
+
+/* Списки */
+.legal-section ul {
+    list-style: none;
+    margin: 16px 0 16px 24px;
+}
+
+.legal-section ul li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    padding: 8px 16px 8px 40px;
+    background: var(--gray-50);
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    position: relative;
+}
+
+.legal-section ul li::before {
+    content: '';
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--primary);
+}
+
+.legal-section ul li i {
+    margin-right: 10px;
+    color: var(--primary);
+    font-size: 1rem;
+}
+
+/* Карточки контактов */
+.contacts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.contact-card {
+    background: var(--gray-50);
+    padding: 20px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    transition: all var(--transition-base);
+    text-align: center;
+}
+
+.contact-card:hover {
+    transform: translateY(-2px);
+    border-color: #9d68ff;
+    box-shadow: #888a91;
+    box-shadow: #888a91;
+}
+
+.contact-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.contact-card h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.contact-card p {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    font-size: 0.9rem;
+    color: var(--text-tertiary);
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+    .banner-title {
+        font-size: 2.2rem;
+        padding: 0 20px;
+    }
+    
+    .banner-overlay {
+        padding: 0 30px;
+    }
+}
+
+@media (max-width: 768px) {
+    .legal-banner {
+        margin: 20px 16px 30px;
+    }
+    
+    .banner-image {
+        height: 180px;
+    }
+    
+    .banner-title {
+        font-size: 1.8rem;
+    }
+    
+    .banner-title span {
+        font-size: 1rem;
+    }
+    
+    .legal-nav {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding: 8px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    
+    .legal-nav::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .legal-nav-item {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        white-space: nowrap;
+    }
+    
+    .legal-section {
+        padding: 24px 20px;
+    }
+    
+    .section-main-title {
+        font-size: 1.8rem;
+    }
+    
+    .legal-section h2 {
+        font-size: 1.4rem;
+    }
+    
+    .legal-section h3 {
+        font-size: 1.1rem;
+    }
+    
+    .contacts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .banner-title {
+        font-size: 1.5rem;
+    }
+    
+    .section-main-title {
+        font-size: 1.5rem;
+    }
+    
+    .legal-section p {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.legal-section {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.legal-section:nth-child(2) { animation-delay: 0.1s; }
+.legal-section:nth-child(3) { animation-delay: 0.2s; }
+.legal-section:nth-child(4) { animation-delay: 0.3s; }
+.legal-section:nth-child(5) { animation-delay: 0.4s; }
+
+/* Настраиваемые переменные - легко менять */
+.theme-custom {
+    /* Поменяйте эти цвета под свой бренд */
+    --primary: #2563eb;    /* Основной цвет */
+    --secondary: #7c3aed;   /* Дополнительный */
+    --accent: #10b981;      /* Акцентный */
+}
+
+/* Профессиональные улучшения */
+::selection {
+    background: var(--primary);
+    color: white;
+}
+
+.legal-section p code {
+    background: var(--gray-200);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: var(--primary);
+}
+
+.legal-section blockquote {
+    margin: 16px 0;
+    padding: 12px 20px;
+    background: var(--gray-50);
+    border-left: 4px solid var(--primary);
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    color: var(--text-secondary);
+}

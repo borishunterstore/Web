@@ -1,0 +1,926 @@
+:root {
+    --primary: #5865F2;
+    --secondary: #57F287;
+    --dark: #1e1f29;
+    --darker: #14151a;
+    --card: #2a2b36;
+    --text: #ffffff;
+    --text-secondary: #b9bbbe;
+    --border: #40444b;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: var(--dark);
+    color: var(--text);
+    line-height: 1.6;
+}
+
+/* Навигация */
+.navbar {
+    background-color: var(--darker);
+    padding: 1rem 0;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 1px solid var(--border);
+}
+
+.nav-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-logo {
+    display: flex;
+    background-image: "image/logo.png";
+    align-items: center;
+    gap: 10px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+}
+
+.nav-logo i {
+    color: var(--primary);
+}
+
+.nav-menu {
+    display: flex;
+    gap: 2rem;
+}
+
+.nav-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--text);
+}
+
+.btn-discord {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background-color 0.3s;
+}
+
+.btn-discord:hover {
+    background-color: #4752c4;
+}
+
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* Герой секция */
+.hero {
+    padding: 150px 2rem 100px;
+    background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.hero-content {
+    max-width: 600px;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+}
+
+.highlight {
+    color: var(--primary);
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #4752c4;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--text);
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    border: 2px solid var(--primary);
+    transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+    background-color: var(--primary);
+    transform: translateY(-2px);
+}
+
+/* Discord виджет */
+.discord-widget {
+    background-color: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.widget-header {
+    background-color: var(--primary);
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+}
+
+.widget-content {
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-around;
+}
+
+.server-count i,
+.user-count i {
+    font-size: 2rem;
+    color: var(--secondary);
+    margin-bottom: 0.5rem;
+}
+
+/* Секции */
+section {
+    padding: 100px 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 3rem;
+    position: relative;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 4px;
+    background-color: var(--primary);
+    border-radius: 2px;
+}
+
+/* Карточки */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.feature-card {
+    background-color: var(--card);
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+    transition: transform 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+/* Товары */
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.product-card {
+    background-color: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+}
+
+.product-image {
+    height: 200px;
+    background-color: var(--dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    color: var(--primary);
+}
+
+.product-info {
+    padding: 1.5rem;
+}
+
+.product-title {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+}
+
+.product-price {
+    font-size: 1.5rem;
+    color: var(--secondary);
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.btn-buy {
+    width: 100%;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-buy:hover {
+    background-color: #4752c4;
+}
+
+.btn-view-all {
+    display: block;
+    width: fit-content;
+    margin: 0 auto;
+    background-color: transparent;
+    color: var(--text);
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    border: 2px solid var(--primary);
+    transition: all 0.3s;
+}
+
+.btn-view-all:hover {
+    background-color: var(--primary);
+}
+
+/* Новости */
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 2rem;
+}
+
+.news-card {
+    background-color: var(--card);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s;
+}
+
+.news-card:hover {
+    transform: translateY(-5px);
+}
+
+.news-content {
+    padding: 1.5rem;
+}
+
+.news-date {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.news-tag {
+    display: inline-block;
+    background-color: var(--primary);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+/* Футер */
+.footer {
+    background-color: var(--darker);
+    padding: 3rem 0 1rem;
+    margin-top: 100px;
+}
+
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 3rem;
+}
+
+.footer-section h3 {
+    margin-bottom: 1.5rem;
+    color: var(--text);
+}
+
+.footer-section a {
+    display: block;
+    color: var(--text-secondary);
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+    transition: color 0.3s;
+}
+
+.footer-section a:hover {
+    color: var(--primary);
+}
+
+.footer-section p {
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.social-links a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: var(--card);
+    border-radius: 50%;
+    font-size: 1.2rem;
+    transition: all 0.3s;
+}
+
+.social-links a:hover {
+    background-color: var(--primary);
+    transform: translateY(-3px);
+}
+
+.footer-bottom {
+    text-align: center;
+    padding-top: 2rem;
+    margin-top: 2rem;
+    border-top: 1px solid var(--card);
+    color: var(--text-secondary);
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+    .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+    }
+    
+    .mobile-menu-btn {
+        display: block;
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+    }
+    
+    .section-title {
+        font-size: 2rem;
+    }
+    
+    section {
+        padding: 60px 1rem;
+    }
+}
+
+
+/* Добавьте в ваш style.css */
+.user-menu a:hover,
+.user-menu button:hover {
+    background: #40444b !important;
+}
+
+.user-menu hr {
+    border: none;
+    height: 1px;
+    background: #40444b;
+    margin: 0.5rem 0;
+}
+
+/* Анимация появления меню */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.user-menu {
+    animation: slideDown 0.2s ease-out;
+}
+
+/* Стили для бейджей */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.badge img {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+}
+
+.badge-verified {
+    background: linear-gradient(135deg, #5865F2, #4752c4);
+    color: white;
+    border: 1px solid #4752c4;
+}
+
+.badge-partner {
+    background: linear-gradient(135deg, #FEE75C, #e6d048);
+    color: #1e1f29;
+    border: 1px solid #e6d048;
+}
+
+.badge-buyer {
+    background: linear-gradient(135deg, #57F287, #4ad477);
+    color: #1e1f29;
+    border: 1px solid #4ad477;
+}
+
+/* Бейджи в меню пользователя */
+.user-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    margin-left: 4px;
+}
+
+/* Бейджи в профиле */
+.profile-badges {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+}
+
+/* Аватар с бейджем */
+.avatar-with-badge {
+    position: relative;
+    display: inline-block;
+}
+
+.avatar-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #2a2b36;
+    border: 2px solid #5865F2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translate(25%, 25%);
+}
+
+.avatar-badge img {
+    width: 12px;
+    height: 12px;
+}
+
+/* Эффекты при наведении на бейджи */
+.badge {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Информация о бейдже при наведении */
+.badge[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e1f29;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 1000;
+    border: 1px solid #40444b;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.promocode-section {
+    background: #2a2b36;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin: 2rem 0;
+}
+
+.active-promocode-info {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+/* Анимация появления */
+@keyframes promoFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.promo-animate {
+    animation: promoFadeIn 0.3s ease forwards;
+}
+
+/* Контейнер активных промокодов */
+#activePromosWrapper {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px dashed #40444b;
+}
+
+.promo-title {
+    color: #57F287;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Карточка активного промокода */
+.active-promo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(88, 101, 242, 0.1);
+    border: 1px solid rgba(88, 101, 242, 0.3);
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+}
+
+.active-promo-item:hover {
+    background: rgba(88, 101, 242, 0.2);
+    transform: translateX(5px);
+}
+
+.promo-info-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.promo-code-name {
+    color: #fff;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.promo-value {
+    color: #57F287;
+    font-size: 0.85rem;
+}
+
+.btn-remove-promo {
+    background: none;
+    border: none;
+    color: #ff4747;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 5px;
+    transition: background 0.2s;
+}
+
+.btn-remove-promo:hover {
+    background: rgba(237, 66, 69, 0.2);
+    color: #ff7373;
+}
+
+/* Статусные сообщения */
+.promo-msg-box {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+}
+
+/* Стили для секции промокодов в магазине */
+#shopPromocodeSection {
+    background: #2f3136;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    border: 1px solid #40444b;
+}
+
+.promo-input-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.promo-input-group input {
+    flex: 1;
+    background: #202225;
+    border: 1px solid #202225;
+    padding: 12px 16px;
+    border-radius: 8px;
+    color: white;
+    transition: border 0.2s;
+}
+
+.promo-input-group input:focus {
+    outline: none;
+    border-color: #5865f2;
+}
+
+.shop-promo-btn {
+    background: #5865f2;
+    color: white;
+    border: none;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.shop-promo-btn:hover {
+    background: #4752c4;
+}
+
+/* Эффект старой цены */
+.old-price {
+    text-decoration: line-through;
+    color: #b9bbbe;
+    font-size: 0.9rem;
+    margin-right: 8px;
+}
+
+.discount-badge {
+    background: #57F287;
+    color: #1e1f29;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+
+:root {
+    --bg-dark: #2f3136;
+    --bg-light: #36393f;
+    --accent: #5865f2;
+    --text-main: #dcddde;
+    --text-muted: #b9bbbe;
+    --online: #3ba55c;
+    --danger: #ed4245;
+}
+
+/* Контейнер чата */
+.chat-container {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    height: calc(100vh - 100px);
+    background: var(--bg-dark);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Список пользователей */
+.chat-users {
+    background: #2b2d31;
+    border-right: 1px solid rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-users-header { padding: 20px; border-bottom: 1px solid rgba(0,0,0,0.2); }
+
+.users-list { overflow-y: auto; flex: 1; }
+
+.chat-user {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    cursor: pointer;
+    transition: 0.2s;
+    border-left: 3px solid transparent;
+}
+
+.chat-user:hover { background: rgba(255,255,255,0.05); }
+.chat-user.active { background: rgba(88, 101, 242, 0.1); border-left-color: var(--accent); }
+
+.chat-user-avatar { position: relative; margin-right: 12px; }
+.chat-user-avatar img { width: 40px; height: 40px; border-radius: 50%; background: #444; }
+.chat-user-online { 
+    position: absolute; bottom: 0; right: 0; 
+    width: 12px; height: 12px; background: var(--online); 
+    border: 2px solid var(--bg-dark); border-radius: 50%;
+}
+
+.chat-user-info { flex: 1; min-width: 0; }
+.chat-user-name { font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-user-status { font-size: 0.8rem; color: var(--text-muted); }
+
+/* Окно сообщений */
+.chat-messages { display: flex; flex-direction: column; background: var(--bg-light); }
+
+.chat-header {
+    padding: 15px 25px;
+    background: var(--bg-light);
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-badge {
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 5px;
+    text-transform: uppercase;
+}
+.badge-verified { background: #5865f2; color: white; }
+.badge-partner { background: #eb459e; color: white; }
+
+/* Сообщения */
+.messages-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.message-item { max-width: 70%; padding: 10px 15px; border-radius: 15px; position: relative; }
+.message-item.user { align-self: flex-start; background: #40444b; color: var(--text-main); border-bottom-left-radius: 2px; }
+.message-item.admin { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 2px; }
+
+.message-time { font-size: 0.7rem; opacity: 0.6; margin-top: 5px; text-align: right; }
+
+/* Поле ввода */
+.chat-input-area {
+    padding: 20px;
+    background: var(--bg-light);
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.chat-input-area textarea {
+    flex: 1;
+    background: #40444b;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    padding: 10px 15px;
+    resize: none;
+    max-height: 150px;
+}
+
+.profile-section {
+    background: #2a2b36;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.profile-section h2 {
+    color: white;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+/* Настройка высоты чата внутри профиля */
+#supportChat {
+    margin-top: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    overflow: hidden;
+}

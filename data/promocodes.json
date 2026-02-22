@@ -1,0 +1,66 @@
+{
+  "WELCOME10": {
+    "code": "WELCOME10",
+    "type": "discount",
+    "value": 10,
+    "active": true,
+    "maxUses": 100,
+    "usedCount": 5,
+    "usedBy": [],
+    "minPurchase": 0,
+    "productId": null,
+    "expiresAt": null,
+    "createdAt": "2026-01-16T00:00:00.000Z"
+  },
+  "BHS50": {
+    "code": "BHS50",
+    "type": "discount",
+    "value": 50,
+    "active": true,
+    "maxUses": 50,
+    "usedCount": 7,
+    "usedBy": [
+      "992442453833547886"
+    ],
+    "minPurchase": 0,
+    "productId": null,
+    "expiresAt": null,
+    "createdAt": "2026-01-16T00:00:00.000Z"
+  },
+  "BHS20": {
+    "code": "BHS20",
+    "type": "balance",
+    "value": 100,
+    "active": true,
+    "maxUses": 100,
+    "usedCount": 5,
+    "usedBy": [],
+    "expiresAt": "2026-12-31T23:59:59.999Z",
+    "createdAt": "2026-01-16T00:00:00.000Z"
+  },
+  "BHS90": {
+    "code": "BHS90",
+    "type": "discount",
+    "value": 90,
+    "active": true,
+    "maxUses": 100,
+    "usedCount": 5,
+    "productId": "premium_year",
+    "usedBy": [
+      "992442453833547886"
+    ],
+    "expiresAt": "2026-12-31T23:59:59.999Z",
+    "createdAt": "2026-01-16T00:00:00.000Z"
+  },
+  "VIP2999": {
+    "code": "VIP2999",
+    "type": "balance",
+    "value": 2999,
+    "active": true,
+    "maxUses": 10,
+    "usedCount": 3,
+    "usedBy": [],
+    "expiresAt": null,
+    "createdAt": "2026-01-16T00:00:00.000Z"
+  }
+}

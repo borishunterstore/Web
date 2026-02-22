@@ -1,0 +1,109 @@
+{
+  "830087428214751284": {
+    "discordId": "830087428214751284",
+    "username": "danich6088",
+    "email": "israfilovura@gmail.com",
+    "avatar": null,
+    "registeredAt": "2026-01-10T15:23:50.578Z",
+    "balance": 0,
+    "badges": {
+      "verified": false,
+      "partner": false,
+      "buyer": false
+    },
+    "orders": []
+  },
+  "992442453833547886": {
+    "discordId": "992442453833547886",
+    "username": "borisonchik_yt",
+    "email": "atfant01@gmail.com",
+    "avatar": "07d124d7c3a6d0259b45a9cfbe5411b3",
+    "registeredAt": "2026-01-19T18:58:35.723Z",
+    "balance": 9400,
+    "badges": {
+      "verified": true,
+      "partner": false,
+      "buyer": true
+    },
+    "orders": [
+      {
+        "id": "ORD-1771765045189",
+        "productName": "Премиум на 1 месяц",
+        "originalPrice": 100,
+        "finalPrice": 100,
+        "discount": 0,
+        "discountAmount": 0,
+        "promocodes": [],
+        "date": "2026-02-22T12:57:25.190Z",
+        "status": "completed"
+      },
+      {
+        "id": "ORD-1771767664768",
+        "productName": "Премиум на 1 год",
+        "originalPrice": 2499,
+        "finalPrice": 250,
+        "discount": 90,
+        "discountAmount": 2249,
+        "promocodes": [
+          "BHS90"
+        ],
+        "date": "2026-02-22T13:41:04.769Z",
+        "status": "completed"
+      },
+      {
+        "id": "ORD-1771769026538",
+        "productName": "Экономический бот",
+        "originalPrice": 100,
+        "finalPrice": 100,
+        "discount": 0,
+        "discountAmount": 0,
+        "promocodes": [],
+        "date": "2026-02-22T14:03:46.539Z",
+        "status": "completed"
+      },
+      {
+        "id": "ORD-1771769550512",
+        "productName": "Экономический бот",
+        "originalPrice": 100,
+        "finalPrice": 50,
+        "discount": 50,
+        "discountAmount": 50,
+        "promocodes": [
+          "BHS50"
+        ],
+        "date": "2026-02-22T14:12:30.513Z",
+        "status": "completed"
+      }
+    ],
+    "transactions": [
+      {
+        "id": "TRX-1771765045190",
+        "amount": -100,
+        "type": "withdrawal",
+        "reason": "Покупка товара: Премиум на 1 месяц (заказ ORD-1771765045189) ",
+        "date": "2026-02-22T12:57:25.190Z"
+      },
+      {
+        "id": "TRX-1771767664769",
+        "amount": -250,
+        "type": "withdrawal",
+        "reason": "Покупка товара: Премиум на 1 год (заказ ORD-1771767664768) со скидкой 90%",
+        "date": "2026-02-22T13:41:04.769Z"
+      },
+      {
+        "id": "TRX-1771769026539",
+        "amount": -100,
+        "type": "withdrawal",
+        "reason": "Покупка товара: Экономический бот (заказ ORD-1771769026538) ",
+        "date": "2026-02-22T14:03:46.539Z"
+      },
+      {
+        "id": "TRX-1771769550513",
+        "amount": -50,
+        "type": "withdrawal",
+        "reason": "Покупка товара: Экономический бот (заказ ORD-1771769550512) со скидкой 50%",
+        "date": "2026-02-22T14:12:30.513Z"
+      }
+    ]
+  }
+}

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BHStore - Магазин Discord ботов и премиум функций</title>
+    <meta name="description" content="BHStore - официальный магазин Discord бота AniMurk. Покупка премиум функций, приватных ботов и эксклюзивного контента. Мгновенная доставка, безопасные платежи.">
+    <meta name="keywords" content="discord бот, магазин discord, премиум функции, animurk, discord shop">
+    <meta name="author" content="BHStore">
+    <meta property="og:title" content="BHStore - Магазин Discord ботов">
+    <meta property="og:description" content="Покупка премиум функций для Discord бота AniMurk">
+    <meta property="og:image" content="/image/og-image.jpg">
+    <meta property="og:url" content="https://bhstore.com">
+    <link rel="stylesheet" href="css/shop.css">
+    <link rel="stylesheet" href="css/general.css">
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/image/logo.png">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="image/logo.png" alt="BHStore" style="width: 50px;">
+                <span class="logo-text">BHStore</span>
+            </a>
+            <div class="nav-menu">
+                <a href="/" class="nav-link active"><i class="fas fa-home"></i> Главная</a>
+                <a href="/shop.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Магазин</a>
+                <a href="/news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
+                <a href="/faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
+                <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Правовая информация</a>
+            </div>
+            <div class="nav-auth">
+                <button id="authBtn" class="btn-discord">
+                    <i class="fab fa-discord"></i> Войти через Discord
+                </button>
+            </div>
+            <button class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Герой секция с анимированным фоном -->
+    <section class="hero">
+        <div class="hero-background">
+            <!-- Видео фон (замените на свое видео) -->
+            <video autoplay muted loop playsinline>
+                <source src="/image/background.mp4" type="video/mp4">
+            </video>
+        </div>
+        
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    Магазин Услуг
+                    <span class="highlight">BHStore</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Создание Discord ботов; написание кодов; создание Telegram ботов; Монтаж видео; Превью; Баннера; Аватарки; Minecraft Плагины, моды.
+                </p>
+                <div class="hero-buttons">
+                    <a href="/shop.html" class="btn-primary">
+                        <i class="fas fa-shopping-cart"></i> Перейти в магазин
+                    </a>
+                    <a href="#features" class="btn-secondary">
+                        <i class="fas fa-info-circle"></i> Узнать больше
+                    </a>
+                </div>
+                
+                <!-- Статистика -->
+                <div class="hero-stats" style="display: flex; gap: 30px; margin-top: 50px;">
+                    <div class="stat-item">
+                        <div class="stat-value" style="font-size: 2rem; font-weight: 700; color: var(--primary);">10+</div>
+                        <div class="stat-label" style="color: var(--text-secondary);">Довольных клиентов</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="font-size: 2rem; font-weight: 700; color: var(--primary);">7+</div>
+                        <div class="stat-label" style="color: var(--text-secondary);">Услуг</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" style="font-size: 2rem; font-weight: 700; color: var(--primary);">24/7</div>
+                        <div class="stat-label" style="color: var(--text-secondary);">Поддержка</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="discord-widget-wrapper">
+                <div class="discord-widget-card">
+                    <div class="discord-widget-header">
+                        <i class="fab fa-discord"></i>
+                        <h3>Discord Сообщество</h3>
+                        <span>🌼 𝙱𝙷𝚂ᴛᴏʀᴇ</span>
+                    </div>
+                    
+                    <div class="discord-widget-frame">
+                        <iframe src="https://discord.com/widget?id=1241001251907309701&theme=dark" 
+                                width="100%" 
+                                height="360" 
+                                allowtransparency="true" 
+                                frameborder="0" 
+                                sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts">
+                        </iframe>
+                    </div>
+                    
+                    <div class="discord-server-info" id="discordServerInfo">
+                        <div class="server-stats">
+                            <div class="stat">
+                                <i class="fas fa-users"></i>
+                                <span id="memberCount">Загрузка...</span>
+                            </div>
+                            <div class="stat online">
+                                <i class="fas fa-circle"></i>
+                                <span id="onlineCount">...</span>
+                            </div>
+                        </div>
+                        <a href="https://discord.gg/YfZxXXeW6D" target="_blank" class="join-discord-btn">
+                            <i class="fab fa-discord"></i> Присоединиться
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <h2 class="section-title">Почему выбирают нас</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Безопасность</h3>
+                <p>Все платежи защищены шифрованием.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3>Быстрое выполнение</h3>
+                <p>Заказ принимается быстро, и делается тоже так же! Качественно!</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <h3>Поддержка 24/7</h3>
+                <p>Наша тех-поддержка всегда готова помочь с любыми вопросами в Discord и Telegram.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Популярные товары -->
+    <section class="popular-products">
+        <h2 class="section-title">Популярные товары</h2>
+        <div id="popularProducts" class="products-grid">
+            <!-- Товары загружаются через JS -->
+        </div>
+        <a href="shop.html" class="btn-view-all">
+            <i class="fas fa-arrow-right"></i> Смотреть все товары
+        </a>
+    </section>
+
+    <!-- Последние новости -->
+    <section class="latest-news">
+        <div class="news-header">
+            <h2 class="section-title">Последние новости</h2>
+            <a href="news.html" class="btn-secondary">
+                <i class="fas fa-newspaper"></i> Все новости
+            </a>
+        </div>
+        <div id="latestNews" class="news-grid">
+            <!-- Новости загружаются через JS -->
+        </div>
+    </section>
+
+    <!-- CTA секция -->
+    <section class="cta-section" style="padding: 80px 0; background: linear-gradient(135deg, var(--primary), var(--secondary)); text-align: center;">
+        <div class="container" style="max-width: var(--container-width); margin: 0 auto; padding: 0 24px;">
+            <h2 style="font-size: 2.5rem; color: white; margin-bottom: 20px;">Готовы начать?</h2>
+            <p style="font-size: 1.2rem; color: rgba(255,255,255,0.9); margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Присоединяйтесь к нашему Discord серверу и получите доступ к эксклюзивным функциям уже сегодня!
+            </p>
+            <div class="cta-buttons" style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                <a href="https://discord.gg/anime" target="_blank" class="btn-primary" style="background: white; color: var(--primary);">
+                    <i class="fab fa-discord"></i> Присоединиться в Discord
+                </a>
+                <a href="/shop.html" class="btn-secondary" style="border-color: white; color: white;">
+                    <i class="fas fa-shopping-cart"></i> Перейти в магазин
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Футер -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>BHStore</h3>
+                <p>Официальный магазин премиум функций для Discord бота AniMurk. Безопасные покупки, мгновенная доставка.</p>
+                <div class="social-links">
+                    <a href="https://discord.gg/anime" target="_blank"><i class="fab fa-discord"></i></a>
+                    <a href="https://t.me/bhstore" target="_blank"><i class="fab fa-telegram"></i></a>
+                    <a href="https://github.com/bhstore" target="_blank"><i class="fab fa-github"></i></a>
+                    <a href="https://twitter.com/bhstore" target="_blank"><i class="fab fa-twitter"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Навигация</h3>
+                <a href="/">Главная</a>
+                <a href="shop.html">Магазин</a>
+                <a href="news.html">Новости</a>
+                <a href="faq.html">FAQ</a>
+            </div>
+            <div class="footer-section">
+                <h3>Правовая информация</h3>
+                <a href="legal.html#terms">Пользовательское соглашение</a>
+                <a href="legal.html#privacy">Политика конфиденциальности</a>
+                <a href="legal.html#offer">Публичная оферта</a>
+                <a href="legal.html#refund">Политика возвратов</a>
+            </div>
+            <div class="footer-section">
+                <h3>Контакты</h3>
+                <p><i class="fas fa-envelope"></i> support@bhstore.com</p>
+                <p><i class="fab fa-discord"></i> borisonchik_yt</p>
+                <p><i class="fab fa-telegram"></i> @bhstore_support</p>
+                <p><i class="fas fa-clock"></i> Время работы: 24/7</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 BHStore. Все права защищены. | Работает на <a href="#" style="color: var(--primary);">BHStore Engine</a></p>
+        </div>
+    </footer>
+
+    <script>
+        // Загрузка информации о Discord сервере через API
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                const response = await fetch('https://discord.com/api/guilds/1241001251907309701/widget.json');
+                const data = await response.json();
+                
+                if (data) {
+                    document.getElementById('memberCount').textContent = data.members.length + ' участников';
+                    
+                    const onlineMembers = data.members.filter(m => m.status === 'online').length;
+                    document.getElementById('onlineCount').innerHTML = onlineMembers + ' онлайн';
+                }
+            } catch (error) {
+                console.error('Error loading Discord widget:', error);
+                document.getElementById('memberCount').textContent = 'Discord сервер';
+                document.getElementById('onlineCount').innerHTML = '<i class="fas fa-circle" style="color: #57F287;"></i> онлайн';
+            }
+            
+            // Загрузка популярных товаров
+            await loadPopularProducts();
+            
+            // Загрузка последних новостей
+            await loadLatestNews();
+        });
+        
+        // Загрузка популярных товаров
+        async function loadPopularProducts() {
+            const container = document.getElementById('popularProducts');
+            
+            try {
+                const response = await fetch('/api/products?limit=3');
+                const data = await response.json();
+                
+                if (data.success && data.products) {
+                    container.innerHTML = data.products.map(product => `
+                        <div class="product-card">
+                            <div class="product-image">
+                                <i class="${product.icon || 'fas fa-box'}"></i>
+                            </div>
+                            <div class="product-info">
+                                <h3 class="product-title">${product.name}</h3>
+                                <p class="product-description">${product.description.substring(0, 80)}...</p>
+                                <div class="product-price">
+                                    ${product.price} ₽
+                                    <small>за шт.</small>
+                                </div>
+                                <a href="shop.html#${product.id}" class="btn-buy" style="width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; text-decoration: none; display: inline-block; text-align: center;">
+                                    Подробнее
+                                </a>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
+                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Не удалось загрузить товары</p>';
+            }
+        }
+        
+        // Загрузка последних новостей
+        async function loadLatestNews() {
+            const container = document.getElementById('latestNews');
+            
+            try {
+                const response = await fetch('/api/news?limit=2');
+                const data = await response.json();
+                
+                if (data.success && data.news) {
+                    container.innerHTML = data.news.slice(0, 2).map(news => `
+                        <div class="news-card">
+                            <div class="news-date">
+                                <i class="fas fa-calendar-alt"></i> ${news.date}
+                                <span style="margin-left: auto;">${news.category}</span>
+                            </div>
+                            <h3>${news.title}</h3>
+                            <p>${news.content.substring(0, 120)}...</p>
+                            <a href="news.html#${news.id}" class="read-more">
+                                Читать далее <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading news:', error);
+                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Не удалось загрузить новости</p>';
+            }
+        }
+    </script>
+    
+    <script src="js/shop.js"></script>
+    <script src="js/payment.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

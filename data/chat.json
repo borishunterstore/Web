@@ -1,0 +1,45 @@
+{
+  "992442453833547886": [
+    {
+      "id": "msg-1768849319106-x5qzvfc5d",
+      "message": "привет",
+      "fromAdmin": false,
+      "sender": "user",
+      "timestamp": "2026-01-19T19:01:59.106Z",
+      "read": true
+    },
+    {
+      "id": "msg-1768849458154-dzi4moa6n",
+      "message": "о",
+      "fromAdmin": true,
+      "sender": "admin",
+      "timestamp": "2026-01-19T19:04:18.154Z",
+      "read": false
+    },
+    {
+      "id": "msg-1769170008302-a35u29n7u",
+      "message": "о",
+      "fromAdmin": false,
+      "sender": "user",
+      "timestamp": "2026-01-23T12:06:48.302Z",
+      "read": true
+    },
+    {
+      "id": "msg-1771767780647-zgh1zxfng",
+      "message": "опа",
+      "fromAdmin": false,
+      "sender": "user",
+      "timestamp": "2026-02-22T13:43:00.647Z",
+      "read": true
+    },
+    {
+      "id": "msg-1771767796327-fkde2vd6x",
+      "message": "?",
+      "fromAdmin": true,
+      "sender": "admin",
+      "timestamp": "2026-02-22T13:43:16.327Z",
+      "read": false
+    }
+  ],
+  "830087428214751284": []
+}

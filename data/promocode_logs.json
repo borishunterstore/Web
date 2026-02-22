@@ -1,0 +1,22 @@
+[
+  {
+    "id": "PROMO-1769167136789",
+    "userId": "992442453833547886",
+    "code": "BHS90",
+    "type": "discount",
+    "value": 90,
+    "productId": null,
+    "date": "2026-01-23T11:18:56.789Z",
+    "status": "activated"
+  },
+  {
+    "id": "PROMO-1771769411111",
+    "userId": "992442453833547886",
+    "code": "BHS50",
+    "type": "discount",
+    "value": 50,
+    "productId": null,
+    "date": "2026-02-22T14:10:11.111Z",
+    "status": "activated"
+  }
+]
