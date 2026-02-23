@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="css/index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" type="image/png" href="/image/logo.png">
 </head>
 <body>
@@ -32,9 +33,9 @@
                 <a href="/faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
                 <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Правовая информация</a>
             </div>
-            <div class="nav-auth">
+            <div class="nav-auth" style="pointer-events: none; opacity: 0.5; cursor: not-allowed;">
                 <button id="authBtn" class="btn-discord">
-                    <i class="fab fa-discord"></i> Войти через Discord
+                    <i class="fab fa-discord"></i> Войти
                 </button>
             </div>
             <button class="mobile-menu-btn">
@@ -43,34 +44,29 @@
         </div>
     </nav>
 
-    <!-- Герой секция с анимированным фоном -->
     <section class="hero">
         <div class="hero-background">
-            <!-- Видео фон (замените на свое видео) -->
-            <video autoplay muted loop playsinline>
-                <source src="/image/background.mp4" type="video/mp4">
-            </video>
-        </div>
+            <img src="/image/banner_gif.gif" style="width: 100%; filter: brightness(0.2); -webkit-user-drag: none; user-select: none;">
+          </div>
         
         <div class="hero-content">
             <div class="hero-text">
-                <h1 class="hero-title">
-                    Магазин Услуг
+                <h1 class="hero-title" style="justify-content: center; align-items: center;">
+                    Магазин
                     <span class="highlight">BHStore</span>
                 </h1>
                 <p class="hero-subtitle">
                     Создание Discord ботов; написание кодов; создание Telegram ботов; Монтаж видео; Превью; Баннера; Аватарки; Minecraft Плагины, моды.
                 </p>
                 <div class="hero-buttons">
-                    <a href="/shop.html" class="btn-primary">
-                        <i class="fas fa-shopping-cart"></i> Перейти в магазин
+                    <a href="/shop.html" class="btn-primary" style="height: 70px;">
+                        <i class="fas fa-shopping-cart"></i> Магазин
                     </a>
-                    <a href="#features" class="btn-secondary">
+                    <a href="#features" class="btn-secondary" style="height: 70px;">
                         <i class="fas fa-info-circle"></i> Узнать больше
                     </a>
                 </div>
                 
-                <!-- Статистика -->
                 <div class="hero-stats" style="display: flex; gap: 30px; margin-top: 50px;">
                     <div class="stat-item">
                         <div class="stat-value" style="font-size: 2rem; font-weight: 700; color: var(--primary);">10+</div>
@@ -126,7 +122,7 @@
     </section>
 
     <section id="features" class="features">
-        <h2 class="section-title">Почему выбирают нас</h2>
+        <h2 class="section-title" style="justify-content: center; align-items: center;">Почему выбирают нас</h2>
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">
@@ -152,31 +148,26 @@
         </div>
     </section>
 
-    <!-- Популярные товары -->
     <section class="popular-products">
-        <h2 class="section-title">Популярные товары</h2>
+        <h2 class="section-title" style="justify-content: center; align-items: center;">Популярные товары</h2>
         <div id="popularProducts" class="products-grid">
-            <!-- Товары загружаются через JS -->
         </div>
         <a href="shop.html" class="btn-view-all">
             <i class="fas fa-arrow-right"></i> Смотреть все товары
         </a>
     </section>
 
-    <!-- Последние новости -->
-    <section class="latest-news">
-        <div class="news-header">
-            <h2 class="section-title">Последние новости</h2>
+    <section class="latest-news" style="justify-content: center; align-items: center;">
+        <div class="news-header" style="justify-content: center; align-items: center;">
+            <h2 class="section-title" style="justify-content: center; align-items: center;">Последние новости</h2>
             <a href="news.html" class="btn-secondary">
-                <i class="fas fa-newspaper"></i> Все новости
+                <i class="fas fa-newspaper" style="justify-content: center; align-items: center;"></i> Все новости
             </a>
         </div>
         <div id="latestNews" class="news-grid">
-            <!-- Новости загружаются через JS -->
         </div>
     </section>
 
-    <!-- CTA секция -->
     <section class="cta-section" style="padding: 80px 0; background: linear-gradient(135deg, var(--primary), var(--secondary)); text-align: center;">
         <div class="container" style="max-width: var(--container-width); margin: 0 auto; padding: 0 24px;">
             <h2 style="font-size: 2.5rem; color: white; margin-bottom: 20px;">Готовы начать?</h2>
@@ -199,13 +190,7 @@
         <div class="footer-content">
             <div class="footer-section">
                 <h3>BHStore</h3>
-                <p>Официальный магазин премиум функций для Discord бота AniMurk. Безопасные покупки, мгновенная доставка.</p>
-                <div class="social-links">
-                    <a href="https://discord.gg/anime" target="_blank"><i class="fab fa-discord"></i></a>
-                    <a href="https://t.me/bhstore" target="_blank"><i class="fab fa-telegram"></i></a>
-                    <a href="https://github.com/bhstore" target="_blank"><i class="fab fa-github"></i></a>
-                    <a href="https://twitter.com/bhstore" target="_blank"><i class="fab fa-twitter"></i></a>
-                </div>
+                <p>Создание Discord ботов; написание кодов; создание Telegram ботов; Монтаж видео; Превью; Баннера; Аватарки; Minecraft Плагины, моды.</p>
             </div>
             <div class="footer-section">
                 <h3>Навигация</h3>
@@ -223,14 +208,12 @@
             </div>
             <div class="footer-section">
                 <h3>Контакты</h3>
-                <p><i class="fas fa-envelope"></i> support@bhstore.com</p>
-                <p><i class="fab fa-discord"></i> borisonchik_yt</p>
-                <p><i class="fab fa-telegram"></i> @bhstore_support</p>
-                <p><i class="fas fa-clock"></i> Время работы: 24/7</p>
+                <p style="color: #fff"><img src="image/emoji/emoji_3.png" alt="BHStore" style="width: 25px;"> @borishunterstore</p>
+                <p style="color: #fff"><img src="image/emoji/emoji_3.png" alt="BHStore" style="width: 25px;"> @borisonchikofficial</p>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2024 BHStore. Все права защищены. | Работает на <a href="#" style="color: var(--primary);">BHStore Engine</a></p>
+            <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</a></p>
         </div>
     </footer>
 
@@ -323,10 +306,18 @@
             }
         }
     </script>
-    
+
+    <script src="js/pkm.js"></script>
+    <script src="js/cursor.js"></script>
     <script src="js/shop.js"></script>
     <script src="js/payment.js"></script>
     <script src="js/main.js"></script>
     <script src="js/auth.js"></script>
+    <div class="custom-cursor"></div>
+<canvas id="webCanvas"></canvas>
+<div class="scroll-indicator">
+    <span class="scroll-value">0%</span>
+</div>
+    
 </body>
 </html>

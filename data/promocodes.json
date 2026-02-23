@@ -19,9 +19,7 @@
     "active": true,
     "maxUses": 50,
     "usedCount": 7,
-    "usedBy": [
-      "992442453833547886"
-    ],
+    "usedBy": [],
     "minPurchase": 0,
     "productId": null,
     "expiresAt": null,
@@ -44,7 +42,7 @@
     "value": 90,
     "active": true,
     "maxUses": 100,
-    "usedCount": 5,
+    "usedCount": 6,
     "productId": "premium_year",
     "usedBy": [
       "992442453833547886"

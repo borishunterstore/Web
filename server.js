@@ -10,22 +10,19 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Конфигурация
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'http://bhstore.netlify.app/auth/discord/callback';
-const BOT_API_URL = 'http://bhstore.netlify.app'; // URL Flask сервера бота
+const BOT_API_URL = 'http://bhstore.netlify.app';
 
 console.log('🚀 Запуск BHStore Server...');
 console.log('✅ Client ID:', DISCORD_CLIENT_ID);
 console.log('✅ Redirect URI:', DISCORD_REDIRECT_URI);
 console.log('✅ Bot API URL:', BOT_API_URL);
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Хранилище для чата (в памяти)
 let chatStore = {};
 
 app.get('/api/chat/admin/users', (req, res) => {

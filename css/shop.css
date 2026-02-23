@@ -227,7 +227,7 @@
 }
 
 .feature-item:hover {
-    background: var(--gray-100);
+    color: rgb(59, 59, 59);
     transform: translateX(5px);
 }
 

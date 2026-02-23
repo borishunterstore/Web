@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/legal.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" type="image/png" href="/image/logo.png">
 </head>
 <body>
@@ -26,7 +27,7 @@
                 <a href="/legal.html" class="nav-link active"><i class="fas fa-scale-balanced"></i> Правовая информация</a>
             </div>
             
-            <div class="nav-auth">
+            <div class="nav-auth" style="pointer-events: none; opacity: 0.5; cursor: not-allowed;">
                 <button id="authBtn" class="btn-discord">
                     <i class="fab fa-discord"></i> Войти
                 </button>
@@ -249,14 +250,22 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>© 2024 - 2026 BHStore. Все права защищены.</p>
+            <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</a></p>
         </div>
     </footer>
 
+    <script src="js/cursor.js"></script>
+    <div class="custom-cursor"></div>
+    <canvas id="webCanvas"></canvas>
+    <div class="scroll-indicator">
+    <span class="scroll-value">0%</span>
+    </div>
+    <script src="js/pkm.js"></script>
     <script src="js/shop.js"></script>
     <script src="js/payment.js"></script>
     <script src="js/main.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/mobile-nav.js"></script>
 
     <script>
         // Активная навигация при скролле

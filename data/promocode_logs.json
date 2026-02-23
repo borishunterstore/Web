@@ -18,5 +18,15 @@
     "productId": null,
     "date": "2026-02-22T14:10:11.111Z",
     "status": "activated"
+  },
+  {
+    "id": "PROMO-1771869815223",
+    "userId": "992442453833547886",
+    "code": "BHS90",
+    "type": "discount",
+    "value": 90,
+    "productId": null,
+    "date": "2026-02-23T18:03:35.223Z",
+    "status": "activated"
   }
 ]

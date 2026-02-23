@@ -60,7 +60,7 @@ function checkAuth() {
             };
         } else {
             // Не авторизован
-            authBtn.innerHTML = '<i class="fab fa-discord"></i> Войти через Discord';
+            authBtn.innerHTML = '<i class="fab fa-discord"></i> Войти';
             authBtn.onclick = () => {
                 window.location.href = '/auth.html';
             };

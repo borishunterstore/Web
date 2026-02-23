@@ -19,7 +19,7 @@
     "email": "atfant01@gmail.com",
     "avatar": "07d124d7c3a6d0259b45a9cfbe5411b3",
     "registeredAt": "2026-01-19T18:58:35.723Z",
-    "balance": 9400,
+    "balance": 13281,
     "badges": {
       "verified": true,
       "partner": false,
@@ -73,6 +73,17 @@
         ],
         "date": "2026-02-22T14:12:30.513Z",
         "status": "completed"
+      },
+      {
+        "id": "ORD-1771863045599",
+        "productName": "Модераторский бот",
+        "originalPrice": 1119,
+        "finalPrice": 1119,
+        "discount": 0,
+        "discountAmount": 0,
+        "promocodes": [],
+        "date": "2026-02-23T16:10:45.600Z",
+        "status": "completed"
       }
     ],
     "transactions": [
@@ -103,6 +114,13 @@
         "type": "withdrawal",
         "reason": "Покупка товара: Экономический бот (заказ ORD-1771769550512) со скидкой 50%",
         "date": "2026-02-22T14:12:30.513Z"
+      },
+      {
+        "id": "TRX-1771863045600",
+        "amount": -1119,
+        "type": "withdrawal",
+        "reason": "Покупка товара: Модераторский бот (заказ ORD-1771863045599) ",
+        "date": "2026-02-23T16:10:45.600Z"
       }
     ]
   }

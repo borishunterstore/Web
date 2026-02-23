@@ -26,8 +26,8 @@
                 <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Правовая информация</a>
             </div>
             <div class="nav-auth">
-                <button id="authBtn" class="btn-discord">
-                    <i class="fab fa-discord"></i> Войти через Discord
+                <button id="authBtn" class="btn-discord" style="pointer-events: none; opacity: 0.5; cursor: not-allowed;">
+                    <i class="fab fa-discord"></i> Войти
                 </button>
             </div>
             <button class="mobile-menu-btn">
@@ -145,7 +145,14 @@
     <script src="js/payment.js"></script>
     <script src="js/main.js"></script>
     <script src="js/auth.js"></script>
-
+    <script src="js/cursor.js"></script>
+    <div class="custom-cursor"></div>
+    <canvas id="webCanvas"></canvas>
+    <div class="scroll-indicator">
+    <span class="scroll-value">0%</span>
+    </div>
+    <script src="js/pkm.js"></script>
+    <script src="js/mobile-nav.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Аккордеон для FAQ

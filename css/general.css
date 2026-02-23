@@ -1,9 +1,15 @@
+/* ========== ОПТИМИЗИРОВАННЫЙ CSS ========== */
+/* ПК и Мобильные устройства */
+
 :root {
+    /* Цветовая схема */
     --primary: #2563eb;
     --primary-dark: #1d4ed8;
     --primary-light: #60a5fa;
     --secondary: #7c3aed;
     --accent: #10b981;
+    
+    /* Серые оттенки */
     --gray-50: #525252;
     --gray-100: #dddddd;
     --gray-200: #ffffff;
@@ -15,32 +21,53 @@
     --gray-800: #cccccc;
     --gray-900: #ffffff;
     
+    /* Текстовые цвета */
     --text-primary: var(--gray-900);
     --text-secondary: var(--gray-600);
     --text-tertiary: var(--gray-500);
+    
+    /* Фоны */
     --bg-body: var(--gray-50);
     --bg-card: #646464;
     --border-light: var(--gray-200);
+    
+    /* Тени */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     
+    /* Размеры */
     --header-height: 70px;
     --container-width: 1280px;
+    
+    /* Скругления */
     --border-radius: 12px;
     --border-radius-lg: 16px;
+    
+    /* Анимации */
     --transition-fast: 0.15s ease;
     --transition-base: 0.2s ease;
     --transition-slow: 0.3s ease;
+    
+    /* Z-индексы */
+    --z-navbar: 50;
+    --z-mobile-nav: 1000;
+    --z-cursor: 9999;
+    --z-context-menu: 10000;
+    --z-toast: 10001;
 }
 
-
-/* Сброс и базовые стили */
+/* ========== СБРОС И БАЗОВЫЕ СТИЛИ ========== */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -55,17 +82,21 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
 }
 
-/* Навигация */
+/* ========== НАВИГАЦИЯ (ДЕСКТОП) ========== */
 .navbar {
     background: var(--bg-card);
     height: var(--header-height);
     position: sticky;
     top: 0;
-    z-index: 50;
+    z-index: var(--z-navbar);
     border-bottom: 1px solid var(--border-light);
     box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .nav-container {
@@ -78,12 +109,13 @@ body {
     justify-content: space-between;
 }
 
-/* Логотип с фото */
+/* Логотип */
 .nav-logo {
     display: flex;
     align-items: center;
     gap: 12px;
     text-decoration: none;
+    flex-shrink: 0;
 }
 
 .logo-image {
@@ -95,24 +127,27 @@ body {
     transition: transform var(--transition-fast);
 }
 
-.nav-logo:hover .logo-image {
-    transform: scale(1.05);
+@media (hover: hover) {
+    .nav-logo:hover .logo-image {
+        transform: scale(1.05);
+    }
 }
 
 .logo-text {
     font-weight: 700;
-    font-size: 1.35rem;
+    font-size: clamp(1rem, 4vw, 1.35rem);
     letter-spacing: -0.02em;
     background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    white-space: nowrap;
 }
 
-/* Меню навигации */
+/* Десктопное меню */
 .nav-menu {
     display: flex;
-    gap: 32px;
+    gap: clamp(16px, 3vw, 32px);
     align-items: center;
 }
 
@@ -127,6 +162,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    white-space: nowrap;
 }
 
 .nav-link i {
@@ -135,12 +171,14 @@ body {
     transition: color var(--transition-fast);
 }
 
-.nav-link:hover {
-    color: var(--primary);
-}
-
-.nav-link:hover i {
-    color: var(--primary);
+@media (hover: hover) {
+    .nav-link:hover {
+        color: var(--primary);
+    }
+    
+    .nav-link:hover i {
+        color: var(--primary);
+    }
 }
 
 .nav-link.active {
@@ -167,14 +205,27 @@ body {
     gap: 8px;
     transition: all var(--transition-base);
     border: 1px solid #4752c4;
+    white-space: nowrap;
 }
 
-.btn-discord:hover {
-    background-color: #4752c4;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+@media (hover: hover) {
+    .btn-discord:hover {
+        background-color: #4752c4;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
 }
 
+.btn-discord:active {
+    transform: translateY(0);
+}
+
+.btn-discord:disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Кнопка мобильного меню */
 .mobile-menu-btn {
     display: none;
     background: none;
@@ -182,14 +233,172 @@ body {
     color: var(--text-primary);
     font-size: 1.5rem;
     cursor: pointer;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    transition: background-color var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
 }
 
-/* Футер */
+@media (hover: hover) {
+    .mobile-menu-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+}
+
+.mobile-menu-btn:active {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Аватар в кнопке */
+.auth-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* ========== МОБИЛЬНАЯ НАВИГАЦИЯ ========== */
+.mobile-nav {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 100%;
+    height: 100vh;
+    background: var(--bg-card);
+    z-index: var(--z-mobile-nav);
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    box-shadow: -5px 0 30px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-nav.active {
+    right: 0;
+}
+
+.mobile-nav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-card);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.mobile-nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mobile-nav-logo img {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    object-fit: cover;
+    border: 2px solid var(--primary-light);
+}
+
+.mobile-nav-logo span {
+    font-weight: 700;
+    font-size: 1.2rem;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.mobile-nav-close {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    transition: all var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) {
+    .mobile-nav-close:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+}
+
+.mobile-nav-close:active {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.mobile-nav-menu {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mobile-nav-menu .nav-link {
+    padding: 16px;
+    border-radius: 12px;
+    border-bottom: none;
+    font-size: 1.1rem;
+    background: transparent;
+    transition: all var(--transition-fast);
+    color: var(--text-secondary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mobile-nav-menu .nav-link:active {
+    background: rgba(37, 99, 235, 0.15);
+}
+
+.mobile-nav-menu .nav-link.active {
+    background: rgba(37, 99, 235, 0.1);
+    border-bottom: none;
+    color: var(--primary);
+}
+
+.mobile-nav-menu .nav-link i {
+    width: 24px;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+.mobile-nav-auth {
+    padding: 20px;
+    border-top: 1px solid var(--border-light);
+    background: var(--bg-card);
+}
+
+.mobile-nav-auth .btn-discord {
+    width: 100%;
+    justify-content: center;
+    padding: 14px;
+    font-size: 1rem;
+}
+
+/* ========== ФУТЕР ========== */
 .footer {
     background: var(--bg-card);
     border-top: 1px solid var(--border-light);
     padding: 48px 0 24px;
     margin-top: 60px;
+    width: 100%;
 }
 
 .footer-content {
@@ -198,7 +407,7 @@ body {
     padding: 0 24px;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 40px;
+    gap: clamp(24px, 5vw, 40px);
 }
 
 .footer-section h3 {
@@ -217,10 +426,14 @@ body {
     font-size: 0.9rem;
     margin-bottom: 8px;
     transition: color var(--transition-fast);
+    padding: 4px 0;
 }
 
-.footer-section a:hover {
-    color: var(--primary);
+@media (hover: hover) {
+    .footer-section a:hover {
+        color: var(--primary);
+        transform: translateX(5px);
+    }
 }
 
 .footer-section p {
@@ -241,59 +454,146 @@ body {
     font-size: 0.85rem;
 }
 
-/* Адаптивность */
+/* ========== МЕДИА-ЗАПРОСЫ ========== */
+
+/* Планшеты и маленькие ноутбуки */
 @media (max-width: 1024px) {
-    .banner-title {
-        font-size: 2.2rem;
+    .nav-container {
         padding: 0 20px;
     }
     
-    .banner-overlay {
-        padding: 0 30px;
+    .nav-menu {
+        gap: 20px;
+    }
+    
+    .nav-link {
+        font-size: 0.9rem;
     }
 }
 
+/* Мобильные устройства */
 @media (max-width: 768px) {
+    /* Скрываем десктопные элементы */
     .nav-menu {
-        display: none;
-    }
-    
-    .mobile-menu-btn {
-        display: block;
+        display: none !important;
     }
     
     .nav-auth {
+        display: none !important;
+    }
+    
+    /* Показываем мобильную кнопку */
+    .mobile-menu-btn {
+        display: flex !important;
+    }
+    
+    /* Адаптация логотипа */
+    .nav-logo .logo-text {
+        font-size: 1.1rem;
+    }
+    
+    /* Контейнер */
+    .nav-container {
+        padding: 0 16px;
+    }
+    
+    /* Футер */
+    .footer-content {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        text-align: center;
+    }
+    
+    .footer-section p {
+        justify-content: center;
+    }
+    
+    .footer-section a {
+        display: inline-block;
+        margin: 0 10px 10px;
+    }
+}
+
+/* Маленькие мобильные устройства */
+@media (max-width: 480px) {
+    .nav-logo .logo-text {
+        font-size: 1rem;
+    }
+    
+    .logo-image {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .mobile-menu-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.3rem;
+    }
+    
+    /* Мобильное меню */
+    .mobile-nav-header {
+        padding: 16px;
+    }
+    
+    .mobile-nav-logo img {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .mobile-nav-logo span {
+        font-size: 1rem;
+    }
+    
+    .mobile-nav-menu {
+        padding: 16px;
+    }
+    
+    .mobile-nav-menu .nav-link {
+        padding: 14px;
+        font-size: 1rem;
+    }
+    
+    .mobile-nav-auth {
+        padding: 16px;
+    }
+    
+    .mobile-nav-auth .btn-discord {
+        padding: 12px;
+    }
+}
+
+/* Очень маленькие устройства */
+@media (max-width: 360px) {
+    .nav-logo .logo-text {
         display: none;
     }
     
-    .legal-banner {
-        margin: 20px 16px 30px;
-    }
-    
-    .banner-image {
-        height: 180px;
-    }
-    
-    .banner-title {
-        font-size: 1.8rem;
-    }
-    
-    .banner-title span {
-        font-size: 1rem;
+    .mobile-nav-logo span {
+        display: none;
     }
 }
 
-@media (max-width: 480px) {
-    .banner-title {
-        font-size: 1.5rem;
+/* ПК версия */
+@media (min-width: 769px) {
+    .mobile-nav {
+        display: none !important;
     }
     
-    .section-main-title {
-        font-size: 1.5rem;
+    .mobile-menu-btn {
+        display: none !important;
+    }
+    
+    .nav-menu {
+        display: flex !important;
+    }
+    
+    .nav-auth {
+        display: block !important;
     }
 }
 
-/* Анимации */
+/* ========== АНИМАЦИИ ========== */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -305,17 +605,454 @@ body {
     }
 }
 
-.legal-section {
-    animation: fadeIn 0.5s ease-out forwards;
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+    }
+    to {
+        transform: translateX(0);
+    }
 }
 
-.legal-section:nth-child(2) { animation-delay: 0.1s; }
-.legal-section:nth-child(3) { animation-delay: 0.2s; }
-.legal-section:nth-child(4) { animation-delay: 0.3s; }
-.legal-section:nth-child(5) { animation-delay: 0.4s; }
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(100%);
+    }
+}
 
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* ========== ТЕМЫ ========== */
 .theme-custom {
-    --primary: #2563eb;    /* Основной цвет */
-    --secondary: #7c3aed;   /* Дополнительный */
-    --accent: #10b981;      /* Акцентный */
+    --primary: #2563eb;
+    --secondary: #7c3aed;
+    --accent: #10b981;
+}
+
+/* Поддержка темной темы системы */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-card: #1a1a1a;
+        --border-light: #333333;
+        --text-primary: #ffffff;
+        --text-secondary: #cccccc;
+        --text-tertiary: #999999;
+    }
+    
+    .mobile-nav {
+        background: var(--bg-card);
+    }
+}
+
+/* ========== БЕЗОПАСНАЯ ЗОНА ДЛЯ IPHONE ========== */
+@supports (padding: max(0px)) {
+    .mobile-nav {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    
+    .mobile-nav-header {
+        padding-top: max(20px, env(safe-area-inset-top));
+    }
+    
+    .mobile-nav-auth {
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+}
+
+/* ========== УТИЛИТЫ ========== */
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.no-scroll {
+    overflow: hidden;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    border: 0;
+    clip: rect(0 0 0 0);
+}
+
+/* ========== КАСТОМНЫЙ КУРСОР (только для ПК) ========== */
+@media (min-width: 769px) and (hover: hover) {
+    .custom-cursor {
+        width: 24px;
+        height: 24px;
+        border: 2px solid var(--primary);
+        background-color: rgba(37, 99, 235, 0.1);
+        border-radius: 50%;
+        position: fixed;
+        pointer-events: none;
+        z-index: var(--z-cursor);
+        transform: translate(-50%, -50%);
+        transition: width 0.2s, height 0.2s, background-color 0.2s, border-color 0.2s;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        will-change: transform;
+        box-shadow: 0 0 15px rgba(37, 99, 235, 0.3);
+    }
+    
+    .custom-cursor.hover {
+        width: 40px;
+        height: 40px;
+        background-color: rgba(37, 99, 235, 0.2);
+        border-color: var(--secondary);
+        border-width: 3px;
+        box-shadow: 0 0 25px rgba(37, 99, 235, 0.5);
+    }
+    
+    .custom-cursor.active {
+        width: 32px;
+        height: 32px;
+        background-color: var(--primary);
+        border-color: white;
+        transform: translate(-50%, -50%) scale(0.8);
+    }
+    
+    .custom-cursor.text {
+        width: 4px;
+        height: 30px;
+        border-radius: 2px;
+        background-color: var(--primary);
+        border: none;
+    }
+    
+    /* Скрываем стандартный курсор */
+    * {
+        cursor: none !important;
+    }
+    
+    /* След от курсора */
+    .cursor-trail {
+        position: fixed;
+        width: 8px;
+        height: 8px;
+        background-color: var(--primary);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 9998;
+        opacity: 0.3;
+        transform: translate(-50%, -50%);
+        transition: all 0.1s;
+    }
+    
+    /* Canvas для паутины */
+    #webCanvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9998;
+    }
+    
+    /* Индикатор прокрутки */
+    .scroll-indicator {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: rgba(37, 99, 235, 0.2);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--primary);
+        border-radius: 50px;
+        padding: 10px 20px;
+        color: white;
+        font-size: 14px;
+        z-index: var(--z-context-menu);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.3s;
+        box-shadow: 0 0 20px rgba(37, 99, 235, 0.3);
+    }
+    
+    .scroll-indicator.visible {
+        opacity: 1;
+    }
+    
+    .scroll-value {
+        color: var(--primary);
+        font-weight: bold;
+        margin-left: 5px;
+    }
+}
+
+/* Отключаем кастомный курсор на мобильных */
+@media (max-width: 768px) {
+    .custom-cursor,
+    #webCanvas,
+    .scroll-indicator,
+    .cursor-trail {
+        display: none !important;
+    }
+    
+    * {
+        cursor: auto !important;
+    }
+}
+
+/* ========== КАСТОМНОЕ КОНТЕКСТНОЕ МЕНЮ ========== */
+.custom-context-menu {
+    position: fixed;
+    background: rgba(30, 30, 40, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    min-width: 260px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(37, 99, 235, 0.2);
+    z-index: var(--z-context-menu, 10000);
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.95) translateY(-10px);
+    transition: all 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+    pointer-events: none;
+    font-family: 'Inter', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.custom-context-menu.active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1) translateY(0);
+    pointer-events: all;
+}
+
+/* Заголовок меню */
+.context-menu-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.context-menu-title {
+    color: var(--primary-light, #60a5fa);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.context-menu-close {
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    font-size: 1rem;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.context-menu-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+/* Список пунктов */
+.context-menu-items {
+    padding: 8px;
+}
+
+.context-menu-item {
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+}
+
+.context-menu-item i {
+    width: 20px;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.6);
+    transition: all 0.15s;
+    text-align: center;
+}
+
+.context-menu-item:hover {
+    background: rgba(37, 99, 235, 0.2);
+    color: white;
+}
+
+.context-menu-item:hover i {
+    color: var(--primary, #2563eb);
+    transform: scale(1.1);
+}
+
+.context-menu-item:active {
+    background: rgba(37, 99, 235, 0.3);
+}
+
+/* Специальные стили для Telegram */
+.context-menu-item.telegram-item:hover {
+    background: rgba(0, 136, 204, 0.2);
+}
+
+.context-menu-item.telegram-item:hover i {
+    color: #0088cc;
+}
+
+/* Специальные стили для Discord */
+.context-menu-item.discord-item:hover {
+    background: rgba(88, 101, 242, 0.2);
+}
+
+.context-menu-item.discord-item:hover i {
+    color: #5865f2;
+}
+
+/* Шорткаты */
+.context-shortcut {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    font-family: 'Monaco', 'Menlo', monospace;
+}
+
+/* Бейдж NEW */
+.context-badge {
+    margin-left: auto;
+    background: linear-gradient(135deg, var(--primary, #2563eb), var(--secondary, #7c3aed));
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    animation: pulse 2s infinite;
+}
+
+/* Разделитель */
+.context-menu-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+    margin: 8px;
+}
+
+/* Уведомления */
+.context-toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: rgba(16, 185, 129, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.95rem;
+    z-index: var(--z-toast, 10001);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.context-toast.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.context-toast i {
+    font-size: 1.2rem;
+}
+
+/* Анимация пульсации для бейджа */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Анимация свечения при открытии */
+@keyframes glowFade {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(2);
+    }
+}
+
+/* Отключаем на мобильных */
+@media (max-width: 768px) {
+    .custom-context-menu {
+        display: none;
+    }
+    
+    .context-toast {
+        display: none;
+    }
+}
+
+/* Поддержка светлой темы (если нужно) */
+@media (prefers-color-scheme: light) {
+    .custom-context-menu {
+        background: rgba(245, 245, 250, 0.95);
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+    
+    .context-menu-title {
+        color: var(--primary-dark, #1d4ed8);
+    }
+    
+    .context-menu-item {
+        color: rgba(0, 0, 0, 0.8);
+    }
+    
+    .context-menu-item i {
+        color: rgba(0, 0, 0, 0.5);
+    }
+    
+    .context-menu-item:hover {
+        background: rgba(37, 99, 235, 0.1);
+        color: black;
+    }
+    
+    .context-shortcut {
+        color: rgba(0, 0, 0, 0.3);
+    }
+    
+    .context-menu-divider {
+        background: rgba(0, 0, 0, 0.1);
+    }
 }

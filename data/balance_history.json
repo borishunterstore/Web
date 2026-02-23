@@ -1,2 +1,13 @@
 [
+  {
+    "id": "TR-1771870096810",
+    "userId": "992442453833547886",
+    "amount": 5000,
+    "reason": "Бонус за активность",
+    "adminId": "992442453833547886",
+    "adminName": "borisonchik_yt",
+    "date": "2026-02-23T18:08:16.810Z",
+    "type": "deposit",
+    "status": "completed"
+  }
 ]

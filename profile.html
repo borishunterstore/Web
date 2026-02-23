@@ -26,9 +26,9 @@
                 <a href="/faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
                 <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Правовая информация</a>
             </div>
-            <div class="nav-auth">
+            <div class="nav-auth" style="pointer-events: none; opacity: 0.5; cursor: not-allowed;">
                 <button id="authBtn" class="btn-discord">
-                    <i class="fab fa-discord"></i> Войти через Discord
+                    <i class="fab fa-discord"></i> Войти
                 </button>
             </div>
             <button class="mobile-menu-btn">
@@ -37,14 +37,10 @@
         </div>
     </nav>
 
-    <!-- Основной контент -->
     <div class="profile-container">
-        <!-- Шапка профиля -->
         <div class="profile-header" id="profileHeader">
-            <!-- Загружается через JS -->
         </div>
         
-        <!-- Секция баланса -->
         <div class="balance-section" id="balanceSection">
             <h2>
                 <i class="fas fa-coins"></i>
@@ -53,7 +49,7 @@
             <div class="balance-info">
                 <div>
                     <div class="balance-label">Текущий баланс</div>
-                    <div class="balance-amount" id="balanceAmount">0 ₽</div>
+                    <div class="balance-amount" id="balanceAmount">0₽</div>
                 </div>
                 <div class="balance-actions">
                     <button class="btn-primary" onclick="showAddBalanceModal()">
@@ -63,7 +59,6 @@
             </div>
         </div>
 
-        <!-- Статистика профиля -->
         <div class="profile-stats">
             <div class="stat-card">
                 <div class="stat-icon">
@@ -76,7 +71,7 @@
                 <div class="stat-icon">
                     <i class="fas fa-coins"></i>
                 </div>
-                <div class="stat-value" id="totalSpentStat">0 ₽</div>
+                <div class="stat-value" id="totalSpentStat">0₽</div>
                 <div class="stat-label">Потрачено всего</div>
             </div>
             <div class="stat-card">
@@ -88,18 +83,15 @@
             </div>
         </div>
 
-        <!-- Секция чата с поддержкой -->
         <div class="profile-section">
             <h2>
                 <i class="fas fa-headset"></i>
                 Чат с поддержкой
             </h2>
             <div id="supportChat">
-                <!-- Чат загружается через JS -->
             </div>
         </div>
         
-        <!-- Секция промокодов -->
         <div class="promocode-section" id="promocodeSection">
             <h2>
                 <i class="fas fa-ticket-alt"></i>
@@ -114,23 +106,19 @@
             </div>
             <div id="promocodeMessage"></div>
             
-            <!-- Активные промокоды пользователя -->
             <div id="userActivePromocodes" style="margin-top: 20px;"></div>
         </div>
         
-        <!-- Список заказов -->
         <div class="orders-list">
             <h2>
                 <i class="fas fa-shopping-bag"></i>
                 Мои заказы
             </h2>
             <div id="ordersList">
-                <!-- Заказы загружаются через JS -->
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно пополнения баланса -->
     <div id="addBalanceModal" class="modal" style="display: none;">
         <div class="modal-content">
             <h2>
@@ -149,7 +137,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно информации о промокоде -->
+    
     <div id="promocodeInfoModal" class="modal" style="display: none;">
         <div class="modal-content">
             <h2>
@@ -165,16 +153,11 @@
         </div>
     </div>
 
-    <!-- Футер -->
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-section">
                 <h3>BHStore</h3>
-                <p>Магазин премиум функций для Discord бота AniMurk</p>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-discord"></i></a>
-                    <a href="#"><i class="fab fa-telegram"></i></a>
-                </div>
+                <p>Создание Discord ботов; написание кодов; создание Telegram ботов; Монтаж видео; Превью; Баннера; Аватарки; Minecraft Плагины, моды.</p>
             </div>
             <div class="footer-section">
                 <h3>Профиль</h3>
@@ -184,17 +167,16 @@
             </div>
             <div class="footer-section">
                 <h3>Контакты</h3>
-                <p><i class="fas fa-envelope"></i> support@bhstore.com</p>
-                <p><i class="fab fa-discord"></i> borisonchik_yt</p>
+                <p style="color: #fff"><img src="image/emoji/emoji_3.png" alt="BHStore" style="width: 25px;"> @borishunterstore</p>
+                <p style="color: #fff"><img src="image/emoji/emoji_3.png" alt="BHStore" style="width: 25px;"> @borisonchikofficial</p>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2024 BHStore. Все права защищены.</p>
+            <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</a></p>
         </div>
     </footer>
 
     <script>
-        // URL картинок для бейджей
         const BADGE_IMAGES = {
             verified: 'https://cdn3.emoji.gg/emojis/32765-verifiedtwitter.gif',
             partner: 'https://cdn3.emoji.gg/emojis/101291-partner-ids.png',
@@ -202,46 +184,27 @@
             early: 'https://cdn3.emoji.gg/emojis/7196-early-supporter.png',
             vip: 'https://cdn3.emoji.gg/emojis/9422-vip.png'
         };
-
-        // Модальные окна
         function showAddBalanceModal() {
-            document.getElementById('addBalanceModal').style.display = 'flex';
-        }
+            document.getElementById('addBalanceModal').style.display = 'flex';}
 
         function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-
-        // Закрытие модальных окон при клике вне их
+            document.getElementById(modalId).style.display = 'none';}
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
-        });
-
-        // Загрузка профиля
+                e.target.style.display = 'none';}});
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('Инициализация профиля...');
+            console.log('Загрузка профиля...');
             
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            // Проверка авторизации
             if (!authData.username || authData.verificationCode) {
                 window.location.href = '/auth.html';
                 return;
             }
-            
-            // Загружаем данные профиля
             await loadProfile();
-            
-            // Инициализируем промокоды
             initPromocodeSystem();
-            
-            // Запускаем чат
             setTimeout(() => {
                 initChatSystem();
-            }, 500);
-        });
+            }, 500);});
         
     async function loadProfile() {
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
@@ -252,22 +215,13 @@
         
         if (data.success && data.user) {
             const user = data.user;
-            
-            // Обновляем локальные данные
             authData.balance = user.balance;
             authData.badges = user.badges || {};
             localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-            
-            // Обновляем кнопку авторизации
             if (window.updateAuthButton) {
-                window.updateAuthButton();
-            }
-            
-            // Отображаем профиль
+                window.updateAuthButton();}
             renderProfile(user);
             renderBalance(user.balance || 0);
-            
-            // Загружаем заказы - проверяем разные возможные поля
             let userOrders = [];
             
             if (user.orders && Array.isArray(user.orders)) {
@@ -275,35 +229,28 @@
             } else if (user.purchases && Array.isArray(user.purchases)) {
                 userOrders = user.purchases;
             } else {
-                // Пробуем получить из localStorage
                 const orders = JSON.parse(localStorage.getItem('bhstore_orders') || '[]');
-                userOrders = orders.filter(order => order.userId === authData.id);
-            }
+                userOrders = orders.filter(order => order.userId === authData.id);}
             
             renderOrders(userOrders);
             updateStats(userOrders, user);
         } else {
-            // Используем локальные данные
             renderProfile(authData);
             renderBalance(authData.balance || 0);
             
             const orders = JSON.parse(localStorage.getItem('bhstore_orders') || '[]');
             const userOrders = orders.filter(order => order.userId === authData.id);
             renderOrders(userOrders);
-            updateStats(userOrders, authData);
-        }
+            updateStats(userOrders, authData);}
     } catch (error) {
         console.error('Error loading profile:', error);
-        // Используем локальные данные
         renderProfile(authData);
         renderBalance(authData.balance || 0);
         
         const orders = JSON.parse(localStorage.getItem('bhstore_orders') || '[]');
         const userOrders = orders.filter(order => order.userId === authData.id);
         renderOrders(userOrders);
-        updateStats(userOrders, authData);
-    }
-}
+        updateStats(userOrders, authData);}}
 
         function renderProfile(user) {
             let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
@@ -353,14 +300,9 @@
 }
 
         function updateStats(orders, user) {
-            // Общее количество заказов
             document.getElementById('totalOrdersStat').textContent = orders.length;
-            
-            // Общая сумма потраченных средств
             const totalSpent = orders.reduce((sum, order) => sum + (order.finalPrice || order.amount || 0), 0);
-            document.getElementById('totalSpentStat').textContent = `${totalSpent} ₽`;
-            
-            // Дата регистрации
+            document.getElementById('totalSpentStat').textContent = `${totalSpent}₽`;
             const registeredDate = new Date(user.registeredAt || Date.now());
             const now = new Date();
             const diffTime = Math.abs(now - registeredDate);
@@ -373,9 +315,7 @@
                 document.getElementById('memberSinceStat').textContent = `${months} мес.`;
             } else {
                 const years = Math.floor(diffDays / 365);
-                document.getElementById('memberSinceStat').textContent = `${years} г.`;
-            }
-        }
+                document.getElementById('memberSinceStat').textContent = `${years} г.`;}}
 
         function escapeHtml(unsafe) {
             if (!unsafe) return '';
@@ -384,8 +324,7 @@
                 .replace(/</g, "&lt;")
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
+                .replace(/'/g, "&#039;");}
 
         function normalizeBadges(badgesData) {
             if (!badgesData) {
@@ -471,7 +410,7 @@
         }
 
         function renderBalance(balance) {
-            document.getElementById('balanceAmount').textContent = `${balance} ₽`;
+            document.getElementById('balanceAmount').textContent = `${balance}₽`;
         }
 
         function renderOrders(orders) {
@@ -524,7 +463,7 @@
                             <strong>${escapeHtml(order.product || order.productName)}</strong>
                             <div class="order-price">
                                 <i class="fas fa-tag"></i>
-                                ${order.finalPrice || order.amount || 0} ₽
+                                ${order.finalPrice || order.amount || 0}₽
                             </div>
                         </div>
                         <div class="order-date">
@@ -548,7 +487,6 @@
             }).join('');
         }
 
-        // Инициализация системы промокодов
         function initPromocodeSystem() {
             const applyBtn = document.getElementById('applyPromocodeBtn');
             const input = document.getElementById('promocodeInput');
@@ -560,7 +498,6 @@
                 }
             });
             
-            // Показываем активные промокоды пользователя
             displayUserPromocodes();
         }
 
@@ -876,5 +813,13 @@
 <script src="js/promocode.js"></script>
 <script src="js/main.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/cursor.js"></script>
+<div class="custom-cursor"></div>
+<canvas id="webCanvas"></canvas>
+<div class="scroll-indicator">
+<span class="scroll-value">0%</span>
+</div>
+<script src="js/pkm.js"></script>
+<script src="js/mobile-nav.js"></script>
 </body>
 </html>

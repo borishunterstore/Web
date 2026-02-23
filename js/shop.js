@@ -1,4 +1,4 @@
-// shop.js - Полная оптимизированная версия с исправленным меню пользователя
+// shop.js - Полная оптимизированная версия (меню пользователя удалено)
 
 (function() {
     // Глобальные переменные
@@ -30,8 +30,8 @@
             // Добавляем стили для анимаций
             addAnimationStyles();
             
-            // Добавляем стили для меню пользователя
-            addUserMenuStyles();
+            // Инициализируем мобильное меню
+            initMobileMenu();
             
         } catch (error) {
             console.error('❌ Error initializing shop:', error);
@@ -277,61 +277,9 @@
         }
     }
 
-    // Демо-данные для товаров
     function getDemoProducts() {
         return [
-            {
-                id: 'premium-1',
-                name: 'Premium Подписка',
-                description: 'Доступ ко всем премиум функциям бота на 30 дней',
-                price: 299,
-                category: 'premium',
-                icon: 'fas fa-crown',
-                features: [
-                    'Расширенные команды',
-                    'Приоритетная поддержка',
-                    'Эксклюзивные функции'
-                ]
-            },
-            {
-                id: 'premium-2',
-                name: 'Premium Годовая',
-                description: 'Годовая подписка со скидкой 20%',
-                price: 2499,
-                category: 'premium',
-                icon: 'fas fa-gem',
-                features: [
-                    'Все функции Premium',
-                    'Экономия 20%',
-                    'Ранний доступ к новым функциям'
-                ]
-            },
-            {
-                id: 'service-1',
-                name: 'Услуга "Музыкальный бот"',
-                description: 'Создание музыкального бота под ваш сервер',
-                price: 999,
-                category: 'services',
-                icon: 'fas fa-music',
-                features: [
-                    'Индивидуальный дизайн',
-                    'Любые источники музыки',
-                    'Плейлисты и очереди'
-                ]
-            },
-            {
-                id: 'event-1',
-                name: 'Ивент "Голосование"',
-                description: 'Проведение голосования на сервере',
-                price: 149,
-                category: 'events',
-                icon: 'fas fa-vote-yea',
-                features: [
-                    'Анонимное голосование',
-                    'Несколько вариантов',
-                    'Статистика результатов'
-                ]
-            }
+            // Ваши демо-товары
         ];
     }
 
@@ -353,6 +301,8 @@
         const categoryNames = {
             'all': 'магазине',
             'premium': 'премиум товаров',
+            'discord': 'Discord',
+            'discordbot': 'Discord бот',
             'services': 'услуг',
             'events': 'ивентов'
         };
@@ -395,12 +345,12 @@
                     ` : ''}
                     
                     <div class="product-image">
-                        <i class="${product.icon || 'fas fa-box'}"></i>
+                        <img src="${product.icon}" style="width: 950px;">
                     </div>
                     
                     <div class="product-info">
                         <h3 class="product-title">${escapeHtml(product.name)}</h3>
-                        <p class="product-description">${escapeHtml(product.description)}</p>
+                        <p class="product-description">${escapeHtml(product.icon2)} ${escapeHtml(product.description)}</p>
                         
                         ${product.features ? `
                             <div class="product-features">
@@ -1037,588 +987,85 @@
         document.head.appendChild(styles);
     }
 
-    // ========== МЕНЮ ПОЛЬЗОВАТЕЛЯ ==========
-    
-    // Функция показа меню пользователя
-    window.showUserMenu = function(event) {
-        if (event) {
-            event.stopPropagation();
-        }
+    // Инициализация мобильного меню
+    function initMobileMenu() {
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const navMenu = document.querySelector('.nav-menu');
+        const navAuth = document.querySelector('.nav-auth');
         
-        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+        if (!mobileMenuBtn || !navMenu) return;
         
-        if (!authData.username) {
-            window.location.href = '/auth.html';
-            return;
-        }
-        
-        const oldMenu = document.querySelector('.user-menu');
-        if (oldMenu) {
-            oldMenu.remove();
-            return;
-        }
-        
-        const menu = document.createElement('div');
-        menu.className = 'user-menu';
-        menu.setAttribute('data-user-menu', 'true');
-        
-        const normalizedBadges = normalizeBadges(authData.badges);
-        const badgesHtml = generateBadgesHTML(normalizedBadges);
-        
-        const avatarUrl = authData.avatar 
-            ? `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=64`
-            : 'https://cdn.discordapp.com/embed/avatars/0.png';
-        
-        const displayId = authData.id ? authData.id.substring(0, 8) + '...' : 'Не указан';
-        const balance = authData.balance || 0;
-        const formattedBalance = new Intl.NumberFormat('ru-RU').format(balance);
-        
-        menu.innerHTML = `
-            <div class="user-menu-header">
-                <div class="user-info">
-                    <div class="user-avatar-wrapper">
-                        <img src="${avatarUrl}" 
-                             alt="Avatar"
-                             class="user-avatar"
-                             loading="lazy"
-                             onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                        ${normalizedBadges.verified ? '<div class="verified-dot"></div>' : ''}
+        // Создаем мобильное меню если его нет
+        let mobileNav = document.querySelector('.mobile-nav');
+        if (!mobileNav) {
+            mobileNav = document.createElement('div');
+            mobileNav.className = 'mobile-nav';
+            mobileNav.innerHTML = `
+                <div class="mobile-nav-header">
+                    <div class="mobile-nav-logo">
+                        <img src="image/logo.png" alt="BHStore">
+                        <span>BHStore</span>
                     </div>
-                    <div class="user-details">
-                        <div class="user-name-wrapper">
-                            <span class="user-name">${escapeHtml(authData.username)}</span>
-                            ${normalizedBadges.verified ? `
-                                <img src="https://cdn3.emoji.gg/emojis/32765-verifiedtwitter.gif" 
-                                     alt="Verified"
-                                     class="verified-badge" 
-                                     title="Верифицированный аккаунт"
-                                     loading="lazy">
-                            ` : ''}
-                        </div>
-                        <div class="user-badges-container">
-                            ${badgesHtml || '<span class="no-badges">Нет бейджей</span>'}
-                        </div>
-                        <div class="user-id" title="ID: ${escapeHtml(authData.id) || 'Не указан'}">
-                            <i class="fas fa-hashtag"></i>
-                            <span>${escapeHtml(displayId)}</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="user-balance-card">
-                    <div class="balance-icon">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <div class="balance-info">
-                        <span class="balance-label">Ваш баланс</span>
-                        <span class="balance-amount">${formattedBalance} ₽</span>
-                    </div>
-                    <button class="balance-topup-btn" onclick="window.location.href='/profile.html#balance'" title="Пополнить баланс">
-                        <i class="fas fa-plus"></i>
+                    <button class="mobile-nav-close">
+                        <i class="fas fa-times"></i>
                     </button>
                 </div>
-            </div>
-            
-            <div class="user-menu-items">
-                <a href="/profile.html" class="menu-item">
-                    <div class="menu-item-icon">
-                        <i class="fas fa-user"></i>
+                <div class="mobile-nav-menu">
+                    ${navMenu.innerHTML}
+                </div>
+                ${navAuth ? `
+                    <div class="mobile-nav-auth">
+                        ${navAuth.innerHTML}
                     </div>
-                    <div class="menu-item-content">
-                        <span class="menu-item-title">Профиль</span>
-                        <span class="menu-item-desc">Управление аккаунтом</span>
-                    </div>
-                    <i class="fas fa-chevron-right menu-item-arrow"></i>
-                </a>
-                
-                <a href="/profile.html#orders" class="menu-item">
-                    <div class="menu-item-icon">
-                        <i class="fas fa-shopping-bag"></i>
-                    </div>
-                    <div class="menu-item-content">
-                        <span class="menu-item-title">Мои заказы</span>
-                        <span class="menu-item-desc">История покупок</span>
-                    </div>
-                    <i class="fas fa-chevron-right menu-item-arrow"></i>
-                </a>
-                
-                <a href="/profile.html#balance" class="menu-item">
-                    <div class="menu-item-icon">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <div class="menu-item-content">
-                        <span class="menu-item-title">Баланс</span>
-                        <span class="menu-item-desc">Пополнение и история</span>
-                    </div>
-                    <i class="fas fa-chevron-right menu-item-arrow"></i>
-                </a>
-                
-                ${isAdmin() ? `
-                    <a href="/admin.html" class="menu-item admin">
-                        <div class="menu-item-icon">
-                            <i class="fas fa-crown"></i>
-                        </div>
-                        <div class="menu-item-content">
-                            <span class="menu-item-title">Админ панель</span>
-                            <span class="menu-item-desc">Управление магазином</span>
-                        </div>
-                        <i class="fas fa-chevron-right menu-item-arrow"></i>
-                    </a>
                 ` : ''}
-                
-                <div class="menu-divider"></div>
-                
-                <button class="menu-item logout" onclick="logout()">
-                    <div class="menu-item-icon">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </div>
-                    <div class="menu-item-content">
-                        <span class="menu-item-title">Выйти</span>
-                        <span class="menu-item-desc">Завершить сеанс</span>
-                    </div>
-                </button>
-            </div>
-            
-            <div class="user-menu-footer">
-                <i class="fas fa-shield-alt"></i>
-                <span>Безопасное соединение</span>
-            </div>
-        `;
-        
-        const navAuth = document.querySelector('.nav-auth');
-        if (navAuth) {
-            navAuth.appendChild(menu);
-            
-            requestAnimationFrame(() => {
-                menu.style.opacity = '1';
-                menu.style.transform = 'translateY(0)';
-            });
-            
-            const closeMenu = (e) => {
-                if (!menu.contains(e.target) && !e.target.closest('#authBtn')) {
-                    menu.style.opacity = '0';
-                    menu.style.transform = 'translateY(-10px)';
-                    setTimeout(() => {
-                        if (menu.parentNode) {
-                            menu.remove();
-                        }
-                    }, 200);
-                    document.removeEventListener('click', closeMenu);
-                }
-            };
-            
-            setTimeout(() => {
-                document.addEventListener('click', closeMenu);
-            }, 100);
-        }
-    };
-
-    // Нормализация бейджей
-    function normalizeBadges(badgesData) {
-        if (!badgesData) {
-            return { verified: false, partner: false, buyer: false, early: false, vip: false };
+            `;
+            document.body.appendChild(mobileNav);
         }
         
-        if (typeof badgesData === 'string') {
-            return {
-                verified: badgesData === 'verified',
-                partner: false,
-                buyer: false,
-                early: false,
-                vip: false
-            };
-        }
+        const mobileNavInstance = document.querySelector('.mobile-nav');
+        const closeBtn = mobileNavInstance.querySelector('.mobile-nav-close');
         
-        if (typeof badgesData === 'object') {
-            return {
-                verified: !!badgesData.verified,
-                partner: !!badgesData.partner,
-                buyer: !!badgesData.buyer,
-                early: !!badgesData.early,
-                vip: !!badgesData.vip
-            };
-        }
+        // Открытие меню
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileNavInstance.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
         
-        return { verified: false, partner: false, buyer: false, early: false, vip: false };
-    }
-
-    // Генерация HTML для бейджей
-    function generateBadgesHTML(badges) {
-        const badgeList = [];
+        // Закрытие меню
+        closeBtn.addEventListener('click', closeMobileMenu);
         
-        const badgeConfigs = [
-            {
-                condition: badges.verified,
-                class: 'verified',
-                icon: 'https://cdn3.emoji.gg/emojis/32765-verifiedtwitter.gif',
-                text: 'Верифицирован',
-                title: 'Аккаунт подтвержден'
-            },
-            {
-                condition: badges.partner,
-                class: 'partner',
-                icon: 'https://cdn3.emoji.gg/emojis/101291-partner-ids.png',
-                text: 'Партнёр',
-                title: 'Официальный партнер'
-            },
-            {
-                condition: badges.buyer,
-                class: 'buyer',
-                icon: 'https://cdn3.emoji.gg/emojis/76595-money-mouth.gif',
-                text: 'Покупатель',
-                title: 'Совершал покупки'
-            },
-            {
-                condition: badges.early,
-                class: 'early',
-                icon: 'https://cdn3.emoji.gg/emojis/7196-early-supporter.png',
-                text: 'Ранний сторонник',
-                title: 'Поддержал проект в начале'
-            },
-            {
-                condition: badges.vip,
-                class: 'vip',
-                icon: 'https://cdn3.emoji.gg/emojis/9422-vip.png',
-                text: 'VIP',
-                title: 'Особый статус'
-            }
-        ];
+        // Закрытие при клике на ссылку
+        mobileNavInstance.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', closeMobileMenu);
+        });
         
-        badgeConfigs.forEach(config => {
-            if (config.condition) {
-                badgeList.push(`
-                    <span class="badge ${config.class}" title="${config.title}">
-                        <img src="${config.icon}" alt="${config.text}" loading="lazy">
-                        <span>${config.text}</span>
-                    </span>
-                `);
+        // Закрытие при клике вне меню
+        mobileNavInstance.addEventListener('click', (e) => {
+            if (e.target === mobileNavInstance) {
+                closeMobileMenu();
             }
         });
         
-        return badgeList.join('');
-    }
-
-    // Проверка админ-прав
-    function isAdmin() {
-        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-        return authData.discordId === 'borisonchik_yt';
-    }
-
-    // Добавление стилей для меню пользователя
-    function addUserMenuStyles() {
-        if (document.getElementById('user-menu-styles')) return;
+        function closeMobileMenu() {
+            mobileNavInstance.classList.remove('active');
+            document.body.style.overflow = '';
+        }
         
-        const styles = document.createElement('style');
-        styles.id = 'user-menu-styles';
-        styles.textContent = `
-            .user-menu {
-                position: absolute;
-                top: 100%;
-                right: 0;
-                width: 340px;
-                background: var(--bg-card);
-                border-radius: 16px;
-                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-                margin-top: 12px;
-                z-index: 1000;
-                opacity: 0;
-                transform: translateY(-10px);
-                transition: all 0.2s ease;
-                border: 1px solid var(--border-light);
-                overflow: hidden;
-                backdrop-filter: blur(10px);
+        // Обновляем содержимое мобильного меню при изменении кнопки авторизации
+        const observer = new MutationObserver(() => {
+            const mobileAuth = mobileNavInstance.querySelector('.mobile-nav-auth');
+            if (mobileAuth && navAuth) {
+                mobileAuth.innerHTML = navAuth.innerHTML;
             }
             
-            .user-menu-header {
-                padding: 20px;
-                background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
-                border-bottom: 1px solid var(--border-light);
+            const mobileMenu = mobileNavInstance.querySelector('.mobile-nav-menu');
+            if (mobileMenu && navMenu) {
+                mobileMenu.innerHTML = navMenu.innerHTML;
             }
-            
-            .user-info {
-                display: flex;
-                gap: 15px;
-                margin-bottom: 15px;
-            }
-            
-            .user-avatar-wrapper {
-                position: relative;
-                width: 60px;
-                height: 60px;
-            }
-            
-            .user-avatar {
-                width: 100%;
-                height: 100%;
-                border-radius: 50%;
-                border: 3px solid var(--primary);
-                object-fit: cover;
-            }
-            
-            .verified-dot {
-                position: absolute;
-                bottom: 2px;
-                right: 2px;
-                width: 14px;
-                height: 14px;
-                background: #5865F2;
-                border-radius: 50%;
-                border: 2px solid var(--bg-card);
-            }
-            
-            .user-details {
-                flex: 1;
-            }
-            
-            .user-name-wrapper {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-                margin-bottom: 6px;
-            }
-            
-            .user-name {
-                font-weight: 600;
-                color: var(--text-primary);
-                font-size: 1rem;
-            }
-            
-            .verified-badge {
-                width: 16px;
-                height: 16px;
-                border-radius: 50%;
-            }
-            
-            .user-badges-container {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 5px;
-                margin-bottom: 8px;
-            }
-            
-            .badge {
-                display: inline-flex;
-                align-items: center;
-                gap: 4px;
-                padding: 3px 8px;
-                border-radius: 20px;
-                font-size: 0.7rem;
-                font-weight: 500;
-                background: var(--gray-50);
-                border: 1px solid var(--border-light);
-            }
-            
-            .badge img {
-                width: 12px;
-                height: 12px;
-                border-radius: 50%;
-            }
-            
-            .badge.verified { background: rgba(88, 101, 242, 0.1); color: #5865F2; }
-            .badge.partner { background: rgba(254, 231, 92, 0.1); color: #FEE75C; }
-            .badge.buyer { background: rgba(87, 242, 135, 0.1); color: #57F287; }
-            .badge.early { background: rgba(237, 66, 69, 0.1); color: #ED4245; }
-            .badge.vip { background: rgba(155, 93, 229, 0.1); color: #9b5de5; }
-            
-            .no-badges {
-                color: var(--text-tertiary);
-                font-size: 0.75rem;
-                font-style: italic;
-            }
-            
-            .user-id {
-                display: flex;
-                align-items: center;
-                gap: 5px;
-                color: var(--text-tertiary);
-                font-size: 0.75rem;
-            }
-            
-            .user-id i {
-                font-size: 0.7rem;
-            }
-            
-            .user-balance-card {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                padding: 12px;
-                background: var(--bg-card);
-                border-radius: 12px;
-                border: 1px solid var(--border-light);
-            }
-            
-            .balance-icon {
-                width: 40px;
-                height: 40px;
-                background: linear-gradient(135deg, var(--accent), #0d9488);
-                border-radius: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-size: 1.2rem;
-            }
-            
-            .balance-info {
-                flex: 1;
-            }
-            
-            .balance-label {
-                display: block;
-                color: var(--text-tertiary);
-                font-size: 0.75rem;
-                margin-bottom: 2px;
-            }
-            
-            .balance-amount {
-                display: block;
-                color: var(--accent);
-                font-weight: 700;
-                font-size: 1.2rem;
-            }
-            
-            .balance-topup-btn {
-                width: 36px;
-                height: 36px;
-                background: var(--primary);
-                border: none;
-                border-radius: 10px;
-                color: white;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .balance-topup-btn:hover {
-                background: var(--primary-dark);
-                transform: scale(1.05);
-            }
-            
-            .user-menu-items {
-                padding: 10px;
-            }
-            
-            .menu-item {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                padding: 12px;
-                border-radius: 10px;
-                text-decoration: none;
-                color: var(--text-primary);
-                transition: all 0.2s ease;
-                border: none;
-                background: none;
-                width: 100%;
-                cursor: pointer;
-                text-align: left;
-            }
-            
-            .menu-item:hover {
-                background: var(--gray-50);
-                transform: translateX(5px);
-            }
-            
-            .menu-item.admin:hover {
-                background: rgba(88, 101, 242, 0.1);
-            }
-            
-            .menu-item.logout:hover {
-                background: rgba(237, 66, 69, 0.1);
-                color: #ED4245;
-            }
-            
-            .menu-item-icon {
-                width: 36px;
-                height: 36px;
-                background: var(--gray-50);
-                border-radius: 10px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: var(--primary);
-                font-size: 1rem;
-            }
-            
-            .menu-item.admin .menu-item-icon {
-                color: #5865F2;
-            }
-            
-            .menu-item.logout .menu-item-icon {
-                color: #ED4245;
-            }
-            
-            .menu-item-content {
-                flex: 1;
-            }
-            
-            .menu-item-title {
-                display: block;
-                font-weight: 500;
-                font-size: 0.9rem;
-                margin-bottom: 2px;
-            }
-            
-            .menu-item-desc {
-                display: block;
-                color: var(--text-tertiary);
-                font-size: 0.7rem;
-            }
-            
-            .menu-item-arrow {
-                color: var(--text-tertiary);
-                font-size: 0.8rem;
-                opacity: 0.5;
-                transition: all 0.2s ease;
-            }
-            
-            .menu-item:hover .menu-item-arrow {
-                opacity: 1;
-                transform: translateX(3px);
-            }
-            
-            .menu-divider {
-                height: 1px;
-                background: var(--border-light);
-                margin: 10px 0;
-            }
-            
-            .user-menu-footer {
-                padding: 12px 20px;
-                background: var(--gray-50);
-                border-top: 1px solid var(--border-light);
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                color: var(--text-tertiary);
-                font-size: 0.75rem;
-            }
-            
-            .user-menu-footer i {
-                color: var(--accent);
-                font-size: 0.9rem;
-            }
-            
-            @media (max-width: 480px) {
-                .user-menu {
-                    position: fixed;
-                    top: auto;
-                    bottom: 0;
-                    left: 0;
-                    right: 0;
-                    width: 100%;
-                    margin: 0;
-                    border-radius: 20px 20px 0 0;
-                    max-height: 90vh;
-                    overflow-y: auto;
-                }
-            }
-        `;
+        });
         
-        document.head.appendChild(styles);
+        observer.observe(navAuth, { childList: true, subtree: true, characterData: true });
+        observer.observe(navMenu, { childList: true, subtree: true, characterData: true });
     }
 
     // Обновление кнопки авторизации
@@ -1629,7 +1076,6 @@
         const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
         
         if (authData.username && !authData.verificationCode) {
-            const badges = getUserBadges(authData);
             const avatarUrl = authData.avatar 
                 ? `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=32`
                 : 'https://cdn.discordapp.com/embed/avatars/0.png';
@@ -1640,10 +1086,15 @@
                      alt="Avatar"
                      onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                 <span>${escapeHtml(authData.username)}</span>
-                ${badges}
                 <i class="fas fa-chevron-down"></i>
             `;
-            authBtn.onclick = window.showUserMenu;
+            authBtn.onclick = (e) => {
+                e.stopPropagation();
+                // Здесь будет открытие меню из navig.js
+                if (window.showUserMenu) {
+                    window.showUserMenu(e);
+                }
+            };
         } else if (authData.username && authData.verificationCode) {
             authBtn.innerHTML = `
                 <i class="fas fa-hourglass-half"></i>
@@ -1651,36 +1102,9 @@
             `;
             authBtn.onclick = () => window.location.href = '/verify.html';
         } else {
-            authBtn.innerHTML = '<i class="fab fa-discord"></i> Войти через Discord';
+            authBtn.innerHTML = '<i class="fab fa-discord"></i> Войти';
             authBtn.onclick = () => window.location.href = '/auth.html';
         }
-    };
-
-    // Получение бейджей пользователя для кнопки
-    function getUserBadges(authData) {
-        let badges = '';
-        const userBadges = normalizeBadges(authData.badges);
-        
-        if (userBadges.verified) {
-            badges += `
-                <img src="https://cdn3.emoji.gg/emojis/32765-verifiedtwitter.gif" 
-                     class="badge-icon" 
-                     title="Верифицированный аккаунт"
-                     loading="lazy">
-            `;
-        }
-        
-        return badges;
-    }
-
-    // Выход из системы
-    window.logout = function() {
-        localStorage.removeItem('bhstore_auth');
-        localStorage.removeItem('bhstore_orders');
-        localStorage.removeItem('bhstore_active_discounts');
-        localStorage.removeItem('bhstore_promocode');
-        localStorage.removeItem('bhstore_active_promocodes');
-        window.location.reload();
     };
 
     // Экспортируем функции в глобальную область
@@ -1701,7 +1125,7 @@
                     <p>
                         <i class="fas fa-info-circle"></i>
                         Для покупки товаров необходимо 
-                        <a href="/auth.html">авторизоваться через Discord</a>
+                        <a href="/auth.html" style="pointer-events: none; opacity: 0.5; cursor: not-allowed;">авторизоваться через Discord</a>
                     </p>
                 `;
                 

@@ -24,9 +24,9 @@
                 <a href="/faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
                 <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Правовая информация</a>
             </div>
-            <div class="nav-auth">
+            <div class="nav-auth" style="pointer-events: none; opacity: 0.5; cursor: not-allowed;">
                 <button id="authBtn" class="btn-discord">
-                    <i class="fab fa-discord"></i> Войти через Discord
+                    <i class="fab fa-discord"></i> Войти
                 </button>
             </div>
             <button class="mobile-menu-btn">
@@ -51,7 +51,6 @@
             Последние новости
         </h1>
 
-        <!-- Фильтры новостей -->
         <div class="news-filters">
             <button class="news-filter-btn active" data-filter="all">
                 <i class="fas fa-globe"></i> Все новости
@@ -67,13 +66,11 @@
             </button>
         </div>
 
-        <!-- Поиск -->
         <div class="news-search">
             <input type="text" id="newsSearch" placeholder="Поиск по новостям...">
             <i class="fas fa-search"></i>
         </div>
 
-        <!-- Статистика -->
         <div class="news-stats">
             <div class="stat-item">
                 <div class="stat-icon">
@@ -95,10 +92,7 @@
             </div>
         </div>
 
-        <!-- Контейнер для новостей -->
         <div id="newsArticles" class="news-grid"></div>
-
-        <!-- Пагинация -->
         <div class="news-pagination" id="pagination"></div>
     </div>
 
@@ -108,13 +102,13 @@
                 <h3>BHStore</h3>
                 <p>Следите за нашими обновлениями</p>
                 <div class="social-links">
-                    <a href="#"><i class="fab fa-discord"></i></a>
-                    <a href="#"><i class="fab fa-telegram"></i></a>
+                    <a href="https://discord.gg/YfZxXXeW6D"><i class="fab fa-discord"></i></a>
+                    <a href="https://t.me/BorisHunterStore"><i class="fab fa-telegram"></i></a>
                 </div>
             </div>
             <div class="footer-section">
                 <h3>Навигация</h3>
-                <a href="/">Главная</a>
+                <a href="/index.html">Главная</a>
                 <a href="/shop.html">Магазин</a>
                 <a href="/news.html">Новости</a>
                 <a href="/faq.html">FAQ</a>
@@ -122,7 +116,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2024 BHStore. Все права защищены.</p>
+            <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</a></p>
         </div>
     </footer>
 
@@ -141,11 +135,10 @@
             const newsPerPage = 5;
 
             try {
-                // Показываем загрузку
                 newsContainer.innerHTML = `
                     <div class="news-loading">
                         <i class="fas fa-circle-notch"></i>
-                        <p>Загрузка новостей...</p>
+                        <p>Загрузка...</p>
                     </div>
                 `;
 
@@ -154,11 +147,7 @@
                 
                 if (data.success) {
                     allNews = data.news;
-                    
-                    // Обновляем статистику
                     totalNewsEl.textContent = allNews.length;
-                    
-                    // Считаем новости за последнюю неделю
                     const oneWeekAgo = new Date();
                     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
                     const weeklyNews = allNews.filter(article => {
@@ -174,13 +163,12 @@
                 newsContainer.innerHTML = `
                     <div class="news-empty">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <p>Не удалось загрузить новости</p>
-                        <span>Пожалуйста, попробуйте позже</span>
+                        <p>Не удалось загрузить...</p>
+                        <span>В скором времени разработчик исправит!</span>
                     </div>
                 `;
             }
 
-            // Фильтрация новостей
             filterButtons.forEach(btn => {
                 btn.addEventListener('click', () => {
                     filterButtons.forEach(b => b.classList.remove('active'));
@@ -191,7 +179,6 @@
                 });
             });
 
-            // Поиск
             searchInput.addEventListener('input', (e) => {
                 searchTerm = e.target.value.toLowerCase();
                 currentPage = 1;
@@ -199,14 +186,11 @@
             });
 
             function renderNews() {
-                // Фильтруем новости
                 let filteredNews = allNews.filter(article => {
-                    // Фильтр по категории
                     if (currentFilter !== 'all' && article.category.toLowerCase() !== currentFilter) {
                         return false;
                     }
                     
-                    // Поиск
                     if (searchTerm) {
                         return article.title.toLowerCase().includes(searchTerm) || 
                                article.content.toLowerCase().includes(searchTerm) ||
@@ -216,12 +200,10 @@
                     return true;
                 });
 
-                // Пагинация
                 const totalPages = Math.ceil(filteredNews.length / newsPerPage);
                 const startIndex = (currentPage - 1) * newsPerPage;
                 const paginatedNews = filteredNews.slice(startIndex, startIndex + newsPerPage);
 
-                // Отображаем новости
                 if (paginatedNews.length === 0) {
                     newsContainer.innerHTML = `
                         <div class="news-empty">
@@ -258,7 +240,6 @@
                     `).join('');
                 }
 
-                // Отображаем пагинацию
                 renderPagination(totalPages);
             }
 
@@ -271,15 +252,12 @@
                 }
 
                 let paginationHtml = '';
-                
-                // Кнопка "Назад"
                 paginationHtml += `
                     <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
                         <i class="fas fa-chevron-left"></i>
                     </button>
                 `;
 
-                // Номера страниц
                 for (let i = 1; i <= totalPages; i++) {
                     if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
                         paginationHtml += `
@@ -292,7 +270,6 @@
                     }
                 }
 
-                // Кнопка "Вперед"
                 paginationHtml += `
                     <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
                         <i class="fas fa-chevron-right"></i>
@@ -302,15 +279,26 @@
                 paginationEl.innerHTML = paginationHtml;
             }
 
-            // Функция смены страницы
             window.changePage = function(page) {
                 currentPage = page;
                 renderNews();
-                // Плавный скролл к началу новостей
                 document.querySelector('.news-container').scrollIntoView({ behavior: 'smooth' });
             };
         });
     </script>
-    <script src="js/main.js"></script>
+
+<script src="js/payment.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/promocode.js"></script>
+<script src="js/main.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/cursor.js"></script>
+<div class="custom-cursor"></div>
+<canvas id="webCanvas"></canvas>
+<div class="scroll-indicator">
+<span class="scroll-value">0%</span>
+</div>
+<script src="js/pkm.js"></script>
+<script src="js/mobile-nav.js"></script>
 </body>
 </html>
