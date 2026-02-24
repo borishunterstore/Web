@@ -252,7 +252,7 @@ document.getElementById('authBtn').addEventListener('click', function() {
     console.log('Starting Discord OAuth2 flow...');
     
     const clientId = '1328718434967486575';
-    const redirectUri = 'http://bhstore.netlify.app/auth/discord/callback';
+    const redirectUri = 'https://bhstore.netlify.app/auth/discord/callback';
     const scope = 'identify rpc email openid';
     const state = Math.random().toString(36).substring(2, 15);
     
