@@ -12,7 +12,6 @@ exports.handler = async (event) => {
     }
 
     try {
-        // Проверка авторизации
         const auth = event.headers.authorization?.replace('Bearer ', '');
         if (!auth) {
             return {
@@ -24,7 +23,6 @@ exports.handler = async (event) => {
 
         const userData = JSON.parse(Buffer.from(auth, 'base64').toString());
         
-        // Проверка прав админа
         const isAdmin = userData.username === 'borisonchik_yt' || 
                        userData.username === 'borisonchik' ||
                        userData.id === '992442453833547886';
@@ -37,36 +35,27 @@ exports.handler = async (event) => {
             };
         }
 
-        // Подключаемся к MongoDB
         const client = new MongoClient(process.env.MONGODB_URI);
         await client.connect();
         
         const db = client.db('bhstore');
-        const users = db.collection('users');
-        const orders = db.collection('orders');
+        const ordersCollection = db.collection('orders');
+        const usersCollection = db.collection('users');
         
-        // Получаем статистику
-        const totalUsers = await users.countDocuments();
-        const totalOrders = await orders.countDocuments();
+        const allOrders = await ordersCollection.find({}).sort({ createdAt: -1 }).toArray();
         
-        // Считаем выручку
-        const allOrders = await orders.find({}).toArray();
-        const revenue = allOrders.reduce((sum, order) => sum + (order.finalPrice || order.amount || 0), 0);
+        // Обогащаем заказы информацией о пользователях
+        const enrichedOrders = [];
+        for (const order of allOrders) {
+            const user = await usersCollection.findOne({ discordId: order.userId });
+            enrichedOrders.push({
+                ...order,
+                username: user?.username || 'Неизвестно',
+                userAvatar: user?.avatar || null
+            });
+        }
         
-        // Новые пользователи за неделю
-        const weekAgo = new Date();
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        
-        const newUsers = await users.countDocuments({ 
-            registeredAt: { $gte: weekAgo.toISOString() } 
-        });
-        
-        const newOrders = await orders.countDocuments({ 
-            createdAt: { $gte: weekAgo.toISOString() } 
-        });
-        
-        // Последние заказы
-        const lastOrder = await orders.findOne({}, { sort: { createdAt: -1 } });
+        const totalRevenue = enrichedOrders.reduce((sum, order) => sum + (order.finalPrice || order.amount || 0), 0);
         
         await client.close();
         
@@ -75,21 +64,14 @@ exports.handler = async (event) => {
             headers,
             body: JSON.stringify({
                 success: true,
-                stats: {
-                    totalUsers,
-                    newUsers,
-                    totalOrders,
-                    newOrders,
-                    revenue,
-                    avgOrderValue: totalOrders > 0 ? Math.round(revenue / totalOrders) : 0,
-                    conversion: totalUsers > 0 ? Math.round((totalOrders / totalUsers) * 100) : 0,
-                    lastOrderDate: lastOrder?.createdAt || null
-                }
+                orders: enrichedOrders,
+                total: enrichedOrders.length,
+                totalRevenue
             })
         };
         
     } catch (error) {
-        console.error('Stats error:', error);
+        console.error('Orders error:', error);
         return {
             statusCode: 500,
             headers,

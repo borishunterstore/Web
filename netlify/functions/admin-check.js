@@ -1,14 +1,10 @@
 const { MongoClient } = require('mongodb');
 
-const MONGODB_URI = process.env.MONGODB_URI;
-const DB_NAME = 'bhstore';
-
 exports.handler = async (event) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Content-Type': 'application/json'
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     };
 
     if (event.httpMethod === 'OPTIONS') {
@@ -16,11 +12,9 @@ exports.handler = async (event) => {
     }
 
     try {
-        // Получаем токен из заголовка
-        const authHeader = event.headers.authorization || '';
-        const token = authHeader.replace('Bearer ', '');
+        const auth = event.headers.authorization?.replace('Bearer ', '');
         
-        if (!token) {
+        if (!auth) {
             return {
                 statusCode: 401,
                 headers,
@@ -29,43 +23,40 @@ exports.handler = async (event) => {
         }
 
         // Декодируем токен
-        let userData;
-        try {
-            userData = JSON.parse(Buffer.from(token, 'base64').toString());
-        } catch (e) {
-            return {
-                statusCode: 401,
-                headers,
-                body: JSON.stringify({ success: false, error: 'Неверный токен' })
-            };
-        }
-
+        const userData = JSON.parse(Buffer.from(auth, 'base64').toString());
+        
         // Подключаемся к MongoDB
-        const client = new MongoClient(MONGODB_URI);
+        const client = new MongoClient(process.env.MONGODB_URI);
         await client.connect();
-        const db = client.db(DB_NAME);
+        
+        const db = client.db('bhstore');
         const users = db.collection('users');
-
+        
         // Ищем пользователя в базе
         const user = await users.findOne({ discordId: userData.id });
-
-        // Проверяем, является ли пользователь админом
-        const adminIds = ['992442453833547886', 'borisonchik_yt'];
-        const isAdmin = adminIds.includes(userData.id) || 
-                       adminIds.includes(userData.username) ||
-                       (user && (user.badges?.admin === true || user.badges?.partner === true));
-
+        
+        // Проверяем права админа
+        const isAdmin = user?.badges?.admin === true || 
+                       userData.username === 'borisonchik_yt' || 
+                       userData.username === 'borisonchik' ||
+                       userData.id === '992442453833547886';
+        
         await client.close();
-
+        
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({ 
                 success: true, 
                 isAdmin,
-                user: userData
+                user: user ? {
+                    id: user.discordId,
+                    username: user.username,
+                    badges: user.badges
+                } : null
             })
         };
+        
     } catch (error) {
         console.error('Admin check error:', error);
         return {

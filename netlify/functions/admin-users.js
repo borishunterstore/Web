@@ -1,14 +1,10 @@
 const { MongoClient } = require('mongodb');
 
-const MONGODB_URI = process.env.MONGODB_URI;
-const DB_NAME = 'bhstore';
-
 exports.handler = async (event) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Content-Type': 'application/json'
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     };
 
     if (event.httpMethod === 'OPTIONS') {
@@ -16,11 +12,8 @@ exports.handler = async (event) => {
     }
 
     try {
-        // Проверка авторизации
-        const authHeader = event.headers.authorization || '';
-        const token = authHeader.replace('Bearer ', '');
-        
-        if (!token) {
+        const auth = event.headers.authorization?.replace('Bearer ', '');
+        if (!auth) {
             return {
                 statusCode: 401,
                 headers,
@@ -28,21 +21,11 @@ exports.handler = async (event) => {
             };
         }
 
-        // Декодируем токен
-        let userData;
-        try {
-            userData = JSON.parse(Buffer.from(token, 'base64').toString());
-        } catch (e) {
-            return {
-                statusCode: 401,
-                headers,
-                body: JSON.stringify({ success: false, error: 'Неверный токен' })
-            };
-        }
-
-        // Проверка прав администратора
-        const adminIds = ['992442453833547886', 'borisonchik_yt'];
-        const isAdmin = adminIds.includes(userData.id) || adminIds.includes(userData.username);
+        const userData = JSON.parse(Buffer.from(auth, 'base64').toString());
+        
+        const isAdmin = userData.username === 'borisonchik_yt' || 
+                       userData.username === 'borisonchik' ||
+                       userData.id === '992442453833547886';
         
         if (!isAdmin) {
             return {
@@ -52,53 +35,38 @@ exports.handler = async (event) => {
             };
         }
 
-        // Подключаемся к MongoDB
-        const client = new MongoClient(MONGODB_URI);
+        const client = new MongoClient(process.env.MONGODB_URI);
         await client.connect();
-        const db = client.db(DB_NAME);
-        const usersCollection = db.collection('users');
-        const ordersCollection = db.collection('orders');
-        const chatCollection = db.collection('chat_messages');
-
-        // Получаем всех пользователей
-        const users = await usersCollection.find({}).toArray();
         
-        // Форматируем пользователей
-        const formattedUsers = await Promise.all(users.map(async (user) => {
-            // Получаем количество заказов
-            const orderCount = await ordersCollection.countDocuments({ userId: user.discordId });
-            
-            // Получаем непрочитанные сообщения
-            const unreadMessages = await chatCollection.countDocuments({
-                userId: user.discordId,
-                fromAdmin: false,
-                read: false
-            });
-            
-            return {
-                discordId: user.discordId,
-                username: user.username,
-                email: user.email,
-                avatar: user.avatar,
-                balance: user.balance || 0,
-                registeredAt: user.registeredAt,
-                badges: user.badges || {},
-                orderCount,
-                unreadMessages
-            };
+        const db = client.db('bhstore');
+        const users = db.collection('users');
+        
+        const allUsers = await users.find({}).toArray();
+        
+        const formattedUsers = allUsers.map(u => ({
+            discordId: u.discordId,
+            username: u.username,
+            email: u.email || '',
+            avatar: u.avatar,
+            balance: u.balance || 0,
+            badges: u.badges || {},
+            orderCount: u.orders?.length || 0,
+            registeredAt: u.registeredAt,
+            lastOrder: u.orders && u.orders.length > 0 ? u.orders[u.orders.length - 1].date : null
         }));
-
+        
         await client.close();
-
+        
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({ 
-                success: true, 
+            body: JSON.stringify({
+                success: true,
                 users: formattedUsers,
                 total: formattedUsers.length
             })
         };
+        
     } catch (error) {
         console.error('Users error:', error);
         return {
