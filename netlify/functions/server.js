@@ -15,12 +15,98 @@ const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'https://bhstor
 const BOT_API_URL = process.env.BOT_API_URL || 'https://bhstore.netlify.app';
 
 console.log('🚀 Запуск BHStore Server (Netlify Function)...');
-console.log('✅ Client ID:', DISCORD_CLIENT_ID);
+console.log('✅ Client ID установлен:', !!DISCORD_CLIENT_ID);
+console.log('✅ Client Secret установлен:', !!DISCORD_CLIENT_SECRET);
 console.log('✅ Redirect URI:', DISCORD_REDIRECT_URI);
 console.log('✅ Bot API URL:', BOT_API_URL);
+console.log('✅ DATABASE_URL установлен:', !!process.env.DATABASE_URL);
 
 // Инициализация подключения к PostgreSQL (Neon)
-const sql = neon(process.env.DATABASE_URL);
+let sql;
+try {
+  if (process.env.DATABASE_URL) {
+    sql = neon(process.env.DATABASE_URL);
+    console.log('✅ Подключение к Neon создано');
+  } else {
+    console.log('⚠️ DATABASE_URL не установлен, работаем без БД');
+  }
+} catch (error) {
+  console.error('❌ Ошибка подключения к Neon:', error.message);
+}
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+let users = {};
+let chatStore = {};
+let reviewsData = { reviews: [], stats: { totalReviews: 0, averageRating: 0 } };
+let promocodes = {};
+
+// Тестовые данные
+const initTestData = () => {
+  users = {
+    "992442453833547886": {
+      discordId: "992442453833547886",
+      username: "borisonchik_yt",
+      email: "test@example.com",
+      avatar: null,
+      registeredAt: new Date().toISOString(),
+      balance: 1000,
+      orders: [],
+      badges: { verified: true, admin: true }
+    }
+  };
+  
+  promocodes = {
+    "WELCOME10": {
+      code: "WELCOME10",
+      type: "discount",
+      value: 10,
+      active: true,
+      maxUses: 100,
+      usedCount: 0,
+      usedBy: []
+    },
+    "BALANCE100": {
+      code: "BALANCE100",
+      type: "balance",
+      value: 100,
+      active: true,
+      maxUses: 50,
+      usedCount: 0,
+      usedBy: []
+    }
+  };
+  
+  reviewsData = {
+    reviews: [
+      {
+        id: "rev_1",
+        userId: "992442453833547886",
+        name: "borisonchik_yt",
+        avatar: "https://cdn.discordapp.com/embed/avatars/0.png",
+        rating: 5,
+        productId: "premium_month",
+        productName: "Премиум на 1 месяц",
+        text: "Отличный сервис!",
+        images: [],
+        verifiedPurchase: true,
+        verified: true,
+        helpful: 5,
+        createdAt: new Date().toISOString()
+      }
+    ],
+    stats: {
+      totalReviews: 1,
+      averageRating: 5,
+      verifiedPurchases: 1,
+      totalHelpful: 5
+    }
+  };
+};
+
+initTestData();
 
 // Middleware
 app.use(cors());
@@ -30,6 +116,11 @@ app.use(express.json());
 // Инициализация базы данных
 // ============================================
 async function initDatabase() {
+  if (!sql) {
+    console.log('⚠️ БД не доступна, пропускаем инициализацию');
+    return;
+  }
+  
   try {
     // Таблица пользователей
     await sql`
@@ -91,75 +182,16 @@ async function initDatabase() {
       )
     `;
     
-    // Проверяем, есть ли тестовые данные
-    const [adminUser] = await sql`
-      SELECT * FROM users WHERE discord_id = '992442453833547886'
-    `;
-    
-    if (!adminUser) {
-      // Создаем админа
-      await sql`
-        INSERT INTO users (discord_id, username, email, balance, badges)
-        VALUES (
-          '992442453833547886', 
-          'borisonchik_yt', 
-          'test@example.com', 
-          1000, 
-          ${JSON.stringify({ verified: true, admin: true })}
-        )
-      `;
-      console.log('✅ Создан тестовый пользователь (админ)');
-    }
-    
-    // Проверяем промокоды
-    const [welcomePromo] = await sql`
-      SELECT * FROM promocodes WHERE code = 'WELCOME10'
-    `;
-    
-    if (!welcomePromo) {
-      await sql`
-        INSERT INTO promocodes (code, type, value, max_uses, used_by)
-        VALUES 
-          ('WELCOME10', 'discount', 10, 100, '[]'),
-          ('BALANCE100', 'balance', 100, 50, '[]')
-      `;
-      console.log('✅ Созданы тестовые промокоды');
-    }
-    
-    // Проверяем отзывы
-    const [testReview] = await sql`
-      SELECT * FROM reviews WHERE id = 'rev_1'
-    `;
-    
-    if (!testReview) {
-      await sql`
-        INSERT INTO reviews (id, user_id, name, avatar, rating, product_id, product_name, text, verified_purchase, verified, helpful, created_at)
-        VALUES (
-          'rev_1',
-          '992442453833547886',
-          'borisonchik_yt',
-          'https://cdn.discordapp.com/embed/avatars/0.png',
-          5,
-          'premium_month',
-          'Премиум на 1 месяц',
-          'Отличный сервис!',
-          true,
-          true,
-          5,
-          ${new Date().toISOString()}
-        )
-      `;
-      console.log('✅ Создан тестовый отзыв');
-    }
-    
     console.log('✅ База данных инициализирована');
   } catch (error) {
-    console.error('❌ Ошибка инициализации БД:', error);
+    console.error('❌ Ошибка инициализации БД:', error.message);
   }
 }
 
 // Запускаем инициализацию БД
-initDatabase();
+if (sql) {
+  initDatabase();
+}
 
 // ============================================
 // API маршруты для чата
@@ -502,6 +534,21 @@ app.post('/api/auth/discord', async (req, res) => {
   try {
     const { code } = req.body;
     console.log('🔐 Получен запрос авторизации');
+    console.log('📦 Получен code:', code ? 'да' : 'нет');
+    
+    // Проверяем переменные окружения
+    console.log('📊 Проверка переменных:');
+    console.log('- DISCORD_CLIENT_ID:', DISCORD_CLIENT_ID ? 'установлен' : 'ОТСУТСТВУЕТ');
+    console.log('- DISCORD_CLIENT_SECRET:', DISCORD_CLIENT_SECRET ? 'установлен' : 'ОТСУТСТВУЕТ');
+    console.log('- DISCORD_REDIRECT_URI:', DISCORD_REDIRECT_URI);
+
+    if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET) {
+      console.error('❌ Не настроены Discord credentials');
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Сервер не настроен для Discord авторизации' 
+      });
+    }
 
     if (!code) {
       return res.status(400).json({ 
@@ -519,6 +566,9 @@ app.post('/api/auth/discord', async (req, res) => {
     params.append('redirect_uri', DISCORD_REDIRECT_URI);
     params.append('scope', 'identify email');
 
+    console.log('📤 Отправка запроса в Discord для получения токена...');
+    console.log('URL:', 'https://discord.com/api/oauth2/token');
+    
     const tokenResponse = await axios.post(
       'https://discord.com/api/oauth2/token',
       params,
@@ -529,14 +579,20 @@ app.post('/api/auth/discord', async (req, res) => {
       }
     );
 
+    console.log('✅ Токен успешно получен от Discord');
+
     const { access_token, token_type } = tokenResponse.data;
 
     // Получение информации о пользователе
+    console.log('📤 Запрос данных пользователя из Discord...');
+    
     const userResponse = await axios.get('https://discord.com/api/users/@me', {
       headers: {
         'Authorization': `${token_type} ${access_token}`
       }
     });
+
+    console.log('✅ Данные пользователя получены');
 
     const userData = {
       id: userResponse.data.id,
@@ -546,41 +602,65 @@ app.post('/api/auth/discord', async (req, res) => {
       global_name: userResponse.data.global_name || userResponse.data.username
     };
 
-    console.log(`✅ Пользователь: ${userData.username}`);
+    console.log(`👤 Пользователь: ${userData.username} (${userData.id})`);
 
-    // Сохраняем пользователя в БД
-    const [existingUser] = await sql`
-      SELECT * FROM users WHERE discord_id = ${userData.id}
-    `;
-    
-    if (!existingUser) {
-      await sql`
-        INSERT INTO users (discord_id, username, email, avatar, balance, badges)
-        VALUES (
-          ${userData.id}, 
-          ${userData.username}, 
-          ${userData.email}, 
-          ${userData.avatar}, 
-          0,
-          ${JSON.stringify({})}
-        )
-      `;
-    } else {
-      // Обновляем данные пользователя
-      await sql`
-        UPDATE users 
-        SET username = ${userData.username}, 
-            email = ${userData.email}, 
-            avatar = ${userData.avatar}
-        WHERE discord_id = ${userData.id}
-      `;
+    // Сохраняем пользователя (сначала в памяти)
+    if (!users[userData.id]) {
+      users[userData.id] = {
+        discordId: userData.id,
+        username: userData.username,
+        email: userData.email,
+        avatar: userData.avatar,
+        registeredAt: new Date().toISOString(),
+        balance: 0,
+        orders: [],
+        badges: {}
+      };
+      console.log('✅ Пользователь сохранен в памяти');
     }
 
-    // Токен для клиента
+    // Пытаемся сохранить в БД, если доступна
+    if (sql) {
+      try {
+        const [existingUser] = await sql`
+          SELECT * FROM users WHERE discord_id = ${userData.id}
+        `;
+        
+        if (!existingUser) {
+          await sql`
+            INSERT INTO users (discord_id, username, email, avatar, balance, badges)
+            VALUES (
+              ${userData.id}, 
+              ${userData.username}, 
+              ${userData.email || ''}, 
+              ${userData.avatar}, 
+              0,
+              ${JSON.stringify({})}
+            )
+          `;
+          console.log('✅ Пользователь сохранен в БД');
+        } else {
+          await sql`
+            UPDATE users 
+            SET username = ${userData.username}, 
+                email = ${userData.email || ''}, 
+                avatar = ${userData.avatar}
+            WHERE discord_id = ${userData.id}
+          `;
+          console.log('✅ Данные пользователя обновлены в БД');
+        }
+      } catch (dbError) {
+        console.error('⚠️ Ошибка сохранения в БД (используем память):', dbError.message);
+      }
+    }
+
+    // Создаем токен для клиента
     const token = Buffer.from(JSON.stringify({
       ...userData,
       exp: Date.now() + 7 * 24 * 60 * 60 * 1000
     })).toString('base64');
+
+    console.log('✅ Токен для клиента создан');
 
     res.json({
       success: true,
@@ -589,10 +669,20 @@ app.post('/api/auth/discord', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Ошибка авторизации:', error.response?.data || error.message);
+    console.error('❌ ОШИБКА АВТОРИЗАЦИИ:');
+    console.error('- Сообщение:', error.message);
+    
+    if (error.response) {
+      console.error('- Статус ответа Discord:', error.response.status);
+      console.error('- Данные от Discord:', error.response.data);
+    }
+    
+    console.error('- Полный стек:', error.stack);
+
     res.status(500).json({ 
       success: false, 
-      error: 'Ошибка авторизации через Discord'
+      error: 'Ошибка авторизации через Discord',
+      details: error.response?.data || error.message
     });
   }
 });
@@ -1420,95 +1510,41 @@ app.get('/api/admin/stats', async (req, res) => {
 // HTML маршруты
 // ============================================
 
-app.get('/', async (req, res) => {
-  try {
-    const [userCount] = await sql`SELECT COUNT(*) as count FROM users`;
-    const [reviewCount] = await sql`SELECT COUNT(*) as count FROM reviews`;
-    const [promoCount] = await sql`SELECT COUNT(*) as count FROM promocodes`;
-    
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-          <title>BHStore</title>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-              body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #1e1f29; color: white; }
-              h1 { color: #5865F2; }
-              .api-info { background: #2a2b36; padding: 20px; border-radius: 10px; margin-top: 20px; }
-          </style>
-      </head>
-      <body>
-          <h1>🚀 BHStore API работает на Netlify Functions</h1>
-          <div class="api-info">
-              <p>✅ Сервер успешно запущен</p>
-              <p>📊 Пользователей: ${userCount?.count || 0}</p>
-              <p>⭐ Отзывов: ${reviewCount?.count || 0}</p>
-              <p>🎫 Промокодов: ${promoCount?.count || 0}</p>
-          </div>
-      </body>
-      </html>
-    `);
-  } catch (error) {
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-          <title>BHStore</title>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <style>
-              body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #1e1f29; color: white; }
-              h1 { color: #5865F2; }
-              .api-info { background: #2a2b36; padding: 20px; border-radius: 10px; margin-top: 20px; }
-          </style>
-      </head>
-      <body>
-          <h1>🚀 BHStore API работает на Netlify Functions</h1>
-          <div class="api-info">
-              <p>✅ Сервер успешно запущен</p>
-              <p>📊 Данные загружаются...</p>
-          </div>
-      </body>
-      </html>
-    `);
-  }
+// Тестовый маршрут
+app.get('/api/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Сервер работает на Netlify Functions',
+    stats: {
+      users: Object.keys(users).length,
+      chatSessions: Object.keys(chatStore).length,
+      totalMessages: Object.values(chatStore).reduce((sum, msgs) => sum + msgs.length, 0),
+      reviews: reviewsData.reviews?.length || 0,
+      promocodes: Object.keys(promocodes).length
+    }
+  });
 });
 
-// Тестовый маршрут
-app.get('/api/test', async (req, res) => {
-  try {
-    const [userCount] = await sql`SELECT COUNT(*) as count FROM users`;
-    const [reviewCount] = await sql`SELECT COUNT(*) as count FROM reviews`;
-    const [promoCount] = await sql`SELECT COUNT(*) as count FROM promocodes`;
-    const [messageCount] = await sql`SELECT COUNT(*) as count FROM messages`;
-    const [chatSessions] = await sql`SELECT COUNT(DISTINCT user_id) as count FROM messages`;
-    
-    res.json({
-      success: true,
-      message: 'Сервер работает на Netlify Functions',
-      stats: {
-        users: parseInt(userCount?.count) || 0,
-        chatSessions: parseInt(chatSessions?.count) || 0,
-        totalMessages: parseInt(messageCount?.count) || 0,
-        reviews: parseInt(reviewCount?.count) || 0,
-        promocodes: parseInt(promoCount?.count) || 0
-      }
-    });
-  } catch (error) {
-    res.json({
-      success: true,
-      message: 'Сервер работает на Netlify Functions',
-      stats: {
-        users: 1,
-        chatSessions: 0,
-        totalMessages: 0,
-        reviews: 1,
-        promocodes: 2
-      }
-    });
-  }
+// Главная страница
+app.get('/', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>BHStore</title>
+        <meta charset="UTF-8">
+        <style>
+            body { font-family: Arial; text-align: center; padding: 50px; background: #1e1f29; color: white; }
+            h1 { color: #5865F2; }
+        </style>
+    </head>
+    <body>
+        <h1>🚀 BHStore API работает</h1>
+        <p>Пользователей в памяти: ${Object.keys(users).length}</p>
+        <p><a href="/api/test">Проверить API</a></p>
+    </body>
+    </html>
+  `);
 });
 
 // Экспорт для serverless
