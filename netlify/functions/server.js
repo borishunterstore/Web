@@ -1170,40 +1170,6 @@ async function insertTestProducts() {
   
   try {
       const testProducts = [
-          {
-              id: 'premium_month',
-              name: 'Премиум на 1 месяц',
-              description: 'Доступ ко всем премиум функциям бота на 30 дней',
-              price: 299,
-              category: 'premium',
-              icon: 'fas fa-crown',
-              popular: true,
-              features: ['Все премиум команды', 'Приоритетная поддержка', 'Эксклюзивные функции']
-          },
-          {
-              id: 'premium_year',
-              name: 'Премиум на 1 год',
-              description: 'Доступ ко всем премиум функциям бота на 365 дней',
-              price: 2499,
-              category: 'premium',
-              icon: 'fas fa-crown',
-              discount: 30,
-              features: ['Все функции месячного', 'Скидка 30%', 'Бонусные команды']
-          },
-          {
-              id: 'discord_bot_economy',
-              name: 'Экономический бот',
-              description: 'Что входит в тариф:',
-              price: 999,
-              category: 'discordbot',
-              icon: 'image/emoji/shop_discord.png',
-              features: [
-                  'Экономическая система',
-                  'Магазин и инвентарь',
-                  'Работы и зарплаты',
-                  'Трансферы между пользователями'
-              ]
-          }
       ];
       
       for (const product of testProducts) {
