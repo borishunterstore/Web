@@ -184,74 +184,103 @@
             early: 'https://cdn3.emoji.gg/emojis/7196-early-supporter.png',
             vip: 'https://cdn3.emoji.gg/emojis/9422-vip.png'
         };
+    
         function showAddBalanceModal() {
-            document.getElementById('addBalanceModal').style.display = 'flex';}
-
+            document.getElementById('addBalanceModal').style.display = 'flex';
+        }
+    
         function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';}
+            document.getElementById(modalId).style.display = 'none';
+        }
+    
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';}});
+                e.target.style.display = 'none';
+            }
+        });
+    
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('Загрузка профиля...');
             
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            if (!authData.username || authData.verificationCode) {
+            if (!authData.id) {
                 window.location.href = '/auth.html';
                 return;
             }
+            
             await loadProfile();
             initPromocodeSystem();
             setTimeout(() => {
                 initChatSystem();
-            }, 500);});
-        
-    async function loadProfile() {
-    const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            }, 500);
+        });
     
-    try {
-        const response = await fetch(`/api/user/${authData.id}`);
-        const data = await response.json();
-        
-        if (data.success && data.user) {
-            const user = data.user;
-            authData.balance = user.balance;
-            authData.badges = user.badges || {};
-            localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-            if (window.updateAuthButton) {
-                window.updateAuthButton();}
-            renderProfile(user);
-            renderBalance(user.balance || 0);
-            let userOrders = [];
+        async function loadProfile() {
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             
-            if (user.orders && Array.isArray(user.orders)) {
-                userOrders = user.orders;
-            } else if (user.purchases && Array.isArray(user.purchases)) {
-                userOrders = user.purchases;
-            } else {
-                const orders = JSON.parse(localStorage.getItem('bhstore_orders') || '[]');
-                userOrders = orders.filter(order => order.userId === authData.id);}
-            
-            renderOrders(userOrders);
-            updateStats(userOrders, user);
-        } else {
-            renderProfile(authData);
-            renderBalance(authData.balance || 0);
-            
-            const orders = JSON.parse(localStorage.getItem('bhstore_orders') || '[]');
-            const userOrders = orders.filter(order => order.userId === authData.id);
-            renderOrders(userOrders);
-            updateStats(userOrders, authData);}
-    } catch (error) {
-        console.error('Error loading profile:', error);
-        renderProfile(authData);
-        renderBalance(authData.balance || 0);
-        
-        const orders = JSON.parse(localStorage.getItem('bhstore_orders') || '[]');
-        const userOrders = orders.filter(order => order.userId === authData.id);
-        renderOrders(userOrders);
-        updateStats(userOrders, authData);}}
-
+            try {
+                const response = await fetch(`/api/user/${authData.id}`);
+                const data = await response.json();
+                
+                if (data.success && data.user) {
+                    const user = data.user;
+                    
+                    // Обновляем localStorage
+                    authData.balance = user.balance;
+                    authData.badges = user.badges || {};
+                    localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                    
+                    if (window.updateAuthButton) {
+                        window.updateAuthButton();
+                    }
+                    
+                    renderProfile(user);
+                    renderBalance(user.balance || 0);
+                    
+                    // Получаем заказы пользователя
+                    const ordersResponse = await fetch(`/api/user/${authData.id}/orders`);
+                    const ordersData = await ordersResponse.json();
+                    
+                    if (ordersData.success) {
+                        renderOrders(ordersData.orders || []);
+                        updateStats(ordersData.orders || [], user);
+                    } else {
+                        renderOrders([]);
+                        updateStats([], user);
+                    }
+                } else {
+                    // Если пользователь не найден в БД, создаем его
+                    const registerResponse = await fetch('/api/register', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            discordId: authData.id,
+                            username: authData.username,
+                            email: authData.email,
+                            avatar: authData.avatar
+                        })
+                    });
+                    
+                    const registerData = await registerResponse.json();
+                    
+                    if (registerData.success) {
+                        await loadProfile(); // Повторно загружаем профиль
+                    } else {
+                        renderProfile(authData);
+                        renderBalance(0);
+                        renderOrders([]);
+                        updateStats([], authData);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                renderProfile(authData);
+                renderBalance(0);
+                renderOrders([]);
+                updateStats([], authData);
+            }
+        }
+    
         function renderProfile(user) {
             let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
             
@@ -261,8 +290,6 @@
                 } else {
                     avatarUrl = `https://cdn.discordapp.com/avatars/${user.discordId || user.id}/${user.avatar}.png?size=256`;
                 }
-            } else if (user.avatar_url) {
-                avatarUrl = user.avatar_url;
             }
             
             const badges = normalizeBadges(user.badges);
@@ -270,39 +297,38 @@
             const badgesHTML = generateBadgesHTML(badges);
             
             document.getElementById('profileHeader').innerHTML = `
-        <div class="profile-avatar-wrapper">
-            <img src="${avatarUrl}" 
-                 class="profile-avatar"
-                 alt="Avatar"
-                 onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-            ${mainBadge}
-        </div>
-        <div class="profile-info">
-            <h2>
-                <i class="fas fa-user-circle"></i>
-                ${escapeHtml(user.username || user.global_name || 'Пользователь')}
-            </h2>
-            <div class="badges-container">
-                ${badgesHTML}
-            </div>
-            <p><i class="fas fa-hashtag"></i> Discord ID: ${escapeHtml(user.discordId || user.id || 'Не указан')}</p>
-            <p><i class="fas fa-calendar-alt"></i> Зарегистрирован: ${new Date(user.registeredAt || user.created_at || Date.now()).toLocaleDateString('ru-RU', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            })}</p>
-            <p><i class="fas fa-envelope"></i> Email: ${escapeHtml(user.email || 'Не указан')}</p>
-            ${user.verifiedAt ? `
-                <p><i class="fas fa-check-circle" style="color: #57F287;"></i> Верифицирован: ${new Date(user.verifiedAt).toLocaleDateString('ru-RU')}</p>
-            ` : ''}
-        </div>
-    `;
-}
-
+                <div class="profile-avatar-wrapper">
+                    <img src="${avatarUrl}" 
+                         class="profile-avatar"
+                         alt="Avatar"
+                         onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                    ${mainBadge}
+                </div>
+                <div class="profile-info">
+                    <h2>
+                        <i class="fas fa-user-circle"></i>
+                        ${escapeHtml(user.username || 'Пользователь')}
+                    </h2>
+                    <div class="badges-container">
+                        ${badgesHTML}
+                    </div>
+                    <p><i class="fas fa-hashtag"></i> Discord ID: ${escapeHtml(user.discordId || user.id || 'Не указан')}</p>
+                    <p><i class="fas fa-calendar-alt"></i> Зарегистрирован: ${new Date(user.registeredAt || Date.now()).toLocaleDateString('ru-RU', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                    })}</p>
+                    <p><i class="fas fa-envelope"></i> Email: ${escapeHtml(user.email || 'Не указан')}</p>
+                </div>
+            `;
+        }
+    
         function updateStats(orders, user) {
             document.getElementById('totalOrdersStat').textContent = orders.length;
-            const totalSpent = orders.reduce((sum, order) => sum + (order.finalPrice || order.amount || 0), 0);
+            
+            const totalSpent = orders.reduce((sum, order) => sum + (order.price || 0), 0);
             document.getElementById('totalSpentStat').textContent = `${totalSpent}₽`;
+            
             const registeredDate = new Date(user.registeredAt || Date.now());
             const now = new Date();
             const diffTime = Math.abs(now - registeredDate);
@@ -315,8 +341,10 @@
                 document.getElementById('memberSinceStat').textContent = `${months} мес.`;
             } else {
                 const years = Math.floor(diffDays / 365);
-                document.getElementById('memberSinceStat').textContent = `${years} г.`;}}
-
+                document.getElementById('memberSinceStat').textContent = `${years} г.`;
+            }
+        }
+    
         function escapeHtml(unsafe) {
             if (!unsafe) return '';
             return String(unsafe)
@@ -324,8 +352,9 @@
                 .replace(/</g, "&lt;")
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");}
-
+                .replace(/'/g, "&#039;");
+        }
+    
         function normalizeBadges(badgesData) {
             if (!badgesData) {
                 return { verified: false, partner: false, buyer: false, early: false, vip: false };
@@ -353,7 +382,7 @@
             
             return { verified: false, partner: false, buyer: false, early: false, vip: false };
         }
-
+    
         function generateBadgesHTML(badges) {
             let badgesHtml = '';
             
@@ -378,7 +407,7 @@
             
             return badgesHtml;
         }
-
+    
         function getMainBadge(badges) {
             if (badges.verified) {
                 return `
@@ -408,11 +437,11 @@
             
             return '';
         }
-
+    
         function renderBalance(balance) {
             document.getElementById('balanceAmount').textContent = `${balance}₽`;
         }
-
+    
         function renderOrders(orders) {
             const ordersList = document.getElementById('ordersList');
             
@@ -429,26 +458,23 @@
                 return;
             }
             
-            orders.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
+            orders.sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
             
             ordersList.innerHTML = orders.map(order => {
                 const statusClass = {
                     'pending': 'status-pending',
-                    'registered': 'status-registered',
                     'completed': 'status-completed',
                     'cancelled': 'status-cancelled'
                 }[order.status] || 'status-pending';
                 
                 const statusText = {
-                    'pending': 'Ожидание оплаты',
-                    'registered': 'Регистрация...',
-                    'completed': 'Успешно выполнено',
+                    'pending': 'Ожидание',
+                    'completed': 'Выполнено',
                     'cancelled': 'Отменено'
                 }[order.status] || order.status;
                 
                 const statusIcon = {
                     'pending': 'fa-clock',
-                    'registered': 'fa-spinner fa-spin',
                     'completed': 'fa-check-circle',
                     'cancelled': 'fa-times-circle'
                 }[order.status] || 'fa-clock';
@@ -460,16 +486,16 @@
                             ${escapeHtml(order.id)}
                         </div>
                         <div class="order-product">
-                            <strong>${escapeHtml(order.product || order.productName)}</strong>
+                            <strong>${escapeHtml(order.productName)}</strong>
                             <div class="order-price">
                                 <i class="fas fa-tag"></i>
-                                ${order.finalPrice || order.amount || 0}₽
+                                ${order.price || 0}₽
                             </div>
                         </div>
                         <div class="order-date">
                             <span>
                                 <i class="fas fa-calendar-alt"></i>
-                                ${new Date(order.createdAt || order.date).toLocaleString('ru-RU', {
+                                ${new Date(order.date || order.createdAt).toLocaleString('ru-RU', {
                                     day: 'numeric',
                                     month: 'long',
                                     year: 'numeric',
@@ -486,8 +512,8 @@
                 `;
             }).join('');
         }
-
-        function initPromocodeSystem() {
+    
+        async function initPromocodeSystem() {
             const applyBtn = document.getElementById('applyPromocodeBtn');
             const input = document.getElementById('promocodeInput');
             
@@ -498,9 +524,9 @@
                 }
             });
             
-            displayUserPromocodes();
+            await loadUserPromocodes();
         }
-
+    
         async function applyPromocode() {
             const input = document.getElementById('promocodeInput');
             const code = input.value.trim().toUpperCase();
@@ -514,7 +540,7 @@
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             
             try {
-                const response = await fetch('/api/apply-promocode', {
+                const response = await fetch('/api/promocodes/activate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -529,19 +555,12 @@
                     showPromocodeMessage(`Промокод ${code} успешно активирован!`, 'success');
                     input.value = '';
                     
-                    // Сохраняем в localStorage
-                    const activePromos = JSON.parse(localStorage.getItem('bhstore_active_promocodes') || '{"activeDiscounts":[]}');
-                    activePromos.activeDiscounts.push({
-                        code: code,
-                        value: data.discount,
-                        productId: data.productId || null
-                    });
-                    localStorage.setItem('bhstore_active_promocodes', JSON.stringify(activePromos));
+                    // Обновляем баланс если это промокод на пополнение
+                    if (data.newBalance !== undefined) {
+                        await loadProfile(); // Перезагружаем профиль для обновления баланса
+                    }
                     
-                    // Обновляем отображение
-                    displayUserPromocodes();
-                    
-                    // Показываем информацию о промокоде
+                    await loadUserPromocodes();
                     showPromocodeInfo(data);
                 } else {
                     showPromocodeMessage(data.error || 'Не удалось активировать промокод', 'error');
@@ -552,7 +571,7 @@
                 showPromocodeMessage('Ошибка при активации промокода', 'error');
             }
         }
-
+    
         function showPromocodeMessage(message, type) {
             const messageDiv = document.getElementById('promocodeMessage');
             messageDiv.innerHTML = `
@@ -566,74 +585,45 @@
                 messageDiv.innerHTML = '';
             }, 5000);
         }
-
+    
         function showPromocodeInfo(data) {
             const modal = document.getElementById('promocodeInfoModal');
             const content = document.getElementById('promocodeInfoContent');
+            
+            let message = '';
+            if (data.message) {
+                message = data.message;
+            } else if (data.newBalance !== undefined) {
+                message = `Баланс пополнен на ${data.value}₽`;
+            } else {
+                message = 'Промокод успешно активирован!';
+            }
             
             content.innerHTML = `
                 <div style="text-align: center; padding: 20px;">
                     <div style="font-size: 3rem; color: #FEE75C; margin-bottom: 20px;">
                         <i class="fas fa-ticket-alt"></i>
                     </div>
-                    <h3 style="color: white; margin-bottom: 15px;">Промокод активирован!</h3>
-                    <p style="color: #b9bbbe; margin-bottom: 20px;">
-                        Скидка: <strong style="color: #FEE75C; font-size: 1.5rem;">${data.discount}%</strong>
-                    </p>
-                    ${data.productId ? `
-                        <p style="color: #b9bbbe;">Применяется только к товару с ID: ${data.productId}</p>
-                    ` : `
-                        <p style="color: #b9bbbe;">Применяется ко всем товарам в магазине</p>
-                    `}
+                    <h3 style="color: white; margin-bottom: 15px;">${escapeHtml(message)}</h3>
+                    ${data.newBalance !== undefined ? `
+                        <p style="color: #b9bbbe; font-size: 1.2rem;">
+                            Текущий баланс: <strong style="color: #57F287;">${data.newBalance}₽</strong>
+                        </p>
+                    ` : ''}
                 </div>
             `;
             
             modal.style.display = 'flex';
         }
-
-        function displayUserPromocodes() {
-            const container = document.getElementById('userActivePromocodes');
-            const activePromos = JSON.parse(localStorage.getItem('bhstore_active_promocodes') || '{"activeDiscounts":[]}');
-            
-            if (!activePromos.activeDiscounts || activePromos.activeDiscounts.length === 0) {
-                container.innerHTML = '';
-                return;
-            }
-            
-            container.innerHTML = `
-                <h3 style="color: white; margin-bottom: 15px; font-size: 1.2rem;">
-                    <i class="fas fa-ticket-alt" style="color: #FEE75C;"></i>
-                    Активные промокоды
-                </h3>
-                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                    ${activePromos.activeDiscounts.map(promo => `
-                        <div style="background: rgba(254, 231, 92, 0.1); border: 1px solid rgba(254, 231, 92, 0.3); 
-                                  border-radius: 30px; padding: 8px 16px; display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #FEE75C; font-weight: 600;">${escapeHtml(promo.code)}</span>
-                            <span style="color: #b9bbbe;">-${promo.value}%</span>
-                            <button onclick="removePromocode('${escapeHtml(promo.code)}')" 
-                                    style="background: none; border: none; color: #ED4245; cursor: pointer; margin-left: 5px;">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+    
+        async function loadUserPromocodes() {
+            // Здесь можно загрузить список использованных промокодов пользователя
+            //但目前 оставим пустым, так как промокоды одноразовые
         }
-
-        window.removePromocode = function(code) {
-            const activePromos = JSON.parse(localStorage.getItem('bhstore_active_promocodes') || '{"activeDiscounts":[]}');
-            activePromos.activeDiscounts = activePromos.activeDiscounts.filter(p => p.code !== code);
-            localStorage.setItem('bhstore_active_promocodes', JSON.stringify(activePromos));
-            
-            displayUserPromocodes();
-            showPromocodeMessage(`Промокод ${code} удален`, 'info');
-        };
-
-        // Инициализация чата
+    
+        // Чат с поддержкой
         function initChatSystem() {
             const chatContainer = document.getElementById('supportChat');
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             
             chatContainer.innerHTML = `
                 <div style="display: flex; flex-direction: column; height: 500px;">
@@ -653,7 +643,7 @@
             loadMessages();
             startPolling();
         }
-
+    
         async function loadMessages() {
             try {
                 const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
@@ -680,7 +670,7 @@
                                 minute: '2-digit' 
                             });
                             
-                            const isAdmin = msg.fromAdmin;
+                            const isAdmin = msg.from_admin || msg.fromAdmin;
                             const senderName = isAdmin ? 'Поддержка' : 'Вы';
                             
                             return `
@@ -707,7 +697,7 @@
                 console.error('Error loading messages:', error);
             }
         }
-
+    
         window.sendMessage = async function() {
             const input = document.getElementById('chatMessageInput');
             const message = input.value.trim();
@@ -723,6 +713,7 @@
                     minute: '2-digit' 
                 });
                 
+                // Оптимистично добавляем сообщение в чат
                 const messageHTML = `
                     <div class="message-wrapper user">
                         <div class="message-sender user">
@@ -757,6 +748,7 @@
                 
                 if (!data.success) {
                     console.error('Error sending message:', data.error);
+                    showPromocodeMessage('Ошибка отправки сообщения', 'error');
                 }
                 
             } catch (error) {
@@ -764,46 +756,44 @@
                 showPromocodeMessage('Ошибка отправки сообщения', 'error');
             }
         };
-
+    
         // Polling для новых сообщений
-        let lastChecked = Date.now();
         let pollingInterval;
-
+    
         function startPolling() {
-            lastChecked = Date.now();
             pollingInterval = setInterval(async () => {
                 await checkNewMessages();
             }, 3000);
         }
-
+    
         async function checkNewMessages() {
             try {
                 const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-                const response = await fetch(`/api/chat/check/${authData.id}?lastChecked=${lastChecked}`);
+                const response = await fetch(`/api/chat/messages/${authData.id}`);
                 const data = await response.json();
                 
-                if (data.success && data.hasNewMessages) {
-                    lastChecked = data.lastMessageTime || lastChecked;
-                    await loadMessages();
+                if (data.success) {
+                    const messagesContainer = document.getElementById('chatMessages');
+                    const currentMessages = messagesContainer.querySelectorAll('.message-bubble').length;
+                    
+                    if (data.messages.length > currentMessages) {
+                        await loadMessages();
+                    }
                 }
             } catch (error) {
                 console.error('Error checking messages:', error);
             }
         }
-
+    
         window.addEventListener('beforeunload', function() {
             if (pollingInterval) {
                 clearInterval(pollingInterval);
             }
         });
-
+    
         // Логаут
         window.logout = function() {
             localStorage.removeItem('bhstore_auth');
-            localStorage.removeItem('bhstore_orders');
-            localStorage.removeItem('bhstore_active_discounts');
-            localStorage.removeItem('bhstore_promocode');
-            localStorage.removeItem('bhstore_active_promocodes');
             window.location.href = '/';
         };
     </script>

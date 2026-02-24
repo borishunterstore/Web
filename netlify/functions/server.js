@@ -1329,6 +1329,26 @@ app.post('/api/create-order', async (req, res) => {
   }
 });
 
+// Получение заказов пользователя
+app.get('/api/user/:id/orders', async (req, res) => {
+  try {
+      const [user] = await sql`
+          SELECT orders FROM users WHERE discord_id = ${req.params.id}
+      `;
+      
+      res.json({
+          success: true,
+          orders: user?.orders || []
+      });
+  } catch (error) {
+      console.error('❌ Ошибка получения заказов:', error.message);
+      res.status(500).json({ 
+          success: false, 
+          error: 'Ошибка сервера' 
+      });
+  }
+});
+
 // Получение товаров из БД
 app.get('/api/products', async (req, res) => {
   try {
