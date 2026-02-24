@@ -1092,3 +1092,124 @@ tbody tr:hover {
 .notification.warning i {
     color: #FEE75C;
 }
+
+/* admin.css - Стили для админ-панели */
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.admin-notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    border-radius: 8px;
+    z-index: 10001;
+    min-width: 300px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: slideIn 0.3s ease;
+}
+
+.btn-admin.small {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+}
+
+.btn-admin.success {
+    background: #57F287;
+    color: #1e1f29;
+}
+
+.btn-admin.success:hover {
+    background: #4ad477;
+}
+
+.btn-admin.danger {
+    background: #ED4245;
+    color: white;
+}
+
+.btn-admin.danger:hover {
+    background: #c73b3e;
+}
+
+.btn-admin:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.table-container {
+    background: #1e1f29;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.stat-card {
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Стили для таблиц */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+tr:hover {
+    background: rgba(255,255,255,0.02);
+}
+
+/* Стили для поиска */
+#searchUsers,
+#searchOrders,
+#searchProducts {
+    transition: all 0.3s ease;
+}
+
+#searchUsers:focus,
+#searchOrders:focus,
+#searchProducts:focus {
+    border-color: #5865F2;
+    box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.2);
+    outline: none;
+}
