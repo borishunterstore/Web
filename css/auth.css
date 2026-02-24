@@ -1,0 +1,606 @@
+/* auth.css - Стили для страницы авторизации BHStore */
+
+/* Основной контейнер */
+.auth-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--gray-500) 0%, #0a0a0f 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('../image/pattern.png') repeat;
+    opacity: 0.03;
+    animation: slideBackground 30s linear infinite;
+    pointer-events: none;
+}
+
+.auth-container::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(88, 101, 242, 0.1) 0%, transparent 70%);
+    animation: rotate 30s linear infinite;
+    pointer-events: none;
+}
+
+/* Карточка авторизации */
+.auth-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    border-radius: 32px;
+    padding: 48px;
+    max-width: 520px;
+    width: 100%;
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--border-light);
+    position: relative;
+    z-index: 10;
+    animation: slideInUp 0.6s ease-out;
+    overflow: hidden;
+}
+
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+}
+
+/* Заголовок */
+.auth-header {
+    text-align: center;
+    margin-bottom: 32px;
+    position: relative;
+}
+
+.auth-header i {
+    font-size: 64px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+    display: inline-block;
+    filter: drop-shadow(0 4px 15px rgba(88, 101, 242, 0.3));
+    animation: pulse 3s infinite;
+}
+
+.auth-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, var(--text-primary), var(--primary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.auth-header p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 380px;
+    margin: 0 auto;
+}
+
+/* Список преимуществ */
+.auth-benefits {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(88, 101, 242, 0.1);
+    border-radius: 16px;
+    border: 1px solid rgba(88, 101, 242, 0.2);
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    transition: all var(--transition-fast);
+}
+
+.benefit-item:hover {
+    transform: translateX(5px);
+    background: rgba(88, 101, 242, 0.2);
+}
+
+.benefit-item i {
+    color: var(--primary);
+    font-size: 1.1rem;
+    width: 24px;
+}
+
+/* Инструкция */
+.auth-instruction {
+    background: linear-gradient(135deg, rgba(88, 101, 242, 0.1), rgba(124, 58, 237, 0.1));
+    border: 1px solid rgba(88, 101, 242, 0.2);
+    border-radius: 24px;
+    padding: 28px;
+    margin-bottom: 32px;
+    position: relative;
+    animation: glow 3s infinite;
+}
+
+.auth-instruction::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, var(--primary), var(--secondary));
+    border-radius: 26px;
+    opacity: 0.1;
+    z-index: -1;
+}
+
+.auth-instruction h3 {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.auth-instruction h3 i {
+    color: var(--primary);
+    font-size: 1.4rem;
+}
+
+.auth-instruction ol {
+    list-style: none;
+    counter-reset: step-counter;
+    margin: 0;
+    padding: 0;
+}
+
+.auth-instruction li {
+    counter-increment: step-counter;
+    margin-bottom: 16px;
+    padding-left: 40px;
+    position: relative;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    display: flex;
+    align-items: center;
+}
+
+.auth-instruction li::before {
+    content: counter(step-counter);
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 10px rgba(88, 101, 242, 0.3);
+}
+
+.auth-instruction li strong {
+    color: var(--primary);
+    font-weight: 600;
+    margin: 0 4px;
+}
+
+/* Шаги */
+.auth-steps {
+    margin-bottom: 32px;
+}
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 16px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-light);
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.step:hover {
+    transform: translateX(5px);
+    background: rgba(88, 101, 242, 0.05);
+}
+
+.step.active {
+    background: linear-gradient(135deg, rgba(88, 101, 242, 0.15), rgba(124, 58, 237, 0.15));
+    border-color: var(--primary);
+    box-shadow: 0 4px 20px rgba(88, 101, 242, 0.2);
+}
+
+.step.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.step-number img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(88, 101, 242, 0.3));
+}
+
+.step-info {
+    flex: 1;
+}
+
+.step-info h3 {
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.step-info p {
+    color: var(--text-tertiary);
+    font-size: 0.85rem;
+}
+
+/* Кнопка авторизации */
+.btn-auth {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    border-radius: 16px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 24px;
+    box-shadow: 0 8px 20px rgba(88, 101, 242, 0.3);
+}
+
+.btn-auth::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-auth:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 30px rgba(88, 101, 242, 0.4);
+}
+
+.btn-auth:hover::before {
+    left: 100%;
+}
+
+.btn-auth:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-auth i {
+    font-size: 1.2rem;
+}
+
+.btn-auth img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+/* Заметка безопасности */
+.security-note {
+    margin-top: 24px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    border: 1px solid var(--border-light);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    animation: fadeIn 0.8s ease-out;
+}
+
+.security-note i {
+    color: var(--accent);
+    font-size: 1.3rem;
+    margin-top: 2px;
+}
+
+.security-note div {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.security-note strong {
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Футер */
+.auth-footer {
+    margin-top: 32px;
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 0.9rem;
+}
+
+.auth-footer p {
+    margin-bottom: 8px;
+}
+
+.auth-footer a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.auth-footer a:hover {
+    color: var(--secondary);
+    transform: translateX(-3px);
+}
+
+.auth-footer i {
+    font-size: 0.85rem;
+}
+
+/* Мику */
+.miku-left {
+    position: absolute;
+    left: -30px;
+    top: -20px;
+    width: 100px;
+    height: auto;
+    z-index: 5;
+    animation: float 6s ease-in-out infinite;
+}
+
+.miku-right {
+    position: absolute;
+    right: -30px;
+    bottom: -20px;
+    width: 120px;
+    height: auto;
+    z-index: 5;
+    animation: float 8s ease-in-out infinite reverse;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes slideBackground {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 100% 100%;
+    }
+}
+
+@keyframes glow {
+    0%, 100% {
+        border-color: rgba(88, 101, 242, 0.2);
+        box-shadow: 0 0 20px rgba(88, 101, 242, 0.1);
+    }
+    50% {
+        border-color: rgba(88, 101, 242, 0.4);
+        box-shadow: 0 0 30px rgba(88, 101, 242, 0.2);
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .auth-card {
+        padding: 32px 24px;
+    }
+    
+    .auth-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .auth-header i {
+        font-size: 56px;
+    }
+    
+    .miku-left {
+        width: 70px;
+        left: -20px;
+    }
+    
+    .miku-right {
+        width: 90px;
+        right: -20px;
+    }
+    
+    .step {
+        padding: 12px 16px;
+    }
+    
+    .step-number {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .step-number img {
+        width: 26px;
+        height: 26px;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 24px 16px;
+    }
+    
+    .auth-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .auth-header i {
+        font-size: 48px;
+    }
+    
+    .auth-header p {
+        font-size: 0.9rem;
+    }
+    
+    .auth-instruction {
+        padding: 20px;
+    }
+    
+    .auth-instruction li {
+        font-size: 0.85rem;
+        padding-left: 32px;
+    }
+    
+    .auth-instruction li::before {
+        width: 24px;
+        height: 24px;
+        font-size: 0.8rem;
+    }
+    
+    .step-info h3 {
+        font-size: 0.95rem;
+    }
+    
+    .step-info p {
+        font-size: 0.8rem;
+    }
+    
+    .btn-auth {
+        padding: 16px;
+        font-size: 1rem;
+    }
+    
+    .security-note {
+        padding: 16px;
+        font-size: 0.85rem;
+    }
+    
+    .auth-footer {
+        font-size: 0.8rem;
+    }
+    
+    .miku-left,
+    .miku-right {
+        display: none;
+    }
+}
+
+/* Темная тема */
+@media (prefers-color-scheme: dark) {
+    .auth-container {
+        background: linear-gradient(135deg, #0a0a0f 0%, #000000 100%);
+    }
+}
