@@ -1295,7 +1295,7 @@ app.post('/api/create-order', async (req, res) => {
 
     // Отправляем уведомление в Discord
     try {
-      const webhookUrl = 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
+      const webhookUrl = 'https://discord.com/api/webhooks/1475847164801581127/8YklZGMVs-4reVU9yr4WbsO5OM1R5l2lM6yYmYyIPxhFICS1fDRZCD4ATL8sLEIaF1v5';
       
       await axios.post(webhookUrl, {
         embeds: [{
