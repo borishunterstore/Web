@@ -437,25 +437,26 @@
         document.addEventListener('DOMContentLoaded', async function() {
             const api = new BHStoreAPI();
             const authData = api.getAuthData();
+            const isAdmin = await api.isAdmin();
             
-            if (!api.isAdmin()) {
-                document.getElementById('adminContent').innerHTML = `
-                    <div class="access-denied">
-                        <i class="fas fa-ban"></i>
-                        <h2>Доступ запрещен</h2>
-                        <p>Требуются права администратора.</p>
-                        <a href="/" class="btn-admin" style="margin-top: 20px;">
-                            <i class="fas fa-home"></i> Вернуться на главную
-                        </a>
-                    </div>
-                `;
-                return;
-            }
-            
-            document.getElementById('adminUsername').textContent = authData.username || 'Администратор';
-            
-            loadAdminPanel();
-        });
+        if (!isAdmin) {
+            document.getElementById('adminContent').innerHTML = `
+            <div class="access-denied">
+                <i class="fas fa-ban"></i>
+                <h2>Доступ запрещен</h2>
+                <p>Требуются права администратора.</p>
+                <a href="/" class="btn-admin" style="margin-top: 20px;">
+                    <i class="fas fa-home"></i> Вернуться на главную
+                </a>
+            </div>
+            `;
+            return;
+        }
+    
+    document.getElementById('adminUsername').textContent = authData.username || 'Администратор';
+    
+    loadAdminPanel();
+});
         
         function loadAdminPanel() {
             document.getElementById('adminContent').innerHTML = `
