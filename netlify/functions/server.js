@@ -217,6 +217,224 @@ async function initDatabase() {
       created_at TIMESTAMP
     )
   `;
+
+async function createProductsTable() {
+  if (!sql) return;
+  
+  try {
+    await sql`
+      CREATE TABLE IF NOT EXISTS products (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        price INTEGER NOT NULL,
+        category TEXT,
+        icon TEXT,
+        image TEXT,
+        features JSONB DEFAULT '[]',
+        popular BOOLEAN DEFAULT FALSE,
+        discount INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    console.log('✅ Таблица products создана');
+    
+    // Проверяем, есть ли товары
+    const [count] = await sql`SELECT COUNT(*) as count FROM products`;
+    
+    if (parseInt(count.count) === 0) {
+      // Добавляем тестовые товары
+      await insertTestProducts();
+    }
+  } catch (error) {
+    console.error('❌ Ошибка создания таблицы products:', error.message);
+  }
+}
+
+// Функция для добавления тестовых товаров
+async function insertTestProducts() {
+  if (!sql) return;
+  
+  try {
+    const testProducts = [
+      {
+        id: "premium_month",
+        name: "Премиум на 1 месяц",
+        description: "Доступ ко всем премиум функциям на 30 дней",
+        price: 299,
+        category: "premium",
+        icon: "fas fa-crown",
+        image: "/image/premium.png",
+        features: JSON.stringify(["Все функции бота", "Приоритетная поддержка", "Эксклюзивные команды"]),
+        popular: true,
+        discount: 0
+      },
+      {
+        id: "premium_year",
+        name: "Премиум на 1 год",
+        description: "Доступ ко всем премиум функциям на 365 дней",
+        price: 2499,
+        category: "premium",
+        icon: "fas fa-crown",
+        image: "/image/premium.png",
+        features: JSON.stringify(["Все функции бота", "Приоритетная поддержка", "Эксклюзивные команды", "Скидка 30%"]),
+        popular: false,
+        discount: 30
+      },
+      {
+        id: "discord_bot_economy",
+        name: "Экономический бот",
+        description: "Что входит в тариф:",
+        price: 999,
+        category: "discordbot",
+        icon: "fas fa-robot",
+        image: "/image/discord-bot.png",
+        features: JSON.stringify([
+          "База данных - JSON или DATABASE",
+          "Команды: !хелп, !баланс, !продать, !купить-товар, !вывести, !положить, !профиль, !работа, !казино, !магазин, !добавить-товар, !убрать-товар, !выдать-монеты, !снять-монеты",
+          "Выбор формата команд - Slash Commands или Default Commands",
+          "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
+          "Язык ответа на ваше усмотрение - Русский или Английский",
+          "Дизайн эмодзи на выбор - Белый, Синий, Фиолетовый, Красный",
+          "Гарантия 2 недели"
+        ]),
+        popular: true,
+        discount: 0
+      },
+      {
+        id: "discord_bot_moderation",
+        name: "Модераторский бот",
+        description: "Что входит в тариф:",
+        price: 1119,
+        category: "discordbot",
+        icon: "fas fa-shield-alt",
+        image: "/image/discord-bot.png",
+        features: JSON.stringify([
+          "База данных - JSON или DATABASE",
+          "Команды: !хелп, !бан, !банлист, !разбан, !варн, !варнлист, !варнснять, !мьют, !размьют, !мутлист, !войскик, !изменить-ник",
+          "Выбор формата команд - Slash Commands или Default Commands",
+          "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
+          "Язык ответа на ваше усмотрение - Русский или Английский",
+          "Дизайн эмодзи на выбор - Белый, Синий, Фиолетовый, Красный",
+          "Гарантия 2 недели"
+        ]),
+        popular: false,
+        discount: 0
+      },
+      {
+        id: "discord_bot_levels",
+        name: "Уровень бот",
+        description: "Что входит в тариф:",
+        price: 888,
+        category: "discordbot",
+        icon: "fas fa-chart-line",
+        image: "/image/discord-bot.png",
+        features: JSON.stringify([
+          "База данных - JSON или DATABASE",
+          "Команды: !хелп, !ранг, !выдать-опыт, !снять-опыт, !выдать-уровень, !снять-уровень, !ранг-топ, !общий-сброс",
+          "Настройки: !настройка - Настроить за определенный уровень выдачу роли",
+          "Выбор формата команд - Slash Commands или Default Commands",
+          "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
+          "Язык ответа на ваше усмотрение - Русский или Английский",
+          "Дизайн эмодзи на выбор - Белый, Синий, Фиолетовый, Красный",
+          "Гарантия 2 недели"
+        ]),
+        popular: false,
+        discount: 0
+      },
+      {
+        id: "discord_bot_all",
+        name: "Полноценный бот",
+        description: "Что входит в тариф:",
+        price: 1999,
+        category: "discordbot",
+        icon: "fas fa-crown",
+        image: "/image/discord-bot.png",
+        features: JSON.stringify([
+          "Тариф: Экономический бот",
+          "Тариф: Модераторский бот",
+          "Тариф: Уровень бот",
+          "Команды: !хелп, !профиль, !сервер, !бот...",
+          "Выбор формата команд - Slash Commands или Default Commands",
+          "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
+          "Язык ответа на ваше усмотрение - Русский или Английский",
+          "Дизайн эмодзи на выбор - Любой",
+          "Гарантия 1 мес"
+        ]),
+        popular: true,
+        discount: 0
+      },
+      {
+        id: "discord_guild_full",
+        name: "Полная настройка Discord сервера",
+        description: "Что входит в тариф:",
+        price: 999,
+        category: "discord",
+        icon: "fas fa-server",
+        image: "/image/discord-server.png",
+        features: JSON.stringify([
+          "1. Полная настройка всех функций Discord",
+          "2. Авто-модерация",
+          "3. Каналы-роли",
+          "4. Дизайн Каналы, Категории, Роли, Голосовые, Трибуны, Форумы",
+          "5. Права для всех каналов..."
+        ]),
+        popular: true,
+        discount: 0
+      },
+      {
+        id: "video_montaz",
+        name: "Монтаж для видео",
+        description: "",
+        price: 499,
+        category: "events",
+        icon: "fas fa-video",
+        image: "/image/video.png",
+        features: JSON.stringify([
+          "Приоритетный доступ",
+          "Эксклюзивные награды",
+          "Личное приветствие",
+          "Особые привилегии"
+        ]),
+        popular: false,
+        discount: 0
+      }
+    ];
+    
+    for (const product of testProducts) {
+      await sql`
+        INSERT INTO products (
+          id, name, description, price, category, icon, image, features, popular, discount
+        ) VALUES (
+          ${product.id},
+          ${product.name},
+          ${product.description},
+          ${product.price},
+          ${product.category},
+          ${product.icon},
+          ${product.image},
+          ${product.features},
+          ${product.popular},
+          ${product.discount}
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          name = EXCLUDED.name,
+          description = EXCLUDED.description,
+          price = EXCLUDED.price,
+          category = EXCLUDED.category,
+          icon = EXCLUDED.icon,
+          image = EXCLUDED.image,
+          features = EXCLUDED.features,
+          popular = EXCLUDED.popular,
+          discount = EXCLUDED.discount
+      `;
+    }
+    
+    console.log('✅ Тестовые товары добавлены в БД');
+  } catch (error) {
+    console.error('❌ Ошибка добавления тестовых товаров:', error.message);
+  }
+}
     
     console.log('✅ База данных инициализирована');
   } catch (error) {
@@ -228,7 +446,7 @@ async function initDatabase() {
 if (sql) {
   initDatabase();
 }
-
+await createProductsTable();
 // ============================================
 // API маршруты для чата
 // ============================================
@@ -1343,6 +1561,148 @@ async function insertTestProducts() {
 // Функция для получения тестовых товаров (если БД не доступна)
 function getTestProducts() {
   return [
+    {
+      id: "premium_month",
+      name: "Премиум на 1 месяц",
+      description: "Доступ ко всем премиум функциям на 30 дней",
+      price: 299,
+      category: "premium",
+      icon: "fas fa-crown",
+      image: "/image/premium.png",
+      features: ["Все функции бота", "Приоритетная поддержка", "Эксклюзивные команды"],
+      popular: true,
+      discount: 0
+    },
+    {
+      id: "premium_year",
+      name: "Премиум на 1 год",
+      description: "Доступ ко всем премиум функциям на 365 дней",
+      price: 2499,
+      category: "premium",
+      icon: "fas fa-crown",
+      image: "/image/premium.png",
+      features: ["Все функции бота", "Приоритетная поддержка", "Эксклюзивные команды", "Скидка 30%"],
+      popular: false,
+      discount: 30
+    },
+    {
+      id: "discord_bot_economy",
+      name: "Экономический бот",
+      description: "Что входит в тариф:",
+      price: 999,
+      category: "discordbot",
+      icon: "fas fa-robot",
+      image: "/image/discord-bot.png",
+      features: [
+        "База данных - JSON или DATABASE",
+        "Команды: !хелп, !баланс, !продать, !купить-товар, !вывести, !положить, !профиль, !работа, !казино, !магазин, !добавить-товар, !убрать-товар, !выдать-монеты, !снять-монеты",
+        "Выбор формата команд - Slash Commands или Default Commands",
+        "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
+        "Язык ответа на ваше усмотрение - Русский или Английский",
+        "Дизайн эмодзи на выбор - Белый, Синий, Фиолетовый, Красный",
+        "Гарантия 2 недели"
+      ],
+      popular: true,
+      discount: 0
+    },
+    {
+      id: "discord_bot_moderation",
+      name: "Модераторский бот",
+      description: "Что входит в тариф:",
+      price: 1119,
+      category: "discordbot",
+      icon: "fas fa-shield-alt",
+      image: "/image/discord-bot.png",
+      features: [
+        "База данных - JSON или DATABASE",
+        "Команды: !хелп, !бан, !банлист, !разбан, !варн, !варнлист, !варнснять, !мьют, !размьют, !мутлист, !войскик, !изменить-ник",
+        "Выбор формата команд - Slash Commands или Default Commands",
+        "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
+        "Язык ответа на ваше усмотрение - Русский или Английский",
+        "Дизайн эмодзи на выбор - Белый, Синий, Фиолетовый, Красный",
+        "Гарантия 2 недели"
+      ],
+      popular: false,
+      discount: 0
+    },
+    {
+      id: "discord_bot_levels",
+      name: "Уровень бот",
+      description: "Что входит в тариф:",
+      price: 888,
+      category: "discordbot",
+      icon: "fas fa-chart-line",
+      image: "/image/discord-bot.png",
+      features: [
+        "База данных - JSON или DATABASE",
+        "Команды: !хелп, !ранг, !выдать-опыт, !снять-опыт, !выдать-уровень, !снять-уровень, !ранг-топ, !общий-сброс",
+        "Настройки: !настройка - Настроить за определенный уровень выдачу роли",
+        "Выбор формата команд - Slash Commands или Default Commands",
+        "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
+        "Язык ответа на ваше усмотрение - Русский или Английский",
+        "Дизайн эмодзи на выбор - Белый, Синий, Фиолетовый, Красный",
+        "Гарантия 2 недели"
+      ],
+      popular: false,
+      discount: 0
+    },
+    {
+      id: "discord_bot_all",
+      name: "Полноценный бот",
+      description: "Что входит в тариф:",
+      price: 1999,
+      category: "discordbot",
+      icon: "fas fa-crown",
+      image: "/image/discord-bot.png",
+      features: [
+        "Тариф: Экономический бот",
+        "Тариф: Модераторский бот",
+        "Тариф: Уровень бот",
+        "Команды: !хелп, !профиль, !сервер, !бот...",
+        "Выбор формата команд - Slash Commands или Default Commands",
+        "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
+        "Язык ответа на ваше усмотрение - Русский или Английский",
+        "Дизайн эмодзи на выбор - Любой",
+        "Гарантия 1 мес"
+      ],
+      popular: true,
+      discount: 0
+    },
+    {
+      id: "discord_guild_full",
+      name: "Полная настройка Discord сервера",
+      description: "Что входит в тариф:",
+      price: 999,
+      category: "discord",
+      icon: "fas fa-server",
+      image: "/image/discord-server.png",
+      features: [
+        "1. Полная настройка всех функций Discord",
+        "2. Авто-модерация",
+        "3. Каналы-роли",
+        "4. Дизайн Каналы, Категории, Роли, Голосовые, Трибуны, Форумы",
+        "5. Права для всех каналов..."
+      ],
+      popular: true,
+      discount: 0
+    },
+    {
+      id: "video_montaz",
+      name: "Монтаж для видео",
+      description: "",
+      price: 499,
+      category: "events",
+      icon: "fas fa-video",
+      image: "/image/video.png",
+      features: [
+        "Приоритетный доступ",
+        "Эксклюзивные награды",
+        "Личное приветствие",
+        "Особые привилегии"
+      ],
+      popular: false,
+      discount: 0
+    }
   ];
 }
 
