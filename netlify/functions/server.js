@@ -395,7 +395,7 @@ app.post('/api/chat/send', async (req, res) => {
     `;
     
     // Отправляем уведомление через вебхук
-    const webhookUrl = 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
+    const webhookUrl = 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG';
     
     axios.post(webhookUrl, {
       embeds: [{
