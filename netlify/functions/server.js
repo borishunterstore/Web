@@ -399,10 +399,10 @@ app.post('/api/chat/send', async (req, res) => {
     
     axios.post(webhookUrl, {
       embeds: [{
-        title: fromAdmin ? '<:445181discordwumpuscog:1445824372903247933> Сообщение от АДМИНА' : '<:527877discordrubberduck:1445824401621778473> Сообщение от ПОЛЬЗОВАТЕЛЯ',
+        title: fromAdmin ? '<:CEO:1474931391505367040> Сообщение от АДМИНА' : '<:User:1474931634804359433> Сообщение от ПОЛЬЗОВАТЕЛЯ',
         description: message,
         color: fromAdmin ? 0x57F287 : 0x5865F2,
-        fields: [{ name: '<:user:1428757055967068222> Пользователь', value: userId, inline: true }],
+        fields: [{ name: '<:User:1474931634804359433> Пользователь', value: userId, inline: true }],
         timestamp: new Date().toISOString()
       }]
     }).catch(console.error);
