@@ -2,7 +2,7 @@
   "name": "bhstore",
   "version": "1.0.0",
   "description": "BHStore - Discord магазин",
-  "main": "server.js",
+  "main": "netlify/functions/server.js",
   "scripts": {
     "dev": "nodemon server.js"
   },
