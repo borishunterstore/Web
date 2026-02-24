@@ -267,7 +267,7 @@
         handleAction(action) {
             const actions = {
                 telegram: () => {
-                    window.open('https://t.me/your_channel', '_blank', 'noopener,noreferrer');
+                    window.open('https://t.me/borishunterstore', '_blank', 'noopener,noreferrer');
                     this.showToast('Открываем Telegram...');
                 },
                 discord: () => {

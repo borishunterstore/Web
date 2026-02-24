@@ -1,4 +1,4 @@
-// shop.js - Полная оптимизированная версия (меню пользователя удалено)
+// shop.js - Полная оптимизированная версия с поддержкой БД
 
 (function() {
     // Глобальные переменные
@@ -16,7 +16,7 @@
             // Инициализируем категории
             initCategories();
             
-            // Загружаем товары
+            // Загружаем товары из БД
             await loadProducts('all');
             
             // Обновляем кнопку авторизации
@@ -209,7 +209,7 @@
         });
     }
 
-    // Загрузка товаров
+    // Загрузка товаров из БД через API
     async function loadProducts(category) {
         const container = document.getElementById('productsContainer');
         if (!container) return;
@@ -219,10 +219,13 @@
         showLoading(container);
         
         try {
+            // Загружаем товары из API (которое берет из БД)
             let productsData = await fetchProductsFromAPI();
             
             if (!productsData || productsData.length === 0) {
-                productsData = getDemoProducts();
+                // Если API вернул пустой массив, показываем сообщение
+                renderNoProducts(category, true);
+                return;
             }
             
             products = productsData;
@@ -235,21 +238,18 @@
             }
             
             if (filteredProducts.length === 0) {
-                renderNoProducts(category);
+                renderNoProducts(category, false);
             } else {
                 renderProducts(filteredProducts);
             }
             
         } catch (error) {
             console.error('Error loading products:', error);
-            products = getDemoProducts();
-            renderProducts(products.filter(p => 
-                category === 'all' || p.category?.toLowerCase() === category.toLowerCase()
-            ));
+            showError('Не удалось загрузить товары. Попробуйте позже.');
         }
     }
 
-    // Загрузка товаров с API
+    // Загрузка товаров с API (из БД)
     async function fetchProductsFromAPI() {
         try {
             const response = await fetch('/api/products', {
@@ -272,15 +272,9 @@
             
             return [];
         } catch (error) {
-            console.warn('API fetch failed, using demo data:', error);
-            return [];
+            console.warn('API fetch failed:', error);
+            throw error; // Пробрасываем ошибку дальше, чтобы показать сообщение пользователю
         }
-    }
-
-    function getDemoProducts() {
-        return [
-            // Ваши демо-товары
-        ];
     }
 
     // Показать загрузку
@@ -294,7 +288,7 @@
     }
 
     // Отображение сообщения "нет товаров"
-    function renderNoProducts(category) {
+    function renderNoProducts(category, isApiEmpty = false) {
         const container = document.getElementById('productsContainer');
         if (!container) return;
         
@@ -311,9 +305,11 @@
             <div class="empty-state">
                 <i class="fas fa-box-open"></i>
                 <h3>Товары не найдены</h3>
-                <p>В категории "${categoryNames[category] || category}" пока нет товаров.</p>
+                <p>${isApiEmpty 
+                    ? 'В базе данных пока нет товаров. Добавьте их через админ-панель.' 
+                    : `В категории "${categoryNames[category] || category}" пока нет товаров.`}</p>
                 ${category !== 'all' ? `
-                    <button onclick="window.retryLoadProducts('all')" class="btn-primary">
+                    <button onclick="window.loadProducts('all')" class="btn-primary">
                         <i class="fas fa-store"></i> Показать все товары
                     </button>
                 ` : ''}
@@ -345,12 +341,14 @@
                     ` : ''}
                     
                     <div class="product-image">
-                        <img src="${product.icon}" style="width: 950px;">
+                        <img src="${product.image || product.icon || '/image/default-product.png'}" 
+                             alt="${escapeHtml(product.name)}"
+                             onerror="this.src='/image/default-product.png'">
                     </div>
                     
                     <div class="product-info">
                         <h3 class="product-title">${escapeHtml(product.name)}</h3>
-                        <p class="product-description">${escapeHtml(product.icon2)} ${escapeHtml(product.description)}</p>
+                        <p class="product-description">${escapeHtml(product.description || '')}</p>
                         
                         ${product.features ? `
                             <div class="product-features">
@@ -581,6 +579,7 @@
         }
         
         try {
+            // Получаем актуальный баланс пользователя из БД
             const response = await fetch(`/api/user/${authData.id}`);
             const data = await response.json();
             
@@ -766,6 +765,12 @@
         } catch (error) {
             console.error('Purchase error:', error);
             showNotification('Ошибка: ' + error.message, 'error');
+            
+            const confirmBtn = document.querySelector('.btn-primary');
+            if (confirmBtn) {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fas fa-check"></i> Подтвердить';
+            }
         }
     };
 
@@ -982,6 +987,13 @@
                 color: var(--accent);
                 margin: 5px 0 0;
             }
+            
+            .product-image img {
+                width: 100%;
+                height: 200px;
+                object-fit: cover;
+                border-radius: var(--border-radius-lg);
+            }
         `;
         
         document.head.appendChild(styles);
@@ -1108,7 +1120,7 @@
     };
 
     // Экспортируем функции в глобальную область
-    window.retryLoadProducts = loadProducts;
+    window.loadProducts = loadProducts;
     window.getDiscountInfo = getDiscountInfo;
 
     // Обновляем функцию checkAuth
@@ -1125,7 +1137,7 @@
                     <p>
                         <i class="fas fa-info-circle"></i>
                         Для покупки товаров необходимо 
-                        <a href="/auth.html" style="pointer-events: none; opacity: 0.5; cursor: not-allowed;">авторизоваться через Discord</a>
+                        <a href="/auth.html">авторизоваться через Discord</a>
                     </p>
                 `;
                 
@@ -1136,5 +1148,4 @@
             }
         };
     }
-
 })();

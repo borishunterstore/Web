@@ -1,4 +1,4 @@
-﻿/* responsive.css */
+/* responsive.css */
 @media (max-width: 1400px) {
     .admin-container, .shop-container, .profile-container, .news-container, .legal-container, .faq-container {
         padding: 100px 15px 40px;

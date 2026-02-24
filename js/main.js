@@ -3,18 +3,17 @@ document.addEventListener('DOMContentLoaded', function() {
     // Инициализация
     console.log('BHStore loaded');
     
-    // Проверка авторизации
-    checkAuth();
-    
-    // Загрузка продуктов на главной
-    if (document.getElementById('popularProducts')) {
-        loadPopularProducts();
-    }
-    
-    // Загрузка новостей
-    if (document.getElementById('latestNews')) {
-        loadLatestNews();
-    }
+    // Проверка авторизации и загрузка актуальных данных с сервера
+    checkAuth().then(() => {
+        // После проверки авторизации загружаем остальные данные
+        if (document.getElementById('popularProducts')) {
+            loadPopularProducts();
+        }
+        
+        if (document.getElementById('latestNews')) {
+            loadLatestNews();
+        }
+    });
     
     // Мобильное меню
     const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
@@ -30,47 +29,97 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-function checkAuth() {
+async function checkAuth() {
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
     const authBtn = document.getElementById('authBtn');
     
-    if (authBtn) {
-        if (authData.username && !authData.verificationCode) {
-            // Получаем бейджи пользователя
-            const badges = getUserBadges(authData);
+    if (!authBtn) return;
+    
+    // Если есть токен, но нет данных пользователя - пытаемся получить с сервера
+    if (authData.token && authData.id) {
+        try {
+            // Получаем актуальные данные пользователя с сервера
+            const response = await fetch(`/api/user/${authData.id}`);
+            const data = await response.json();
             
-            // Пользователь авторизован
-            authBtn.innerHTML = `
-                <img src="https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=32" 
-                     style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px;"
-                     onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                <span style="vertical-align: middle;">${authData.username}</span>
-                ${badges}
-                <i class="fas fa-chevron-down" style="margin-left: 8px; vertical-align: middle;"></i>
-            `;
-            authBtn.onclick = showUserMenu;
-        } else if (authData.username && authData.verificationCode) {
-            // Пользователь авторизован, но не верифицирован
-            authBtn.innerHTML = `
-                <i class="fas fa-hourglass-half"></i>
-                <span>Завершить регистрацию</span>
-            `;
-            authBtn.onclick = () => {
-                window.location.href = '/verify.html';
-            };
-        } else {
-            // Не авторизован
-            authBtn.innerHTML = '<i class="fab fa-discord"></i> Войти';
-            authBtn.onclick = () => {
-                window.location.href = '/auth.html';
-            };
+            if (data.success && data.user) {
+                // Обновляем локальные данные с сервера
+                authData.username = data.user.username;
+                authData.avatar = data.user.avatar;
+                authData.balance = data.user.balance;
+                authData.badges = data.user.badges;
+                authData.discordId = data.user.discordId;
+                authData.registeredAt = data.user.registeredAt;
+                
+                // Сохраняем обновленные данные
+                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки данных пользователя:', error);
         }
+    }
+    
+    if (authData.username && !authData.verificationCode) {
+        // Получаем бейджи пользователя
+        const badges = getUserBadges(authData);
+        
+        // Загружаем баланс с сервера (еще раз, для уверенности)
+        try {
+            const balanceResponse = await fetch(`/api/user/${authData.id}/balance`);
+            const balanceData = await balanceResponse.json();
+            if (balanceData.success) {
+                authData.balance = balanceData.balance;
+                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки баланса:', error);
+        }
+        
+        // Пользователь авторизован
+        authBtn.innerHTML = `
+            <img src="https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=32" 
+                 style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px;"
+                 onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+            <span style="vertical-align: middle;">${authData.username}</span>
+            ${badges}
+            <i class="fas fa-chevron-down" style="margin-left: 8px; vertical-align: middle;"></i>
+        `;
+        authBtn.onclick = showUserMenu;
+    } else if (authData.username && authData.verificationCode) {
+        // Пользователь авторизован, но не верифицирован
+        authBtn.innerHTML = `
+            <i class="fas fa-hourglass-half"></i>
+            <span>Завершить регистрацию</span>
+        `;
+        authBtn.onclick = () => {
+            window.location.href = '/verify.html';
+        };
+    } else {
+        // Не авторизован
+        authBtn.innerHTML = '<i class="fab fa-discord"></i> Войти';
+        authBtn.onclick = () => {
+            window.location.href = '/auth.html';
+        };
     }
 }
 
 // Показ меню пользователя
-function showUserMenu() {
+async function showUserMenu() {
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+    
+    // Получаем свежие данные с сервера перед показом меню
+    try {
+        const response = await fetch(`/api/user/${authData.id}`);
+        const data = await response.json();
+        
+        if (data.success && data.user) {
+            authData.balance = data.user.balance;
+            authData.badges = data.user.badges;
+            localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки данных для меню:', error);
+    }
     
     // Удаляем старое меню если есть
     const oldMenu = document.querySelector('.user-menu');
@@ -137,7 +186,7 @@ function showUserMenu() {
             <i class="fas fa-coins" style="width: 20px;"></i>
             <span>Баланс</span>
         </a>
-        ${isAdmin() ? `
+        ${await isAdmin() ? `
             <a href="/admin.html" style="display: flex; align-items: center; gap: 10px; padding: 0.75rem; color: #5865F2; text-decoration: none; border-radius: 4px; transition: background 0.3s;">
                 <i class="fas fa-crown" style="width: 20px;"></i>
                 <span>Админ панель</span>
@@ -168,9 +217,24 @@ function showUserMenu() {
 }
 
 // Проверка админ-прав
-function isAdmin() {
+async function isAdmin() {
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-    return authData.discordId === '830087428214751284';
+    
+    // Проверяем админ-права через API
+    if (authData.token) {
+        try {
+            const response = await fetch('/api/admin/users', {
+                headers: {
+                    'Authorization': `Bearer ${authData.token}`
+                }
+            });
+            return response.status !== 403; // Если доступ запрещен - не админ
+        } catch (error) {
+            console.error('Ошибка проверки админ-прав:', error);
+        }
+    }
+    
+    return authData.discordId === '830087428214751284'; // fallback
 }
 
 // Получение бейджей пользователя (для кнопки)
@@ -441,9 +505,14 @@ async function createOrder(productId, productName, price) {
         const data = await response.json();
         
         if (data.success) {
-            // Обновляем баланс в локальных данных
-            authData.balance = (authData.balance || 0) - price;
-            localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+            // Получаем свежий баланс с сервера
+            const balanceResponse = await fetch(`/api/user/${authData.id}/balance`);
+            const balanceData = await balanceResponse.json();
+            
+            if (balanceData.success) {
+                authData.balance = balanceData.balance;
+                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+            }
             
             // Обновляем UI
             checkAuth();
@@ -525,6 +594,3 @@ window.showUserMenu = showUserMenu;
 window.logout = logout;
 window.buyProduct = buyProduct;
 window.isAdmin = isAdmin;
-
-// Проверяем и обновляем цены при загрузке
-setTimeout(updateHomePagePrices, 1500);

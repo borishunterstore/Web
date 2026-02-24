@@ -1,4 +1,4 @@
-﻿class BHStoreAPI {
+class BHStoreAPI {
     constructor() {
         this.baseUrl = '';
         this.authData = this.getAuthData();
@@ -12,15 +12,63 @@
         }
     }
 
-    isAdmin() {
-        const authData = this.getAuthData();
-        return authData.username === 'borisonchik_yt' || 
-               authData.username === 'borisonchik' ||
-               authData.global_name === 'borisonchik_yt';
+    // ✅ Исправлено: проверка админа через сервер
+    async isAdmin() {
+        try {
+            const authData = this.getAuthData();
+            if (!authData.token) return false;
+            
+            // Проверяем через API, является ли пользователь админом
+            const response = await fetch('/api/admin/check', {
+                headers: {
+                    'Authorization': `Bearer ${authData.token}`
+                }
+            });
+            
+            if (!response.ok) return false;
+            
+            const data = await response.json();
+            return data.isAdmin === true;
+            
+        } catch (error) {
+            console.error('Ошибка проверки прав администратора:', error);
+            return false;
+        }
+    }
+
+    // ✅ Новая функция для проверки статуса
+    async checkAdminStatus() {
+        try {
+            const authData = this.getAuthData();
+            if (!authData.token) {
+                return { isAdmin: false, isLoggedIn: false };
+            }
+            
+            const response = await fetch('/api/user/me', {
+                headers: {
+                    'Authorization': `Bearer ${authData.token}`
+                }
+            });
+            
+            if (!response.ok) {
+                return { isAdmin: false, isLoggedIn: false };
+            }
+            
+            const data = await response.json();
+            return {
+                isAdmin: data.user?.badges?.admin === true,
+                isLoggedIn: true,
+                user: data.user
+            };
+            
+        } catch (error) {
+            console.error('Ошибка проверки статуса:', error);
+            return { isAdmin: false, isLoggedIn: false };
+        }
     }
 
     async getChatUsers() {
-        if (!this.isAdmin()) {
+        if (!await this.isAdmin()) {
             throw new Error('Требуются права администратора');
         }
 
@@ -43,7 +91,7 @@
     }
 
     async checkAdminMessages() {
-        if (!this.isAdmin()) {
+        if (!await this.isAdmin()) {
             throw new Error('Требуются права администратора');
         }
 
@@ -66,7 +114,7 @@
     }
 
     async markMessagesAsRead(userId) {
-        if (!this.isAdmin()) {
+        if (!await this.isAdmin()) {
             throw new Error('Требуются права администратора');
         }
 
@@ -134,25 +182,8 @@
         }
     }
 
-    async checkNewMessages(userId, lastChecked) {
-        try {
-            const response = await fetch(
-                `/api/chat/check/${userId}?lastChecked=${lastChecked}`
-            );
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка проверки сообщений:', error);
-            throw error;
-        }
-    }
-
     async getAllUsers() {
-        if (!this.isAdmin()) {
+        if (!await this.isAdmin()) {
             throw new Error('Требуются права администратора');
         }
 
@@ -191,7 +222,7 @@
     }
 
     async addUserBalance(userId, amount, reason) {
-        if (!this.isAdmin()) {
+        if (!await this.isAdmin()) {
             throw new Error('Требуются права администратора');
         }
 
@@ -221,7 +252,7 @@
     }
 
     async removeUserBalance(userId, amount, reason) {
-        if (!this.isAdmin()) {
+        if (!await this.isAdmin()) {
             throw new Error('Требуются права администратора');
         }
 
@@ -251,7 +282,7 @@
     }
 
     async setUserBalance(userId, newBalance, reason) {
-        if (!this.isAdmin()) {
+        if (!await this.isAdmin()) {
             throw new Error('Требуются права администратора');
         }
 
@@ -281,7 +312,7 @@
     }
 
     async getUserBalanceHistory(userId) {
-        if (!this.isAdmin()) {
+        if (!await this.isAdmin()) {
             throw new Error('Требуются права администратора');
         }
 
@@ -303,29 +334,8 @@
         }
     }
 
-    async createOrderWithBalance(orderData) {
-        try {
-            const response = await fetch('/api/create-order-balance', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(orderData)
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка создания заказа:', error);
-            throw error;
-        }
-    }
-
     async getAllOrders() {
-        if (!this.isAdmin()) {
+        if (!await this.isAdmin()) {
             throw new Error('Требуются права администратора');
         }
 
@@ -349,7 +359,7 @@
     }
 
     async sendMessageToUser(userId, message) {
-        if (!this.isAdmin()) {
+        if (!await this.isAdmin()) {
             throw new Error('Требуются права администратора');
         }
 
@@ -377,32 +387,8 @@
         }
     }
 
-    async getUserChat(userId) {
-        if (!this.isAdmin()) {
-            throw new Error('Требуются права администратора');
-        }
-
-        try {
-            const response = await fetch(`/api/admin/chat/${userId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${this.authData.token || ''}`
-                }
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка получения переписки:', error);
-            throw error;
-        }
-    }
-
     async createProduct(productData) {
-        if (!this.isAdmin()) {
+        if (!await this.isAdmin()) {
             throw new Error('Требуются права администратора');
         }
 
@@ -428,7 +414,7 @@
     }
 
     async updateProduct(productId, productData) {
-        if (!this.isAdmin()) throw new Error('Требуются права администратора');
+        if (!await this.isAdmin()) throw new Error('Требуются права администратора');
     
         try {
             const response = await fetch(`/api/admin/products/${productId}`, {
@@ -459,7 +445,7 @@
     }
 
     async deleteProduct(productId) {
-        if (!this.isAdmin()) {
+        if (!await this.isAdmin()) {
             throw new Error('Требуются права администратора');
         }
 
@@ -483,7 +469,7 @@
     }
 
     async getStats() {
-        if (!this.isAdmin()) {
+        if (!await this.isAdmin()) {
             throw new Error('Требуются права администратора');
         }
 
@@ -571,6 +557,12 @@
             throw error;
         }
     }
+
+    async logout() {
+        localStorage.removeItem('bhstore_auth');
+        window.location.href = '/';
+    }
 }
 
-window.BHStoreAPI = BHStoreAPI;
+// Создаем глобальный экземпляр
+window.BHStoreAPI = new BHStoreAPI();

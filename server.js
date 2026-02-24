@@ -12,8 +12,8 @@ const PORT = process.env.PORT || 3000;
 
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'http://bhstore.netlify.app/auth/discord/callback';
-const BOT_API_URL = 'http://bhstore.netlify.app';
+const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'https://bhstore.netlify.app/auth/discord/callback';
+const BOT_API_URL = 'https://bhstore.netlify.app';
 
 console.log('🚀 Запуск BHStore Server...');
 console.log('✅ Client ID:', DISCORD_CLIENT_ID);
@@ -3080,6 +3080,5 @@ app.listen(PORT, () => {
     console.log('  POST /api/user/${userId}/balance        - Отправка сообщения');
     console.log('  POST /api/admin/balance/history/${userId}        - Отправка сообщения');
     console.log('  POST /api/admin/orders        - Отправка сообщения');
-    console.log('  POST /api/chat/send        - Отправка сообщения');
     console.log('  POST /api/chat/send        - Отправка сообщения');
 });
