@@ -1,16 +1,19 @@
 [build]
   functions = "netlify/functions"
   publish = "."
+  command = "echo 'No build needed'"  # Пустая команда вместо start
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/server/api/:splat"
+  to = "/.netlify/functions/server/:splat"
   status = 200
+  force = true
 
 [[redirects]]
-  from = "/auth/discord/callback"
-  to = "/.netlify/functions/server/auth/discord/callback"
+  from = "/auth/*"
+  to = "/.netlify/functions/server/auth/:splat"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/*"
