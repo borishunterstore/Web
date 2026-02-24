@@ -876,8 +876,8 @@ app.post('/api/send-verification', async (req, res) => {
     await axios.post(webhookUrl, {
       content: `<@${userId}>`,
       embeds: [{
-        title: '<:753546discordeyeballs:1445824454818009289> Код верификации',
-        description: `<:4005lightningred:1458877297946918922> Код - \`${code}\``,
+        title: '<:Hearts:1474933149422059712> Код верификации',
+        description: `<:Dot:1474932579328069794> Код - \`${code}\``,
         color: 0x5865F2,
         timestamp: new Date().toISOString()
       }]
