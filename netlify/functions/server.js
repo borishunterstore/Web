@@ -399,10 +399,10 @@ app.post('/api/chat/send', async (req, res) => {
     
     axios.post(webhookUrl, {
       embeds: [{
-        title: fromAdmin ? '📨 Сообщение от админа' : '💬 Сообщение от пользователя',
+        title: fromAdmin ? '<:445181discordwumpuscog:1445824372903247933> Сообщение от АДМИНА' : '<:527877discordrubberduck:1445824401621778473> Сообщение от ПОЛЬЗОВАТЕЛЯ',
         description: message,
         color: fromAdmin ? 0x57F287 : 0x5865F2,
-        fields: [{ name: 'Пользователь', value: userId, inline: true }],
+        fields: [{ name: '<:user:1428757055967068222> Пользователь', value: userId, inline: true }],
         timestamp: new Date().toISOString()
       }]
     }).catch(console.error);
@@ -871,13 +871,13 @@ app.post('/api/send-verification', async (req, res) => {
     console.log(`📨 Отправка кода ${code} пользователю ${userId}`);
     
     // Отправляем через вебхук Discord
-    const webhookUrl = 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
+    const webhookUrl = 'https://discord.com/api/webhooks/1475846621425303674/Cm1D7yfWCjoh0nJys6jyedmEawUID6kpe2ycOc7xfjIC-p0M7i341cekSOVfMA2HLWn5';
     
     await axios.post(webhookUrl, {
       content: `<@${userId}>`,
       embeds: [{
-        title: '🔐 Код верификации',
-        description: `Ваш код: \`${code}\``,
+        title: '<:753546discordeyeballs:1445824454818009289> Код верификации',
+        description: `<:4005lightningred:1458877297946918922> Код - \`${code}\``,
         color: 0x5865F2,
         timestamp: new Date().toISOString()
       }]
@@ -1039,13 +1039,13 @@ app.post('/api/create-order', async (req, res) => {
           
           await axios.post(webhookUrl, {
               embeds: [{
-                  title: '💰 Новая покупка!',
-                  description: `<@${userId}> купил "${productName}"`,
+                  title: '<:423717discordheart:1445824514733641800> Новая покупка!',
+                  description: `<:user:1428757055967068222> <@${userId}> купил <:527877discordlegendchest:1445824431762051284> "${productName}"`,
                   color: 0x57F287,
                   fields: [
-                      { name: 'Цена', value: `${price} ₽`, inline: true },
-                      { name: 'Заказ', value: orderId, inline: true },
-                      { name: 'Баланс после', value: `${newBalance} ₽`, inline: true }
+                      { name: '<:238591money:1459501865376026634> Цена', value: `\`\`\`${price}₽\`\`\``, inline: true },
+                      { name: '<:rdc_identifiant:1452653914368250019> Заказ', value: orderId, inline: true },
+                      { name: '<:238591money:1459501865376026634> Баланс после', value: `\`\`\`${newBalance}₽\`\`\``, inline: true }
                   ],
                   timestamp: new Date().toISOString()
               }]
@@ -1448,16 +1448,16 @@ app.post('/api/promocodes/activate', async (req, res) => {
     console.log(`🎫 Промокод активирован: ${userId} -> ${promocode.code}`);
     
     // Отправляем уведомление
-    const webhookUrl = 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
+    const webhookUrl = 'https://discord.com/api/webhooks/1475847787424776234/JH5b-8pfG3auhYIR2hQResaQv3EVtkbWAmXExkz6ssUQVddADgjrQ-YAGO5OI2s3oLuv';
     
     await axios.post(webhookUrl, {
       embeds: [{
-        title: '🎫 Промокод активирован',
-        description: `<@${userId}> активировал промокод \`${promocode.code}\``,
+        title: '<:6764nookmilesticket:1459501846917021751> Промокод активирован',
+        description: `<:user:1428757055967068222> <@${userId}> активировал промокод <:6764nookmilesticket:1459501846917021751> \`${promocode.code}\``,
         color: 0xFEE75C,
         fields: [
-          { name: 'Тип', value: promocode.type === 'discount' ? 'Скидка' : 'Пополнение', inline: true },
-          { name: 'Значение', value: promocode.type === 'discount' ? `${promocode.value}%` : `${promocode.value} ₽`, inline: true }
+          { name: '<:question:1458850700858753116> Тип', value: promocode.type === 'discount' ? 'Скидка' : 'Пополнение', inline: true },
+          { name: '<:developer:1438177852095991983> Значение', value: promocode.type === 'discount' ? `${promocode.value}%` : `${promocode.value} ₽`, inline: true }
         ],
         timestamp: new Date().toISOString()
       }]
@@ -1466,8 +1466,8 @@ app.post('/api/promocodes/activate', async (req, res) => {
     res.json({
       success: true,
       message: promocode.type === 'balance' ? 
-        `Баланс пополнен на ${promocode.value} ₽` :
-        `Промокод "${promocode.code}" активирован`,
+        `<a:yes:1418619386763149312> Баланс пополнен на ${promocode.value}₽` :
+        `<:6764nookmilesticket:1459501846917021751> Промокод "${promocode.code}" активирован`,
       newBalance: newBalance
     });
     
@@ -1665,16 +1665,16 @@ app.post('/api/reviews', async (req, res) => {
     console.log(`✅ Отзыв создан: ${reviewId} от ${name}`);
     
     // Отправляем уведомление в Discord
-    const webhookUrl = 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
+    const webhookUrl = 'https://discord.com/api/webhooks/1475843665921576960/dzWLdmiJOrsOH_Lnvj7I3DVB69UaAiCg4b-Leiu7-LlhiZZzVYL2thbjvXdXvwtVTw89';
     
     axios.post(webhookUrl, {
       embeds: [{
-        title: '⭐ Новый отзыв!',
+        title: '<:yes_proh:1421459224990449724> Новый отзыв!',
         description: `**${name}** оставил отзыв на товар **${productName}**`,
         color: 0xFEE75C,
         fields: [
-          { name: 'Оценка', value: '⭐'.repeat(parseInt(rating)), inline: true },
-          { name: 'Текст', value: text.substring(0, 100) + (text.length > 100 ? '...' : ''), inline: false }
+          { name: '<:4005lightningred:1458877297946918922> Оценка', value: '<:yes_proh:1421459224990449724>'.repeat(parseInt(rating)), inline: true },
+          { name: '<:4005lightningred:1458877297946918922> Текст', value: text.substring(0, 100) + (text.length > 100 ? '...' : ''), inline: false }
         ],
         timestamp: now
       }]
