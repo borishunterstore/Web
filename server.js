@@ -277,15 +277,6 @@ function initFiles() {
         if (!fs.existsSync(usersFile)) fs.writeFileSync(usersFile, '{}');
         if (!fs.existsSync(productsFile)) {
             fs.writeFileSync(productsFile, JSON.stringify([
-                {
-                    id: 'premium_month',
-                    name: 'Премиум на 1 месяц',
-                    description: 'Доступ ко всем премиум функциям бота AniMurk на 30 дней',
-                    price: 299,
-                    category: 'premium',
-                    icon: 'fas fa-crown',
-                    popular: true
-                }
             ], null, 2));
         }
         if (!fs.existsSync(newsFile)) {
@@ -337,7 +328,7 @@ function saveChatToFile() {
 
 // Функция для отправки вебхуков в Discord
 function sendDiscordWebhook(type, data) {
-    const webhookUrl = 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
+    const webhookUrl = 'https://discord.com/api/webhooks/1475843832254828659/cT3e_PzIgPQFRFX-YTfs7StL4bgsNftpt9V8TaLUfVymneguPT1cWS6JojCTPeDkbwbH';
     
     let embed;
     
@@ -1057,9 +1048,9 @@ app.post('/api/admin/send-message', async (req, res) => {
         saveChatToFile();
         
         // Отправляем через вебхук
-        const webhookUrl = 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
+        const webhookUrl = 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG';
         await axios.post(webhookUrl, {
-            content: `<@${userId}>`,
+        //    content: `<@${userId}>`,
             embeds: [{
                 title: '📨 Сообщение от администратора BHStore',
                 description: message,
