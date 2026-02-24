@@ -1453,11 +1453,11 @@ app.post('/api/promocodes/activate', async (req, res) => {
     await axios.post(webhookUrl, {
       embeds: [{
         title: '<:6764nookmilesticket:1459501846917021751> Промокод активирован',
-        description: `<:user:1428757055967068222> <@${userId}> активировал промокод <:6764nookmilesticket:1459501846917021751> \`${promocode.code}\``,
+        description: `<:User:1474931634804359433> <@${userId}> активировал промокод <:Premium:1474931599622803628> \`${promocode.code}\``,
         color: 0xFEE75C,
         fields: [
-          { name: '<:question:1458850700858753116> Тип', value: promocode.type === 'discount' ? 'Скидка' : 'Пополнение', inline: true },
-          { name: '<:developer:1438177852095991983> Значение', value: promocode.type === 'discount' ? `${promocode.value}%` : `${promocode.value} ₽`, inline: true }
+          { name: '<:Wave:1386273780556496967> Тип', value: promocode.type === 'discount' ? 'Скидка' : 'Пополнение', inline: true },
+          { name: '<:Wave:1386273780556496967> Значение', value: promocode.type === 'discount' ? `${promocode.value}%` : `${promocode.value} ₽`, inline: true }
         ],
         timestamp: new Date().toISOString()
       }]
