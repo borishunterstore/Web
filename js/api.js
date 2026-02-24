@@ -1,4 +1,4 @@
-// api.js - Полная версия для работы с MongoDB на Netlify
+// api.js - Полная версия для работы с PostgreSQL на Neon
 class BHStoreAPI {
     constructor() {
         this.baseUrl = 'https://bhstore.netlify.app/.netlify/functions';
@@ -58,14 +58,24 @@ class BHStoreAPI {
         }
     }
 
-    // ✅ Проверка админа через сервер с MongoDB
+    // ✅ Проверка админа через сервер
     async isAdmin() {
         try {
             const authData = this.getAuthData();
-            if (!authData.token) return false;
             
-            const data = await this.request('/admin-check');
-            return data.isAdmin === true;
+            // Локальная проверка для обратной совместимости
+            const isAdminLocal = authData.username === 'borisonchik_yt' || 
+                                authData.username === 'borisonchik' ||
+                                authData.global_name === 'borisonchik_yt';
+            
+            if (!authData.token) return isAdminLocal;
+            
+            try {
+                const data = await this.request('/admin-check');
+                return data.isAdmin === true || isAdminLocal;
+            } catch {
+                return isAdminLocal;
+            }
         } catch (error) {
             console.error('❌ Error checking admin status:', error);
             return false;
@@ -76,16 +86,29 @@ class BHStoreAPI {
     async checkAdminStatus() {
         try {
             const authData = this.getAuthData();
-            if (!authData.token) {
+            
+            if (!authData.token && !authData.username) {
                 return { isAdmin: false, isLoggedIn: false };
             }
             
-            const data = await this.request('/user-me');
-            return {
-                isAdmin: data.user?.badges?.admin === true || data.user?.badges?.partner === true,
-                isLoggedIn: true,
-                user: data.user
-            };
+            const isAdminLocal = authData.username === 'borisonchik_yt' || 
+                                authData.username === 'borisonchik' ||
+                                authData.global_name === 'borisonchik_yt';
+            
+            try {
+                const data = await this.request('/user-me');
+                return {
+                    isAdmin: data.user?.badges?.admin === true || data.user?.badges?.partner === true || isAdminLocal,
+                    isLoggedIn: true,
+                    user: data.user
+                };
+            } catch {
+                return {
+                    isAdmin: isAdminLocal,
+                    isLoggedIn: !!authData.username,
+                    user: authData
+                };
+            }
         } catch (error) {
             console.error('❌ Error checking status:', error);
             return { isAdmin: false, isLoggedIn: false };
@@ -98,21 +121,10 @@ class BHStoreAPI {
         return this.request('/admin-chat-users');
     }
 
-    async getChatMessages(userId) {
-        return this.request(`/chat-messages/${userId}`);
-    }
-
-    async sendChatMessage(userId, message, fromAdmin = false) {
-        return this.request('/chat-send', {
+    async checkAdminMessages() {
+        return this.request('/admin-check-messages', {
             method: 'POST',
-            body: JSON.stringify({ userId, message, fromAdmin })
-        });
-    }
-
-    async checkNewMessages(userId, lastChecked) {
-        return this.request('/chat-check', {
-            method: 'POST',
-            body: JSON.stringify({ userId, lastChecked })
+            body: JSON.stringify({ lastChecked: Date.now() })
         });
     }
 
@@ -123,10 +135,32 @@ class BHStoreAPI {
         });
     }
 
-    async checkAdminMessages() {
-        return this.request('/admin-check-messages', {
+    async sendChatMessage(userId, message, fromAdmin = false) {
+        return this.request('/chat-send', {
             method: 'POST',
-            body: JSON.stringify({ lastChecked: Date.now() })
+            body: JSON.stringify({ userId, message, fromAdmin })
+        });
+    }
+
+    async getChatMessages(userId) {
+        return this.request(`/chat-messages/${userId}`);
+    }
+
+    async checkNewMessages(userId, lastChecked) {
+        return this.request('/chat-check', {
+            method: 'POST',
+            body: JSON.stringify({ userId, lastChecked })
+        });
+    }
+
+    async getUserChat(userId) {
+        return this.request(`/admin-chat/${userId}`);
+    }
+
+    async sendMessageToUser(userId, message) {
+        return this.request('/admin-send-message', {
+            method: 'POST',
+            body: JSON.stringify({ userId, message })
         });
     }
 
@@ -140,43 +174,39 @@ class BHStoreAPI {
         return this.request(`/user/${userId}`);
     }
 
-    async getCurrentUser() {
-        return this.request('/user-me');
-    }
-
     async getUserBalance(userId) {
-        return this.request(`/user-balance/${userId}`);
+        return this.request(`/user/${userId}/balance`);
     }
 
     async addUserBalance(userId, amount, reason) {
-        return this.request('/admin-balance-add', {
+        return this.request('/admin/balance/add', {
             method: 'POST',
             body: JSON.stringify({ userId, amount, reason })
         });
     }
 
     async removeUserBalance(userId, amount, reason) {
-        return this.request('/admin-balance-remove', {
+        return this.request('/admin/balance/remove', {
             method: 'POST',
             body: JSON.stringify({ userId, amount, reason })
         });
     }
 
     async setUserBalance(userId, newBalance, reason) {
-        return this.request('/admin-balance-set', {
+        return this.request('/admin/balance/set', {
             method: 'POST',
             body: JSON.stringify({ userId, newBalance, reason })
         });
     }
 
     async getUserBalanceHistory(userId) {
-        return this.request(`/admin-balance-history/${userId}`);
+        return this.request(`/admin/balance/history/${userId}`);
     }
 
     // ========== Управление заказами ==========
 
     async getAllOrders() {
-        return this.request('/admin-orders');
+        return this.request('/admin/orders');
     }
 
     async createOrder(orderData) {
@@ -193,13 +223,6 @@ class BHStoreAPI {
         });
     }
 
-    async updateOrderStatus(orderId, status) {
-        return this.request('/admin-update-order', {
-            method: 'POST',
-            body: JSON.stringify({ orderId, status })
-        });
-    }
-
     // ========== Управление товарами ==========
 
     async getProducts() {
@@ -207,162 +230,35 @@ class BHStoreAPI {
     }
 
     async createProduct(productData) {
-        return this.request('/admin-products', {
+        return this.request('/admin/products', {
             method: 'POST',
             body: JSON.stringify(productData)
         });
     }
 
     async updateProduct(productId, productData) {
-        return this.request(`/admin-products/${productId}`, {
+        return this.request(`/admin/products/${productId}`, {
             method: 'PUT',
             body: JSON.stringify(productData)
         });
     }
 
     async deleteProduct(productId) {
-        return this.request(`/admin-products/${productId}`, {
+        return this.request(`/admin/products/${productId}`, {
             method: 'DELETE'
         });
     }
 
-    // ========== Управление новостями ==========
+    // ========== Новости ==========
 
     async getNews() {
         return this.request('/news');
     }
 
-    async createNews(newsData) {
-        return this.request('/admin-news', {
-            method: 'POST',
-            body: JSON.stringify(newsData)
-        });
-    }
-
-    async updateNews(newsId, newsData) {
-        return this.request(`/admin-news/${newsId}`, {
-            method: 'PUT',
-            body: JSON.stringify(newsData)
-        });
-    }
-
-    async deleteNews(newsId) {
-        return this.request(`/admin-news/${newsId}`, {
-            method: 'DELETE'
-        });
-    }
-
-    // ========== Управление отзывами ==========
-
-    async getReviews() {
-        return this.request('/reviews');
-    }
-
-    async addReview(reviewData) {
-        return this.request('/reviews', {
-            method: 'POST',
-            body: JSON.stringify(reviewData)
-        });
-    }
-
-    async markReviewHelpful(reviewId, userId) {
-        return this.request(`/reviews/${reviewId}/helpful`, {
-            method: 'POST',
-            body: JSON.stringify({ userId })
-        });
-    }
-
-    async deleteReview(reviewId) {
-        return this.request(`/admin-reviews/${reviewId}`, {
-            method: 'DELETE'
-        });
-    }
-
-    async addAdminReply(reviewId, reply) {
-        return this.request(`/admin-reviews/${reviewId}/reply`, {
-            method: 'POST',
-            body: JSON.stringify({ reply })
-        });
-    }
-
-    // ========== Управление промокодами ==========
-
-    async checkPromocode(code, userId, productId = null) {
-        return this.request('/promocode-check', {
-            method: 'POST',
-            body: JSON.stringify({ code, userId, productId })
-        });
-    }
-
-    async activatePromocode(code, userId) {
-        return this.request('/promocode-activate', {
-            method: 'POST',
-            body: JSON.stringify({ code, userId })
-        });
-    }
-
-    async getUserPromocodes(userId) {
-        return this.request(`/promocode-user/${userId}`);
-    }
-
-    async getAllPromocodes() {
-        return this.request('/admin-promocodes');
-    }
-
-    async createPromocode(promocodeData) {
-        return this.request('/admin-promocodes', {
-            method: 'POST',
-            body: JSON.stringify(promocodeData)
-        });
-    }
-
-    async updatePromocode(code, promocodeData) {
-        return this.request(`/admin-promocodes/${code}`, {
-            method: 'PUT',
-            body: JSON.stringify(promocodeData)
-        });
-    }
-
-    async deletePromocode(code) {
-        return this.request(`/admin-promocodes/${code}`, {
-            method: 'DELETE'
-        });
-    }
-
     // ========== Статистика ==========
 
     async getStats() {
-        return this.request('/admin-stats');
-    }
-
-    // ========== Discord OAuth ==========
-
-    async discordAuth(code) {
-        return this.request('/auth-discord', {
-            method: 'POST',
-            body: JSON.stringify({ code })
-        });
-    }
-
-    async sendVerification(userId, code) {
-        return this.request('/send-verification', {
-            method: 'POST',
-            body: JSON.stringify({ userId, code })
-        });
-    }
-
-    async registerUser(userData) {
-        return this.request('/register', {
-            method: 'POST',
-            body: JSON.stringify(userData)
-        });
-    }
-
-    async sendWelcomeMessage(userId) {
-        return this.request('/welcome-message', {
-            method: 'POST',
-            body: JSON.stringify({ userId })
-        });
+        return this.request('/admin/stats');
     }
 
     // ========== Утилиты ==========
@@ -405,4 +301,4 @@ const api = new BHStoreAPI();
 window.BHStoreAPI = api;
 window.api = api;
 
-console.log('✅ BHStoreAPI готов к работе с MongoDB');
+console.log('✅ BHStoreAPI готов к работе с PostgreSQL на Neon');
