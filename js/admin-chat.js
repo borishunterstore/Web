@@ -1,3 +1,4 @@
+// admin-chat.js - Адаптирован для Netlify Functions
 class AdminChat {
     constructor() {
         this.api = new BHStoreAPI();
@@ -5,6 +6,7 @@ class AdminChat {
         this.users = [];
         this.pollingInterval = null;
         this.typingUsers = new Set();
+        this.baseUrl = 'https://bhstore.netlify.app/.netlify/functions';
     }
 
     async init() {
@@ -277,10 +279,25 @@ class AdminChat {
 
     async loadUsers() {
         try {
-            const users = await this.api.getAllUsers();
-            this.users = users.users || [];
-            this.renderUsersList();
-            this.updateUnreadCount();
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            
+            const response = await fetch(`${this.baseUrl}/admin-users`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${authData.token || ''}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.users = data.users || [];
+                this.renderUsersList();
+                this.updateUnreadCount();
+            } else {
+                throw new Error(data.error || 'Ошибка загрузки пользователей');
+            }
         } catch (error) {
             console.error('Ошибка загрузки пользователей:', error);
             this.showError('Не удалось загрузить пользователей');
@@ -358,13 +375,26 @@ class AdminChat {
 
     async loadUserChat(userId) {
         try {
-            const data = await this.api.getUserChat(userId);
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            
+            const response = await fetch(`${this.baseUrl}/admin-chat/${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${authData.token || ''}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            const data = await response.json();
             
             if (data.success) {
-                this.currentUserMessages = data.chat || [];
+                this.currentUserMessages = data.messages || [];
+            } else {
+                throw new Error(data.error || 'Ошибка загрузки чата');
             }
         } catch (error) {
             console.error('Ошибка загрузки чата:', error);
+            this.currentUserMessages = [];
         }
     }
 
@@ -457,7 +487,7 @@ class AdminChat {
             return `
                 <div class="message ${messageClass}">
                     <div class="message-content">
-                        ${msg.message}
+                        ${this.escapeHtml(msg.message)}
                     </div>
                     <div class="message-time">
                         ${senderName} • ${time}
@@ -465,6 +495,16 @@ class AdminChat {
                 </div>
             `;
         }).join('');
+    }
+
+    escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return String(unsafe)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
     async sendAdminMessage() {
@@ -477,7 +517,19 @@ class AdminChat {
         try {
             this.addMessageToUI(message, true);
             
-            await this.api.sendMessageToUser(this.selectedUserId, message);
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            
+            await fetch(`${this.baseUrl}/admin-send-message`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authData.token || ''}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: this.selectedUserId,
+                    message: message
+                })
+            });
             
             input.value = '';
             input.focus();
@@ -503,7 +555,7 @@ class AdminChat {
         const messageHTML = `
             <div class="message ${messageClass}">
                 <div class="message-content">
-                    ${message}
+                    ${this.escapeHtml(message)}
                 </div>
                 <div class="message-time">
                     ${senderName} • ${time}
@@ -539,22 +591,28 @@ class AdminChat {
     }
 
     async checkNewMessages() {
+        if (!this.selectedUserId) return;
+        
         try {
-            const data = await this.api.checkAdminMessages();
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             
-            if (data.success) {
-                if (data.unreadCounts) {
-                    this.updateUnreadCounts(data.unreadCounts);
-                }
-                
-                if (data.typingUsers) {
-                    this.updateTypingUsers(data.typingUsers);
-                }
-                
-                if (this.selectedUserId) {
-                    await this.loadUserChat(this.selectedUserId);
-                    this.updateChatPanel();
-                }
+            const response = await fetch(`${this.baseUrl}/admin-check-messages`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authData.token || ''}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: this.selectedUserId,
+                    lastChecked: Date.now()
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success && data.hasNewMessages) {
+                await this.loadUserChat(this.selectedUserId);
+                this.updateChatPanel();
             }
         } catch (error) {
             console.error('Ошибка проверки сообщений:', error);
@@ -585,7 +643,16 @@ class AdminChat {
 
     async markAsRead(userId) {
         try {
-            await this.api.markMessagesAsRead(userId);
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            
+            await fetch(`${this.baseUrl}/admin-mark-read`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${authData.token || ''}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ userId })
+            });
         } catch (error) {
             console.error('Ошибка отметки как прочитано:', error);
         }
@@ -645,17 +712,45 @@ class AdminChat {
         const user = this.users.find(u => u.discordId === userId);
         if (!user) return;
         
-        alert(`
-            Информация о пользователе:
+        const info = `
+            👤 Информация о пользователе:
             
-            ID: ${user.discordId}
-            Имя: ${user.username || 'Без имени'}
-            Непрочитанных: ${user.unreadMessages || 0}
-        `);
+            🆔 Discord ID: ${user.discordId}
+            📝 Имя: ${user.username || 'Без имени'}
+            📧 Email: ${user.email || 'Не указан'}
+            💰 Баланс: ${user.balance || 0} ₽
+            📦 Заказов: ${user.orderCount || 0}
+            💬 Непрочитанных: ${user.unreadMessages || 0}
+            📅 Регистрация: ${user.registeredAt ? new Date(user.registeredAt).toLocaleDateString('ru-RU') : 'Неизвестно'}
+        `;
+        
+        alert(info);
     }
 
     showError(message) {
-        console.error('Chat error:', message);
+        const notification = document.createElement('div');
+        notification.className = 'notification error';
+        notification.innerHTML = `
+            <i class="fas fa-exclamation-circle"></i>
+            <span>${message}</span>
+        `;
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #ED4245;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
     }
 }
 
