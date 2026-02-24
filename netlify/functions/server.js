@@ -443,10 +443,20 @@ async function insertTestProducts() {
 }
 
 // Запускаем инициализацию БД
-if (sql) {
-  initDatabase();
+async function initializeAll() {
+  if (sql) {
+    try {
+      await initDatabase();
+      await createProductsTable();
+      console.log('✅ Все таблицы инициализированы');
+    } catch (error) {
+      console.error('❌ Ошибка инициализации:', error);
+    }
+  }
 }
-await createProductsTable();
+
+// Вызови без await
+initializeAll();
 // ============================================
 // API маршруты для чата
 // ============================================
