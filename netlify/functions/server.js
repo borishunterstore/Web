@@ -945,121 +945,341 @@ app.post('/api/register', async (req, res) => {
 // Создание заказа
 app.post('/api/create-order', async (req, res) => {
   try {
-    const { userId, productName, price } = req.body;
-    console.log(`🛒 Заказ от ${userId}: ${productName}`);
-    
-    const orderId = `ORD-${Date.now()}`;
-    
-    // Получаем пользователя
-    const [user] = await sql`
-      SELECT * FROM users WHERE discord_id = ${userId}
-    `;
-    
-    if (!user) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Пользователь не найден' 
-      });
-    }
-    
-    const currentBalance = user.balance || 0;
-    
-    if (currentBalance < price) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Недостаточно средств на балансе' 
-      });
-    }
-    
-    // Обновляем заказы
-    const orders = user.orders || [];
-    const newOrder = {
-      id: orderId,
-      productName: productName,
-      price: price,
-      date: new Date().toISOString(),
-      status: 'completed'
-    };
-    orders.push(newOrder);
-    
-    // Обновляем бейджи
-    const badges = user.badges || {};
-    badges.buyer = true;
-    
-    // Сохраняем в БД
-    await sql`
-      UPDATE users 
-      SET balance = ${currentBalance - price}, 
-          orders = ${JSON.stringify(orders)},
-          badges = ${JSON.stringify(badges)}
-      WHERE discord_id = ${userId}
-    `;
+      const { userId, productId, productName, price, originalPrice, username, promocodes, discount, discountAmount } = req.body;
+      
+      console.log(`🛒 Заказ от ${username || userId}: ${productName} за ${price} ₽`);
+      
+      const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+      
+      // Получаем пользователя
+      let user = null;
+      
+      if (sql) {
+          try {
+              const [dbUser] = await sql`
+                  SELECT * FROM users WHERE discord_id = ${userId}
+              `;
+              user = dbUser;
+          } catch (dbError) {
+              console.error('❌ Ошибка получения пользователя из БД:', dbError.message);
+          }
+      }
+      
+      // Если нет в БД, проверяем в памяти
+      if (!user) {
+          user = users[userId];
+      }
+      
+      if (!user) {
+          return res.status(404).json({ 
+              success: false, 
+              error: 'Пользователь не найден' 
+          });
+      }
+      
+      const currentBalance = user.balance || 0;
+      
+      if (currentBalance < price) {
+          return res.status(400).json({ 
+              success: false, 
+              error: 'Недостаточно средств на балансе' 
+          });
+      }
+      
+      const newBalance = currentBalance - price;
+      
+      // Создаем заказ
+      const order = {
+          id: orderId,
+          productId,
+          productName,
+          price,
+          originalPrice: originalPrice || price,
+          discount,
+          discountAmount,
+          promocodes: promocodes || [],
+          date: new Date().toISOString(),
+          status: 'completed'
+      };
+      
+      // Обновляем в памяти
+      if (users[userId]) {
+          users[userId].balance = newBalance;
+          users[userId].orders = users[userId].orders || [];
+          users[userId].orders.push(order);
+          users[userId].badges = users[userId].badges || {};
+          users[userId].badges.buyer = true;
+      }
+      
+      // Обновляем в БД
+      if (sql) {
+          try {
+              const orders = user.orders || [];
+              orders.push(order);
+              
+              const badges = user.badges || {};
+              badges.buyer = true;
+              
+              await sql`
+                  UPDATE users 
+                  SET balance = ${newBalance}, 
+                      orders = ${JSON.stringify(orders)},
+                      badges = ${JSON.stringify(badges)}
+                  WHERE discord_id = ${userId}
+              `;
+              console.log('✅ Заказ сохранен в БД');
+          } catch (dbError) {
+              console.error('❌ Ошибка сохранения заказа в БД:', dbError.message);
+          }
+      }
 
-    // Отправляем уведомление
-    const webhookUrl = 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
-    
-    await axios.post(webhookUrl, {
-      embeds: [{
-        title: '💰 Новая покупка!',
-        description: `<@${userId}> купил "${productName}"`,
-        color: 0x57F287,
-        fields: [
-          { name: 'Цена', value: `${price} ₽`, inline: true },
-          { name: 'Заказ', value: orderId, inline: true },
-          { name: 'Баланс после', value: `${currentBalance - price} ₽`, inline: true }
-        ],
-        timestamp: new Date().toISOString()
-      }]
-    });
+      // Отправляем уведомление в Discord
+      try {
+          const webhookUrl = 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
+          
+          await axios.post(webhookUrl, {
+              embeds: [{
+                  title: '💰 Новая покупка!',
+                  description: `<@${userId}> купил "${productName}"`,
+                  color: 0x57F287,
+                  fields: [
+                      { name: 'Цена', value: `${price} ₽`, inline: true },
+                      { name: 'Заказ', value: orderId, inline: true },
+                      { name: 'Баланс после', value: `${newBalance} ₽`, inline: true }
+                  ],
+                  timestamp: new Date().toISOString()
+              }]
+          });
+      } catch (webhookError) {
+          console.error('❌ Ошибка отправки вебхука:', webhookError.message);
+      }
 
-    res.json({
-      success: true,
-      orderId: orderId,
-      newBalance: currentBalance - price
-    });
+      res.json({
+          success: true,
+          orderId: orderId,
+          newBalance: newBalance
+      });
 
   } catch (error) {
-    console.error('❌ Ошибка заказа:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Ошибка создания заказа' 
-    });
+      console.error('❌ Ошибка заказа:', error.message);
+      res.status(500).json({ 
+          success: false, 
+          error: 'Ошибка создания заказа' 
+      });
   }
 });
 
 // Получение товаров
-app.get('/api/products', (req, res) => {
+app.get('/api/products', async (req, res) => {
   try {
-    const products = [
-      {
-        id: 'premium_month',
-        name: 'Премиум на 1 месяц',
-        description: 'Доступ ко всем премиум функциям бота на 30 дней',
-        price: 299,
-        category: 'premium',
-        icon: 'fas fa-crown',
-        popular: true
-      },
-      {
-        id: 'premium_year',
-        name: 'Премиум на 1 год',
-        description: 'Доступ ко всем премиум функциям бота на 365 дней',
-        price: 2499,
-        category: 'premium',
-        icon: 'fas fa-crown',
-        discount: 30
+      console.log('📦 Запрос товаров');
+      
+      // Пробуем получить товары из БД
+      let products = [];
+      
+      if (sql) {
+          try {
+              // Проверяем, существует ли таблица products
+              const tableExists = await sql`
+                  SELECT EXISTS (
+                      SELECT FROM information_schema.tables 
+                      WHERE table_name = 'products'
+                  );
+              `;
+              
+              if (tableExists[0].exists) {
+                  products = await sql`SELECT * FROM products ORDER BY created_at DESC`;
+                  console.log(`✅ Загружено ${products.length} товаров из БД`);
+              } else {
+                  console.log('📝 Таблица products не найдена, создаем...');
+                  await createProductsTable();
+                  // После создания таблицы добавляем тестовые товары
+                  await insertTestProducts();
+                  products = await sql`SELECT * FROM products ORDER BY created_at DESC`;
+              }
+          } catch (dbError) {
+              console.error('❌ Ошибка при работе с БД:', dbError.message);
+          }
       }
-    ];
-    
-    res.json({ success: true, products });
+      
+      // Если БД не доступна или нет товаров, используем тестовые данные
+      if (!products || products.length === 0) {
+          console.log('📝 Используем тестовые товары из памяти');
+          products = getTestProducts();
+      }
+      
+      // Преобразуем в нужный формат
+      const formattedProducts = products.map(product => ({
+          id: product.id || product.discord_id,
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          category: product.category,
+          icon: product.icon || '/image/default-product.png',
+          image: product.image || product.icon || '/image/default-product.png',
+          features: product.features || [],
+          popular: product.popular || false,
+          discount: product.discount || 0
+      }));
+      
+      res.json({
+          success: true,
+          products: formattedProducts
+      });
+      
   } catch (error) {
-    console.error('❌ Ошибка товаров:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Ошибка загрузки товаров' 
-    });
+      console.error('❌ Ошибка получения товаров:', error.message);
+      
+      // В случае ошибки возвращаем тестовые товары
+      res.json({
+          success: true,
+          products: getTestProducts()
+      });
   }
 });
+
+// Функция для создания таблицы products
+async function createProductsTable() {
+  if (!sql) return;
+  
+  try {
+      await sql`
+          CREATE TABLE IF NOT EXISTS products (
+              id TEXT PRIMARY KEY,
+              name TEXT NOT NULL,
+              description TEXT,
+              price INTEGER NOT NULL,
+              category TEXT,
+              icon TEXT,
+              image TEXT,
+              features JSONB DEFAULT '[]',
+              popular BOOLEAN DEFAULT FALSE,
+              discount INTEGER DEFAULT 0,
+              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          )
+      `;
+      console.log('✅ Таблица products создана');
+  } catch (error) {
+      console.error('❌ Ошибка создания таблицы products:', error.message);
+  }
+}
+
+// Функция для добавления тестовых товаров
+async function insertTestProducts() {
+  if (!sql) return;
+  
+  try {
+      const testProducts = [
+          {
+              id: 'premium_month',
+              name: 'Премиум на 1 месяц',
+              description: 'Доступ ко всем премиум функциям бота на 30 дней',
+              price: 299,
+              category: 'premium',
+              icon: 'fas fa-crown',
+              popular: true,
+              features: ['Все премиум команды', 'Приоритетная поддержка', 'Эксклюзивные функции']
+          },
+          {
+              id: 'premium_year',
+              name: 'Премиум на 1 год',
+              description: 'Доступ ко всем премиум функциям бота на 365 дней',
+              price: 2499,
+              category: 'premium',
+              icon: 'fas fa-crown',
+              discount: 30,
+              features: ['Все функции месячного', 'Скидка 30%', 'Бонусные команды']
+          },
+          {
+              id: 'discord_bot_economy',
+              name: 'Экономический бот',
+              description: 'Что входит в тариф:',
+              price: 999,
+              category: 'discordbot',
+              icon: 'image/emoji/shop_discord.png',
+              features: [
+                  'Экономическая система',
+                  'Магазин и инвентарь',
+                  'Работы и зарплаты',
+                  'Трансферы между пользователями'
+              ]
+          }
+      ];
+      
+      for (const product of testProducts) {
+          await sql`
+              INSERT INTO products (id, name, description, price, category, icon, features, popular, discount)
+              VALUES (
+                  ${product.id},
+                  ${product.name},
+                  ${product.description},
+                  ${product.price},
+                  ${product.category},
+                  ${product.icon},
+                  ${JSON.stringify(product.features || [])},
+                  ${product.popular || false},
+                  ${product.discount || 0}
+              )
+              ON CONFLICT (id) DO UPDATE SET
+                  name = EXCLUDED.name,
+                  description = EXCLUDED.description,
+                  price = EXCLUDED.price,
+                  category = EXCLUDED.category,
+                  icon = EXCLUDED.icon,
+                  features = EXCLUDED.features,
+                  popular = EXCLUDED.popular,
+                  discount = EXCLUDED.discount
+          `;
+      }
+      
+      console.log('✅ Тестовые товары добавлены в БД');
+  } catch (error) {
+      console.error('❌ Ошибка добавления тестовых товаров:', error.message);
+  }
+}
+
+// Функция для получения тестовых товаров (если БД не доступна)
+function getTestProducts() {
+  return [
+      {
+          id: 'premium_month',
+          name: 'Премиум на 1 месяц',
+          description: 'Доступ ко всем премиум функциям бота на 30 дней',
+          price: 299,
+          category: 'premium',
+          icon: 'fas fa-crown',
+          image: '/image/default-product.png',
+          popular: true,
+          features: ['Все премиум команды', 'Приоритетная поддержка', 'Эксклюзивные функции']
+      },
+      {
+          id: 'premium_year',
+          name: 'Премиум на 1 год',
+          description: 'Доступ ко всем премиум функциям бота на 365 дней',
+          price: 2499,
+          category: 'premium',
+          icon: 'fas fa-crown',
+          image: '/image/default-product.png',
+          discount: 30,
+          features: ['Все функции месячного', 'Скидка 30%', 'Бонусные команды']
+      },
+      {
+          id: 'discord_bot_economy',
+          name: 'Экономический бот',
+          description: 'Что входит в тариф:',
+          price: 999,
+          category: 'discordbot',
+          icon: 'image/emoji/shop_discord.png',
+          image: '/image/default-product.png',
+          features: [
+              'Экономическая система',
+              'Магазин и инвентарь',
+              'Работы и зарплаты',
+              'Трансферы между пользователями'
+          ]
+      }
+  ];
+}
 
 // Получение новостей
 app.get('/api/news', (req, res) => {
