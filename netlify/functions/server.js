@@ -13,8 +13,8 @@ const app = express();
 // Конфигурация
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'https://your-site.netlify.app/auth/discord/callback';
-const BOT_API_URL = process.env.BOT_API_URL || 'http://localhost:8080';
+const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'https://bhstore.netlify.app/auth/discord/callback';
+const BOT_API_URL = process.env.BOT_API_URL || 'http://bhstore.netlify.app';
 
 console.log('🚀 Запуск BHStore Server (Netlify Function)...');
 console.log('✅ Client ID:', DISCORD_CLIENT_ID);
