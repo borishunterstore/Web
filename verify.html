@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Верификация - BHStore</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/image/logo.png">
+    <style>
+        .verify-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e1f29 0%, #14151a 100%);
+        }
+        
+        .verify-card {
+            background: #2a2b36;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .verify-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .verify-header i {
+            font-size: 50px;
+            color: #5865F2;
+            margin-bottom: 20px;
+        }
+        
+        .verify-header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .verify-header p {
+            color: #b9bbbe;
+            font-size: 16px;
+        }
+        
+        .code-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+        }
+        
+        .code-input {
+            width: 50px;
+            height: 60px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            border: 2px solid #40444b;
+            border-radius: 8px;
+            background: #1e1f29;
+            color: white;
+            transition: all 0.3s;
+        }
+        
+        .code-input:focus {
+            border-color: #5865F2;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.3);
+        }
+        
+        .code-input.filled {
+            border-color: #57F287;
+        }
+        
+        .timer {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #b9bbbe;
+        }
+        
+        .timer span {
+            color: #57F287;
+            font-weight: bold;
+        }
+        
+        .btn-verify {
+            width: 100%;
+            padding: 16px;
+            background: #57F287;
+            color: #1e1f29;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .btn-verify:hover {
+            background: #4ad477;
+            transform: translateY(-2px);
+        }
+        
+        .btn-verify:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .btn-resend {
+            width: 100%;
+            padding: 16px;
+            background: transparent;
+            color: #5865F2;
+            border: 2px solid #5865F2;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s;
+        }
+        
+        .btn-resend:hover:not(:disabled) {
+            background: rgba(88, 101, 242, 0.1);
+        }
+        
+        .btn-resend:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .instruction {
+            background: rgba(88, 101, 242, 0.1);
+            border-left: 4px solid #5865F2;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            color: #b9bbbe;
+        }
+        
+        .error-message {
+            background: rgba(237, 66, 69, 0.1);
+            border: 1px solid rgba(237, 66, 69, 0.3);
+            color: #ED4245;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .success-message {
+            background: rgba(87, 242, 135, 0.1);
+            border: 1px solid rgba(87, 242, 135, 0.3);
+            color: #57F287;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .verify-footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #b9bbbe;
+        }
+        
+        .verify-footer a {
+            color: #5865F2;
+            text-decoration: none;
+        }
+        
+        .verify-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="verify-container">
+        <div class="verify-card">
+            <div class="verify-header">
+                <i class="fas fa-shield-check"></i>
+                <h1>Верификация аккаунта</h1>
+                <p>Введите 6-значный код, отправленный вам в Discord</p>
+            </div>
+            
+            <div class="instruction">
+                <p><i class="fas fa-envelope"></i> Код был отправлен вам в личные сообщения Discord. Проверьте свои DM от бота BHStore.</p>
+            </div>
+            
+            <div class="code-inputs">
+                <input type="text" class="code-input" maxlength="1" data-index="0">
+                <input type="text" class="code-input" maxlength="1" data-index="1">
+                <input type="text" class="code-input" maxlength="1" data-index="2">
+                <input type="text" class="code-input" maxlength="1" data-index="3">
+                <input type="text" class="code-input" maxlength="1" data-index="4">
+                <input type="text" class="code-input" maxlength="1" data-index="5">
+            </div>
+            
+            <div class="timer">
+                Код действителен: <span id="countdown">10:00</span>
+            </div>
+            
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+            
+            <button id="verifyBtn" class="btn-verify">
+                <i class="fas fa-check"></i> Подтвердить код
+            </button>
+            
+            <button id="resendBtn" class="btn-resend" disabled>
+                <i class="fas fa-redo"></i> Отправить код повторно (<span id="resendTimer">60</span>с)
+            </button>
+            
+            <div class="verify-footer">
+                <p>Не получили код? <a href="#" id="helpLink">Получить помощь</a></p>
+                <p><a href="/auth.html"><i class="fas fa-arrow-left"></i> Вернуться к авторизации</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const codeInputs = document.querySelectorAll('.code-input');
+            const verifyBtn = document.getElementById('verifyBtn');
+            const resendBtn = document.getElementById('resendBtn');
+            const countdown = document.getElementById('countdown');
+            const resendTimer = document.getElementById('resendTimer');
+            const errorMessage = document.getElementById('errorMessage');
+            const successMessage = document.getElementById('successMessage');
+            const helpLink = document.getElementById('helpLink');
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            if (!authData.verificationCode) {
+                window.location.href = '/auth.html';
+                return;
+            }
+            codeInputs.forEach((input, index) => {
+                input.addEventListener('input', function(e) {
+                    const value = e.target.value;
+                    if (value && !/^\d$/.test(value)) {
+                        e.target.value = '';
+                        return;
+                    }
+                    if (value) {
+                        e.target.classList.add('filled');
+                    } else {
+                        e.target.classList.remove('filled');
+                    }
+                    if (value && index < codeInputs.length - 1) {
+                        codeInputs[index + 1].focus();
+                    }
+                    checkCodeComplete();
+                });
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                        codeInputs[index - 1].focus();
+                    }
+                });
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pasteData = e.clipboardData.getData('text').trim();
+                    
+                    if (/^\d{6}$/.test(pasteData)) {
+                        pasteData.split('').forEach((char, i) => {
+                            if (codeInputs[i]) {
+                                codeInputs[i].value = char;
+                                codeInputs[i].classList.add('filled');
+                            }
+                        });
+                        if (codeInputs[5]) {
+                            codeInputs[5].focus();
+                        }
+                        
+                        checkCodeComplete();
+                    }
+                });
+            });
+            function checkCodeComplete() {
+                const code = Array.from(codeInputs).map(input => input.value).join('');
+                verifyBtn.disabled = code.length !== 6;
+            }
+            let timeLeft = 600;
+            function updateCountdown() {
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                countdown.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    countdown.textContent = '00:00';
+                    verifyBtn.disabled = true;
+                    showError('Срок действия кода истек. Пожалуйста, запросите новый код.');
+                }
+                
+                timeLeft--;
+            }
+            
+            const countdownInterval = setInterval(updateCountdown, 1000);
+            updateCountdown();
+            let resendTime = 60;
+            function updateResendTimer() {
+                resendTimer.textContent = resendTime;
+                
+                if (resendTime <= 0) {
+                    clearInterval(resendInterval);
+                    resendBtn.disabled = false;
+                    resendBtn.innerHTML = '<i class="fas fa-redo"></i> Отправить код повторно';
+                }
+                
+                resendTime--;
+            }
+            
+            const resendInterval = setInterval(updateResendTimer, 1000);
+            updateResendTimer();
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+            }
+            function showSuccess(message) {
+                successMessage.textContent = message;
+                successMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+            }
+            
+            verifyBtn.addEventListener('click', async function() {
+                const code = Array.from(codeInputs).map(input => input.value).join('');
+                
+                if (code.length !== 6) {
+                    showError('Пожалуйста, введите полный 6-значный код');
+                    return;
+                }
+                const originalText = verifyBtn.innerHTML;
+                verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Проверка...';
+                verifyBtn.disabled = true;
+                
+                try {
+                    if (code !== authData.verificationCode) {
+                        throw new Error('Неверный код верификации');
+                    }
+                    const response = await fetch('/api/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            discordId: authData.id,
+                            username: authData.username,
+                            email: authData.email || '',
+                            avatar: authData.avatar
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        delete authData.verificationCode;
+                        localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                        await fetch('/api/welcome-message', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ userId: authData.id })
+                        });
+                        
+                        showSuccess('✅ Верификация успешно завершена! Перенаправление...');
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 2000);
+                        
+                    } else {
+                        throw new Error(result.error || 'Ошибка регистрации');
+                    }
+                    
+                } catch (error) {
+                    console.error('Verification error:', error);
+                    showError(error.message || 'Неверный код верификации');
+                    codeInputs.forEach(input => {
+                        input.value = '';
+                        input.classList.remove('filled');
+                    });
+                    if (codeInputs[0]) {
+                        codeInputs[0].focus();
+                    }
+                    verifyBtn.innerHTML = originalText;
+                    verifyBtn.disabled = false;
+                }
+            });
+            
+            resendBtn.addEventListener('click', async function() {
+                resendBtn.disabled = true;
+                resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+                
+                try {
+                    const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+                    const response = await fetch('/api/send-verification', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            userId: authData.id,
+                            code: newCode
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        authData.verificationCode = newCode;
+                        localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                        
+                        showSuccess('✅ Новый код отправлен! Проверьте Discord.');
+                        timeLeft = 600;
+                        updateCountdown();
+                        
+                        resendTime = 60;
+                        updateResendTimer();
+                        resendInterval = setInterval(updateResendTimer, 1000);
+                        codeInputs.forEach(input => {
+                            input.value = '';
+                            input.classList.remove('filled');
+                        });
+                        
+                        if (codeInputs[0]) {
+                            codeInputs[0].focus();
+                        }
+                        
+                    } else {
+                        throw new Error(result.error || 'Ошибка отправки кода');
+                    }
+                    
+                } catch (error) {
+                    console.error('Resend error:', error);
+                    showError('Ошибка отправки кода: ' + error.message);
+                }
+                resendTime = 60;
+                const newResendInterval = setInterval(() => {
+                    resendTimer.textContent = resendTime;
+                    
+                    if (resendTime <= 0) {
+                        clearInterval(newResendInterval);
+                        resendBtn.disabled = false;
+                        resendBtn.innerHTML = '<i class="fas fa-redo"></i> Отправить код повторно';
+                    }
+                    
+                    resendTime--;
+                }, 1000);
+            });
+            helpLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                showError('Если вы не получили код, убедитесь что:<br>1. У вас открыты личные сообщения от ботов<br>2. Бот BHStore может отправлять вам сообщения<br>3. Проверьте папку "Запросы сообщений" в Discord');
+            });
+            if (codeInputs[0]) {
+                setTimeout(() => {
+                    codeInputs[0].focus();
+                }, 100);
+            }
+        });
+    </script>
+        <script src="js/cursor.js"></script>
+        <div class="custom-cursor"></div>
+        <canvas id="webCanvas"></canvas>
+        <div class="scroll-indicator">
+        <span class="scroll-value">0%</span>
+        <script src="js/mobile-nav.js"></script>
+        </div>
+        <script src="js/pkm.js"></script>
+</body>
+</html>

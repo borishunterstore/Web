@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Новости - BHStore</title>
+    <link rel="stylesheet" href="css/general.css">
+    <link rel="stylesheet" href="css/news.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/image/logo.png">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="image/logo.png" alt="BHStore" style="width: 50px;">
+                <span class="logo-text">BHStore</span>
+            </a>
+            <div class="nav-menu">
+                <a href="/" class="nav-link"><i class="fas fa-home"></i> Главная</a>
+                <a href="/shop.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Магазин</a>
+                <a href="/news.html" class="nav-link active"><i class="fas fa-newspaper"></i> Новости</a>
+                <a href="/faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
+                <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Правовая информация</a>
+            </div>
+            <div class="nav-auth" style="pointer-events: none; opacity: 0.5; cursor: not-allowed;">
+                <button id="authBtn" class="btn-discord">
+                    <i class="fab fa-discord"></i> Войти
+                </button>
+            </div>
+            <button class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div class="news-banner">
+        <img src="image/banner.jpg" alt="News Banner" class="news-banner-image">
+        <div class="news-banner-overlay">
+            <div class="news-banner-title">
+                Новости BHStore
+                <span>Будьте в курсе последних обновлений</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="news-container">
+        <h1 class="section-title">
+            <i class="fas fa-newspaper"></i>
+            Последние новости
+        </h1>
+
+        <div class="news-filters">
+            <button class="news-filter-btn active" data-filter="all">
+                <i class="fas fa-globe"></i> Все новости
+            </button>
+            <button class="news-filter-btn" data-filter="updates">
+                <i class="fas fa-rocket"></i> Обновления
+            </button>
+            <button class="news-filter-btn" data-filter="events">
+                <i class="fas fa-calendar-alt"></i> События
+            </button>
+            <button class="news-filter-btn" data-filter="promo">
+                <i class="fas fa-gift"></i> Акции
+            </button>
+        </div>
+
+        <div class="news-search">
+            <input type="text" id="newsSearch" placeholder="Поиск по новостям...">
+            <i class="fas fa-search"></i>
+        </div>
+
+        <div class="news-stats">
+            <div class="stat-item">
+                <div class="stat-icon">
+                    <i class="fas fa-newspaper"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>Всего новостей</h4>
+                    <p id="totalNews">0</p>
+                </div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-week"></i>
+                </div>
+                <div class="stat-info">
+                    <h4>За последнюю неделю</h4>
+                    <p id="weeklyNews">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="newsArticles" class="news-grid"></div>
+        <div class="news-pagination" id="pagination"></div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>BHStore</h3>
+                <p>Следите за нашими обновлениями</p>
+                <div class="social-links">
+                    <a href="https://discord.gg/YfZxXXeW6D"><i class="fab fa-discord"></i></a>
+                    <a href="https://t.me/BorisHunterStore"><i class="fab fa-telegram"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Навигация</h3>
+                <a href="/index.html">Главная</a>
+                <a href="/shop.html">Магазин</a>
+                <a href="/news.html">Новости</a>
+                <a href="/faq.html">FAQ</a>
+                <a href="/legal.html">Правовая информация</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</a></p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            const newsContainer = document.getElementById('newsArticles');
+            const totalNewsEl = document.getElementById('totalNews');
+            const weeklyNewsEl = document.getElementById('weeklyNews');
+            const searchInput = document.getElementById('newsSearch');
+            const filterButtons = document.querySelectorAll('.news-filter-btn');
+            
+            let allNews = [];
+            let currentFilter = 'all';
+            let searchTerm = '';
+            let currentPage = 1;
+            const newsPerPage = 5;
+
+            try {
+                newsContainer.innerHTML = `
+                    <div class="news-loading">
+                        <i class="fas fa-circle-notch"></i>
+                        <p>Загрузка...</p>
+                    </div>
+                `;
+
+                const response = await fetch('/api/news');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allNews = data.news;
+                    totalNewsEl.textContent = allNews.length;
+                    const oneWeekAgo = new Date();
+                    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                    const weeklyNews = allNews.filter(article => {
+                        const articleDate = new Date(article.date.split('.').reverse().join('-'));
+                        return articleDate >= oneWeekAgo;
+                    }).length;
+                    weeklyNewsEl.textContent = weeklyNews;
+
+                    renderNews();
+                }
+            } catch (error) {
+                console.error('Error loading news:', error);
+                newsContainer.innerHTML = `
+                    <div class="news-empty">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Не удалось загрузить...</p>
+                        <span>В скором времени разработчик исправит!</span>
+                    </div>
+                `;
+            }
+
+            filterButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = btn.dataset.filter;
+                    currentPage = 1;
+                    renderNews();
+                });
+            });
+
+            searchInput.addEventListener('input', (e) => {
+                searchTerm = e.target.value.toLowerCase();
+                currentPage = 1;
+                renderNews();
+            });
+
+            function renderNews() {
+                let filteredNews = allNews.filter(article => {
+                    if (currentFilter !== 'all' && article.category.toLowerCase() !== currentFilter) {
+                        return false;
+                    }
+                    
+                    if (searchTerm) {
+                        return article.title.toLowerCase().includes(searchTerm) || 
+                               article.content.toLowerCase().includes(searchTerm) ||
+                               (article.tags && article.tags.some(tag => tag.toLowerCase().includes(searchTerm)));
+                    }
+                    
+                    return true;
+                });
+
+                const totalPages = Math.ceil(filteredNews.length / newsPerPage);
+                const startIndex = (currentPage - 1) * newsPerPage;
+                const paginatedNews = filteredNews.slice(startIndex, startIndex + newsPerPage);
+
+                if (paginatedNews.length === 0) {
+                    newsContainer.innerHTML = `
+                        <div class="news-empty">
+                            <i class="fas fa-newspaper"></i>
+                            <p>Новости не найдены</p>
+                            <span>Попробуйте изменить параметры поиска</span>
+                        </div>
+                    `;
+                } else {
+                    newsContainer.innerHTML = paginatedNews.map((article, index) => `
+                        <div class="news-article" style="animation-delay: ${index * 0.1}s">
+                            <h2>${article.title}</h2>
+                            <div class="news-meta">
+                                <span><i class="fas fa-calendar-alt"></i> ${article.date}</span>
+                                <span><i class="fas fa-tag"></i> ${article.category}</span>
+                                ${article.views ? `
+                                    <span><i class="fas fa-eye"></i> ${article.views}</span>
+                                ` : ''}
+                            </div>
+                            <p>${article.content}</p>
+                            ${article.tags ? `
+                                <div class="news-tags">
+                                    ${article.tags.map(tag => `
+                                        <span class="news-tag">
+                                            <i class="fas fa-hashtag"></i>${tag}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
+                            <a href="#" class="read-more">
+                                Читать далее <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    `).join('');
+                }
+
+                renderPagination(totalPages);
+            }
+
+            function renderPagination(totalPages) {
+                const paginationEl = document.getElementById('pagination');
+                
+                if (totalPages <= 1) {
+                    paginationEl.innerHTML = '';
+                    return;
+                }
+
+                let paginationHtml = '';
+                paginationHtml += `
+                    <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                `;
+
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                        paginationHtml += `
+                            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
+                                ${i}
+                            </button>
+                        `;
+                    } else if (i === currentPage - 3 || i === currentPage + 3) {
+                        paginationHtml += `<span class="pagination-dots">...</span>`;
+                    }
+                }
+
+                paginationHtml += `
+                    <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                `;
+
+                paginationEl.innerHTML = paginationHtml;
+            }
+
+            window.changePage = function(page) {
+                currentPage = page;
+                renderNews();
+                document.querySelector('.news-container').scrollIntoView({ behavior: 'smooth' });
+            };
+        });
+    </script>
+
+<script src="js/payment.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/promocode.js"></script>
+<script src="js/main.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/cursor.js"></script>
+<div class="custom-cursor"></div>
+<canvas id="webCanvas"></canvas>
+<div class="scroll-indicator">
+<span class="scroll-value">0%</span>
+</div>
+<script src="js/pkm.js"></script>
+<script src="js/mobile-nav.js"></script>
+</body>
+</html>

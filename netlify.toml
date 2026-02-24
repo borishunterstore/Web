@@ -1,0 +1,21 @@
+[build]
+  functions = "netlify/functions"
+  publish = "."
+  command = "npm install @neondatabase/serverless serverless-http"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/server/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/*"
+  to = "/.netlify/functions/server/auth/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

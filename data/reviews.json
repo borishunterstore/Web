@@ -1,0 +1,121 @@
+{
+  "reviews": [
+    {
+      "id": "rev_1771786071613",
+      "userId": "992442453833547886",
+      "name": "borisonchik_yt",
+      "avatar": "https://cdn.discordapp.com/avatars/992442453833547886/07d124d7c3a6d0259b45a9cfbe5411b3.png?size=64",
+      "rating": 1,
+      "productId": "vip_ticket",
+      "productName": "VIP билет на ивент",
+      "text": "Хуевенькоебать",
+      "images": [],
+      "verifiedPurchase": false,
+      "verified": true,
+      "helpful": 11,
+      "createdAt": "2026-02-22T18:47:51.613Z",
+      "updatedAt": "2026-02-22T18:47:51.613Z",
+      "adminReply": {
+        "text": "Ты че сука, без мамная хуйня",
+        "createdAt": "2026-02-22T18:47:51.613Z",
+        "adminId": "992442453833547886"
+      }
+    },
+    {
+      "id": "rev_1771783240925",
+      "userId": "992442453833547886",
+      "name": "borisonchik_yt",
+      "avatar": "https://cdn.discordapp.com/avatars/992442453833547886/07d124d7c3a6d0259b45a9cfbe5411b3.png?size=64",
+      "rating": 5,
+      "productId": "discord_bot_economy",
+      "productName": "Экономический бот",
+      "text": "Окак топОкак топОкак топОкак топ",
+      "images": [
+        "/uploads/reviews/review-1771783240917-572279064.png",
+        "/uploads/reviews/review-1771783240918-660601153.png",
+        "/uploads/reviews/review-1771783240918-822169174.png"
+      ],
+      "verifiedPurchase": false,
+      "verified": true,
+      "helpful": 20,
+      "createdAt": "2026-02-22T18:00:40.925Z",
+      "updatedAt": "2026-02-22T18:00:40.925Z",
+      "adminReply": null
+    },
+    {
+      "id": "rev_1738765432101",
+      "userId": "123456789012345678",
+      "name": "Алексей Петров",
+      "avatar": "https://cdn.discordapp.com/embed/avatars/0.png",
+      "rating": 5,
+      "productId": "premium-1",
+      "productName": "Premium Подписка",
+      "text": "Отличный бот! Все функции работают идеально. Поддержка отвечает быстро, помогли с настройкой. Очень доволен покупкой!",
+      "images": [],
+      "verifiedPurchase": true,
+      "verified": true,
+      "helpful": 20,
+      "createdAt": "2026-02-15T17:55:00.231Z",
+      "updatedAt": "2026-02-15T17:55:00.234Z",
+      "adminReply": null
+    },
+    {
+      "id": "rev_1738765432102",
+      "userId": "234567890123456789",
+      "name": "Екатерина Смирнова",
+      "avatar": "https://cdn.discordapp.com/embed/avatars/1.png",
+      "rating": 5,
+      "productId": "service-1",
+      "productName": "Музыкальный бот",
+      "text": "Заказала музыкального бота для своего сервера. Сделали быстро, качественно. Теперь у нас отличная музыка на сервере!",
+      "images": [],
+      "verifiedPurchase": true,
+      "verified": false,
+      "helpful": 8,
+      "createdAt": "2026-02-08T17:55:00.234Z",
+      "updatedAt": "2026-02-08T17:55:00.234Z",
+      "adminReply": null
+    },
+    {
+      "id": "rev_1738765432103",
+      "userId": "345678901234567890",
+      "name": "Дмитрий Иванов",
+      "avatar": "https://cdn.discordapp.com/embed/avatars/2.png",
+      "rating": 4,
+      "productId": "premium-2",
+      "productName": "Premium Годовая",
+      "text": "Пользуюсь премиумом уже полгода. Всё супер, но хотелось бы больше команд. В остальном отлично, багов не замечал.",
+      "images": [],
+      "verifiedPurchase": true,
+      "verified": true,
+      "helpful": 5,
+      "createdAt": "2026-02-01T17:55:00.234Z",
+      "updatedAt": "2026-02-01T17:55:00.234Z",
+      "adminReply": {
+        "text": "Спасибо за отзыв! Мы работаем над добавлением новых команд!",
+        "createdAt": "2026-02-02T17:55:00.235Z",
+        "adminId": "992442453833547886"
+      }
+    }
+  ],
+  "stats": {
+    "totalReviews": 5,
+    "averageRating": 4,
+    "verifiedPurchases": 3,
+    "totalHelpful": 64,
+    "reviewsWithPhotos": 1,
+    "lastUpdated": "2026-02-22T18:48:04.119Z"
+  },
+  "config": {
+    "maxImagesPerReview": 3,
+    "allowedImageTypes": [
+      "image/jpeg",
+      "image/png",
+      "image/jpg"
+    ],
+    "maxImageSize": 5242880,
+    "minReviewLength": 10,
+    "maxReviewLength": 1000,
+    "reviewsPerPage": 6
+  }
+}

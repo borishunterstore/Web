@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Магазин - BHStore</title>
+    <link rel="stylesheet" href="css/news.css">
+    <link rel="stylesheet" href="css/shop.css">
+    <link rel="stylesheet" href="css/general.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/image/logo.png">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="image/logo.png" style="width: 50px;">
+                <span class="logo-text">BHStore</span>
+            </a>
+            
+            <div class="nav-menu">
+                <a href="/" class="nav-link"><i class="fas fa-home"></i> Главная</a>
+                <a href="/shop.html" class="nav-link active"><i class="fas fa-shopping-cart"></i> Магазин</a>
+                <a href="/news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
+                <a href="/faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
+                <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Правовая информация</a>
+            </div>
+            
+            <div class="nav-auth" style="pointer-events: none; opacity: 0.5; cursor: not-allowed;">
+                <button id="authBtn" class="btn-discord">
+                    <i class="fab fa-discord"></i> Войти
+                </button>
+            </div>
+            
+            <button class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <div class="news-banner">
+        <img src="image/banner.jpg" alt="News Banner" class="news-banner-image">
+        <div class="news-banner-overlay">
+            <div class="news-banner-title">
+                Магазин
+                <span>Оформляйте заказ, и радуйтесь результуту!</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="shop-container">
+        <h1 class="section-title">Магазин товаров</h1>
+        
+        <div class="categories">
+            <button class="category-btn active" data-category="all">Все товары</button>
+            <button class="category-btn" data-category="premium">Премиум</button>
+            <button class="category-btn" data-category="discord">Discord</button>
+            <button class="category-btn" data-category="discordbot">Discord Боты</button>
+            <button class="category-btn" data-category="services">Услуги</button>
+            <button class="category-btn" data-category="events">Ивенты</button>
+        </div>
+        
+        <div id="productsContainer" class="products-grid">
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Документы</h3>
+                <a href="#terms">Пользовательское соглашение</a>
+                <a href="#privacy">Политика конфиденциальности</a>
+                <a href="#offer">Публичная оферта</a>
+            </div>
+            <div class="footer-section">
+                <h3>Контакты</h3>
+                <p><i class="fab fa-telegram"></i> @BorisHunterStore</p>
+                <p><i class="fab fa-telegram"></i> @borisonchikofficial</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</a></p>
+        </div>
+    </footer>
+
+    <script src="/js/promocode.js"></script>
+    <script src="js/payment.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/shop.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/cursor.js"></script>
+    <div class="custom-cursor"></div>
+    <canvas id="webCanvas"></canvas>
+    <div class="scroll-indicator">
+    <span class="scroll-value">0%</span>
+    </div>
+    <script src="js/pkm.js"></script>
+    <script src="js/mobile-nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,1146 @@
+/* profile.css - Стили для страницы профиля BHStore */
+
+/* Основной контейнер */
+.profile-container {
+    max-width: var(--container-width);
+    margin: 40px auto 60px;
+    padding: 0 24px;
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Заголовок профиля */
+.profile-header {
+    background: linear-gradient(135deg, rgba(42, 43, 54, 0.95), rgba(30, 31, 41, 0.98));
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 32px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-xl);
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(88, 101, 242, 0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+/* Аватар профиля */
+.profile-avatar-wrapper {
+    position: relative;
+    width: 180px;
+    height: 180px;
+    flex-shrink: 0;
+    z-index: 2;
+}
+
+.profile-avatar {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 4px solid var(--primary);
+    object-fit: cover;
+    box-shadow: 0 0 30px rgba(88, 101, 242, 0.3);
+    transition: all var(--transition-base);
+    animation: pulse 2s infinite;
+}
+
+.profile-avatar:hover {
+    transform: scale(1.05);
+    border-color: var(--secondary);
+}
+
+/* Бейдж на аватаре */
+.avatar-badge {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 48px;
+    height: 48px;
+    background: var(--bg-card);
+    border: 3px solid var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    animation: bounce 2s infinite;
+}
+
+.avatar-badge img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
+/* Информация о пользователе */
+.profile-info {
+    flex: 1;
+    color: var(--text-primary);
+    z-index: 2;
+}
+
+.profile-info h2 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: white;
+}
+
+.profile-info h2 i {
+    color: var(--primary);
+    font-size: 2rem;
+}
+
+.profile-info p {
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1rem;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+}
+
+.profile-info p i {
+    width: 20px;
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+/* Контейнер бейджей */
+.badges-container {
+    display: flex;
+    gap: 12px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+/* Стили бейджей */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 18px;
+    border-radius: 30px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all var(--transition-base);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.badge:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.badge:hover::before {
+    left: 100%;
+}
+
+.badge img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
+.badge-verified {
+    background: linear-gradient(135deg, #5865F2, #4752c4);
+    color: white;
+    box-shadow: 0 4px 15px rgba(88, 101, 242, 0.3);
+}
+
+.badge-partner {
+    background: linear-gradient(135deg, #FEE75C, #e6d048);
+    color: #1e1f29;
+    box-shadow: 0 4px 15px rgba(254, 231, 92, 0.3);
+}
+
+.badge-buyer {
+    background: linear-gradient(135deg, #57F287, #4ad477);
+    color: #1e1f29;
+    box-shadow: 0 4px 15px rgba(87, 242, 135, 0.3);
+}
+
+.badge-early {
+    background: linear-gradient(135deg, #ED4245, #c73b3e);
+    color: white;
+    box-shadow: 0 4px 15px rgba(237, 66, 69, 0.3);
+}
+
+.badge-vip {
+    background: linear-gradient(135deg, #9b5de5, #7c3aed);
+    color: white;
+    box-shadow: 0 4px 15px rgba(155, 93, 229, 0.3);
+}
+
+/* Секция баланса */
+.balance-section {
+    background: linear-gradient(135deg, rgba(42, 43, 54, 0.95), rgba(30, 31, 41, 0.98));
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 32px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-xl);
+    position: relative;
+    overflow: hidden;
+}
+
+.balance-section::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(87, 242, 135, 0.1), transparent);
+    border-radius: 50%;
+    animation: float 6s ease-in-out infinite;
+}
+
+.balance-section h2 {
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    z-index: 2;
+}
+
+.balance-section h2 i {
+    color: var(--accent);
+    font-size: 2rem;
+}
+
+.balance-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+}
+
+.balance-label {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.balance-amount {
+    font-size: 3.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), #0d9488);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+    animation: pulse 2s infinite;
+}
+
+.balance-actions {
+    display: flex;
+    gap: 16px;
+}
+
+.btn-primary {
+    padding: 14px 28px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+}
+
+.btn-primary:hover::before {
+    left: 100%;
+}
+
+/* Секция чата */
+.profile-section {
+    background: linear-gradient(135deg, rgba(42, 43, 54, 0.95), rgba(30, 31, 41, 0.98));
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 32px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-xl);
+}
+
+.profile-section h2 {
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.profile-section h2 i {
+    color: var(--primary);
+    font-size: 2rem;
+}
+
+/* Контейнер чата */
+#supportChat {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+}
+
+#chatMessages {
+    height: 400px;
+    overflow-y: auto;
+    padding: 20px;
+    background: rgba(32, 34, 37, 0.8);
+    scroll-behavior: smooth;
+}
+
+/* Стили для сообщений */
+.message-wrapper {
+    margin-bottom: 20px;
+    max-width: 70%;
+    animation: slideInUp 0.3s ease-out;
+}
+
+.message-wrapper.user {
+    margin-left: auto;
+}
+
+.message-wrapper.admin {
+    margin-right: auto;
+}
+
+.message-bubble {
+    padding: 14px 18px;
+    border-radius: 20px;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.message-bubble.user {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.message-bubble.admin {
+    background: rgba(64, 68, 75, 0.8);
+    color: white;
+    border-bottom-left-radius: 4px;
+    backdrop-filter: blur(5px);
+}
+
+.message-time {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.message-time.user {
+    justify-content: flex-end;
+}
+
+.message-time.admin {
+    justify-content: flex-start;
+}
+
+.message-sender {
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.message-sender.admin {
+    color: var(--primary);
+}
+
+.message-sender.user {
+    color: var(--accent);
+}
+
+/* Поле ввода сообщения */
+.chat-input-container {
+    display: flex;
+    gap: 12px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid var(--border-light);
+}
+
+#chatMessageInput {
+    flex: 1;
+    padding: 14px 20px;
+    background: rgba(32, 34, 37, 0.8);
+    border: 2px solid var(--border-light);
+    border-radius: 40px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all var(--transition-base);
+}
+
+#chatMessageInput:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+.btn-send {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.btn-send:hover {
+    transform: scale(1.1);
+    box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
+}
+
+/* Секция промокодов */
+.promocode-section {
+    background: linear-gradient(135deg, rgba(42, 43, 54, 0.95), rgba(30, 31, 41, 0.98));
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 32px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-xl);
+}
+
+.promocode-section h2 {
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.promocode-section h2 i {
+    color: #FEE75C;
+    font-size: 2rem;
+}
+
+.promocode-input-container {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+#promocodeInput {
+    flex: 1;
+    padding: 16px 24px;
+    background: rgba(32, 34, 37, 0.8);
+    border: 2px solid var(--border-light);
+    border-radius: 40px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all var(--transition-base);
+}
+
+#promocodeInput:focus {
+    outline: none;
+    border-color: #FEE75C;
+    box-shadow: 0 0 0 4px rgba(254, 231, 92, 0.1);
+}
+
+.btn-promocode {
+    padding: 16px 32px;
+    background: linear-gradient(135deg, #FEE75C, #e6d048);
+    color: #1e1f29;
+    border: none;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-promocode:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(254, 231, 92, 0.4);
+}
+
+/* Список заказов */
+.orders-list {
+    background: linear-gradient(135deg, rgba(42, 43, 54, 0.95), rgba(30, 31, 41, 0.98));
+    backdrop-filter: blur(10px);
+    border-radius: 24px;
+    padding: 32px;
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-xl);
+}
+
+.orders-list h2 {
+    color: var(--text-primary);
+    margin-bottom: 24px;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--primary);
+}
+
+.orders-list h2 i {
+    color: var(--primary);
+    font-size: 2rem;
+}
+
+/* Карточка заказа */
+.order-item {
+    background: rgba(30, 31, 41, 0.8);
+    backdrop-filter: blur(5px);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 16px;
+    border-left: 6px solid var(--primary);
+    transition: all var(--transition-base);
+    position: relative;
+    overflow: hidden;
+    animation: slideInUp 0.5s ease-out;
+}
+
+.order-item:hover {
+    transform: translateX(5px) translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-left-color: var(--accent);
+}
+
+.order-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(88, 101, 242, 0.1), transparent);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.order-id {
+    color: var(--primary);
+    font-weight: 700;
+    margin-bottom: 12px;
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.order-id i {
+    font-size: 1rem;
+}
+
+.order-product {
+    margin: 16px 0;
+}
+
+.order-product strong {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.order-price {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.order-price i {
+    font-size: 1.2rem;
+}
+
+.order-date {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Статус заказа */
+.status-badge {
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-pending {
+    background: rgba(254, 231, 92, 0.15);
+    color: #FEE75C;
+    border: 1px solid rgba(254, 231, 92, 0.3);
+}
+
+.status-registered {
+    background: rgba(88, 101, 242, 0.15);
+    color: #5865F2;
+    border: 1px solid rgba(88, 101, 242, 0.3);
+}
+
+.status-completed {
+    background: rgba(87, 242, 135, 0.15);
+    color: #57F287;
+    border: 1px solid rgba(87, 242, 135, 0.3);
+}
+
+.status-cancelled {
+    background: rgba(237, 66, 69, 0.15);
+    color: #ED4245;
+    border: 1px solid rgba(237, 66, 69, 0.3);
+}
+
+/* Пустое состояние */
+.empty-state {
+    text-align: center;
+    padding: 60px 40px;
+    color: var(--text-secondary);
+    background: rgba(30, 31, 41, 0.5);
+    border-radius: 16px;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--text-tertiary);
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    font-size: 1.2rem;
+    margin-bottom: 24px;
+}
+
+.empty-state .btn-primary {
+    display: inline-block;
+    text-decoration: none;
+}
+
+/* Модальное окно */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    backdrop-filter: blur(5px);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal-content {
+    background: var(--bg-card);
+    border-radius: 24px;
+    padding: 40px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--border-light);
+    animation: slideInUp 0.4s ease-out;
+}
+
+.modal-content h2 {
+    color: var(--primary);
+    margin-bottom: 20px;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.modal-content p {
+    color: var(--text-secondary);
+    margin-bottom: 30px;
+    line-height: 1.6;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 16px;
+    justify-content: flex-end;
+}
+
+.btn-admin {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #ED4245, #c73b3e);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-base);
+}
+
+.btn-admin:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(237, 66, 69, 0.4);
+}
+
+/* Сообщение о результате промокода */
+.promocode-message {
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideInUp 0.3s ease-out;
+}
+
+.promocode-message.success {
+    background: rgba(87, 242, 135, 0.15);
+    color: #57F287;
+    border: 1px solid rgba(87, 242, 135, 0.3);
+}
+
+.promocode-message.error {
+    background: rgba(237, 66, 69, 0.15);
+    color: #ED4245;
+    border: 1px solid rgba(237, 66, 69, 0.3);
+}
+
+.promocode-message.info {
+    background: rgba(88, 101, 242, 0.15);
+    color: #5865F2;
+    border: 1px solid rgba(88, 101, 242, 0.3);
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-20px) rotate(5deg);
+    }
+}
+
+/* Адаптивность */
+@media (max-width: 1024px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 24px;
+    }
+    
+    .profile-info h2 {
+        justify-content: center;
+    }
+    
+    .profile-info p {
+        justify-content: center;
+    }
+    
+    .badges-container {
+        justify-content: center;
+    }
+    
+    .balance-info {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+    
+    .balance-amount {
+        font-size: 2.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-container {
+        padding: 20px 16px;
+        margin-top: 20px;
+    }
+    
+    .profile-avatar-wrapper {
+        width: 140px;
+        height: 140px;
+    }
+    
+    .profile-info h2 {
+        font-size: 1.8rem;
+        flex-wrap: wrap;
+    }
+    
+    .badge {
+        padding: 8px 14px;
+        font-size: 0.85rem;
+    }
+    
+    .balance-amount {
+        font-size: 2.2rem;
+    }
+    
+    .balance-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .promocode-input-container {
+        flex-direction: column;
+    }
+    
+    .btn-promocode {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .chat-input-container {
+        flex-direction: column;
+    }
+    
+    .btn-send {
+        width: 100%;
+        border-radius: 40px;
+    }
+    
+    .message-wrapper {
+        max-width: 85%;
+    }
+    
+    .order-item {
+        padding: 20px;
+    }
+    
+    .order-date {
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    
+    .modal-content {
+        padding: 30px 20px;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-avatar-wrapper {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .avatar-badge {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .avatar-badge img {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .profile-info h2 {
+        font-size: 1.5rem;
+    }
+    
+    .profile-info p {
+        font-size: 0.9rem;
+    }
+    
+    .badge {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .balance-amount {
+        font-size: 1.8rem;
+    }
+    
+    .orders-list h2,
+    .profile-section h2,
+    .balance-section h2,
+    .promocode-section h2 {
+        font-size: 1.5rem;
+    }
+    
+    .order-product strong {
+        font-size: 1rem;
+    }
+    
+    .order-price {
+        font-size: 1.2rem;
+    }
+    
+    .message-wrapper {
+        max-width: 95%;
+    }
+}
+
+/* Стили для скроллбара в чате */
+#chatMessages::-webkit-scrollbar {
+    width: 8px;
+}
+
+#chatMessages::-webkit-scrollbar-track {
+    background: rgba(32, 34, 37, 0.5);
+    border-radius: 4px;
+}
+
+#chatMessages::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+#chatMessages::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-dark);
+}
+
+/* Индикатор печатания */
+.typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 12px 16px;
+    background: rgba(64, 68, 75, 0.5);
+    border-radius: 20px;
+    width: fit-content;
+    margin-bottom: 20px;
+}
+
+.typing-indicator span {
+    width: 8px;
+    height: 8px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.5;
+    }
+    30% {
+        transform: translateY(-10px);
+        opacity: 1;
+    }
+}
+
+/* Уведомления */
+.notification-badge {
+    position: relative;
+}
+
+.notification-badge::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    background: #ED4245;
+    border-radius: 50%;
+    border: 2px solid var(--bg-card);
+    animation: pulse 2s infinite;
+}
+
+/* Градиентные тексты */
+.gradient-text {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Эффект стекла */
+.glass-effect {
+    background: rgba(42, 43, 54, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Статистика профиля */
+.profile-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid var(--border-light);
+    transition: all var(--transition-base);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    color: var(--primary);
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}

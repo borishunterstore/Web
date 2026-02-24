@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Авторизация - BHStore</title>
+    <link rel="stylesheet" href="css/general.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/image/logo.png">
+    <style>
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e1f29 0%, #14151a 100%);
+        }
+        
+        .auth-card {
+            background: #2a2b36;
+            border-radius: 16px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .auth-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .auth-header i {
+            font-size: 60px;
+            color: #5865F2;
+            margin-bottom: 20px;
+        }
+        
+        .auth-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            color: white;
+        }
+        
+        .auth-header p {
+            color: #b9bbbe;
+            font-size: 16px;
+        }
+        
+        .auth-instruction {
+            background: rgba(88, 101, 242, 0.1);
+            border-left: 4px solid #5865F2;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+        
+        .auth-instruction h3 {
+            color: #5865F2;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .auth-instruction ol {
+            padding-left: 20px;
+            color: #b9bbbe;
+            line-height: 1.6;
+        }
+        
+        .auth-instruction li {
+            margin-bottom: 8px;
+        }
+        
+        .auth-steps {
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid transparent;
+        }
+        
+        .step.active {
+            background: rgba(88, 101, 242, 0.2);
+            border-color: #5865F2;
+        }
+        
+        .step-number {
+            background: #5865F2;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .step-info h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: white;
+        }
+        
+        .step-info p {
+            color: #b9bbbe;
+            font-size: 14px;
+        }
+        
+        .btn-auth {
+            width: 100%;
+            padding: 16px;
+            background: #5865F2;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.3s;
+        }
+        
+        .btn-auth:hover {
+            background: #4752c4;
+            transform: translateY(-2px);
+        }
+        
+        .btn-auth:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .security-note {
+            margin-top: 25px;
+            padding: 15px;
+            background: rgba(88, 101, 242, 0.1);
+            border-radius: 8px;
+            font-size: 14px;
+            color: #b9bbbe;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .auth-footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #b9bbbe;
+        }
+        
+        .auth-footer a {
+            color: #5865F2;
+            text-decoration: none;
+        }
+        
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <i class="fab fa-discord"></i>
+                <h1>Авторизация через Discord</h1>
+                <p class="fas">Авторизуйтесь, чтобы получить доступ к:</p>
+                <ol>
+                <li class="fas">Покупки товаров и услуг</li>
+                <li class="fas">Обратной поддержки</li>
+            </ol>
+            </div>
+            
+            <div class="auth-instruction">
+                <h3><i class="fas" style="margin-right: 50px;"></i> <img src="https://cdn3.emoji.gg/emojis/61421-miku.png"  style="transform: scaleX(-1); width: 65px; margin-left: -15px; margin-top: 10px; position: absolute; z-index: 1000;"> Подсказка авторизации:</h3>
+                <ol>
+                    <p>Зайдите на сервер BHStore</p>
+                    <p>Нажмите кнопку "<strong>Авторизация</strong>"</p>
+                    <p><strong>AniMurk</strong> потребует разрешение</p>
+                    <p>Разрешите то что он требует</p>
+                    <p>Мы отправим вам код в ЛС</p>
+                    <p>Введите код на сайте</p>
+                    <p>И всё</p><img src="https://cdn3.emoji.gg/emojis/8169-miku-hello.png" style="width: 90px; margin-left: 100px; margin-top: -60px; position: absolute; z-index: 1000;">
+                </ol>
+            </div>
+            
+            <div class="auth-steps">
+                <div class="step active">
+                    <div class="step-number"><img src="https://cdn3.emoji.gg/emojis/7950-number1.png" style="width: 30px; position: absolute; z-index: 1000;"></div>
+                    <div class="step-info">
+                        <h3 style="margin-left: 20px;">Авторизация через Discord</h3>
+                        <p style="margin-left: 15px;">Нажмите кнопку ниже</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number"><img src="https://cdn3.emoji.gg/emojis/98981-number2.png" style="width: 30px; position: absolute; z-index: 1000;"></div>
+                    <div class="step-info">
+                        <h3 style="margin-left: 15px;">Проверка кода</h3>
+                        <p style="margin-left: 15px;">Получите код в Discord и введите его</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number"><img src="https://cdn3.emoji.gg/emojis/57296-number3.png" style="width: 30px; position: absolute; z-index: 1000;"></div>
+                    <div class="step-info">
+                        <h3 style="margin-left: 15px;">Добро пожаловать!</h3>
+                        <p style="margin-left: 15px;">Начинайте пользоваться магазином</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="authBtn" class="btn-auth">
+                <img src="https://cdn3.emoji.gg/emojis/135845-discord.png" style="width: 45px; position: absolute; z-index: 1000; margin-right: 135px;"> <i class="fab" style="margin-left: 35px;"></i>Авторизация
+            </button>
+            
+            <div class="security-note">
+                <i class="fas fa-shield-alt"></i>
+                <div>
+                    <strong>Безопасность:</strong> Мы не получаем доступ к вашему паролю. 
+                    Авторизация происходит через официальный Discord OAuth2. Мы запрашиваем 
+                    только базовую информацию (имя пользователя, email, аватар).
+                </div>
+            </div>
+            
+            <div class="auth-footer">
+                <p>Регистрируясь, вы соглашаетесь с нашими <a href="/legal.html">условиями использования</a></p>
+                <p><a href="/"><i class="fas fa-arrow-left"></i> Вернуться на главную</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+document.getElementById('authBtn').addEventListener('click', function() {
+    console.log('Starting Discord OAuth2 flow...');
+    
+    const clientId = '1328718434967486575';
+    const redirectUri = 'http://bhstore.netlify.app/auth/discord/callback';
+    const scope = 'identify rpc email openid';
+    const state = Math.random().toString(36).substring(2, 15);
+    
+    // Сохраняем state для проверки
+    localStorage.setItem('discord_oauth_state', state);
+    
+    // Создаем URL для авторизации
+    const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}&prompt=consent`;
+    
+    console.log('Opening Discord auth URL:', authUrl);
+    
+    // Открываем окно авторизации
+    const authWindow = window.open(
+        authUrl, 
+        'Discord Auth', 
+        'width=500,height=600,menubar=no,toolbar=no,location=no,status=no'
+    );
+    
+    if (!authWindow) {
+        alert('Пожалуйста, разрешите всплывающие окна для этого сайта');
+        return;
+    }
+    
+    // Фокус на окне авторизации
+    authWindow.focus();
+    
+    // Слушаем сообщения от окна авторизации
+    window.addEventListener('message', async function(event) {
+        console.log('Message received from auth window:', event.data);
+        
+        if (event.data.type === 'DISCORD_AUTH_CALLBACK') {
+            console.log('Processing Discord callback...');
+            
+            // Проверяем state
+            const savedState = localStorage.getItem('discord_oauth_state');
+            if (savedState !== event.data.state) {
+                console.error('State mismatch!');
+                alert('Ошибка безопасности: несоответствие состояния');
+                return;
+            }
+            
+            // Убираем state
+            localStorage.removeItem('discord_oauth_state');
+            
+            const code = event.data.code;
+            
+            if (!code) {
+                alert('Ошибка: код авторизации не получен');
+                return;
+            }
+            
+            // Показываем загрузку
+            const authBtn = document.getElementById('authBtn');
+            const originalText = authBtn.innerHTML;
+            authBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Обработка...';
+            authBtn.disabled = true;
+            
+            try {
+                // Отправляем код на сервер
+                console.log('Sending code to server...');
+                const response = await fetch('/api/auth/discord', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ code: code })
+                });
+                
+                const data = await response.json();
+                console.log('Server response:', data);
+                
+                if (data.success && data.user) {
+                    console.log('User authenticated:', data.user.username);
+                    
+                    // Генерируем код верификации
+                    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+                    console.log('Generated verification code:', verificationCode);
+                    
+                    // Отправляем код пользователю через вебхук
+                    const sendCodeResponse = await fetch('/api/send-verification', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            userId: data.user.id,
+                            code: verificationCode
+                        })
+                    });
+                    
+                    const sendCodeResult = await sendCodeResponse.json();
+                    
+                    if (sendCodeResult.success) {
+                        // Сохраняем данные
+                        const authData = {
+                            ...data.user,
+                            verificationCode: verificationCode,
+                            token: data.token
+                        };
+                        
+                        localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                        
+                        console.log('Auth data saved, redirecting to verification...');
+                        
+                        // Перенаправляем на страницу верификации
+                        window.location.href = '/verify.html';
+                    } else {
+                        throw new Error(sendCodeResult.error || 'Не удалось отправить код верификации');
+                    }
+                } else {
+                    throw new Error(data.error || 'Ошибка авторизации');
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+                alert('Ошибка авторизации: ' + error.message);
+                
+                // Восстанавливаем кнопку
+                authBtn.innerHTML = originalText;
+                authBtn.disabled = false;
+            }
+        }
+    });
+});
+
+        // Проверяем, если уже авторизован
+        window.addEventListener('load', function() {
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            if (authData.username && !authData.verificationCode) {
+                // Уже авторизован, перенаправляем на главную
+                window.location.href = '/';
+            }
+        });
+    </script>
+        <script src="js/cursor.js"></script>
+        <div class="custom-cursor"></div>
+        <canvas id="webCanvas"></canvas>
+        <div class="scroll-indicator">
+        <span class="scroll-value">0%</span>
+        </div>
+        <script src="js/pkm.js"></script>
+        <script src="js/mobile-nav.js"></script>
+</body>
+</html>

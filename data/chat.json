@@ -1,0 +1,77 @@
+{
+  "992442453833547886": [
+    {
+      "id": "msg-1768849319106-x5qzvfc5d",
+      "message": "привет",
+      "fromAdmin": false,
+      "sender": "user",
+      "timestamp": "2026-01-19T19:01:59.106Z",
+      "read": true
+    },
+    {
+      "id": "msg-1768849458154-dzi4moa6n",
+      "message": "о",
+      "fromAdmin": true,
+      "sender": "admin",
+      "timestamp": "2026-01-19T19:04:18.154Z",
+      "read": false
+    },
+    {
+      "id": "msg-1769170008302-a35u29n7u",
+      "message": "о",
+      "fromAdmin": false,
+      "sender": "user",
+      "timestamp": "2026-01-23T12:06:48.302Z",
+      "read": true
+    },
+    {
+      "id": "msg-1771767780647-zgh1zxfng",
+      "message": "опа",
+      "fromAdmin": false,
+      "sender": "user",
+      "timestamp": "2026-02-22T13:43:00.647Z",
+      "read": true
+    },
+    {
+      "id": "msg-1771767796327-fkde2vd6x",
+      "message": "?",
+      "fromAdmin": true,
+      "sender": "admin",
+      "timestamp": "2026-02-22T13:43:16.327Z",
+      "read": false
+    },
+    {
+      "id": "msg-1771870006467-1bqksnc2t",
+      "message": "привет",
+      "fromAdmin": false,
+      "sender": "user",
+      "timestamp": "2026-02-23T18:06:46.467Z",
+      "read": true
+    },
+    {
+      "id": "msg-1771870011154-zbxjre0ys",
+      "message": "как дела",
+      "fromAdmin": false,
+      "sender": "user",
+      "timestamp": "2026-02-23T18:06:51.154Z",
+      "read": true
+    },
+    {
+      "id": "msg-1771870037227-3duqasoz9",
+      "message": "далбаеб?",
+      "fromAdmin": true,
+      "sender": "admin",
+      "timestamp": "2026-02-23T18:07:17.227Z",
+      "read": false
+    },
+    {
+      "id": "msg-1771870040914-widbkduhl",
+      "message": "далбаеб?",
+      "fromAdmin": true,
+      "sender": "admin",
+      "timestamp": "2026-02-23T18:07:20.914Z",
+      "read": false
+    }
+  ],
+  "830087428214751284": []
+}

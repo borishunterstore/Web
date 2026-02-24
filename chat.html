@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Чат поддержки - BHStore</title>
+    
+    <!-- SEO -->
+    <meta name="description" content="Чат поддержки BHStore. Получите помощь по вопросам покупки, активации товаров и другим вопросам.">
+    <meta name="keywords" content="чат поддержки, помощь, bhstore, discord бот, поддержка">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Чат поддержки BHStore">
+    <meta property="og:description" content="Получите помощь от нашей команды поддержки">
+    <meta property="og:image" content="/image/chat-banner.jpg">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/general.css">
+    <link rel="stylesheet" href="css/chat.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/image/logo.png">
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <img src="image/logo.png" alt="BHStore" class="logo-image">
+                <span class="logo-text">BHStore</span>
+            </a>
+            <div class="nav-menu">
+                <a href="/" class="nav-link"><i class="fas fa-home"></i> Главная</a>
+                <a href="/shop.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Магазин</a>
+                <a href="/news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
+                <a href="/faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
+                <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Правовая информация</a>
+                <a href="/reviews.html" class="nav-link"><i class="fas fa-star"></i> Отзывы</a>
+                <a href="/chat.html" class="nav-link active"><i class="fas fa-comments"></i> Чат поддержки</a>
+                <a href="/profile.html" class="nav-link"><i class="fas fa-user"></i> Профиль</a>
+            </div>
+            <div class="nav-auth">
+                <button id="authBtn" class="btn-discord">
+                    <i class="fab fa-discord"></i> Войти через Discord
+                </button>
+            </div>
+            <button class="mobile-menu-btn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Основной контент -->
+    <div class="chat-page">
+        <div class="chat-container">
+            <div class="chat-header">
+                <h1><i class="fas fa-comments"></i> Чат поддержки</h1>
+                <p>Здесь вы можете получить помощь по вопросам покупки, активации товаров или другим вопросам</p>
+                
+                <div class="chat-status">
+                    <div class="status-indicator">
+                        <div class="status-dot" id="statusDot"></div>
+                        <span id="statusText">Проверка соединения...</span>
+                    </div>
+                    <div class="status-indicator">
+                        <i class="fas fa-clock"></i>
+                        <span>Время ответа: до 24 часов</span>
+                    </div>
+                    <div class="status-indicator">
+                        <i class="fas fa-headset"></i>
+                        <span>Операторов онлайн: <span id="operatorsOnline">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-main">
+                <!-- Основное окно чата -->
+                <div class="chat-window">
+                    <!-- Список сообщений -->
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- Сообщения загружаются через JS -->
+                    </div>
+
+                    <!-- Индикатор набора сообщения -->
+                    <div class="typing-indicator" id="typingIndicator">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+
+                    <!-- Поле ввода -->
+                    <div class="chat-input">
+                        <div class="chat-input-wrapper">
+                            <textarea class="chat-input-textarea" 
+                                      id="messageInput" 
+                                      placeholder="Введите ваше сообщение..."
+                                      rows="3"
+                                      maxlength="2000"></textarea>
+                            <div class="chat-input-actions">
+                                <div class="chat-input-hint" id="charCounter">0/2000</div>
+                                <button class="chat-send-btn" id="sendBtn">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Боковая панель -->
+                <div class="chat-sidebar">
+                    <!-- Информация о пользователе -->
+                    <div class="user-info" id="userInfo">
+                        <div class="user-avatar-wrapper">
+                            <img src="https://cdn.discordapp.com/embed/avatars/0.png" 
+                                 alt="Avatar" 
+                                 class="user-avatar"
+                                 id="userAvatar">
+                            <div class="verified-badge" id="verifiedBadge" style="display: none;">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </div>
+                        <div class="user-name" id="userName">Загрузка...</div>
+                        <div class="user-id" id="userId">ID: загрузка...</div>
+                    </div>
+
+                    <!-- Статистика -->
+                    <div class="user-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="ordersCount">0</div>
+                            <div class="stat-label">Заказов</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="balance">0 ₽</div>
+                            <div class="stat-label">Баланс</div>
+                        </div>
+                    </div>
+
+                    <!-- Информация о поддержке -->
+                    <div class="chat-info">
+                        <h3 class="info-title"><i class="fas fa-info-circle"></i> Информация</h3>
+                        <ul class="info-list">
+                            <li><i class="fas fa-user-shield"></i> Поддержка работает 24/7</li>
+                            <li><i class="fas fa-clock"></i> Ответ в течение 24 часов</li>
+                            <li><i class="fas fa-envelope"></i> Также можно написать в Discord</li>
+                            <li><i class="fas fa-history"></i> История переписки сохраняется</li>
+                            <li><i class="fas fa-image"></i> Можно прикреплять скриншоты</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем скрипты -->
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/chat.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔄 Chat page initialized');
+            
+            // Проверяем авторизацию
+            checkAuth();
+            
+            // Инициализируем элементы интерфейса
+            initChatInterface();
+            
+            // Запускаем обновление статуса
+            updateStatus();
+            setInterval(updateStatus, 30000); // Обновляем каждые 30 секунд
+        });
+
+        // Проверка авторизации
+        function checkAuth() {
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            
+            if (!authData.username || authData.verificationCode) {
+                // Не авторизован - показываем сообщение
+                showNotAuthorized();
+                return false;
+            }
+            
+            // Загружаем информацию о пользователе
+            loadUserInfo(authData);
+            return true;
+        }
+
+        // Показать сообщение о неавторизованном доступе
+        function showNotAuthorized() {
+            document.getElementById('chatMessages').innerHTML = `
+                <div class="chat-empty">
+                    <div class="chat-empty-content">
+                        <i class="fas fa-user-lock"></i>
+                        <h3>Требуется авторизация</h3>
+                        <p>Пожалуйста, войдите в аккаунт для использования чата поддержки</p>
+                        <a href="/auth.html" class="btn-primary">
+                            <i class="fab fa-discord"></i> Войти через Discord
+                        </a>
+                    </div>
+                </div>
+            `;
+            
+            // Отключаем поле ввода
+            document.getElementById('messageInput').disabled = true;
+            document.getElementById('sendBtn').disabled = true;
+            
+            // Обновляем статус
+            document.getElementById('statusDot').className = 'status-dot';
+            document.getElementById('statusText').textContent = 'Не авторизован';
+        }
+
+        // Загрузка информации о пользователе
+        function loadUserInfo(authData) {
+            // Аватар
+            const avatarUrl = authData.avatar 
+                ? `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=128`
+                : 'https://cdn.discordapp.com/embed/avatars/0.png';
+            document.getElementById('userAvatar').src = avatarUrl;
+            
+            // Имя
+            document.getElementById('userName').textContent = authData.username;
+            
+            // ID
+            document.getElementById('userId').textContent = `ID: ${authData.id.substring(0, 8)}...`;
+            
+            // Бейдж верификации
+            if (authData.badges?.verified) {
+                document.getElementById('verifiedBadge').style.display = 'flex';
+            }
+            
+            // Загружаем статистику с сервера
+            loadUserStats(authData.id);
+        }
+
+        // Загрузка статистики пользователя
+        async function loadUserStats(userId) {
+            try {
+                const api = new BHStoreAPI();
+                const response = await api.getUser(userId);
+                
+                if (response.success && response.user) {
+                    const user = response.user;
+                    
+                    // Баланс
+                    document.getElementById('balance').textContent = `${user.balance || 0} ₽`;
+                    
+                    // Количество заказов
+                    document.getElementById('ordersCount').textContent = user.orders?.length || 0;
+                    
+                    // Количество сообщений в чате
+                    const chatResponse = await api.getChatMessages(userId);
+                    if (chatResponse.success) {
+                        document.getElementById('messagesCount').textContent = chatResponse.messages?.length || 0;
+                        
+                        // Дней в чате (с первого сообщения)
+                        if (chatResponse.messages?.length > 0) {
+                            const firstMessage = chatResponse.messages[0];
+                            const days = Math.ceil((Date.now() - new Date(firstMessage.timestamp).getTime()) / (1000 * 60 * 60 * 24));
+                            document.getElementById('chatDays').textContent = days;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user stats:', error);
+            }
+        }
+
+        // Обновление статуса
+        async function updateStatus() {
+            try {
+                const api = new BHStoreAPI();
+                
+                // Проверяем онлайн ли поддержка (в демо всегда онлайн)
+                const supportOnline = true;
+                
+                if (supportOnline) {
+                    document.getElementById('statusDot').className = 'status-dot online';
+                    document.getElementById('statusText').textContent = 'Поддержка онлайн';
+                    document.getElementById('operatorsOnline').textContent = '1';
+                } else {
+                    document.getElementById('statusDot').className = 'status-dot';
+                    document.getElementById('statusText').textContent = 'Поддержка офлайн';
+                    document.getElementById('operatorsOnline').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error updating status:', error);
+            }
+        }
+
+        // Инициализация интерфейса чата
+        function initChatInterface() {
+            const messageInput = document.getElementById('messageInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const charCounter = document.getElementById('charCounter');
+            
+            // Счетчик символов
+            if (messageInput) {
+                messageInput.addEventListener('input', function() {
+                    const length = this.value.length;
+                    charCounter.textContent = `${length}/2000`;
+                    
+                    // Изменяем цвет при приближении к лимиту
+                    if (length > 1800) {
+                        charCounter.style.color = '#ED4245';
+                    } else if (length > 1500) {
+                        charCounter.style.color = '#FEE75C';
+                    } else {
+                        charCounter.style.color = 'var(--text-tertiary)';
+                    }
+                });
+            }
+            
+            // Отправка по Enter (Shift+Enter для новой строки)
+            if (messageInput && sendBtn) {
+                messageInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (!sendBtn.disabled) {
+                            sendMessage();
+                        }
+                    }
+                });
+                
+                sendBtn.addEventListener('click', sendMessage);
+            }
+            
+            // Быстрые вопросы
+            document.querySelectorAll('.quick-question-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (messageInput && !messageInput.disabled) {
+                        messageInput.value = this.dataset.question;
+                        messageInput.focus();
+                    }
+                });
+            });
+            
+            // Кнопки действий
+            document.getElementById('createTicketBtn')?.addEventListener('click', showTicketModal);
+            document.getElementById('clearChatBtn')?.addEventListener('click', showClearChatModal);
+            document.getElementById('endChatBtn')?.addEventListener('click', endChat);
+        }
+
+        // Отправка сообщения
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Проверяем авторизацию
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            if (!authData.id) return;
+            
+            // Добавляем сообщение в UI
+            const messagesContainer = document.getElementById('chatMessages');
+            const time = new Date().toLocaleTimeString('ru-RU', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            // Удаляем заглушку если есть
+            const emptyState = messagesContainer.querySelector('.chat-empty');
+            if (emptyState) {
+                messagesContainer.innerHTML = '';
+            }
+            
+            const messageHTML = `
+                <div class="message user">
+                    <div class="message-content">
+                        <div class="message-text">${escapeHtml(message)}</div>
+                        <div class="message-time">
+                            <i class="far fa-clock"></i> ${time}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            messagesContainer.insertAdjacentHTML('beforeend', messageHTML);
+            input.value = '';
+            input.focus();
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Показываем индикатор набора (ответ поддержки)
+            setTimeout(() => {
+                showTypingIndicator();
+                
+                // Через 3 секунды показываем ответ
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    showSupportResponse(message);
+                }, 3000);
+            }, 500);
+            
+            // Обновляем счетчик сообщений
+            const messagesCount = document.getElementById('messagesCount');
+            messagesCount.textContent = parseInt(messagesCount.textContent) + 1;
+        }
+
+        // Показать индикатор набора
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').classList.add('active');
+        }
+
+        // Скрыть индикатор набора
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').classList.remove('active');
+        }
+
+        // Показать ответ поддержки
+        function showSupportResponse(userMessage) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const time = new Date().toLocaleTimeString('ru-RU', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            let response = '';
+            
+            // Простые ответы на частые вопросы
+            if (userMessage.toLowerCase().includes('баланс')) {
+                response = 'Пополнить баланс можно в разделе "Профиль" → "Баланс". Минимальная сумма пополнения - 50₽.';
+            } else if (userMessage.toLowerCase().includes('покупк')) {
+                response = 'Ваши покупки отображаются в разделе "Профиль" → "Мои заказы". Товары активируются автоматически.';
+            } else if (userMessage.toLowerCase().includes('бот')) {
+                response = 'Если бот не работает, попробуйте перезайти на сервер или обратитесь к @borisonchik_yt в Discord.';
+            } else if (userMessage.toLowerCase().includes('опла')) {
+                response = 'Проблемы с оплатой? Убедитесь, что на карте достаточно средств, или попробуйте другой способ оплаты.';
+            } else {
+                response = 'Спасибо за обращение! Ваш вопрос передан оператору. Ожидайте ответа в ближайшее время.';
+            }
+            
+            const messageHTML = `
+                <div class="message support">
+                    <div class="message-content">
+                        <div class="message-text">${response}</div>
+                        <div class="message-time">
+                            <i class="far fa-clock"></i> ${time}
+                            <span class="message-status">
+                                <i class="fas fa-check-double"></i>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            messagesContainer.insertAdjacentHTML('beforeend', messageHTML);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Показать модальное окно создания тикета
+        function showTicketModal() {
+            document.getElementById('ticketModal').style.display = 'flex';
+        }
+
+        function closeTicketModal() {
+            document.getElementById('ticketModal').style.display = 'none';
+        }
+
+        // Создание тикета
+        function createTicket() {
+            const subject = document.getElementById('ticketSubject').value;
+            const description = document.getElementById('ticketDescription').value.trim();
+            
+            if (!description) {
+                showNotification('Опишите вашу проблему', 'warning');
+                return;
+            }
+            
+            // Отправляем в чат
+            const messagesContainer = document.getElementById('chatMessages');
+            const time = new Date().toLocaleTimeString('ru-RU', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            const messageHTML = `
+                <div class="message system">
+                    <div class="message-content">
+                        <div class="message-text">
+                            <i class="fas fa-ticket-alt"></i> 
+                            Создан тикет: ${subject}
+                        </div>
+                        <div class="message-time">
+                            <i class="far fa-clock"></i> ${time}
+                        </div>
+                    </div>
+                </div>
+                <div class="message user">
+                    <div class="message-content">
+                        <div class="message-text">${escapeHtml(description)}</div>
+                        <div class="message-time">
+                            <i class="far fa-clock"></i> ${time}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            messagesContainer.insertAdjacentHTML('beforeend', messageHTML);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            closeTicketModal();
+            document.getElementById('ticketDescription').value = '';
+            
+            showNotification('Тикет создан! Ожидайте ответа', 'success');
+        }
+
+        // Показать модальное окно очистки чата
+        function showClearChatModal() {
+            document.getElementById('clearChatModal').style.display = 'flex';
+        }
+
+        function closeClearChatModal() {
+            document.getElementById('clearChatModal').style.display = 'none';
+        }
+
+        // Очистка чата
+        function clearChat() {
+            const messagesContainer = document.getElementById('chatMessages');
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            
+            if (!authData.username) return;
+            
+            // Показываем приветственное сообщение
+            messagesContainer.innerHTML = `
+                <div class="message support">
+                    <div class="message-content">
+                        <div class="message-text">👋 Чат очищен. Чем мы можем вам помочь?</div>
+                        <div class="message-time">
+                            <i class="far fa-clock"></i> ${new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            closeClearChatModal();
+            showNotification('Чат очищен', 'info');
+        }
+
+        // Завершение чата
+        function endChat() {
+            if (confirm('Вы уверены, что хотите завершить чат?')) {
+                window.location.href = '/';
+            }
+        }
+
+        // Уведомления
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Экранирование HTML
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return String(unsafe)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Закрытие модальных окон по клику вне
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+            }
+        });
+
+        // ESC для закрытия модальных окон
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.style.display = 'none';
+                });
+            }
+        });
+
+        // Принудительное включение прокрутки
+function fixScrolling() {
+    const messagesContainer = document.getElementById('chatMessages');
+    if (messagesContainer) {
+        // Добавляем тестовое сообщение для проверки прокрутки
+        const testMsg = document.createElement('div');
+        testMsg.className = 'message support';
+        testMsg.innerHTML = '<div class="message-content"><div class="message-text">Чат поддержки готов к работе</div></div>';
+        messagesContainer.appendChild(testMsg);
+        
+        // Прокручиваем вниз
+        setTimeout(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 100);
+        
+        // Проверяем, работает ли прокрутка
+        console.log('Scroll height:', messagesContainer.scrollHeight);
+        console.log('Client height:', messagesContainer.clientHeight);
+        console.log('Overflow style:', window.getComputedStyle(messagesContainer).overflowY);
+    }
+}
+
+// Вызываем после загрузки
+document.addEventListener('DOMContentLoaded', fixScrolling);
+window.addEventListener('load', fixScrolling);
+    </script>
+
+    <!-- Дополнительные скрипты -->
+    <script src="js/cursor.js"></script>
+    <script src="js/pkm.js"></script>
+    <script src="js/mobile-nav.js"></script>
+    
+    <!-- Кастомный курсор -->
+    <div class="custom-cursor"></div>
+    
+    <!-- Канвас для анимации -->
+    <canvas id="webCanvas"></canvas>
+    
+    <!-- Индикатор прокрутки -->
+    <div class="scroll-indicator">
+        <span class="scroll-value">0%</span>
+    </div>
+</body>
+</html>
