@@ -181,6 +181,42 @@ async function initDatabase() {
         used_by JSONB DEFAULT '[]'
       )
     `;
+
+    // Таблица уведомлений
+    await sql`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id TEXT PRIMARY KEY,
+        user_id TEXT REFERENCES users(discord_id) ON DELETE CASCADE,
+        type TEXT,
+        title TEXT,
+        message TEXT,
+        data JSONB,
+        read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP
+      )
+    `;
+
+    // Таблица ошибок
+    await sql`
+    CREATE TABLE IF NOT EXISTS errors (
+      id TEXT PRIMARY KEY,
+      type TEXT,
+      message TEXT,
+      user_id TEXT REFERENCES users(discord_id) ON DELETE SET NULL,
+      user_agent TEXT,
+      url TEXT,
+      created_at TIMESTAMP
+    )
+  `;
+
+    // Таблица статистики
+    await sql`
+    CREATE TABLE IF NOT EXISTS stats (
+      id SERIAL PRIMARY KEY,
+      data JSONB,
+      created_at TIMESTAMP
+    )
+  `;
     
     console.log('✅ База данных инициализирована');
   } catch (error) {
@@ -877,7 +913,7 @@ app.post('/api/send-verification', async (req, res) => {
       content: `<@${userId}>`,
       embeds: [{
         title: '<:Hearts:1474933149422059712> Код верификации',
-        description: `<:Dot:1474932579328069794> Код - \`${code}\``,
+        description: `<a:Dot:1386279213278953545 Код - \`${code}\``,
         color: 0x5865F2,
         timestamp: new Date().toISOString()
       }]
@@ -1039,13 +1075,13 @@ app.post('/api/create-order', async (req, res) => {
           
           await axios.post(webhookUrl, {
               embeds: [{
-                  title: '<:423717discordheart:1445824514733641800> Новая покупка!',
-                  description: `<:user:1428757055967068222> <@${userId}> купил <:527877discordlegendchest:1445824431762051284> "${productName}"`,
+                  title: '<:Price:1474932616523415583> Новая покупка!',
+                  description: `<:User:1474931634804359433> <@${userId}> купил <:Price:1474932616523415583> "${productName}"`,
                   color: 0x57F287,
                   fields: [
-                      { name: '<:238591money:1459501865376026634> Цена', value: `\`\`\`${price}₽\`\`\``, inline: true },
-                      { name: '<:rdc_identifiant:1452653914368250019> Заказ', value: orderId, inline: true },
-                      { name: '<:238591money:1459501865376026634> Баланс после', value: `\`\`\`${newBalance}₽\`\`\``, inline: true }
+                      { name: '<:Money:1474931656610811966> Цена', value: `\`\`\`${price}₽\`\`\``, inline: true },
+                      { name: '<:Shop:1474931641158860800> Заказ', value: orderId, inline: true },
+                      { name: '<:Money:1474931656610811966> Баланс после', value: `\`\`\`${newBalance}₽\`\`\``, inline: true }
                   ],
                   timestamp: new Date().toISOString()
               }]
@@ -1452,7 +1488,7 @@ app.post('/api/promocodes/activate', async (req, res) => {
     
     await axios.post(webhookUrl, {
       embeds: [{
-        title: '<:6764nookmilesticket:1459501846917021751> Промокод активирован',
+        title: '<:Yes:1474931426951430225> Промокод активирован',
         description: `<:User:1474931634804359433> <@${userId}> активировал промокод <:Premium:1474931599622803628> \`${promocode.code}\``,
         color: 0xFEE75C,
         fields: [
@@ -1466,8 +1502,8 @@ app.post('/api/promocodes/activate', async (req, res) => {
     res.json({
       success: true,
       message: promocode.type === 'balance' ? 
-        `<a:yes:1418619386763149312> Баланс пополнен на ${promocode.value}₽` :
-        `<:6764nookmilesticket:1459501846917021751> Промокод "${promocode.code}" активирован`,
+        `<:Money:1474931656610811966> Баланс пополнен на ${promocode.value}₽` :
+        `<:Yes:1474931426951430225> Промокод "${promocode.code}" активирован`,
       newBalance: newBalance
     });
     
@@ -1669,12 +1705,12 @@ app.post('/api/reviews', async (req, res) => {
     
     axios.post(webhookUrl, {
       embeds: [{
-        title: '<:yes_proh:1421459224990449724> Новый отзыв!',
+        title: '<:Wave:1386273780556496967> Новый отзыв!',
         description: `**${name}** оставил отзыв на товар **${productName}**`,
         color: 0xFEE75C,
         fields: [
-          { name: '<:4005lightningred:1458877297946918922> Оценка', value: '<:yes_proh:1421459224990449724>'.repeat(parseInt(rating)), inline: true },
-          { name: '<:4005lightningred:1458877297946918922> Текст', value: text.substring(0, 100) + (text.length > 100 ? '...' : ''), inline: false }
+          { name: '<a:Dot:1386279213278953545> Оценка', value: '<:Premium:1474931599622803628>'.repeat(parseInt(rating)), inline: true },
+          { name: '<a:Dot:1386279213278953545> Текст', value: text.substring(0, 100) + (text.length > 100 ? '...' : ''), inline: false }
         ],
         timestamp: now
       }]
@@ -1871,6 +1907,176 @@ app.get('/', (req, res) => {
     </body>
     </html>
   `);
+});
+
+// ============================================
+// API для уведомлений
+// ============================================
+
+// Получение уведомлений пользователя
+app.get('/api/notifications/user/:userId', async (req, res) => {
+  try {
+      const userId = req.params.userId;
+      
+      const notifications = await sql`
+          SELECT * FROM notifications 
+          WHERE user_id = ${userId}
+          ORDER BY created_at DESC
+          LIMIT 50
+      `;
+      
+      res.json({
+          success: true,
+          notifications: notifications
+      });
+  } catch (error) {
+      console.error('❌ Ошибка получения уведомлений:', error);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Отметить уведомление как прочитанное
+app.post('/api/notifications/:id/read', async (req, res) => {
+  try {
+      const notificationId = req.params.id;
+      
+      await sql`
+          UPDATE notifications 
+          SET read = true 
+          WHERE id = ${notificationId}
+      `;
+      
+      res.json({ success: true });
+  } catch (error) {
+      console.error('❌ Ошибка отметки уведомления:', error);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Сохранение уведомления о покупке
+app.post('/api/notifications/purchase', async (req, res) => {
+  try {
+      const { userId, productName, amount, orderId } = req.body;
+      
+      const notificationId = `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      await sql`
+          INSERT INTO notifications (id, user_id, type, title, message, data, created_at)
+          VALUES (
+              ${notificationId},
+              ${userId},
+              'purchase',
+              'Новая покупка',
+              ${`Вы купили ${productName} за ${amount} ₽`},
+              ${JSON.stringify({ productName, amount, orderId })},
+              ${new Date().toISOString()}
+          )
+      `;
+      
+      res.json({ success: true });
+  } catch (error) {
+      console.error('❌ Ошибка сохранения уведомления:', error);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Сохранение уведомления о регистрации
+app.post('/api/notifications/registration', async (req, res) => {
+  try {
+      const { userId, username } = req.body;
+      
+      const notificationId = `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      await sql`
+          INSERT INTO notifications (id, user_id, type, title, message, data, created_at)
+          VALUES (
+              ${notificationId},
+              ${userId},
+              'registration',
+              'Добро пожаловать!',
+              ${`${username}, вы успешно зарегистрировались в BHStore`},
+              ${JSON.stringify({ username })},
+              ${new Date().toISOString()}
+          )
+      `;
+      
+      res.json({ success: true });
+  } catch (error) {
+      console.error('❌ Ошибка сохранения уведомления:', error);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Сохранение ошибки
+app.post('/api/notifications/error', async (req, res) => {
+  try {
+      const { errorType, errorMessage, userId, userAgent, url } = req.body;
+      
+      const errorId = `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      await sql`
+          INSERT INTO errors (id, type, message, user_id, user_agent, url, created_at)
+          VALUES (
+              ${errorId},
+              ${errorType},
+              ${errorMessage},
+              ${userId || null},
+              ${userAgent},
+              ${url},
+              ${new Date().toISOString()}
+          )
+      `;
+      
+      res.json({ success: true });
+  } catch (error) {
+      console.error('❌ Ошибка сохранения ошибки:', error);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Сохранение статистики
+app.post('/api/stats/save', async (req, res) => {
+  try {
+      const stats = req.body;
+      
+      await sql`
+          INSERT INTO stats (data, created_at)
+          VALUES (
+              ${JSON.stringify(stats)},
+              ${new Date().toISOString()}
+          )
+      `;
+      
+      res.json({ success: true });
+  } catch (error) {
+      console.error('❌ Ошибка сохранения статистики:', error);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Отправка вебхука (безопасно, с сервера)
+app.post('/api/webhook/send', async (req, res) => {
+  try {
+      const { title, description, color, fields } = req.body;
+      
+      // Вебхук теперь хранится только на сервере, в переменных окружения
+      const webhookUrl = process.env.DISCORD_WEBHOOK_URL || 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
+      
+      const response = await axios.post(webhookUrl, {
+          embeds: [{
+              title,
+              description,
+              color,
+              fields,
+              timestamp: new Date().toISOString()
+          }]
+      });
+      
+      res.json({ success: true });
+  } catch (error) {
+      console.error('❌ Ошибка отправки вебхука:', error);
+      res.status(500).json({ success: false, error: 'Ошибка отправки' });
+  }
 });
 
 // Экспорт для serverless
