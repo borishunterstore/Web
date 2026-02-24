@@ -7,16 +7,11 @@
 
 [functions]
   node_bundler = "esbuild"
+  directory = "netlify/functions"
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/server/:splat"
-  status = 200
-  force = true
-
-[[redirects]]
-  from = "/auth/*"
-  to = "/.netlify/functions/server/auth/:splat"
+  to = "/.netlify/functions/:splat"
   status = 200
   force = true
 
