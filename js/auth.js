@@ -1,11 +1,12 @@
-// Авторизация через Discord
+// Авторизация через Discord с поддержкой PostgreSQL
 class DiscordAuth {
     constructor() {
         this.init();
+        this.apiBase = '/api'; // Базовый URL для API
     }
 
     init() {
-        console.log('Auth module initialized');
+        console.log('🚀 Auth module initialized with PostgreSQL');
         
         // Проверяем, если мы на странице верификации
         if (window.location.pathname === '/verify.html') {
@@ -18,10 +19,30 @@ class DiscordAuth {
         // Обработка callback от Discord
         window.addEventListener('message', (event) => {
             if (event.data.type === 'DISCORD_AUTH_CALLBACK') {
-                console.log('Received Discord callback');
+                console.log('📨 Received Discord callback');
                 this.handleCallback(event.data.code, event.data.state);
             }
         });
+
+        // Автоматически обновляем баланс при загрузке
+        this.refreshUserBalance();
+    }
+
+    // Обновление баланса пользователя с сервера
+    async refreshUserBalance() {
+        const authData = this.getAuthData();
+        if (authData?.id) {
+            try {
+                const balance = await DiscordAuth.getUserBalance(authData.id);
+                if (balance !== null) {
+                    authData.balance = balance;
+                    this.saveAuthData(authData);
+                    this.updateAuthButton();
+                }
+            } catch (error) {
+                console.error('❌ Error refreshing balance:', error);
+            }
+        }
     }
 
     initAuthButton() {
@@ -32,10 +53,11 @@ class DiscordAuth {
             
             // Если кнопка еще не имеет обработчика, добавляем его
             if (!authBtn.hasAttribute('data-auth-initialized')) {
-                authBtn.addEventListener('click', () => {
-                    const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+                authBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const authData = this.getAuthData();
                     
-                    if (authData.username && !authData.verificationCode) {
+                    if (authData?.username && !authData.requiresVerification) {
                         // Пользователь уже авторизован - показываем меню
                         this.showUserMenu();
                     } else {
@@ -49,29 +71,44 @@ class DiscordAuth {
         }
     }
 
-    updateAuthButton() {
+    async updateAuthButton() {
         const authBtn = document.getElementById('authBtn');
         if (!authBtn) return;
         
-        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+        const authData = this.getAuthData();
         
-        if (authData.username && !authData.verificationCode) {
+        if (authData?.username && !authData.requiresVerification) {
+            // Получаем актуальные данные с сервера
+            try {
+                const userData = await this.fetchUserData(authData.id);
+                if (userData) {
+                    authData.balance = userData.balance;
+                    authData.badges = userData.badges;
+                    this.saveAuthData(authData);
+                }
+            } catch (error) {
+                console.error('❌ Error fetching user data:', error);
+            }
+            
             // Получаем бейджи пользователя
-            const badges = this.getUserBadges(authData);
+            const badges = this.getUserBadgesHTML(authData);
             
             // Пользователь авторизован и верифицирован
             authBtn.innerHTML = `
-                <img src="https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=32" 
-                     style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px;"
-                     onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                <span style="vertical-align: middle;">${authData.username}</span>
-                ${badges}
-                <i class="fas fa-chevron-down" style="margin-left: 8px; vertical-align: middle;"></i>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <img src="https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=32" 
+                         style="width: 32px; height: 32px; border-radius: 50%;"
+                         onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                    <span style="vertical-align: middle;">${authData.username}</span>
+                    ${badges}
+                    <span style="color: #57F287; font-weight: 600; margin-left: 5px;">${authData.balance || 0} ₽</span>
+                    <i class="fas fa-chevron-down" style="margin-left: 5px; vertical-align: middle;"></i>
+                </div>
             `;
-        } else if (authData.username && authData.verificationCode) {
+        } else if (authData?.username && authData.requiresVerification) {
             // Пользователь авторизован, но не верифицирован
             authBtn.innerHTML = `
-                <i class="fas fa-hourglass-half"></i>
+                <i class="fas fa-hourglass-half" style="color: #FEE75C;"></i>
                 <span>Завершить регистрацию</span>
             `;
             authBtn.onclick = () => {
@@ -79,73 +116,81 @@ class DiscordAuth {
             };
         } else {
             // Не авторизован
-            authBtn.innerHTML = '<i class="fab fa-discord"></i> Войти';
-            authBtn.onclick = () => {
-                window.location.href = '/auth.html';
-            };
+            authBtn.innerHTML = '<i class="fab fa-discord"></i> Войти через Discord';
         }
     }
 
-    // Получение бейджей пользователя (для кнопки)
-    getUserBadges(authData) {
-        let badges = '';
+    // Получение HTML для бейджей
+    getUserBadgesHTML(authData) {
+        const badges = authData.badges || {};
+        let badgesHtml = '';
         
-        // Проверяем и нормализуем badges
-        const userBadges = this.normalizeBadges(authData.badges);
+        if (badges.admin) {
+            badgesHtml += `
+                <img src="https://cdn3.emoji.gg/emojis/9428-admin.png" 
+                     style="width: 18px; height: 18px; margin-left: 2px; border-radius: 50%;" 
+                     title="Администратор">
+            `;
+        }
         
-        // Бейджи для отображения в кнопке (только verified показываем рядом с именем)
-        if (userBadges.verified) {
-            badges += `
+        if (badges.verified) {
+            badgesHtml += `
                 <img src="https://cdn3.emoji.gg/emojis/32765-verifiedtwitter.gif" 
-                     style="width: 18px; height: 18px; margin-left: 6px; vertical-align: middle; border-radius: 50%;" 
+                     style="width: 18px; height: 18px; margin-left: 2px; border-radius: 50%;" 
                      title="✓ Верифицированный аккаунт">
             `;
         }
         
-        return badges;
+        if (badges.partner) {
+            badgesHtml += `
+                <img src="https://cdn3.emoji.gg/emojis/747328-serverpartner.png" 
+                     style="width: 18px; height: 18px; margin-left: 2px;" 
+                     title="Партнёр">
+            `;
+        }
+        
+        if (badges.buyer) {
+            badgesHtml += `
+                <img src="https://cdn3.emoji.gg/emojis/6133-buy.png" 
+                     style="width: 18px; height: 18px; margin-left: 2px;" 
+                     title="Покупатель">
+            `;
+        }
+        
+        return badgesHtml;
     }
 
-    // Нормализация бейджей (всегда возвращаем объект)
-    normalizeBadges(badgesData) {
-        // Если badges нет или undefined
-        if (!badgesData) {
-            return {
-                verified: false,
-                partner: false,
-                buyer: false
-            };
-        }
-        
-        // Если badges строка
-        if (typeof badgesData === 'string') {
-            if (badgesData === 'verified') {
-                return { verified: true, partner: false, buyer: false };
+    // Получение данных пользователя с сервера
+    async fetchUserData(userId) {
+        try {
+            const response = await fetch(`${this.apiBase}/user/${userId}`);
+            if (response.ok) {
+                const data = await response.json();
+                return data.user;
             }
-            return { verified: false, partner: false, buyer: false };
+        } catch (error) {
+            console.error('❌ Error fetching user data:', error);
         }
-        
-        // Если badges объект
-        if (typeof badgesData === 'object') {
-            return {
-                verified: !!badgesData.verified,
-                partner: !!badgesData.partner,
-                buyer: !!badgesData.buyer
-            };
-        }
-        
-        // По умолчанию
-        return {
-            verified: false,
-            partner: false,
-            buyer: false
-        };
+        return null;
     }
 
     async handleCallback(code, state) {
         try {
-            console.log('Processing Discord callback...');
+            console.log('🔄 Processing Discord callback...');
             
-            const response = await fetch('/api/auth/discord', {
+            // Проверяем state
+            const savedState = localStorage.getItem('discord_oauth_state');
+            if (savedState && savedState !== state) {
+                throw new Error('Security: State mismatch');
+            }
+            localStorage.removeItem('discord_oauth_state');
+            
+            if (!code) {
+                throw new Error('No authorization code received');
+            }
+            
+            // Отправляем код на сервер
+            const response = await fetch(`${this.apiBase}/auth/discord`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -155,28 +200,22 @@ class DiscordAuth {
 
             const data = await response.json();
 
+            if (!response.ok) {
+                throw new Error(data.error || `Server error: ${response.status}`);
+            }
+
             if (data.success && data.user) {
-                console.log('User authenticated:', data.user.username);
+                console.log('✅ User authenticated:', data.user.username);
                 
-                // Получаем данные пользователя с сервера
-                try {
-                    const userResponse = await fetch(`/api/user/${data.user.id}`);
-                    if (userResponse.ok) {
-                        const userData = await userResponse.json();
-                        if (userData.success && userData.user) {
-                            data.user = { ...data.user, ...userData.user };
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error fetching user data:', error);
-                }
+                // Получаем полные данные пользователя с сервера
+                const userData = await this.fetchUserData(data.user.id);
                 
                 // Генерация верификационного кода
                 const verificationCode = this.generateVerificationCode();
-                console.log('Generated verification code:', verificationCode);
+                console.log('🔐 Generated verification code:', verificationCode);
                 
-                // Отправка кода пользователю
-                const sendCodeResponse = await fetch('/api/send-verification', {
+                // Отправка кода пользователю через вебхук
+                const sendCodeResponse = await fetch(`${this.apiBase}/send-verification`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -192,17 +231,19 @@ class DiscordAuth {
                 if (sendCodeResult.success) {
                     // Сохранение данных
                     const authData = {
-                        ...data.user,
+                        id: data.user.id,
+                        username: data.user.username,
+                        global_name: data.user.global_name || data.user.username,
+                        email: data.user.email,
+                        avatar: data.user.avatar,
+                        balance: userData?.balance || 0,
+                        badges: userData?.badges || {},
                         verificationCode: verificationCode,
-                        token: data.token
+                        token: data.token,
+                        requiresVerification: true
                     };
                     
-                    // Нормализуем бейджи перед сохранением
-                    if (authData.badges) {
-                        authData.badges = this.normalizeBadges(authData.badges);
-                    }
-                    
-                    localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                    this.saveAuthData(authData);
                     
                     // Обновляем кнопку авторизации
                     this.updateAuthButton();
@@ -216,39 +257,32 @@ class DiscordAuth {
                 throw new Error(data.error || 'Authentication failed');
             }
         } catch (error) {
-            console.error('Auth error:', error);
+            console.error('❌ Auth error:', error);
             alert('Ошибка авторизации: ' + error.message);
-        }
-
-        if (data.success && data.user) {
-            const userData = data.user;
             
-            const testOrder = {
-                id: 'TEST-' + Date.now(),
-                userId: userData.id,
-                product: 'Тестовый товар',
-                productName: 'Тестовый товар',
-                amount: 100,
-                status: 'completed',
-                date: new Date().toISOString()
-            };
-            
-            const orders = JSON.parse(localStorage.getItem('bhstore_orders') || '[]');
-            orders.push(testOrder);
-            localStorage.setItem('bhstore_orders', JSON.stringify(orders));
+            // Возвращаемся на страницу авторизации
+            setTimeout(() => {
+                window.location.href = '/auth.html';
+            }, 2000);
         }
     }
 
     initVerifyPage() {
         const verifyBtn = document.getElementById('verifyBtn');
         const codeInput = document.getElementById('verificationCode');
+        const resendBtn = document.getElementById('resendBtn');
         
         if (verifyBtn && codeInput) {
+            // Автоматически форматируем код (только цифры)
+            codeInput.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+            });
+            
             verifyBtn.addEventListener('click', async () => {
                 const code = codeInput.value.trim();
                 
-                if (!code) {
-                    alert('Введите код верификации');
+                if (!code || code.length !== 6) {
+                    alert('Введите 6-значный код верификации');
                     return;
                 }
                 
@@ -260,10 +294,17 @@ class DiscordAuth {
                     
                     if (success) {
                         // Обновляем кнопку авторизации
-                        this.updateAuthButton();
+                        await this.updateAuthButton();
                         
-                        // Перенаправляем на главную
-                        window.location.href = '/';
+                        // Показываем успешное сообщение
+                        this.showVerificationSuccess();
+                        
+                        // Перенаправляем на главную через 2 секунды
+                        setTimeout(() => {
+                            window.location.href = '/';
+                        }, 2000);
+                    } else {
+                        throw new Error('Неверный код');
                     }
                 } catch (error) {
                     alert('Ошибка верификации: ' + error.message);
@@ -272,13 +313,58 @@ class DiscordAuth {
                 }
             });
         }
+        
+        if (resendBtn) {
+            resendBtn.addEventListener('click', async () => {
+                const authData = this.getAuthData();
+                if (!authData?.id) {
+                    alert('Сессия истекла. Пожалуйста, авторизуйтесь снова.');
+                    window.location.href = '/auth.html';
+                    return;
+                }
+                
+                resendBtn.disabled = true;
+                const originalText = resendBtn.innerHTML;
+                resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+                
+                try {
+                    const newCode = this.generateVerificationCode();
+                    
+                    const response = await fetch(`${this.apiBase}/send-verification`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            userId: authData.id,
+                            code: newCode
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        authData.verificationCode = newCode;
+                        this.saveAuthData(authData);
+                        alert('Новый код отправлен! Проверьте Discord');
+                    } else {
+                        throw new Error(result.error || 'Failed to resend code');
+                    }
+                } catch (error) {
+                    alert('Ошибка при отправке кода: ' + error.message);
+                } finally {
+                    resendBtn.disabled = false;
+                    resendBtn.innerHTML = originalText;
+                }
+            });
+        }
     }
 
     async verifyCode(inputCode) {
         try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            const authData = this.getAuthData();
             
-            if (!authData.id) {
+            if (!authData?.id) {
                 throw new Error('Сессия истекла. Пожалуйста, авторизуйтесь снова.');
             }
 
@@ -287,7 +373,7 @@ class DiscordAuth {
             }
 
             // Регистрация пользователя
-            const response = await fetch('/api/register', {
+            const response = await fetch(`${this.apiBase}/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -296,32 +382,30 @@ class DiscordAuth {
                     discordId: authData.id,
                     username: authData.username,
                     email: authData.email,
-                    avatar: authData.avatar,
-                    balance: authData.balance || 0
+                    avatar: authData.avatar
                 })
             });
 
             const result = await response.json();
 
             if (result.success) {
-                // Обновляем данные пользователя с сервера
-                const updatedUser = { 
-                    ...authData, 
-                    ...result.user,
-                    verificationCode: undefined // Удаляем код верификации
+                // Получаем обновленные данные пользователя
+                const userData = await this.fetchUserData(authData.id);
+                
+                // Обновляем данные пользователя
+                const updatedAuth = {
+                    ...authData,
+                    balance: userData?.balance || 0,
+                    badges: userData?.badges || {},
+                    verificationCode: undefined, // Удаляем код верификации
+                    requiresVerification: false
                 };
                 
-                // Нормализуем бейджи
-                if (result.user.badges) {
-                    updatedUser.badges = this.normalizeBadges(result.user.badges);
-                }
+                this.saveAuthData(updatedAuth);
                 
-                // Сохраняем обновленные данные
-                localStorage.setItem('bhstore_auth', JSON.stringify(updatedUser));
-                
-                // Отправка приветственного сообщения
+                // Отправляем приветственное сообщение
                 try {
-                    await fetch('/api/welcome-message', {
+                    await fetch(`${this.apiBase}/welcome-message`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -329,48 +413,50 @@ class DiscordAuth {
                         body: JSON.stringify({ userId: authData.id })
                     });
                 } catch (error) {
-                    console.error('Welcome message error:', error);
+                    console.error('❌ Welcome message error:', error);
                 }
-                
-                // Показываем успешное сообщение
-                this.showVerificationSuccess();
                 
                 return true;
             } else {
                 throw new Error(result.error || 'Registration failed');
             }
         } catch (error) {
-            console.error('Verification error:', error);
+            console.error('❌ Verification error:', error);
             throw error;
         }
     }
 
     showVerificationSuccess() {
-        // Если мы на странице верификации, показываем успешное сообщение
-        if (window.location.pathname === '/verify.html') {
-            const verifyContainer = document.querySelector('.verify-container');
-            if (verifyContainer) {
-                verifyContainer.innerHTML = `
-                    <div style="text-align: center; padding: 3rem;">
-                        <div style="width: 100px; height: 100px; background: #57F287; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
-                            <i class="fas fa-check" style="color: white; font-size: 3rem;"></i>
-                        </div>
-                        <h2 style="color: #57F287; margin-bottom: 1rem;">Аккаунт верифицирован!</h2>
-                        <p style="color: #b9bbbe; margin-bottom: 2rem;">
-                            <i class="fas fa-check-circle" style="color: #57F287;"></i>
-                            Ваш аккаунт успешно подтвержден. Теперь вы можете совершать покупки.
-                        </p>
-                        <a href="/" class="btn-primary" style="display: inline-block;">
-                            <i class="fas fa-home"></i> Вернуться на главную
-                        </a>
+        const verifyContainer = document.querySelector('.verify-container');
+        if (verifyContainer) {
+            verifyContainer.innerHTML = `
+                <div style="text-align: center; padding: 3rem;">
+                    <div style="width: 100px; height: 100px; background: #57F287; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
+                        <i class="fas fa-check" style="color: white; font-size: 3rem;"></i>
                     </div>
-                `;
-            }
+                    <h2 style="color: #57F287; margin-bottom: 1rem;">Аккаунт верифицирован!</h2>
+                    <p style="color: #b9bbbe; margin-bottom: 2rem;">
+                        <i class="fas fa-check-circle" style="color: #57F287;"></i>
+                        Ваш аккаунт успешно подтвержден. Теперь вы можете совершать покупки.
+                    </p>
+                    <div class="loader" style="margin: 0 auto;"></div>
+                    <p style="color: #b9bbbe; margin-top: 1rem;">Перенаправление...</p>
+                </div>
+            `;
         }
     }
 
-    showUserMenu() {
-        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+    async showUserMenu() {
+        const authData = this.getAuthData();
+        if (!authData?.id) return;
+        
+        // Получаем актуальные данные с сервера
+        const userData = await this.fetchUserData(authData.id);
+        if (userData) {
+            authData.balance = userData.balance;
+            authData.badges = userData.badges;
+            this.saveAuthData(authData);
+        }
         
         // Удаляем старое меню если есть
         const oldMenu = document.querySelector('.user-menu');
@@ -391,11 +477,8 @@ class DiscordAuth {
             margin-top: 10px;
         `;
         
-        // Нормализуем бейджи
-        const normalizedBadges = this.normalizeBadges(authData.badges);
-        
         // Генерируем HTML для бейджей
-        const badgesHtml = this.generateBadgesHTML(normalizedBadges);
+        const badgesHtml = this.generateBadgesHTML(authData.badges || {});
         
         menu.innerHTML = `
             <div style="padding: 0.5rem; color: #b9bbbe; border-bottom: 1px solid #40444b; margin-bottom: 0.5rem;">
@@ -406,7 +489,7 @@ class DiscordAuth {
                     <div>
                         <div style="color: white; font-weight: 600; display: flex; align-items: center;">
                             ${authData.username}
-                            ${normalizedBadges.verified ? `
+                            ${authData.badges?.verified ? `
                                 <img src="https://cdn3.emoji.gg/emojis/32765-verifiedtwitter.gif" 
                                      style="width: 16px; height: 16px; margin-left: 5px; border-radius: 50%;" 
                                      title="Верифицированный аккаунт">
@@ -425,26 +508,26 @@ class DiscordAuth {
                     </div>
                 </div>
             </div>
-            <a href="/profile.html" style="display: flex; align-items: center; gap: 10px; padding: 0.75rem; color: white; text-decoration: none; border-radius: 4px; transition: background 0.3s;">
+            <a href="/profile.html" style="display: flex; align-items: center; gap: 10px; padding: 0.75rem; color: white; text-decoration: none; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='#40444b'" onmouseout="this.style.background='transparent'">
                 <i class="fas fa-user" style="width: 20px;"></i>
                 <span>Профиль</span>
             </a>
-            <a href="/profile.html#orders" style="display: flex; align-items: center; gap: 10px; padding: 0.75rem; color: white; text-decoration: none; border-radius: 4px; transition: background 0.3s;">
+            <a href="/profile.html#orders" style="display: flex; align-items: center; gap: 10px; padding: 0.75rem; color: white; text-decoration: none; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='#40444b'" onmouseout="this.style.background='transparent'">
                 <i class="fas fa-shopping-bag" style="width: 20px;"></i>
                 <span>Мои заказы</span>
             </a>
-            <a href="/profile.html#balance" style="display: flex; align-items: center; gap: 10px; padding: 0.75rem; color: white; text-decoration: none; border-radius: 4px; transition: background 0.3s;">
+            <a href="/profile.html#balance" style="display: flex; align-items: center; gap: 10px; padding: 0.75rem; color: white; text-decoration: none; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='#40444b'" onmouseout="this.style.background='transparent'">
                 <i class="fas fa-coins" style="width: 20px;"></i>
                 <span>Баланс</span>
             </a>
             ${this.isAdmin() ? `
-                <a href="/admin.html" style="display: flex; align-items: center; gap: 10px; padding: 0.75rem; color: #5865F2; text-decoration: none; border-radius: 4px; transition: background 0.3s;">
+                <a href="/admin.html" style="display: flex; align-items: center; gap: 10px; padding: 0.75rem; color: #5865F2; text-decoration: none; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='#40444b'" onmouseout="this.style.background='transparent'">
                     <i class="fas fa-crown" style="width: 20px;"></i>
                     <span>Админ панель</span>
                 </a>
             ` : ''}
             <hr style="border-color: #40444b; margin: 0.5rem 0;">
-            <button onclick="DiscordAuth.instance.logout()" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 0.75rem; background: none; border: none; color: #ED4245; text-align: left; cursor: pointer; border-radius: 4px; transition: background 0.3s;">
+            <button onclick="DiscordAuth.instance.logout()" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 0.75rem; background: none; border: none; color: #ED4245; text-align: left; cursor: pointer; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='#40444b'" onmouseout="this.style.background='transparent'">
                 <i class="fas fa-sign-out-alt" style="width: 20px;"></i>
                 <span>Выйти</span>
             </button>
@@ -471,7 +554,15 @@ class DiscordAuth {
     generateBadgesHTML(badges) {
         let badgesArray = [];
         
-        // Верифицированный аккаунт
+        if (badges.admin) {
+            badgesArray.push(`
+                <span style="background: #ED4245; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 3px;">
+                    <i class="fas fa-crown" style="font-size: 10px;"></i>
+                    <span>Админ</span>
+                </span>
+            `);
+        }
+        
         if (badges.verified) {
             badgesArray.push(`
                 <span style="background: #5865F2; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 3px;">
@@ -481,7 +572,6 @@ class DiscordAuth {
             `);
         }
         
-        // Партнер
         if (badges.partner) {
             badgesArray.push(`
                 <span style="background: #FEE75C; color: #1e1f29; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 3px;">
@@ -491,7 +581,6 @@ class DiscordAuth {
             `);
         }
         
-        // Покупатель
         if (badges.buyer) {
             badgesArray.push(`
                 <span style="background: #57F287; color: #1e1f29; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 3px;">
@@ -505,20 +594,32 @@ class DiscordAuth {
     }
 
     isAdmin() {
-        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-        return authData.username === 'borisonchik_yt' || 
-               authData.username === 'borisonchik' ||
-               authData.global_name === 'borisonchik_yt';
+        const authData = this.getAuthData();
+        return authData?.badges?.admin === true;
     }
 
     logout() {
         localStorage.removeItem('bhstore_auth');
-        localStorage.removeItem('bhstore_orders');
+        localStorage.removeItem('discord_oauth_state');
         window.location.reload();
     }
 
     generateVerificationCode() {
         return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    // Получение данных авторизации из localStorage
+    getAuthData() {
+        try {
+            return JSON.parse(localStorage.getItem('bhstore_auth') || 'null');
+        } catch {
+            return null;
+        }
+    }
+
+    // Сохранение данных авторизации
+    saveAuthData(data) {
+        localStorage.setItem('bhstore_auth', JSON.stringify(data));
     }
 
     // Статический метод для получения баланса
@@ -530,22 +631,28 @@ class DiscordAuth {
                 return data.balance || 0;
             }
         } catch (error) {
-            console.error('Error getting user balance:', error);
+            console.error('❌ Error getting user balance:', error);
         }
-        return 0;
+        return null;
     }
 
-    // Метод для обновления баланса в localStorage
-    static updateLocalBalance(newBalance) {
-        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-        if (authData.id) {
-            authData.balance = newBalance;
-            localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-            
-            // Обновляем кнопку если она есть на странице
-            const authBtn = document.getElementById('authBtn');
-            if (authBtn && auth.instance) {
-                auth.instance.updateAuthButton();
+    // Метод для обновления баланса
+    static async refreshBalance() {
+        const instance = DiscordAuth.instance;
+        if (instance) {
+            await instance.refreshUserBalance();
+        }
+    }
+
+    // Метод для обновления баланса после покупки
+    static async updateBalanceAfterPurchase(newBalance) {
+        const instance = DiscordAuth.instance;
+        if (instance) {
+            const authData = instance.getAuthData();
+            if (authData) {
+                authData.balance = newBalance;
+                instance.saveAuthData(authData);
+                instance.updateAuthButton();
             }
         }
     }
@@ -561,7 +668,8 @@ document.addEventListener('DOMContentLoaded', () => {
     auth.updateAuthButton();
     
     // Также обновляем каждые 30 секунд на случай изменений
-    setInterval(() => {
+    setInterval(async () => {
+        await auth.refreshUserBalance();
         auth.updateAuthButton();
     }, 30000);
 });
@@ -573,18 +681,23 @@ window.logout = function() {
 
 // Глобальная функция для обновления баланса
 window.updateUserBalance = function(newBalance) {
-    DiscordAuth.updateLocalBalance(newBalance);
+    DiscordAuth.updateBalanceAfterPurchase(newBalance);
 };
 
-// Проверяем авторизацию при загрузке
-if (typeof checkAuth === 'function') {
-    checkAuth();
-}
+// Глобальная функция для принудительного обновления данных
+window.refreshAuthData = async function() {
+    await DiscordAuth.refreshBalance();
+};
 
 // Отладочная функция
 window.debugAuth = function() {
-    const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-    console.log('Auth Data:', authData);
-    console.log('Badges:', authData.badges);
-    console.log('Badges Type:', typeof authData.badges);
+    const authData = auth.getAuthData();
+    console.log('📊 Auth Data:', authData);
+    console.log('📊 Badges:', authData?.badges);
+    
+    // Проверяем API
+    fetch('/api/test')
+        .then(r => r.json())
+        .then(data => console.log('📊 API Test:', data))
+        .catch(err => console.error('❌ API Error:', err));
 };
