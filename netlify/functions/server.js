@@ -218,7 +218,7 @@ async function initDatabase() {
     )
   `;
 
-async function createProductsTable() {
+  async function createProductsTable() {
   if (!sql) return;
   
   try {
@@ -443,16 +443,16 @@ async function insertTestProducts() {
 }
 
 // Запускаем инициализацию БД
-async function initializeAll() {
-  if (sql) {
+if (sql) {
+  (async () => {
     try {
       await initDatabase();
       await createProductsTable();
-      console.log('✅ Все таблицы инициализированы');
+      console.log('✅ Все таблицы успешно созданы');
     } catch (error) {
-      console.error('❌ Ошибка инициализации:', error);
+      console.error('❌ Ошибка при создании таблиц:', error.message);
     }
-  }
+  })();
 }
 
 // Вызови без await
