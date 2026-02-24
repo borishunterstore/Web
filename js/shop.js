@@ -1,15 +1,19 @@
-// shop.js - Полная оптимизированная версия с поддержкой БД
+// shop.js - Полная версия с поддержкой БД через API
 
 (function() {
     // Глобальные переменные
     let products = [];
     let currentCategory = 'all';
+    let currentUser = null;
     
     // Инициализация при загрузке страницы
     document.addEventListener('DOMContentLoaded', async function() {
-        console.log('🛍️ Shop page initialized');
+        console.log('🛍️ Shop page initialized with DB support');
         
         try {
+            // Загружаем данные пользователя
+            await loadUserData();
+            
             // Инициализируем систему промокодов
             await initPromocodeSystem();
             
@@ -22,22 +26,44 @@
             // Обновляем кнопку авторизации
             updateAuthButton();
             
-            // Проверяем авторизацию
-            if (typeof checkAuth === 'function') {
-                checkAuth();
-            }
-            
             // Добавляем стили для анимаций
             addAnimationStyles();
             
             // Инициализируем мобильное меню
             initMobileMenu();
             
+            console.log('✅ Shop initialized successfully');
+            
         } catch (error) {
             console.error('❌ Error initializing shop:', error);
             showError('Ошибка инициализации магазина');
         }
     });
+
+    // Загрузка данных пользователя из БД
+    async function loadUserData() {
+        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+        
+        if (authData.id && !authData.verificationCode) {
+            try {
+                const response = await fetch(`/api/user/${authData.id}`);
+                const data = await response.json();
+                
+                if (data.success && data.user) {
+                    currentUser = data.user;
+                    
+                    // Обновляем localStorage актуальными данными
+                    authData.balance = data.user.balance;
+                    authData.badges = data.user.badges;
+                    localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                    
+                    console.log('✅ User data loaded from DB:', currentUser);
+                }
+            } catch (error) {
+                console.warn('⚠️ Failed to load user data:', error);
+            }
+        }
+    }
 
     // Инициализация системы промокодов
     async function initPromocodeSystem() {
@@ -219,7 +245,7 @@
         showLoading(container);
         
         try {
-            // Загружаем товары из API (которое берет из БД)
+            // Загружаем товары из API (из БД)
             let productsData = await fetchProductsFromAPI();
             
             if (!productsData || productsData.length === 0) {
@@ -267,13 +293,14 @@
             const data = await response.json();
             
             if (data && data.success) {
+                console.log(`📦 Loaded ${data.products?.length || 0} products from DB`);
                 return data.products || [];
             }
             
             return [];
         } catch (error) {
             console.warn('API fetch failed:', error);
-            throw error; // Пробрасываем ошибку дальше, чтобы показать сообщение пользователю
+            throw error;
         }
     }
 
@@ -282,7 +309,7 @@
         container.innerHTML = `
             <div class="loading-spinner">
                 <div class="spinner"></div>
-                <p>Загрузка товаров...</p>
+                <p>Загрузка товаров из базы данных...</p>
             </div>
         `;
     }
@@ -566,7 +593,7 @@
         
         const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
         
-        if (!authData.username) {
+        if (!authData.id) {
             showNotification('Пожалуйста, авторизуйтесь для покупки', 'warning');
             setTimeout(() => window.location.href = '/auth.html', 2000);
             return;
@@ -740,11 +767,14 @@
             const result = await response.json();
             
             if (result.success) {
-                authData.balance = result.newBalance || (authData.balance - finalPrice);
+                // Обновляем данные пользователя в localStorage
+                authData.balance = result.newBalance;
                 if (!authData.badges) authData.badges = {};
                 authData.badges.buyer = true;
-                
                 localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                
+                // Обновляем текущего пользователя
+                currentUser = authData;
                 
                 if (discountInfo.appliedPromocodes.length > 0 && window.promocodeSystem) {
                     discountInfo.appliedPromocodes.forEach(p => {
@@ -753,7 +783,7 @@
                 }
                 
                 closePurchaseModal();
-                showSuccessMessage(result.orderId || orderId, productName, authData.balance);
+                showSuccessMessage(result.orderId || orderId, productName, result.newBalance);
                 
                 updateAuthButton();
                 window.promocodeSystem?.renderUI?.();
@@ -994,6 +1024,26 @@
                 object-fit: cover;
                 border-radius: var(--border-radius-lg);
             }
+            
+            .auth-message {
+                background: linear-gradient(135deg, #5865F2 0%, #4752C4 100%);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 12px;
+                margin-bottom: 20px;
+                text-align: center;
+                box-shadow: 0 4px 15px rgba(88, 101, 242, 0.3);
+            }
+            
+            .auth-message a {
+                color: white;
+                font-weight: bold;
+                text-decoration: underline;
+            }
+            
+            .auth-message a:hover {
+                text-decoration: none;
+            }
         `;
         
         document.head.appendChild(styles);
@@ -1076,7 +1126,7 @@
             }
         });
         
-        observer.observe(navAuth, { childList: true, subtree: true, characterData: true });
+        if (navAuth) observer.observe(navAuth, { childList: true, subtree: true, characterData: true });
         observer.observe(navMenu, { childList: true, subtree: true, characterData: true });
     }
 
@@ -1087,7 +1137,7 @@
         
         const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
         
-        if (authData.username && !authData.verificationCode) {
+        if (authData.id && !authData.verificationCode) {
             const avatarUrl = authData.avatar 
                 ? `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=32`
                 : 'https://cdn.discordapp.com/embed/avatars/0.png';
@@ -1102,12 +1152,11 @@
             `;
             authBtn.onclick = (e) => {
                 e.stopPropagation();
-                // Здесь будет открытие меню из navig.js
                 if (window.showUserMenu) {
                     window.showUserMenu(e);
                 }
             };
-        } else if (authData.username && authData.verificationCode) {
+        } else if (authData.id && authData.verificationCode) {
             authBtn.innerHTML = `
                 <i class="fas fa-hourglass-half"></i>
                 <span>Завершить регистрацию</span>
@@ -1122,30 +1171,4 @@
     // Экспортируем функции в глобальную область
     window.loadProducts = loadProducts;
     window.getDiscountInfo = getDiscountInfo;
-
-    // Обновляем функцию checkAuth
-    if (typeof window.checkAuth === 'function') {
-        const originalCheckAuth = window.checkAuth;
-        window.checkAuth = function() {
-            originalCheckAuth?.();
-            
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            if (!authData.username || authData.verificationCode) {
-                const authMessage = document.createElement('div');
-                authMessage.className = 'auth-message';
-                authMessage.innerHTML = `
-                    <p>
-                        <i class="fas fa-info-circle"></i>
-                        Для покупки товаров необходимо 
-                        <a href="/auth.html">авторизоваться через Discord</a>
-                    </p>
-                `;
-                
-                const shopContainer = document.querySelector('.shop-container');
-                if (shopContainer && !document.querySelector('.auth-message')) {
-                    shopContainer.prepend(authMessage);
-                }
-            }
-        };
-    }
 })();
