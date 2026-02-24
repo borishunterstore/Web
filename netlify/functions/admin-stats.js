@@ -1,8 +1,4 @@
-// netlify/functions/admin-stats.js
-const { MongoClient } = require('mongodb');
-
-// Строка подключения к MongoDB должна быть в переменных окружения Netlify
-const MONGODB_URI = process.env.MONGODB_URI;
+const { Pool } = require('pg');
 
 // Настройки CORS
 const headers = {
@@ -11,14 +7,18 @@ const headers = {
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 };
 
-// Обработчик функции
+// Создаем пул подключений к базе данных
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false } // Обязательно для Neon
+});
+
 exports.handler = async (event) => {
   // Обработка preflight-запроса OPTIONS
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
   }
 
-  // Разрешаем только GET-запросы
   if (event.httpMethod !== 'GET') {
     return {
       statusCode: 405,
@@ -27,67 +27,42 @@ exports.handler = async (event) => {
     };
   }
 
-  // Проверка авторизации (упрощенная, для примера)
-  // В реальном проекте здесь должна быть полноценная проверка JWT токена
-  const authHeader = event.headers.authorization;
-  if (!authHeader) {
-    return {
-      statusCode: 401,
-      headers,
-      body: JSON.stringify({ success: false, error: 'Unauthorized' }),
-    };
-  }
-  // Здесь можно добавить проверку токена и прав администратора
-
-  // Подключаемся к базе данных
   let client;
   try {
-    if (!MONGODB_URI) {
-      throw new Error('MONGODB_URI environment variable is not set');
-    }
+    client = await pool.connect();
 
-    client = new MongoClient(MONGODB_URI);
-    await client.connect();
-    const db = client.db('bhstore'); // Имя вашей базы данных
+    // Получаем статистику
+    const userStats = await client.query(`
+      SELECT 
+        COUNT(*) as total_users,
+        COUNT(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as new_users
+      FROM users
+    `);
 
-    // Получаем данные из коллекций
-    const usersCollection = db.collection('users');
-    const ordersCollection = db.collection('orders');
+    const orderStats = await client.query(`
+      SELECT 
+        COUNT(*) as total_orders,
+        COALESCE(SUM(final_price), 0) as total_revenue,
+        COUNT(CASE WHEN created_at >= NOW() - INTERVAL '7 days' THEN 1 END) as new_orders
+      FROM orders
+      WHERE status = 'completed'
+    `);
 
-    // --- Считаем статистику ---
+    // Количество уникальных покупателей
+    const buyerStats = await client.query(`
+      SELECT COUNT(DISTINCT user_id) as unique_buyers FROM orders WHERE status = 'completed'
+    `);
 
-    // Общее количество пользователей
-    const totalUsers = await usersCollection.countDocuments();
+    const totalUsers = parseInt(userStats.rows[0].total_users) || 0;
+    const totalOrders = parseInt(orderStats.rows[0].total_orders) || 0;
+    const totalRevenue = parseFloat(orderStats.rows[0].total_revenue) || 0;
+    const newUsers = parseInt(userStats.rows[0].new_users) || 0;
+    const newOrders = parseInt(orderStats.rows[0].new_orders) || 0;
+    const uniqueBuyers = parseInt(buyerStats.rows[0].unique_buyers) || 0;
 
-    // Общее количество заказов и сумма выручки
-    const orders = await ordersCollection.find({}).toArray();
-    const totalOrders = orders.length;
-    const totalRevenue = orders.reduce((sum, order) => sum + (order.finalPrice || order.amount || 0), 0);
-
-    // Новые пользователи за последние 7 дней
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const newUsers = await usersCollection.countDocuments({
-      registeredAt: { $gte: sevenDaysAgo.toISOString() }
-    });
-
-    // Новые заказы за последние 7 дней
-    const newOrders = await ordersCollection.countDocuments({
-      createdAt: { $gte: sevenDaysAgo.toISOString() }
-    });
-
-    // Средний чек
     const avgOrderValue = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
-
-    // Конверсия (процент пользователей, сделавших хотя бы один заказ)
-    const usersWithOrders = await ordersCollection.aggregate([
-      { $group: { _id: "$userId" } },
-      { $count: "count" }
-    ]).toArray();
-    const uniqueBuyers = usersWithOrders[0]?.count || 0;
     const conversion = totalUsers > 0 ? Math.round((uniqueBuyers / totalUsers) * 100) : 0;
 
-    // Формируем ответ
     const stats = {
       totalUsers,
       newUsers,
@@ -101,30 +76,17 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({
-        success: true,
-        stats,
-        chartData: {
-          labels: ['Пользователи', 'Заказы', 'Выручка (в тыс. ₽)'],
-          values: [totalUsers, totalOrders, Math.round(totalRevenue / 1000)],
-        },
-      }),
+      body: JSON.stringify({ success: true, stats }),
     };
 
   } catch (error) {
-    console.error('❌ Error in admin-stats function:', error);
+    console.error('❌ Error in admin-stats:', error);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Внутренняя ошибка сервера: ' + error.message,
-      }),
+      body: JSON.stringify({ success: false, error: error.message }),
     };
   } finally {
-    // Всегда закрываем соединение с базой данных
-    if (client) {
-      await client.close();
-    }
+    if (client) client.release();
   }
 };

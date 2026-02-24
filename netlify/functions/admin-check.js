@@ -1,68 +1,65 @@
-const { MongoClient } = require('mongodb');
+const { Pool } = require('pg');
+
+const headers = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+};
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 
 exports.handler = async (event) => {
-    const headers = {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' };
+  }
+
+  if (event.httpMethod !== 'GET') {
+    return { statusCode: 405, headers, body: JSON.stringify({ success: false, error: 'Method Not Allowed' }) };
+  }
+
+  let client;
+  try {
+    const authHeader = event.headers.authorization;
+    if (!authHeader) {
+      return { statusCode: 401, headers, body: JSON.stringify({ success: false, error: 'Unauthorized' }) };
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    // Декодируем токен (упрощенно, в реальном проекте нужна проверка JWT)
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+
+    client = await pool.connect();
+
+    // Проверяем в базе, является ли пользователь администратором
+    const result = await client.query(
+      'SELECT badges FROM users WHERE discord_id = $1',
+      [decoded.id]
+    );
+
+    if (result.rows.length === 0) {
+      return { statusCode: 404, headers, body: JSON.stringify({ success: false, error: 'User not found' }) };
+    }
+
+    const badges = result.rows[0].badges || {};
+    const isAdmin = badges.admin === true || badges.partner === true;
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify({ success: true, isAdmin }),
     };
 
-    if (event.httpMethod === 'OPTIONS') {
-        return { statusCode: 200, headers, body: '' };
-    }
-
-    try {
-        const auth = event.headers.authorization?.replace('Bearer ', '');
-        
-        if (!auth) {
-            return {
-                statusCode: 401,
-                headers,
-                body: JSON.stringify({ success: false, error: 'Не авторизован' })
-            };
-        }
-
-        // Декодируем токен
-        const userData = JSON.parse(Buffer.from(auth, 'base64').toString());
-        
-        // Подключаемся к MongoDB
-        const client = new MongoClient(process.env.MONGODB_URI);
-        await client.connect();
-        
-        const db = client.db('bhstore');
-        const users = db.collection('users');
-        
-        // Ищем пользователя в базе
-        const user = await users.findOne({ discordId: userData.id });
-        
-        // Проверяем права админа
-        const isAdmin = user?.badges?.admin === true || 
-                       userData.username === 'borisonchik_yt' || 
-                       userData.username === 'borisonchik' ||
-                       userData.id === '992442453833547886';
-        
-        await client.close();
-        
-        return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({ 
-                success: true, 
-                isAdmin,
-                user: user ? {
-                    id: user.discordId,
-                    username: user.username,
-                    badges: user.badges
-                } : null
-            })
-        };
-        
-    } catch (error) {
-        console.error('Admin check error:', error);
-        return {
-            statusCode: 500,
-            headers,
-            body: JSON.stringify({ success: false, error: 'Внутренняя ошибка сервера' })
-        };
-    }
+  } catch (error) {
+    console.error('❌ Error in admin-check:', error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ success: false, error: error.message }),
+    };
+  } finally {
+    if (client) client.release();
+  }
 };
