@@ -279,28 +279,12 @@ class AdminChat {
 
     async loadUsers() {
         try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            const response = await fetch(`${this.baseUrl}/admin-users`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                this.users = data.users || [];
-                this.renderUsersList();
-                this.updateUnreadCount();
-            } else {
-                throw new Error(data.error || 'Ошибка загрузки пользователей');
-            }
+            const data = await this.api.getChatUsers();
+            this.users = data.users || [];
+            this.renderUsersList();
         } catch (error) {
-            console.error('Ошибка загрузки пользователей:', error);
-            this.showError('Не удалось загрузить пользователей');
+            console.error('❌ Ошибка загрузки пользователей:', error);
+            this.showNotification(this.api.formatError(error), 'error');
         }
     }
 

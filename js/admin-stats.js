@@ -7,27 +7,11 @@ class AdminStats {
 
     async loadStats() {
         try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            const response = await fetch(`${this.baseUrl}/admin-stats`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                this.renderStats(data);
-            } else {
-                throw new Error(data.error || 'Ошибка загрузки статистики');
-            }
+            const data = await this.api.getStats();
+            this.renderStats(data);
         } catch (error) {
-            console.error('Ошибка загрузки статистики:', error);
-            this.showNotification('Ошибка загрузки статистики', 'error');
-            throw error;
+            console.error('❌ Ошибка загрузки статистики:', error);
+            this.showNotification(this.api.formatError(error), 'error');
         }
     }
 

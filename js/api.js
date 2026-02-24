@@ -1,40 +1,73 @@
-// api.js - Полная версия для работы с Netlify Functions
+// api.js - Полная версия для работы с MongoDB на Netlify
 class BHStoreAPI {
     constructor() {
         this.baseUrl = 'https://bhstore.netlify.app/.netlify/functions';
         this.authData = this.getAuthData();
+        console.log('✅ BHStoreAPI initialized with baseUrl:', this.baseUrl);
     }
 
     getAuthData() {
         try {
             return JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
         } catch (error) {
-            console.error('Ошибка парсинга auth data:', error);
+            console.error('❌ Error parsing auth data:', error);
             return {};
         }
     }
 
-    // ✅ Проверка админа через сервер
+    // ✅ Универсальный метод для запросов
+    async request(endpoint, options = {}) {
+        const authData = this.getAuthData();
+        const url = `${this.baseUrl}${endpoint}`;
+        
+        const defaultHeaders = {
+            'Content-Type': 'application/json',
+            ...(authData.token && { 'Authorization': `Bearer ${authData.token}` })
+        };
+
+        try {
+            console.log(`📡 ${options.method || 'GET'} ${url}`);
+            
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    ...defaultHeaders,
+                    ...options.headers
+                }
+            });
+
+            // Проверяем на HTML ответ (ошибка)
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('text/html')) {
+                console.error('❌ Server returned HTML instead of JSON:', url);
+                const html = await response.text();
+                console.error('HTML preview:', html.substring(0, 200));
+                throw new Error('Сервер вернул HTML. Проверьте настройки Netlify Functions');
+            }
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || `HTTP ${response.status}`);
+            }
+
+            return data;
+        } catch (error) {
+            console.error(`❌ API Error (${url}):`, error);
+            throw error;
+        }
+    }
+
+    // ✅ Проверка админа через сервер с MongoDB
     async isAdmin() {
         try {
             const authData = this.getAuthData();
             if (!authData.token) return false;
             
-            const response = await fetch(`${this.baseUrl}/admin-check`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${authData.token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) return false;
-            
-            const data = await response.json();
+            const data = await this.request('/admin-check');
             return data.isAdmin === true;
-            
         } catch (error) {
-            console.error('Ошибка проверки прав администратора:', error);
+            console.error('❌ Error checking admin status:', error);
             return false;
         }
     }
@@ -47,913 +80,294 @@ class BHStoreAPI {
                 return { isAdmin: false, isLoggedIn: false };
             }
             
-            const response = await fetch(`${this.baseUrl}/user-me`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${authData.token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                return { isAdmin: false, isLoggedIn: false };
-            }
-            
-            const data = await response.json();
+            const data = await this.request('/user-me');
             return {
                 isAdmin: data.user?.badges?.admin === true || data.user?.badges?.partner === true,
                 isLoggedIn: true,
                 user: data.user
             };
-            
         } catch (error) {
-            console.error('Ошибка проверки статуса:', error);
+            console.error('❌ Error checking status:', error);
             return { isAdmin: false, isLoggedIn: false };
         }
     }
 
-    // ✅ Получение пользователей чата (админ)
+    // ========== Чат поддержки ==========
+    
     async getChatUsers() {
-        if (!await this.isAdmin()) {
-            throw new Error('Требуются права администратора');
-        }
-
-        try {
-            const response = await fetch(`${this.baseUrl}/admin-chat-users`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${this.authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка получения пользователей чата:', error);
-            throw error;
-        }
+        return this.request('/admin-chat-users');
     }
 
-    // ✅ Проверка новых сообщений (админ)
-    async checkAdminMessages() {
-        if (!await this.isAdmin()) {
-            throw new Error('Требуются права администратора');
-        }
-
-        try {
-            const response = await fetch(`${this.baseUrl}/admin-check-messages`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    lastChecked: Date.now()
-                })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка проверки сообщений:', error);
-            throw error;
-        }
-    }
-
-    // ✅ Отметка сообщений как прочитанных (админ)
-    async markMessagesAsRead(userId) {
-        if (!await this.isAdmin()) {
-            throw new Error('Требуются права администратора');
-        }
-
-        try {
-            const response = await fetch(`${this.baseUrl}/admin-mark-read`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${this.authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ userId })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка отметки сообщений:', error);
-            throw error;
-        }
-    }
-
-    // ✅ Отправка сообщения в чат
-    async sendChatMessage(userId, message, fromAdmin = false) {
-        try {
-            const response = await fetch(`${this.baseUrl}/chat-send`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.authData.token || ''}`
-                },
-                body: JSON.stringify({
-                    userId: userId,
-                    message: message,
-                    fromAdmin: fromAdmin
-                })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка отправки сообщения:', error);
-            throw error;
-        }
-    }
-
-    // ✅ Получение сообщений чата
     async getChatMessages(userId) {
-        try {
-            const response = await fetch(`${this.baseUrl}/chat-messages/${userId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${this.authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка получения сообщений:', error);
-            throw error;
-        }
+        return this.request(`/chat-messages/${userId}`);
     }
 
-    // ✅ Проверка новых сообщений для пользователя
+    async sendChatMessage(userId, message, fromAdmin = false) {
+        return this.request('/chat-send', {
+            method: 'POST',
+            body: JSON.stringify({ userId, message, fromAdmin })
+        });
+    }
+
     async checkNewMessages(userId, lastChecked) {
-        try {
-            const response = await fetch(`${this.baseUrl}/chat-check`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.authData.token || ''}`
-                },
-                body: JSON.stringify({
-                    userId,
-                    lastChecked
-                })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка проверки сообщений:', error);
-            throw error;
-        }
+        return this.request('/chat-check', {
+            method: 'POST',
+            body: JSON.stringify({ userId, lastChecked })
+        });
     }
 
-    // ✅ Получение всех пользователей (админ)
+    async markMessagesAsRead(userId) {
+        return this.request('/admin-mark-read', {
+            method: 'POST',
+            body: JSON.stringify({ userId })
+        });
+    }
+
+    async checkAdminMessages() {
+        return this.request('/admin-check-messages', {
+            method: 'POST',
+            body: JSON.stringify({ lastChecked: Date.now() })
+        });
+    }
+
+    // ========== Управление пользователями ==========
+
     async getAllUsers() {
-        if (!await this.isAdmin()) {
-            throw new Error('Требуются права администратора');
-        }
-
-        try {
-            const response = await fetch(`${this.baseUrl}/admin-users`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${this.authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка получения пользователей:', error);
-            throw error;
-        }
+        return this.request('/admin-users');
     }
 
-    // ✅ Получение баланса пользователя
-    async getUserBalance(userId) {
-        try {
-            const response = await fetch(`${this.baseUrl}/user-balance/${userId}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка получения баланса:', error);
-            throw error;
-        }
-    }
-
-    // ✅ Пополнение баланса (админ)
-    async addUserBalance(userId, amount, reason) {
-        if (!await this.isAdmin()) {
-            throw new Error('Требуются права администратора');
-        }
-
-        try {
-            const response = await fetch(`${this.baseUrl}/admin-balance-add`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.authData.token || ''}`
-                },
-                body: JSON.stringify({
-                    userId: userId,
-                    amount: amount,
-                    reason: reason
-                })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка пополнения баланса:', error);
-            throw error;
-        }
-    }
-
-    // ✅ Списание баланса (админ)
-    async removeUserBalance(userId, amount, reason) {
-        if (!await this.isAdmin()) {
-            throw new Error('Требуются права администратора');
-        }
-
-        try {
-            const response = await fetch(`${this.baseUrl}/admin-balance-remove`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.authData.token || ''}`
-                },
-                body: JSON.stringify({
-                    userId: userId,
-                    amount: amount,
-                    reason: reason
-                })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка списания баланса:', error);
-            throw error;
-        }
-    }
-
-    // ✅ Установка баланса (админ)
-    async setUserBalance(userId, newBalance, reason) {
-        if (!await this.isAdmin()) {
-            throw new Error('Требуются права администратора');
-        }
-
-        try {
-            const response = await fetch(`${this.baseUrl}/admin-balance-set`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.authData.token || ''}`
-                },
-                body: JSON.stringify({
-                    userId: userId,
-                    newBalance: newBalance,
-                    reason: reason
-                })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка установки баланса:', error);
-            throw error;
-        }
-    }
-
-    // ✅ Получение истории баланса (админ)
-    async getUserBalanceHistory(userId) {
-        if (!await this.isAdmin()) {
-            throw new Error('Требуются права администратора');
-        }
-
-        try {
-            const response = await fetch(`${this.baseUrl}/admin-balance-history/${userId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${this.authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка получения истории баланса:', error);
-            throw error;
-        }
-    }
-
-    // ✅ Получение всех заказов (админ)
-    async getAllOrders() {
-        if (!await this.isAdmin()) {
-            throw new Error('Требуются права администратора');
-        }
-
-        try {
-            const response = await fetch(`${this.baseUrl}/admin-orders`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${this.authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка получения заказов:', error);
-            throw error;
-        }
-    }
-
-    // ✅ Отправка сообщения пользователю (админ)
-    async sendMessageToUser(userId, message) {
-        if (!await this.isAdmin()) {
-            throw new Error('Требуются права администратора');
-        }
-
-        try {
-            const response = await fetch(`${this.baseUrl}/admin-send-message`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.authData.token || ''}`
-                },
-                body: JSON.stringify({
-                    userId: userId,
-                    message: message
-                })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка отправки сообщения:', error);
-            throw error;
-        }
-    }
-
-    // ✅ Создание товара (админ)
-    async createProduct(productData) {
-        if (!await this.isAdmin()) {
-            throw new Error('Требуются права администратора');
-        }
-
-        try {
-            const response = await fetch(`${this.baseUrl}/admin-products`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.authData.token || ''}`
-                },
-                body: JSON.stringify(productData)
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка создания товара:', error);
-            throw error;
-        }
-    }
-
-    // ✅ Обновление товара (админ)
-    async updateProduct(productId, productData) {
-        if (!await this.isAdmin()) throw new Error('Требуются права администратора');
-    
-        try {
-            const response = await fetch(`${this.baseUrl}/admin-products/${productId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.authData.token || ''}`
-                },
-                body: JSON.stringify(productData)
-            });
-    
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `Ошибка сервера: ${response.status}`);
-            }
-    
-            return await response.json();
-    
-        } catch (error) {
-            console.error('Ошибка обновления товара:', error.message);
-            throw error;
-        }
-    }
-
-    // ✅ Удаление товара (админ)
-    async deleteProduct(productId) {
-        if (!await this.isAdmin()) {
-            throw new Error('Требуются права администратора');
-        }
-
-        try {
-            const response = await fetch(`${this.baseUrl}/admin-products/${productId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${this.authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка удаления товара:', error);
-            throw error;
-        }
-    }
-
-    // ✅ Получение статистики (админ)
-    async getStats() {
-        if (!await this.isAdmin()) {
-            throw new Error('Требуются права администратора');
-        }
-
-        try {
-            const response = await fetch(`${this.baseUrl}/admin-stats`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${this.authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка получения статистики:', error);
-            throw error;
-        }
-    }
-
-    // ✅ Получение товаров
-    async getProducts() {
-        try {
-            const response = await fetch(`${this.baseUrl}/products`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка получения товаров:', error);
-            throw error;
-        }
-    }
-
-    // ✅ Получение новостей
-    async getNews() {
-        try {
-            const response = await fetch(`${this.baseUrl}/news`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка получения новостей:', error);
-            throw error;
-        }
-    }
-
-    // ✅ Получение пользователя
     async getUser(userId) {
-        try {
-            const response = await fetch(`${this.baseUrl}/user/${userId}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка получения пользователя:', error);
-            throw error;
-        }
+        return this.request(`/user/${userId}`);
     }
 
-    // ✅ Получение информации о текущем пользователе
     async getCurrentUser() {
-        try {
-            const authData = this.getAuthData();
-            if (!authData.token) {
-                return { success: false, error: 'Не авторизован' };
-            }
-            
-            const response = await fetch(`${this.baseUrl}/user-me`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${authData.token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка получения текущего пользователя:', error);
-            throw error;
-        }
+        return this.request('/user-me');
     }
 
-    // ✅ Создание заказа
+    async getUserBalance(userId) {
+        return this.request(`/user-balance/${userId}`);
+    }
+
+    async addUserBalance(userId, amount, reason) {
+        return this.request('/admin-balance-add', {
+            method: 'POST',
+            body: JSON.stringify({ userId, amount, reason })
+        });
+    }
+
+    async removeUserBalance(userId, amount, reason) {
+        return this.request('/admin-balance-remove', {
+            method: 'POST',
+            body: JSON.stringify({ userId, amount, reason })
+        });
+    }
+
+    async setUserBalance(userId, newBalance, reason) {
+        return this.request('/admin-balance-set', {
+            method: 'POST',
+            body: JSON.stringify({ userId, newBalance, reason })
+        });
+    }
+
+    async getUserBalanceHistory(userId) {
+        return this.request(`/admin-balance-history/${userId}`);
+    }
+
+    // ========== Управление заказами ==========
+
+    async getAllOrders() {
+        return this.request('/admin-orders');
+    }
+
     async createOrder(orderData) {
-        try {
-            const response = await fetch(`${this.baseUrl}/create-order`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(orderData)
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка создания заказа:', error);
-            throw error;
-        }
+        return this.request('/create-order', {
+            method: 'POST',
+            body: JSON.stringify(orderData)
+        });
     }
 
-    // ✅ Создание заказа с баланса
     async createOrderWithBalance(orderData) {
-        try {
-            const response = await fetch(`${this.baseUrl}/create-order-balance`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(orderData)
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка создания заказа:', error);
-            throw error;
-        }
+        return this.request('/create-order-balance', {
+            method: 'POST',
+            body: JSON.stringify(orderData)
+        });
     }
 
-    // ✅ Отзывы
+    async updateOrderStatus(orderId, status) {
+        return this.request('/admin-update-order', {
+            method: 'POST',
+            body: JSON.stringify({ orderId, status })
+        });
+    }
+
+    // ========== Управление товарами ==========
+
+    async getProducts() {
+        return this.request('/products');
+    }
+
+    async createProduct(productData) {
+        return this.request('/admin-products', {
+            method: 'POST',
+            body: JSON.stringify(productData)
+        });
+    }
+
+    async updateProduct(productId, productData) {
+        return this.request(`/admin-products/${productId}`, {
+            method: 'PUT',
+            body: JSON.stringify(productData)
+        });
+    }
+
+    async deleteProduct(productId) {
+        return this.request(`/admin-products/${productId}`, {
+            method: 'DELETE'
+        });
+    }
+
+    // ========== Управление новостями ==========
+
+    async getNews() {
+        return this.request('/news');
+    }
+
+    async createNews(newsData) {
+        return this.request('/admin-news', {
+            method: 'POST',
+            body: JSON.stringify(newsData)
+        });
+    }
+
+    async updateNews(newsId, newsData) {
+        return this.request(`/admin-news/${newsId}`, {
+            method: 'PUT',
+            body: JSON.stringify(newsData)
+        });
+    }
+
+    async deleteNews(newsId) {
+        return this.request(`/admin-news/${newsId}`, {
+            method: 'DELETE'
+        });
+    }
+
+    // ========== Управление отзывами ==========
+
     async getReviews() {
-        try {
-            const response = await fetch(`${this.baseUrl}/reviews`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка получения отзывов:', error);
-            throw error;
-        }
+        return this.request('/reviews');
     }
 
     async addReview(reviewData) {
-        try {
-            const authData = this.getAuthData();
-            
-            const response = await fetch(`${this.baseUrl}/reviews`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authData.token || ''}`
-                },
-                body: JSON.stringify(reviewData)
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка добавления отзыва:', error);
-            throw error;
-        }
+        return this.request('/reviews', {
+            method: 'POST',
+            body: JSON.stringify(reviewData)
+        });
     }
 
     async markReviewHelpful(reviewId, userId) {
-        try {
-            const response = await fetch(`${this.baseUrl}/reviews/${reviewId}/helpful`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ userId })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка отметки отзыва:', error);
-            throw error;
-        }
+        return this.request(`/reviews/${reviewId}/helpful`, {
+            method: 'POST',
+            body: JSON.stringify({ userId })
+        });
     }
 
-    // ✅ Промокоды
+    async deleteReview(reviewId) {
+        return this.request(`/admin-reviews/${reviewId}`, {
+            method: 'DELETE'
+        });
+    }
+
+    async addAdminReply(reviewId, reply) {
+        return this.request(`/admin-reviews/${reviewId}/reply`, {
+            method: 'POST',
+            body: JSON.stringify({ reply })
+        });
+    }
+
+    // ========== Управление промокодами ==========
+
     async checkPromocode(code, userId, productId = null) {
-        try {
-            const response = await fetch(`${this.baseUrl}/promocode-check`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    code,
-                    userId,
-                    productId
-                })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка проверки промокода:', error);
-            throw error;
-        }
+        return this.request('/promocode-check', {
+            method: 'POST',
+            body: JSON.stringify({ code, userId, productId })
+        });
     }
 
     async activatePromocode(code, userId) {
-        try {
-            const response = await fetch(`${this.baseUrl}/promocode-activate`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    code,
-                    userId
-                })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка активации промокода:', error);
-            throw error;
-        }
+        return this.request('/promocode-activate', {
+            method: 'POST',
+            body: JSON.stringify({ code, userId })
+        });
     }
 
     async getUserPromocodes(userId) {
-        try {
-            const response = await fetch(`${this.baseUrl}/promocode-user/${userId}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка получения промокодов пользователя:', error);
-            throw error;
-        }
+        return this.request(`/promocode-user/${userId}`);
     }
 
-    // ✅ Discord OAuth
+    async getAllPromocodes() {
+        return this.request('/admin-promocodes');
+    }
+
+    async createPromocode(promocodeData) {
+        return this.request('/admin-promocodes', {
+            method: 'POST',
+            body: JSON.stringify(promocodeData)
+        });
+    }
+
+    async updatePromocode(code, promocodeData) {
+        return this.request(`/admin-promocodes/${code}`, {
+            method: 'PUT',
+            body: JSON.stringify(promocodeData)
+        });
+    }
+
+    async deletePromocode(code) {
+        return this.request(`/admin-promocodes/${code}`, {
+            method: 'DELETE'
+        });
+    }
+
+    // ========== Статистика ==========
+
+    async getStats() {
+        return this.request('/admin-stats');
+    }
+
+    // ========== Discord OAuth ==========
+
     async discordAuth(code) {
-        try {
-            const response = await fetch(`${this.baseUrl}/auth-discord`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ code })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка авторизации Discord:', error);
-            throw error;
-        }
+        return this.request('/auth-discord', {
+            method: 'POST',
+            body: JSON.stringify({ code })
+        });
     }
 
     async sendVerification(userId, code) {
-        try {
-            const response = await fetch(`${this.baseUrl}/send-verification`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ userId, code })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка отправки верификации:', error);
-            throw error;
-        }
+        return this.request('/send-verification', {
+            method: 'POST',
+            body: JSON.stringify({ userId, code })
+        });
     }
 
     async registerUser(userData) {
-        try {
-            const response = await fetch(`${this.baseUrl}/register`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userData)
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка регистрации:', error);
-            throw error;
-        }
+        return this.request('/register', {
+            method: 'POST',
+            body: JSON.stringify(userData)
+        });
     }
 
     async sendWelcomeMessage(userId) {
-        try {
-            const response = await fetch(`${this.baseUrl}/welcome-message`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ userId })
-            });
-            
-            if (!response.ok) {
-                const error = await response.json().catch(() => ({}));
-                throw new Error(error.error || `HTTP ${response.status}`);
-            }
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Ошибка отправки приветствия:', error);
-            throw error;
-        }
+        return this.request('/welcome-message', {
+            method: 'POST',
+            body: JSON.stringify({ userId })
+        });
     }
 
-    // ✅ Выход
-    logout() {
-        localStorage.removeItem('bhstore_auth');
-        localStorage.removeItem('bhstore_orders');
-        localStorage.removeItem('bhstore_active_promocodes');
-        window.location.href = '/';
-    }
+    // ========== Утилиты ==========
 
-    // ✅ Обновление токена
+    // Сохранение токена после авторизации
     setAuthToken(token) {
         const authData = this.getAuthData();
         authData.token = token;
@@ -961,18 +375,34 @@ class BHStoreAPI {
         this.authData = authData;
     }
 
-    // ✅ Обновление данных пользователя
+    // Обновление данных пользователя
     setUserData(userData) {
         const authData = this.getAuthData();
         const updatedData = { ...authData, ...userData };
         localStorage.setItem('bhstore_auth', JSON.stringify(updatedData));
         this.authData = updatedData;
     }
+
+    // Выход из системы
+    logout() {
+        localStorage.removeItem('bhstore_auth');
+        localStorage.removeItem('bhstore_orders');
+        localStorage.removeItem('bhstore_active_promocodes');
+        window.location.href = '/';
+    }
+
+    // Форматирование ошибок
+    formatError(error) {
+        if (error.message) {
+            return error.message;
+        }
+        return 'Неизвестная ошибка';
+    }
 }
 
-// Создаем глобальный экземпляр
+// Создаем и экспортируем экземпляр
 const api = new BHStoreAPI();
 window.BHStoreAPI = api;
-
-// Для обратной совместимости
 window.api = api;
+
+console.log('✅ BHStoreAPI готов к работе с MongoDB');

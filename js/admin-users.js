@@ -7,27 +7,11 @@ class AdminUsers {
 
     async loadUsers() {
         try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            const response = await fetch(`${this.baseUrl}/admin-users`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                this.renderUsers(data);
-            } else {
-                throw new Error(data.error || 'Ошибка загрузки пользователей');
-            }
+            const data = await this.api.getAllUsers();
+            this.renderUsers(data);
         } catch (error) {
-            console.error('Ошибка загрузки пользователей:', error);
-            this.showNotification('Ошибка загрузки пользователей', 'error');
-            throw error;
+            console.error('❌ Ошибка загрузки пользователей:', error);
+            this.showNotification(this.api.formatError(error), 'error');
         }
     }
 
@@ -292,42 +276,12 @@ class AdminUsers {
     }
 
     async addBalance(userId) {
-        const amount = document.getElementById('balanceAmount')?.value;
-        const reason = document.getElementById('balanceReason')?.value || 'Пополнение администратором';
-        
-        if (!amount || amount <= 0) {
-            this.showNotification('Введите корректную сумму', 'error');
-            return;
-        }
-        
         try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            const response = await fetch(`${this.baseUrl}/admin-balance-add`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: userId,
-                    amount: parseInt(amount),
-                    reason: reason
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                document.querySelector('.modal')?.remove();
-                this.showNotification(`Баланс пополнен на ${amount} ₽`, 'success');
-                await this.loadUsers();
-            } else {
-                throw new Error(data.error || 'Ошибка пополнения баланса');
-            }
+            const data = await this.api.addUserBalance(userId, amount, reason);
+            this.showNotification('✅ Баланс пополнен', 'success');
+            await this.loadUsers();
         } catch (error) {
-            console.error('Ошибка пополнения баланса:', error);
-            this.showNotification('Ошибка при пополнении баланса', 'error');
+            this.showNotification(this.api.formatError(error), 'error');
         }
     }
 

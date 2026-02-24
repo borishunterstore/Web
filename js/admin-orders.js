@@ -11,28 +11,11 @@ class AdminOrders {
 
     async loadOrders() {
         try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            const response = await fetch(`${this.baseUrl}/admin-orders`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                this.orders = data.orders || [];
-                this.filteredOrders = [...this.orders];
-                this.renderOrders();
-            } else {
-                throw new Error(data.error || 'Ошибка загрузки заказов');
-            }
+            const data = await this.api.getAllOrders();
+            this.renderOrders(data);
         } catch (error) {
-            console.error('Ошибка загрузки заказов:', error);
-            throw error;
+            console.error('❌ Ошибка загрузки заказов:', error);
+            this.showNotification(this.api.formatError(error), 'error');
         }
     }
 

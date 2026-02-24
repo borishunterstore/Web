@@ -7,27 +7,11 @@ class AdminProducts {
 
     async loadProducts() {
         try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            const response = await fetch(`${this.baseUrl}/admin-products`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                this.renderProducts(data);
-            } else {
-                throw new Error(data.error || 'Ошибка загрузки товаров');
-            }
+            const data = await this.api.getProducts();
+            this.renderProducts(data);
         } catch (error) {
-            console.error('Ошибка загрузки товаров:', error);
-            this.showNotification('Ошибка загрузки товаров', 'error');
-            throw error;
+            console.error('❌ Ошибка загрузки товаров:', error);
+            this.showNotification(this.api.formatError(error), 'error');
         }
     }
 
