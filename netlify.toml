@@ -1,7 +1,7 @@
 [build]
   functions = "netlify/functions"
   publish = "."
-  command = "echo 'No build needed'"  # Пустая команда вместо start
+  command = "npm install @neondatabase/serverless serverless-http"
 
 [[redirects]]
   from = "/api/*"
