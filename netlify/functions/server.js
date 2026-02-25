@@ -3,6 +3,8 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const serverless = require('serverless-http');
+const path = require('path');
+const fs = require('fs');
 const { neon } = require('@neondatabase/serverless');
 require('dotenv').config();
 
@@ -37,6 +39,9 @@ try {
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Обслуживание статических файлов из корня проекта
+app.use(express.static(path.join(__dirname, '../../')));
 
 // Хранилище в памяти (как запасной вариант)
 let users = {};
@@ -288,124 +293,6 @@ async function insertTestProducts() {
         features: JSON.stringify(["Все функции бота", "Приоритетная поддержка", "Эксклюзивные команды", "Скидка 30%"]),
         popular: false,
         discount: 30
-      },
-      {
-        id: "discord_bot_economy",
-        name: "Экономический бот",
-        description: "Что входит в тариф:",
-        price: 999,
-        category: "discordbot",
-        icon: "fas fa-robot",
-        image: "/image/discord-bot.png",
-        features: JSON.stringify([
-          "База данных - JSON или DATABASE",
-          "Команды: !хелп, !баланс, !продать, !купить-товар, !вывести, !положить, !профиль, !работа, !казино, !магазин, !добавить-товар, !убрать-товар, !выдать-монеты, !снять-монеты",
-          "Выбор формата команд - Slash Commands или Default Commands",
-          "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
-          "Язык ответа на ваше усмотрение - Русский или Английский",
-          "Дизайн эмодзи на выбор - Белый, Синий, Фиолетовый, Красный",
-          "Гарантия 2 недели"
-        ]),
-        popular: true,
-        discount: 0
-      },
-      {
-        id: "discord_bot_moderation",
-        name: "Модераторский бот",
-        description: "Что входит в тариф:",
-        price: 1119,
-        category: "discordbot",
-        icon: "fas fa-shield-alt",
-        image: "/image/discord-bot.png",
-        features: JSON.stringify([
-          "База данных - JSON или DATABASE",
-          "Команды: !хелп, !бан, !банлист, !разбан, !варн, !варнлист, !варнснять, !мьют, !размьют, !мутлист, !войскик, !изменить-ник",
-          "Выбор формата команд - Slash Commands или Default Commands",
-          "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
-          "Язык ответа на ваше усмотрение - Русский или Английский",
-          "Дизайн эмодзи на выбор - Белый, Синий, Фиолетовый, Красный",
-          "Гарантия 2 недели"
-        ]),
-        popular: false,
-        discount: 0
-      },
-      {
-        id: "discord_bot_levels",
-        name: "Уровень бот",
-        description: "Что входит в тариф:",
-        price: 888,
-        category: "discordbot",
-        icon: "fas fa-chart-line",
-        image: "/image/discord-bot.png",
-        features: JSON.stringify([
-          "База данных - JSON или DATABASE",
-          "Команды: !хелп, !ранг, !выдать-опыт, !снять-опыт, !выдать-уровень, !снять-уровень, !ранг-топ, !общий-сброс",
-          "Настройки: !настройка - Настроить за определенный уровень выдачу роли",
-          "Выбор формата команд - Slash Commands или Default Commands",
-          "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
-          "Язык ответа на ваше усмотрение - Русский или Английский",
-          "Дизайн эмодзи на выбор - Белый, Синий, Фиолетовый, Красный",
-          "Гарантия 2 недели"
-        ]),
-        popular: false,
-        discount: 0
-      },
-      {
-        id: "discord_bot_all",
-        name: "Полноценный бот",
-        description: "Что входит в тариф:",
-        price: 1999,
-        category: "discordbot",
-        icon: "fas fa-crown",
-        image: "/image/discord-bot.png",
-        features: JSON.stringify([
-          "Тариф: Экономический бот",
-          "Тариф: Модераторский бот",
-          "Тариф: Уровень бот",
-          "Команды: !хелп, !профиль, !сервер, !бот...",
-          "Выбор формата команд - Slash Commands или Default Commands",
-          "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
-          "Язык ответа на ваше усмотрение - Русский или Английский",
-          "Дизайн эмодзи на выбор - Любой",
-          "Гарантия 1 мес"
-        ]),
-        popular: true,
-        discount: 0
-      },
-      {
-        id: "discord_guild_full",
-        name: "Полная настройка Discord сервера",
-        description: "Что входит в тариф:",
-        price: 999,
-        category: "discord",
-        icon: "fas fa-server",
-        image: "/image/discord-server.png",
-        features: JSON.stringify([
-          "1. Полная настройка всех функций Discord",
-          "2. Авто-модерация",
-          "3. Каналы-роли",
-          "4. Дизайн Каналы, Категории, Роли, Голосовые, Трибуны, Форумы",
-          "5. Права для всех каналов..."
-        ]),
-        popular: true,
-        discount: 0
-      },
-      {
-        id: "video_montaz",
-        name: "Монтаж для видео",
-        description: "",
-        price: 499,
-        category: "events",
-        icon: "fas fa-video",
-        image: "/image/video.png",
-        features: JSON.stringify([
-          "Приоритетный доступ",
-          "Эксклюзивные награды",
-          "Личное приветствие",
-          "Особые привилегии"
-        ]),
-        popular: false,
-        discount: 0
       }
     ];
     
@@ -1411,11 +1298,82 @@ function getTestProducts() {
       features: ["Все функции бота", "Приоритетная поддержка", "Эксклюзивные команды", "Скидка 30%"],
       popular: false,
       discount: 30
+    },
+    {
+      id: "discord_bot_economy",
+      name: "Экономический бот",
+      description: "Полноценный экономический бот для вашего сервера",
+      price: 999,
+      category: "discordbot",
+      icon: "fas fa-robot",
+      image: "/image/discord-bot.png",
+      features: ["Баланс", "Магазин", "Работа", "Казино", "Транзакции"],
+      popular: true,
+      discount: 0
+    },
+    {
+      id: "discord_bot_moderation",
+      name: "Модераторский бот",
+      description: "Бот для модерации вашего сервера",
+      price: 1119,
+      category: "discordbot",
+      icon: "fas fa-shield-alt",
+      image: "/image/discord-bot.png",
+      features: ["Бан", "Мут", "Варн", "Логи", "Анти-спам"],
+      popular: false,
+      discount: 0
+    },
+    {
+      id: "discord_bot_levels",
+      name: "Уровень бот",
+      description: "Система уровней и рангов для сервера",
+      price: 888,
+      category: "discordbot",
+      icon: "fas fa-chart-line",
+      image: "/image/discord-bot.png",
+      features: ["Уровни", "Ранги", "Награды", "Топ"],
+      popular: false,
+      discount: 0
+    },
+    {
+      id: "discord_bot_all",
+      name: "Полноценный бот",
+      description: "Все функции в одном боте",
+      price: 1999,
+      category: "discordbot",
+      icon: "fas fa-crown",
+      image: "/image/discord-bot.png",
+      features: ["Экономика", "Модерация", "Уровни", "Развлечения", "Музыка"],
+      popular: true,
+      discount: 0
+    },
+    {
+      id: "discord_guild_full",
+      name: "Полная настройка Discord сервера",
+      description: "Профессиональная настройка вашего сервера",
+      price: 999,
+      category: "discord",
+      icon: "fas fa-server",
+      image: "/image/discord-server.png",
+      features: ["Роли", "Каналы", "Права", "Автомодерация", "Дизайн"],
+      popular: true,
+      discount: 0
+    },
+    {
+      id: "video_montaz",
+      name: "Монтаж для видео",
+      description: "Профессиональный монтаж видео",
+      price: 499,
+      category: "events",
+      icon: "fas fa-video",
+      image: "/image/video.png",
+      features: ["Нарезка", "Эффекты", "Переходы", "Звук"],
+      popular: false,
+      discount: 0
     }
   ];
 }
 
-// Получение новостей
 // Получение новостей
 app.get('/api/news', async (req, res) => {
   try {
@@ -2185,28 +2143,6 @@ app.get('/api/test', (req, res) => {
       promocodes: Object.keys(promocodes).length
     }
   });
-});
-
-// Главная страница
-app.get('/', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>BHStore</title>
-        <meta charset="UTF-8">
-        <style>
-            body { font-family: Arial; text-align: center; padding: 50px; background: #1e1f29; color: white; }
-            h1 { color: #5865F2; }
-        </style>
-    </head>
-    <body>
-        <h1>🚀 BHStore API работает</h1>
-        <p>Пользователей в памяти: ${Object.keys(users).length}</p>
-        <p><a href="/api/test">Проверить API</a></p>
-    </body>
-    </html>
-  `);
 });
 
 // ============================================

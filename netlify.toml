@@ -1,24 +1,32 @@
 [build]
-  command = "npm install"
+  command = "npm run build"
+  functions = "netlify/functions"
   publish = "."
 
 [build.environment]
   NODE_VERSION = "18"
 
-[functions]
-  node_bundler = "esbuild"
-  directory = "netlify/functions"
+[dev]
+  command = "npm run dev"
+  port = 8888
+  publish = "."
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  to = "/.netlify/functions/server/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/auth/discord/callback"
+  to = "/.netlify/functions/server/auth/discord/callback"
   status = 200
   force = true
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
-  status = 200
+  status = 404
 
 [[headers]]
   for = "/*"
