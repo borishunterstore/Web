@@ -340,7 +340,7 @@ if (sql) {
 // API маршруты
 // ============================================
 
-app.get('/api/chat/admin/users', async (req, res) => {
+app.get('/api/admin/chat/users', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
     

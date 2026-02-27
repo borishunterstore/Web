@@ -7,23 +7,21 @@
     "start": "node server.js",
     "dev": "netlify dev",
     "build": "echo 'No build required'",
-    "postinstall": "npm list @neondatabase/serverless || npm install @neondatabase/serverless"
+    "postinstall": "npm install @neondatabase/serverless"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.9.0",
-    "axios": "^1.6.0",
+    "@neondatabase/serverless": "^0.9.5",
+    "axios": "^1.7.9",
     "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
-    "express": "^4.18.2",
-    "multer": "^2.0.2",
-    "pg": "^8.11.3",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
     "serverless-http": "^3.2.0"
   },
   "engines": {
     "node": "18.x"
   },
   "devDependencies": {
-    "@netlify/functions": "^2.4.0",
-    "netlify-cli": "^17.0.0"
+    "@netlify/functions": "^2.8.2",
+    "netlify-cli": "^17.38.1"
   }
 }

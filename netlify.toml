@@ -5,6 +5,7 @@
 
 [build.environment]
   NODE_VERSION = "18"
+  NPM_FLAGS = "--no-audit --legacy-peer-deps"
 
 [dev]
   command = "npm run dev"
