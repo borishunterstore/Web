@@ -1,24 +1,24 @@
 // js/chat.js - Клиентская часть чата
-class BHStoreAPI {
-    getAuthData() {
-        return JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-    }
-    async getChatMessages(userId) {
-        const response = await fetch(`/.netlify/functions/server/chat-messages/${userId}`);
-        return await response.json();
-    }
-    async sendChatMessage(userId, message, isAdmin) {
-        return await fetch('/.netlify/functions/server/chat-send', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ userId, message, fromAdmin: isAdmin })
-        });
-    }
-}
-
 class ChatSystem {
     constructor() {
-        this.api = new BHStoreAPI();
+        // Используем глобальный API
+        this.api = window.BHStoreAPI || window.api;
+        if (!this.api) {
+            console.error('❌ BHStoreAPI not found');
+            this.api = {
+                getChatMessages: async (userId) => {
+                    const response = await fetch(`/.netlify/functions/server/chat-messages/${userId}`);
+                    return await response.json();
+                },
+                sendChatMessage: async (userId, message, fromAdmin) => {
+                    return await fetch('/.netlify/functions/server/chat-send', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ userId, message, fromAdmin })
+                    });
+                }
+            };
+        }
         this.userId = null;
         this.messages = [];
         this.pollingInterval = null;

@@ -762,10 +762,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         // Начинаем наблюдение за изменениями в promocodeSystem
-        observer.observe(window.promocodeSystem, {
-            attributes: true,
-            childList: true,
-            subtree: true
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof updateProductButtons === 'function') {
+                setTimeout(updateProductButtons, 1000);
+            }
+            
+            // Обновляем цены при изменении активных промокодов
+            if (window.promocodeSystem) {
+                // Используем событие вместо MutationObserver
+                document.addEventListener('promocodeChanged', function() {
+                    if (typeof updatePagePrices === 'function') {
+                        updatePagePrices();
+                    }
+                });
+                
+                // Триггерим событие при изменении промокодов
+                const originalAddDiscount = window.promocodeSystem.addDiscountPromocode;
+                if (originalAddDiscount) {
+                    window.promocodeSystem.addDiscountPromocode = function(code, value, productId) {
+                        const result = originalAddDiscount.call(this, code, value, productId);
+                        document.dispatchEvent(new CustomEvent('promocodeChanged'));
+                        return result;
+                    };
+                }
+                
+                const originalRemoveDiscount = window.promocodeSystem.removeDiscountPromocode;
+                if (originalRemoveDiscount) {
+                    window.promocodeSystem.removeDiscountPromocode = function(code) {
+                        const result = originalRemoveDiscount.call(this, code);
+                        document.dispatchEvent(new CustomEvent('promocodeChanged'));
+                        return result;
+                    };
+                }
+            }
         });
     }
 });
