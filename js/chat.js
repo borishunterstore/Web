@@ -20,7 +20,11 @@ class ChatSystem {
                     return await response.json();
                 },
                 checkNewMessages: async (userId, lastChecked) => {
-                    const response = await fetch(`/.netlify/functions/server/api/chat/check?userId=${userId}&lastChecked=${lastChecked}`);
+                    const response = await fetch(`/.netlify/functions/server/api/chat/check`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ userId, lastChecked })
+                    });
                     return await response.json();
                 }
             };
