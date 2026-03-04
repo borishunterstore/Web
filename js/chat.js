@@ -4,14 +4,14 @@ class BHStoreAPI {
         return JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
     }
     async getChatMessages(userId) {
-        const response = await fetch(`/api/chat/messages?userId=${userId}`);
+        const response = await fetch(`/.netlify/functions/server/chat-messages/${userId}`);
         return await response.json();
     }
     async sendChatMessage(userId, message, isAdmin) {
-        return await fetch('/api/chat/send', {
+        return await fetch('/.netlify/functions/server/chat-send', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ userId, message, isAdmin })
+            body: JSON.stringify({ userId, message, fromAdmin: isAdmin })
         });
     }
 }

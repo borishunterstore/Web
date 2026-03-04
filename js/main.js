@@ -223,7 +223,7 @@ async function isAdmin() {
     // Проверяем админ-права через API
     if (authData.token) {
         try {
-            const response = await fetch('/api/admin/users', {
+            const response = await fetch('/.netlify/functions/server/admin/users', {
                 headers: {
                     'Authorization': `Bearer ${authData.token}`
                 }
@@ -335,7 +335,7 @@ function logout() {
 
 async function loadPopularProducts() {
     try {
-        const response = await fetch('/api/products');
+        const response = await fetch('/.netlify/functions/server/products');
         const data = await response.json();
         
         if (data.success) {
@@ -393,7 +393,7 @@ async function loadPopularProducts() {
 
 async function loadLatestNews() {
     try {
-        const response = await fetch('/api/news');
+        const response = await fetch('/.netlify/functions/server/news');
         const data = await response.json();
         
         if (data.success) {
@@ -488,7 +488,7 @@ async function createOrder(productId, productName, price) {
     try {
         const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
         
-        const response = await fetch('/api/create-order', {
+        const response = await fetch('/.netlify/functions/server/create-order', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
