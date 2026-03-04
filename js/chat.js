@@ -7,18 +7,20 @@ class ChatSystem {
             console.error('❌ BHStoreAPI not found');
             this.api = {
                 getChatMessages: async (userId) => {
-                    // Добавляем /api в путь
                     const response = await fetch(`/.netlify/functions/server/api/chat/messages/${userId}`);
                     const data = await response.json();
                     return data.messages || [];
                 },
                 sendChatMessage: async (userId, message, fromAdmin) => {
-                    // Добавляем /api в путь
                     const response = await fetch('/.netlify/functions/server/api/chat/send', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ userId, message, fromAdmin })
                     });
+                    return await response.json();
+                },
+                checkNewMessages: async (userId, lastChecked) => {
+                    const response = await fetch(`/.netlify/functions/server/api/chat/check?userId=${userId}&lastChecked=${lastChecked}`);
                     return await response.json();
                 }
             };
@@ -206,7 +208,6 @@ class ChatSystem {
             console.log('✅ Message sent:', result);
         } catch (error) {
             console.error('❌ Ошибка отправки:', error);
-            // Можно показать уведомление об ошибке
         }
     }
 
@@ -226,12 +227,17 @@ class ChatSystem {
         try {
             if (!this.userId) return;
             
-            // Добавляем /api в путь
-            const response = await fetch(`/.netlify/functions/server/api/chat/check?userId=${this.userId}&lastChecked=${this.lastChecked}`);
-            const data = await response.json();
+            // Используем метод API
+            const data = await this.api.checkNewMessages(this.userId, this.lastChecked);
     
             if (data && data.hasNew) {
                 await this.loadMessages();
+            }
+            
+            // Показываем/скрываем статус "Админ печатает"
+            const indicator = document.getElementById('adminTypingIndicator');
+            if (indicator) {
+                indicator.style.display = data?.adminTyping ? 'flex' : 'none';
             }
         } catch (e) { 
             // Игнорируем ошибки поллинга
@@ -277,8 +283,7 @@ class ChatSystem {
 
     async sendTypingStatus(status) {
         try {
-            // ИСПРАВЛЕНО: используем правильный путь
-            await fetch('/.netlify/functions/server/chat-typing', {
+            await fetch('/.netlify/functions/server/api/chat/typing', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ userId: this.userId, isTyping: status, isAdmin: false })
@@ -310,7 +315,6 @@ class ChatSystem {
     }
 
     startPolling() {
-        // Очищаем предыдущий интервал если есть
         if (this.pollingInterval) {
             clearInterval(this.pollingInterval);
         }
@@ -331,7 +335,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.chatSystem.init();
 });
 
-// Очистка при уходе со страницы
 window.addEventListener('beforeunload', () => {
     if (window.chatSystem) {
         window.chatSystem.stopPolling();

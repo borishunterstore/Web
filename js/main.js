@@ -24,7 +24,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Инициализация системы промокодов если есть
     if (typeof promocodeSystem !== 'undefined') {
         setTimeout(() => {
-            promocodeSystem.updateActivePromocodesUI();
+            if (promocodeSystem && typeof promocodeSystem.updateActivePromocodesUI === 'function') {
+                promocodeSystem.updateActivePromocodesUI();
+            }
         }, 1000);
     }
 });
@@ -39,7 +41,7 @@ async function checkAuth() {
     if (authData.token && authData.id) {
         try {
             // Получаем актуальные данные пользователя с сервера
-            const response = await fetch(`/api/user/${authData.id}`);
+            const response = await fetch(`/.netlify/functions/server/api/user/${authData.id}`);
             const data = await response.json();
             
             if (data.success && data.user) {
@@ -65,7 +67,7 @@ async function checkAuth() {
         
         // Загружаем баланс с сервера (еще раз, для уверенности)
         try {
-            const balanceResponse = await fetch(`/api/user/${authData.id}/balance`);
+            const balanceResponse = await fetch(`/.netlify/functions/server/api/user/${authData.id}/balance`);
             const balanceData = await balanceResponse.json();
             if (balanceData.success) {
                 authData.balance = balanceData.balance;
@@ -109,7 +111,7 @@ async function showUserMenu() {
     
     // Получаем свежие данные с сервера перед показом меню
     try {
-        const response = await fetch(`/api/user/${authData.id}`);
+        const response = await fetch(`/.netlify/functions/server/api/user/${authData.id}`);
         const data = await response.json();
         
         if (data.success && data.user) {
@@ -223,18 +225,18 @@ async function isAdmin() {
     // Проверяем админ-права через API
     if (authData.token) {
         try {
-            const response = await fetch('/.netlify/functions/server/admin/users', {
+            const response = await fetch('/.netlify/functions/server/api/admin/users', {
                 headers: {
                     'Authorization': `Bearer ${authData.token}`
                 }
             });
-            return response.status !== 403; // Если доступ запрещен - не админ
+            return response.status !== 403;
         } catch (error) {
             console.error('Ошибка проверки админ-прав:', error);
         }
     }
     
-    return authData.discordId === '830087428214751284'; // fallback
+    return authData.discordId === '830087428214751284';
 }
 
 // Получение бейджей пользователя (для кнопки)
@@ -335,7 +337,7 @@ function logout() {
 
 async function loadPopularProducts() {
     try {
-        const response = await fetch('/.netlify/functions/server/products');
+        const response = await fetch('/.netlify/functions/server/api/products');
         const data = await response.json();
         
         if (data.success) {
@@ -393,7 +395,7 @@ async function loadPopularProducts() {
 
 async function loadLatestNews() {
     try {
-        const response = await fetch('/.netlify/functions/server/news');
+        const response = await fetch('/.netlify/functions/server/api/news');
         const data = await response.json();
         
         if (data.success) {
@@ -438,7 +440,7 @@ function buyProduct(productId, productName, originalPrice) {
     }
     
     // Проверяем баланс через API
-    fetch(`/api/user/${authData.id}`)
+    fetch(`/.netlify/functions/server/api/user/${authData.id}`)
         .then(response => response.json())
         .then(data => {
             if (!data.success || !data.user) {
@@ -488,7 +490,7 @@ async function createOrder(productId, productName, price) {
     try {
         const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
         
-        const response = await fetch('/.netlify/functions/server/create-order', {
+        const response = await fetch('/.netlify/functions/server/api/create-order', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -506,7 +508,7 @@ async function createOrder(productId, productName, price) {
         
         if (data.success) {
             // Получаем свежий баланс с сервера
-            const balanceResponse = await fetch(`/api/user/${authData.id}/balance`);
+            const balanceResponse = await fetch(`/.netlify/functions/server/api/user/${authData.id}/balance`);
             const balanceData = await balanceResponse.json();
             
             if (balanceData.success) {
@@ -544,7 +546,6 @@ function toggleMobileMenu() {
 
 // Функция для обновления цен на главной странице
 function updateHomePagePrices() {
-    // Обновляем цены на популярных товарах
     document.querySelectorAll('#popularProducts .product-card').forEach(card => {
         const productId = card.querySelector('.btn-buy')?.dataset.productId;
         const originalPrice = parseFloat(card.querySelector('.btn-buy')?.dataset.price);
@@ -553,7 +554,6 @@ function updateHomePagePrices() {
             const finalPrice = window.paymentSystem.calculateDiscountedPrice(originalPrice, productId);
             const discountInfo = window.paymentSystem.getDiscountInfo(originalPrice, productId);
             
-            // Обновляем отображение цены
             const priceElement = card.querySelector('.product-price');
             if (priceElement) {
                 if (discountInfo.discount > 0) {
@@ -580,11 +580,12 @@ function updateHomePagePrices() {
 
 // Обновляем цены при изменении активных промокодов
 if (window.promocodeSystem) {
-    // Наблюдаем за изменениями в activeDiscounts
     const originalUpdateActivePromocodesUI = promocodeSystem.updateActivePromocodesUI;
     
     promocodeSystem.updateActivePromocodesUI = function() {
-        originalUpdateActivePromocodesUI.call(this);
+        if (originalUpdateActivePromocodesUI) {
+            originalUpdateActivePromocodesUI.call(this);
+        }
         updateHomePagePrices();
     };
 }
