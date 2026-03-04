@@ -135,15 +135,15 @@ class BHStoreAPI {
         });
     }
 
-    async sendChatMessage(userId, message, fromAdmin = false) {
-        return this.request('/chat-send', {
+    async sendChatMessage(userId, message, fromAdmin) {
+        return this.request('/api/chat/send', { // добавляем /api
             method: 'POST',
             body: JSON.stringify({ userId, message, fromAdmin })
         });
     }
 
     async getChatMessages(userId) {
-        return this.request(`/chat-messages/${userId}`);
+        return this.request(`/api/chat/messages/${userId}`); // добавляем /api
     }
 
     async checkNewMessages(userId, lastChecked) {

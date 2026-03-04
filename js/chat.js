@@ -7,15 +7,19 @@ class ChatSystem {
             console.error('❌ BHStoreAPI not found');
             this.api = {
                 getChatMessages: async (userId) => {
-                    const response = await fetch(`/.netlify/functions/server/chat-messages/${userId}`);
-                    return await response.json();
+                    // Добавляем /api в путь
+                    const response = await fetch(`/.netlify/functions/server/api/chat/messages/${userId}`);
+                    const data = await response.json();
+                    return data.messages || [];
                 },
                 sendChatMessage: async (userId, message, fromAdmin) => {
-                    return await fetch('/.netlify/functions/server/chat-send', {
+                    // Добавляем /api в путь
+                    const response = await fetch('/.netlify/functions/server/api/chat/send', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ userId, message, fromAdmin })
                     });
+                    return await response.json();
                 }
             };
         }
@@ -26,7 +30,7 @@ class ChatSystem {
         this.typingTimeout = null;
         this.isTyping = false;
     }
-
+    
     async init() {
         try {
             const authDataRaw = localStorage.getItem('bhstore_auth');
@@ -127,14 +131,19 @@ class ChatSystem {
 
     async loadMessages() {
         try {
+            if (!this.userId) return;
+            
+            console.log('📥 Загрузка сообщений для userId:', this.userId);
             const data = await this.api.getChatMessages(this.userId);
+            console.log('📨 Messages loaded:', data);
+            
             if (data) {
                 this.messages = Array.isArray(data) ? data : (data.messages || []);
                 this.renderMessages();
                 this.updateLastChecked();
             }
         } catch (error) {
-            console.error('Ошибка загрузки сообщений:', error);
+            console.error('❌ Ошибка загрузки сообщений:', error);
         }
     }
 
@@ -142,15 +151,25 @@ class ChatSystem {
         const container = document.getElementById('chatMessages');
         if (!container) return;
 
+        if (this.messages.length === 0) {
+            container.innerHTML = `
+                <div class="chat-welcome">
+                    <i class="fas fa-shield-alt"></i>
+                    <p>Напишите нам, если у вас возникли вопросы. <br>Мы отвечаем в течение 15 минут.</p>
+                </div>
+            `;
+            return;
+        }
+
         const html = this.messages.map(msg => this.createMessageHTML(msg)).join('');
         container.innerHTML = html;
         this.scrollToBottom();
     }
 
     createMessageHTML(msg) {
-        const isUser = !msg.fromAdmin;
-        const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const content = this.escapeHTML(msg.message || msg.content);
+        const isUser = !msg.from_admin && !msg.fromAdmin;
+        const time = new Date(msg.timestamp || msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const content = this.escapeHTML(msg.message || msg.content || '');
         
         return `
             <div class="msg-bubble ${isUser ? 'user' : 'admin'}">
@@ -162,47 +181,61 @@ class ChatSystem {
 
     async sendMessage() {
         const input = document.getElementById('messageInput');
-        const text = input.value.trim();
+        if (!input) return;
         
+        const text = input.value.trim();
         if (!text) return;
 
         // Оптимистичное добавление в UI
-        const tempMsg = { message: text, fromAdmin: false, timestamp: new Date() };
+        const tempMsg = { 
+            message: text, 
+            from_admin: false, 
+            timestamp: new Date().toISOString() 
+        };
         this.messages.push(tempMsg);
         this.appendSingleMessage(tempMsg);
         
         input.value = '';
-        input.style.height = 'auto';
+        if (input.style) {
+            input.style.height = 'auto';
+        }
 
         try {
-            await this.api.sendChatMessage(this.userId, text, false);
-            this.sendTypingStatus(false);
+            console.log('📤 Отправка сообщения...');
+            const result = await this.api.sendChatMessage(this.userId, text, false);
+            console.log('✅ Message sent:', result);
         } catch (error) {
-            console.error('Ошибка отправки:', error);
+            console.error('❌ Ошибка отправки:', error);
+            // Можно показать уведомление об ошибке
         }
     }
 
     appendSingleMessage(msg) {
         const container = document.getElementById('chatMessages');
+        if (!container) return;
+        
+        // Убираем приветствие если оно есть
+        const welcome = container.querySelector('.chat-welcome');
+        if (welcome) welcome.remove();
+        
         container.insertAdjacentHTML('beforeend', this.createMessageHTML(msg));
         this.scrollToBottom();
     }
 
     async checkUpdates() {
         try {
-            const response = await fetch(`/api/chat/check?userId=${this.userId}&last=${this.lastChecked}`);
+            if (!this.userId) return;
+            
+            // Добавляем /api в путь
+            const response = await fetch(`/.netlify/functions/server/api/chat/check?userId=${this.userId}&lastChecked=${this.lastChecked}`);
             const data = await response.json();
-
-            if (data.hasNew) {
+    
+            if (data && data.hasNew) {
                 await this.loadMessages();
             }
-            
-            // Показываем/скрываем статус "Админ печатает"
-            const indicator = document.getElementById('adminTypingIndicator');
-            if (indicator) {
-                indicator.style.display = data.adminTyping ? 'flex' : 'none';
-            }
-        } catch (e) { /* Игнорируем ошибки поллинга */ }
+        } catch (e) { 
+            // Игнорируем ошибки поллинга
+        }
     }
 
     setupEventListeners() {
@@ -212,16 +245,22 @@ class ChatSystem {
         if (!input) return;
 
         input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && e.ctrlKey) this.sendMessage();
+            if (e.key === 'Enter' && e.ctrlKey) {
+                e.preventDefault();
+                this.sendMessage();
+            }
             this.handleTyping();
         });
 
         input.addEventListener('input', () => {
             input.style.height = 'auto';
-            input.style.height = input.scrollHeight + 'px';
+            input.style.height = Math.min(input.scrollHeight, 120) + 'px';
         });
 
-        btn?.addEventListener('click', () => this.sendMessage());
+        btn?.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.sendMessage();
+        });
     }
 
     handleTyping() {
@@ -238,7 +277,8 @@ class ChatSystem {
 
     async sendTypingStatus(status) {
         try {
-            await fetch('/api/chat/typing', {
+            // ИСПРАВЛЕНО: используем правильный путь
+            await fetch('/.netlify/functions/server/chat-typing', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ userId: this.userId, isTyping: status, isAdmin: false })
@@ -249,27 +289,39 @@ class ChatSystem {
     updateLastChecked() {
         if (this.messages.length > 0) {
             const lastMsg = this.messages[this.messages.length - 1];
-            this.lastChecked = new Date(lastMsg.timestamp).getTime();
+            this.lastChecked = new Date(lastMsg.timestamp || lastMsg.created_at || Date.now()).getTime();
         }
     }
 
     scrollToBottom() {
         const container = document.getElementById('chatMessages');
-        if (container) container.scrollTop = container.scrollHeight;
+        if (container) {
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 50);
+        }
     }
 
     escapeHTML(str) {
+        if (!str) return '';
         const div = document.createElement('div');
         div.textContent = str;
         return div.innerHTML;
     }
 
     startPolling() {
+        // Очищаем предыдущий интервал если есть
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+        }
         this.pollingInterval = setInterval(() => this.checkUpdates(), 3000);
     }
 
     stopPolling() {
-        clearInterval(this.pollingInterval);
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
+        }
     }
 }
 
@@ -277,4 +329,11 @@ class ChatSystem {
 document.addEventListener('DOMContentLoaded', () => {
     window.chatSystem = new ChatSystem();
     window.chatSystem.init();
+});
+
+// Очистка при уходе со страницы
+window.addEventListener('beforeunload', () => {
+    if (window.chatSystem) {
+        window.chatSystem.stopPolling();
+    }
 });
