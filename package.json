@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "netlify dev",
+    "dev": "node server.js",
     "build": "echo 'No build required'",
     "postinstall": "npm install @neondatabase/serverless"
   },
@@ -19,9 +19,5 @@
   },
   "engines": {
     "node": "18.x"
-  },
-  "devDependencies": {
-    "@netlify/functions": "^2.8.2",
-    "netlify-cli": "^17.38.1"
   }
 }
