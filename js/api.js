@@ -118,46 +118,46 @@ class BHStoreAPI {
     // ========== Чат поддержки ==========
     
     async getChatUsers() {
-        return this.request('/api/admin/chat/users');
+        return this.request('/admin/chat/users');
     }
 
     async checkAdminMessages() {
-        return this.request('/api/chat/admin/check', {
+        return this.request('/chat/admin/check', {
             method: 'POST',
             body: JSON.stringify({ lastChecked: Date.now() })
         });
     }
 
     async markMessagesAsRead(userId) {
-        return this.request(`/api/chat/admin/mark-read/${userId}`, {
+        return this.request(`/chat/admin/mark-read/${userId}`, {
             method: 'POST'
         });
     }
 
     async sendChatMessage(userId, message, fromAdmin = false) {
-        return this.request('/api/chat/send', {
+        return this.request('/chat/send', {
             method: 'POST',
             body: JSON.stringify({ userId, message, fromAdmin })
         });
     }
 
     async getChatMessages(userId) {
-        return this.request(`/api/chat/messages/${userId}`);
+        return this.request(`/chat/messages/${userId}`);
     }
 
     async checkNewMessages(userId, lastChecked) {
-        return this.request('/api/chat/check', {
+        return this.request('/chat/check', {
             method: 'POST',
             body: JSON.stringify({ userId, lastChecked })
         });
     }
 
     async getUserChat(userId) {
-        return this.request(`/api/admin/chat/${userId}`);
+        return this.request(`/admin/chat/${userId}`);
     }
 
     async sendMessageToUser(userId, message) {
-        return this.request('/api/admin/send-message', {
+        return this.request('/admin/send-message', {
             method: 'POST',
             body: JSON.stringify({ userId, message })
         });
@@ -166,57 +166,57 @@ class BHStoreAPI {
     // ========== Управление пользователями ==========
 
     async getAllUsers() {
-        return this.request('/api/admin/users');
+        return this.request('/admin/users');
     }
 
     async getUser(userId) {
-        return this.request(`/api/user/${userId}`);
+        return this.request(`/user/${userId}`);
     }
 
     async getUserBalance(userId) {
-        return this.request(`/api/user/${userId}/balance`);
+        return this.request(`/user/${userId}/balance`);
     }
 
     async addUserBalance(userId, amount, reason) {
-        return this.request('/api/admin/balance/add', {
+        return this.request('/admin/balance/add', {
             method: 'POST',
             body: JSON.stringify({ userId, amount, reason })
         });
     }
 
     async removeUserBalance(userId, amount, reason) {
-        return this.request('/api/admin/balance/remove', {
+        return this.request('/admin/balance/remove', {
             method: 'POST',
             body: JSON.stringify({ userId, amount, reason })
         });
     }
 
     async setUserBalance(userId, newBalance, reason) {
-        return this.request('/api/admin/balance/set', {
+        return this.request('/admin/balance/set', {
             method: 'POST',
             body: JSON.stringify({ userId, newBalance, reason })
         });
     }
 
     async getUserBalanceHistory(userId) {
-        return this.request(`/api/admin/balance/history/${userId}`);
+        return this.request(`/admin/balance/history/${userId}`);
     }
 
     // ========== Управление заказами ==========
 
     async getAllOrders() {
-        return this.request('/api/admin/orders');
+        return this.request('/admin/orders');
     }
 
     async createOrder(orderData) {
-        return this.request('/api/create-order', {
+        return this.request('/create-order', {
             method: 'POST',
             body: JSON.stringify(orderData)
         });
     }
 
     async createOrderWithBalance(orderData) {
-        return this.request('/api/create-order-balance', {
+        return this.request('/create-order-balance', {
             method: 'POST',
             body: JSON.stringify(orderData)
         });
@@ -225,25 +225,25 @@ class BHStoreAPI {
     // ========== Управление товарами ==========
 
     async getProducts() {
-        return this.request('/api/products');
+        return this.request('/products');
     }
 
     async createProduct(productData) {
-        return this.request('/api/admin/products', {
+        return this.request('/admin/products', {
             method: 'POST',
             body: JSON.stringify(productData)
         });
     }
 
     async updateProduct(productId, productData) {
-        return this.request(`/api/admin/products/${productId}`, {
+        return this.request(`/admin/products/${productId}`, {
             method: 'PUT',
             body: JSON.stringify(productData)
         });
     }
 
     async deleteProduct(productId) {
-        return this.request(`/api/admin/products/${productId}`, {
+        return this.request(`/admin/products/${productId}`, {
             method: 'DELETE'
         });
     }
@@ -251,13 +251,13 @@ class BHStoreAPI {
     // ========== Новости ==========
 
     async getNews() {
-        return this.request('/api/news');
+        return this.request('/news');
     }
 
     // ========== Статистика ==========
 
     async getStats() {
-        return this.request('/api/admin/stats');
+        return this.request('/admin/stats');
     }
 
     // ========== Утилиты ==========

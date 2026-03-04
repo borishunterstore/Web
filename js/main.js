@@ -41,7 +41,7 @@ async function checkAuth() {
     if (authData.token && authData.id) {
         try {
             // Получаем актуальные данные пользователя с сервера
-            const response = await fetch(`/.netlify/functions/server/api/user/${authData.id}`);
+            const response = await fetch(`/.netlify/functions/server/user/${authData.id}`);
             const data = await response.json();
             
             if (data.success && data.user) {
@@ -67,7 +67,7 @@ async function checkAuth() {
         
         // Загружаем баланс с сервера (еще раз, для уверенности)
         try {
-            const balanceResponse = await fetch(`/.netlify/functions/server/api/user/${authData.id}/balance`);
+            const balanceResponse = await fetch(`/.netlify/functions/server/user/${authData.id}/balance`);
             const balanceData = await balanceResponse.json();
             if (balanceData.success) {
                 authData.balance = balanceData.balance;
@@ -111,7 +111,7 @@ async function showUserMenu() {
     
     // Получаем свежие данные с сервера перед показом меню
     try {
-        const response = await fetch(`/.netlify/functions/server/api/user/${authData.id}`);
+        const response = await fetch(`/.netlify/functions/server/user/${authData.id}`);
         const data = await response.json();
         
         if (data.success && data.user) {
@@ -225,7 +225,7 @@ async function isAdmin() {
     // Проверяем админ-права через API
     if (authData.token) {
         try {
-            const response = await fetch('/.netlify/functions/server/api/admin/users', {
+            const response = await fetch('/.netlify/functions/server/admin/users', {
                 headers: {
                     'Authorization': `Bearer ${authData.token}`
                 }
@@ -337,7 +337,7 @@ function logout() {
 
 async function loadPopularProducts() {
     try {
-        const response = await fetch('/.netlify/functions/server/api/products');
+        const response = await fetch('/.netlify/functions/server/products');
         const data = await response.json();
         
         if (data.success) {
@@ -395,7 +395,7 @@ async function loadPopularProducts() {
 
 async function loadLatestNews() {
     try {
-        const response = await fetch('/.netlify/functions/server/api/news');
+        const response = await fetch('/.netlify/functions/server/news');
         const data = await response.json();
         
         if (data.success) {
@@ -440,7 +440,7 @@ function buyProduct(productId, productName, originalPrice) {
     }
     
     // Проверяем баланс через API
-    fetch(`/.netlify/functions/server/api/user/${authData.id}`)
+    fetch(`/.netlify/functions/server/user/${authData.id}`)
         .then(response => response.json())
         .then(data => {
             if (!data.success || !data.user) {
@@ -490,7 +490,7 @@ async function createOrder(productId, productName, price) {
     try {
         const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
         
-        const response = await fetch('/.netlify/functions/server/api/create-order', {
+        const response = await fetch('/.netlify/functions/server/create-order', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -508,7 +508,7 @@ async function createOrder(productId, productName, price) {
         
         if (data.success) {
             // Получаем свежий баланс с сервера
-            const balanceResponse = await fetch(`/.netlify/functions/server/api/user/${authData.id}/balance`);
+            const balanceResponse = await fetch(`/.netlify/functions/server/user/${authData.id}/balance`);
             const balanceData = await balanceResponse.json();
             
             if (balanceData.success) {
