@@ -1020,7 +1020,7 @@ app.post('/api/send-verification', async (req, res) => {
       content: `<@${userId}>`,
       embeds: [{
         title: '<:Hearts:1474933149422059712> Код верификации',
-        description: `<a:Dot:1386279213278953545 Код - \`${code}\``,
+        description: `<a:Dot:1386279213278953545> Код - \`${code}\``,
         color: 0x5865F2,
         timestamp: new Date().toISOString()
       }]
