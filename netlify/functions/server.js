@@ -2137,7 +2137,7 @@ app.get('/api/admin/stats', async (req, res) => {
 app.get('/api/test', (req, res) => {
   res.json({
     success: true,
-    message: 'Сервер работает на Netlify Functions',
+    message: 'Сервер работает',
     stats: {
       users: Object.keys(users).length,
       chatSessions: Object.keys(chatStore).length,
