@@ -223,7 +223,6 @@
             }
             
             await loadProfile();
-            initPromocodeSystem();
             setTimeout(() => {
                 initChatSystem();
             }, 500);
@@ -233,27 +232,22 @@
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             
             try {
-                const response = await fetch(`/api/user/${authData.id}`);
-                const data = await response.json();
+                // Используем API объект
+                const userData = await window.api.getUser(authData.id);
                 
-                if (data.success && data.user) {
-                    const user = data.user;
+                if (userData.success && userData.user) {
+                    const user = userData.user;
                     
                     // Обновляем localStorage
                     authData.balance = user.balance;
                     authData.badges = user.badges || {};
                     localStorage.setItem('bhstore_auth', JSON.stringify(authData));
                     
-                    if (window.updateAuthButton) {
-                        window.updateAuthButton();
-                    }
-                    
                     renderProfile(user);
                     renderBalance(user.balance || 0);
                     
                     // Получаем заказы пользователя
-                    const ordersResponse = await fetch(`/api/user/${authData.id}/orders`);
-                    const ordersData = await ordersResponse.json();
+                    const ordersData = await window.api.request(`/api/user/${authData.id}/orders`);
                     
                     if (ordersData.success) {
                         renderOrders(ordersData.orders || []);
@@ -264,7 +258,7 @@
                     }
                 } else {
                     // Если пользователь не найден в БД, создаем его
-                    const registerResponse = await fetch('/api/register', {
+                    const registerResponse = await fetch('/.netlify/functions/server/api/register', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -278,7 +272,7 @@
                     const registerData = await registerResponse.json();
                     
                     if (registerData.success) {
-                        await loadProfile(); // Повторно загружаем профиль
+                        await loadProfile();
                     } else {
                         renderProfile(authData);
                         renderBalance(0);
@@ -527,113 +521,6 @@
             }).join('');
         }
     
-        async function initPromocodeSystem() {
-            const applyBtn = document.getElementById('applyPromocodeBtn');
-            const input = document.getElementById('promocodeInput');
-            
-            applyBtn.addEventListener('click', applyPromocode);
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    applyPromocode();
-                }
-            });
-            
-            await loadUserPromocodes();
-        }
-    
-        async function applyPromocode() {
-            const input = document.getElementById('promocodeInput');
-            const code = input.value.trim().toUpperCase();
-            const messageDiv = document.getElementById('promocodeMessage');
-            
-            if (!code) {
-                showPromocodeMessage('Введите промокод', 'error');
-                return;
-            }
-            
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            try {
-                const response = await fetch('/api/promocodes/activate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: authData.id,
-                        code: code
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showPromocodeMessage(`Промокод ${code} успешно активирован!`, 'success');
-                    input.value = '';
-                    
-                    // Обновляем баланс если это промокод на пополнение
-                    if (data.newBalance !== undefined) {
-                        await loadProfile(); // Перезагружаем профиль для обновления баланса
-                    }
-                    
-                    await loadUserPromocodes();
-                    showPromocodeInfo(data);
-                } else {
-                    showPromocodeMessage(data.error || 'Не удалось активировать промокод', 'error');
-                }
-                
-            } catch (error) {
-                console.error('Error applying promocode:', error);
-                showPromocodeMessage('Ошибка при активации промокода', 'error');
-            }
-        }
-    
-        function showPromocodeMessage(message, type) {
-            const messageDiv = document.getElementById('promocodeMessage');
-            messageDiv.innerHTML = `
-                <div class="promocode-message ${type}">
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-                    ${escapeHtml(message)}
-                </div>
-            `;
-            
-            setTimeout(() => {
-                messageDiv.innerHTML = '';
-            }, 5000);
-        }
-    
-        function showPromocodeInfo(data) {
-            const modal = document.getElementById('promocodeInfoModal');
-            const content = document.getElementById('promocodeInfoContent');
-            
-            let message = '';
-            if (data.message) {
-                message = data.message;
-            } else if (data.newBalance !== undefined) {
-                message = `Баланс пополнен на ${data.value}₽`;
-            } else {
-                message = 'Промокод успешно активирован!';
-            }
-            
-            content.innerHTML = `
-                <div style="text-align: center; padding: 20px;">
-                    <div style="font-size: 3rem; color: #FEE75C; margin-bottom: 20px;">
-                        <i class="fas fa-ticket-alt"></i>
-                    </div>
-                    <h3 style="color: white; margin-bottom: 15px;">${escapeHtml(message)}</h3>
-                    ${data.newBalance !== undefined ? `
-                        <p style="color: #b9bbbe; font-size: 1.2rem;">
-                            Ваш баланс: <strong style="color: #57F287;">${data.newBalance}₽</strong>
-                        </p>
-                    ` : ''}
-                </div>
-            `;
-            
-            modal.style.display = 'flex';
-        }
-    
-        async function loadUserPromocodes() {
-            // Здесь можно загрузить список использованных промокодов пользователя
-        }
-    
         // Чат с поддержкой
         function initChatSystem() {
             const chatContainer = document.getElementById('supportChat');
@@ -660,8 +547,7 @@
         async function loadMessages() {
             try {
                 const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-                const response = await fetch(`/api/chat/messages/${authData.id}`);
-                const data = await response.json();
+                const data = await window.api.getChatMessages(authData.id);
                 
                 const messagesContainer = document.getElementById('chatMessages');
                 
@@ -726,7 +612,6 @@
                     minute: '2-digit' 
                 });
                 
-                // Оптимистично добавляем сообщение в чат
                 const messageHTML = `
                     <div class="message-wrapper user">
                         <div class="message-sender user">
@@ -747,30 +632,17 @@
                 input.value = '';
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 
-                const response = await fetch('/api/chat/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: authData.id,
-                        message: message,
-                        fromAdmin: false
-                    })
-                });
-                
-                const data = await response.json();
+                const data = await window.api.sendChatMessage(authData.id, message, false);
                 
                 if (!data.success) {
                     console.error('Error sending message:', data.error);
-                    showPromocodeMessage('Ошибка отправки сообщения', 'error');
                 }
                 
             } catch (error) {
                 console.error('Error sending message:', error);
-                showPromocodeMessage('Ошибка отправки сообщения', 'error');
             }
         };
     
-        // Polling для новых сообщений
         let pollingInterval;
     
         function startPolling() {
@@ -782,8 +654,7 @@
         async function checkNewMessages() {
             try {
                 const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-                const response = await fetch(`/api/chat/messages/${authData.id}`);
-                const data = await response.json();
+                const data = await window.api.getChatMessages(authData.id);
                 
                 if (data.success) {
                     const messagesContainer = document.getElementById('chatMessages');
@@ -804,7 +675,6 @@
             }
         });
     
-        // Логаут
         window.logout = function() {
             localStorage.removeItem('bhstore_auth');
             window.location.href = '/';
