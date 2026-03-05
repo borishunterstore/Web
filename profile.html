@@ -156,7 +156,7 @@
         <div class="modal-content">
             <h2>
                 <i class="fas"></i>
-                <img src="image/emoji/promocode.png" alt="BHStore" style="width: 25px;"> Промокод
+                <img src="image/emoji/promocode.png" alt="BHStore" style="width: 30px;"> Промокод
             </h2>
             <div id="promocodeInfoContent"></div>
             <div class="modal-actions">
@@ -621,7 +621,7 @@
                     <h3 style="color: white; margin-bottom: 15px;">${escapeHtml(message)}</h3>
                     ${data.newBalance !== undefined ? `
                         <p style="color: #b9bbbe; font-size: 1.2rem;">
-                            Текущий баланс: <strong style="color: #57F287;">${data.newBalance}₽</strong>
+                            Ваш баланс: <strong style="color: #57F287;"><div class="balance-amount" id="balanceAmount">0₽</div></strong>
                         </p>
                     ` : ''}
                 </div>
