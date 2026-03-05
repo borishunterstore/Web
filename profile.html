@@ -214,34 +214,49 @@
         });
     
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('Загрузка профиля...');
+            console.log('🚀 Загрузка профиля...');
             
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            console.log('📦 Auth Data:', authData);
+            
             if (!authData.id) {
+                console.log('❌ Нет авторизации, перенаправление...');
                 window.location.href = '/auth.html';
                 return;
             }
             
-            await loadProfile();
-            setTimeout(() => {
-                if (typeof initChatSystem === 'function') {
-                    initChatSystem();
-                }
-            }, 500);
+            try {
+                await loadProfile();
+                
+                setTimeout(() => {
+                    if (typeof initChatSystem === 'function') {
+                        initChatSystem();
+                    } else {
+                        console.log('⚠️ initChatSystem не найдена, используем chat.js');
+                        if (window.chatSystem) {
+                            window.chatSystem.init();
+                        }
+                    }
+                }, 500);
+            } catch (error) {
+                console.error('❌ Ошибка инициализации:', error);
+            }
         });
     
         async function loadProfile() {
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             
             try {
-                // Используем fetch напрямую с правильным путем
+                console.log('📡 Загрузка пользователя:', `/.netlify/functions/server/api/user/${authData.id}`);
+                
                 const response = await fetch(`/.netlify/functions/server/api/user/${authData.id}`);
                 const data = await response.json();
                 
-                console.log('Profile data:', data);
+                console.log('📦 Ответ от сервера (пользователь):', data);
                 
                 if (data.success && data.user) {
                     const user = data.user;
+                    console.log('✅ Пользователь загружен:', user);
                     
                     // Обновляем localStorage
                     authData.balance = user.balance;
@@ -255,22 +270,25 @@
                     renderProfile(user);
                     renderBalance(user.balance || 0);
                     
-                    // Получаем заказы пользователя
+                    // Получаем заказы
+                    console.log('📡 Загрузка заказов:', `/.netlify/functions/server/api/user/${authData.id}/orders`);
+                    
                     const ordersResponse = await fetch(`/.netlify/functions/server/api/user/${authData.id}/orders`);
                     const ordersData = await ordersResponse.json();
                     
-                    console.log('Orders data:', ordersData);
+                    console.log('📦 Ответ от сервера (заказы):', ordersData);
                     
                     if (ordersData.success) {
                         renderOrders(ordersData.orders || []);
                         updateStats(ordersData.orders || [], user);
                     } else {
+                        console.log('⚠️ Нет заказов или ошибка');
                         renderOrders([]);
                         updateStats([], user);
                     }
                 } else {
-                    console.log('User not found, registering...');
-                    // Если пользователь не найден в БД, создаем его
+                    console.log('👤 Пользователь не найден, регистрируем...');
+                    
                     const registerResponse = await fetch('/.netlify/functions/server/api/register', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -283,11 +301,13 @@
                     });
                     
                     const registerData = await registerResponse.json();
-                    console.log('Register response:', registerData);
+                    console.log('📦 Ответ от сервера (регистрация):', registerData);
                     
                     if (registerData.success) {
-                        await loadProfile(); // Повторно загружаем профиль
+                        console.log('✅ Регистрация успешна, повторная загрузка...');
+                        await loadProfile();
                     } else {
+                        console.log('⚠️ Регистрация не удалась, показываем базовые данные');
                         renderProfile(authData);
                         renderBalance(0);
                         renderOrders([]);
@@ -295,7 +315,7 @@
                     }
                 }
             } catch (error) {
-                console.error('Error loading profile:', error);
+                console.error('❌ Ошибка загрузки профиля:', error);
                 renderProfile(authData);
                 renderBalance(0);
                 renderOrders([]);
@@ -461,11 +481,15 @@
         }
     
         function renderBalance(balance) {
-            document.getElementById('balanceAmount').textContent = `${balance}₽`;
+            const balanceElement = document.getElementById('balanceAmount');
+            if (balanceElement) {
+                balanceElement.textContent = `${balance}₽`;
+            }
         }
     
         function renderOrders(orders) {
             const ordersList = document.getElementById('ordersList');
+            if (!ordersList) return;
             
             if (!orders || orders.length === 0) {
                 ordersList.innerHTML = `
@@ -562,8 +586,12 @@
         async function loadMessages() {
             try {
                 const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+                console.log('📡 Загрузка сообщений для ID:', authData.id);
+                
                 const response = await fetch(`/.netlify/functions/server/api/chat/messages/${authData.id}`);
                 const data = await response.json();
+                
+                console.log('📦 Ответ от сервера (чат):', data);
                 
                 const messagesContainer = document.getElementById('chatMessages');
                 if (!messagesContainer) return;
@@ -610,7 +638,7 @@
                     }
                 }
             } catch (error) {
-                console.error('Error loading messages:', error);
+                console.error('❌ Ошибка загрузки сообщений:', error);
             }
         }
     
@@ -652,6 +680,8 @@
                 input.value = '';
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 
+                console.log('📡 Отправка сообщения...');
+                
                 const response = await fetch('/.netlify/functions/server/api/chat/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -663,13 +693,14 @@
                 });
                 
                 const data = await response.json();
+                console.log('📦 Ответ от сервера (отправка):', data);
                 
                 if (!data.success) {
-                    console.error('Error sending message:', data.error);
+                    console.error('❌ Ошибка отправки сообщения:', data.error);
                 }
                 
             } catch (error) {
-                console.error('Error sending message:', error);
+                console.error('❌ Ошибка отправки сообщения:', error);
             }
         };
     
@@ -677,6 +708,7 @@
         let pollingInterval;
     
         function startPolling() {
+            if (pollingInterval) clearInterval(pollingInterval);
             pollingInterval = setInterval(async () => {
                 await checkNewMessages();
             }, 3000);
@@ -695,11 +727,12 @@
                     const currentMessages = messagesContainer.querySelectorAll('.message-bubble').length;
                     
                     if (data.messages.length > currentMessages) {
+                        console.log('📨 Новые сообщения, обновляем...');
                         await loadMessages();
                     }
                 }
             } catch (error) {
-                console.error('Error checking messages:', error);
+                console.error('❌ Ошибка проверки сообщений:', error);
             }
         }
     
