@@ -1,7 +1,7 @@
 // api.js - Полная версия для работы с PostgreSQL на Neon
 class BHStoreAPI {
     constructor() {
-        this.baseUrl = 'https://bhstore.netlify.app/.netlify/functions';
+        this.baseUrl = 'https://bhstore.netlify.app/.netlify/functions/server';
         this.authData = this.getAuthData();
         console.log('✅ BHStoreAPI initialized with baseUrl:', this.baseUrl);
     }
