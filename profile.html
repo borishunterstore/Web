@@ -73,7 +73,7 @@
             </div>
         </div>
 
-        <div class="profile-stats">
+        <div class="profile-stats" style="margin-bottom: 10px;">
             <div class="stat-card">
                 <div class="stat-icon">
                     <i class="fas fa-shopping-bag"></i>
@@ -621,7 +621,7 @@
                     <h3 style="color: white; margin-bottom: 15px;">${escapeHtml(message)}</h3>
                     ${data.newBalance !== undefined ? `
                         <p style="color: #b9bbbe; font-size: 1.2rem;">
-                            Ваш баланс: <strong style="color: #57F287;"><div class="balance-amount" id="balanceAmount">0₽</div></strong>
+                            Ваш баланс: <strong style="color: #57F287;">${data.newBalance}₽</strong>
                         </p>
                     ` : ''}
                 </div>
@@ -632,7 +632,6 @@
     
         async function loadUserPromocodes() {
             // Здесь можно загрузить список использованных промокодов пользователя
-            //但目前 оставим пустым, так как промокоды одноразовые
         }
     
         // Чат с поддержкой
