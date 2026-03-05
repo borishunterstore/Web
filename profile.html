@@ -73,7 +73,7 @@
             </div>
         </div>
 
-        <div class="profile-stats" style="margin-bottom: 10px;">
+        <div class="profile-stats">
             <div class="stat-card">
                 <div class="stat-icon">
                     <i class="fas fa-shopping-bag"></i>
@@ -224,7 +224,9 @@
             
             await loadProfile();
             setTimeout(() => {
-                initChatSystem();
+                if (typeof initChatSystem === 'function') {
+                    initChatSystem();
+                }
             }, 500);
         });
     
@@ -232,22 +234,32 @@
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             
             try {
-                // Используем API объект
-                const userData = await window.api.getUser(authData.id);
+                // Используем fetch напрямую с правильным путем
+                const response = await fetch(`/.netlify/functions/server/api/user/${authData.id}`);
+                const data = await response.json();
                 
-                if (userData.success && userData.user) {
-                    const user = userData.user;
+                console.log('Profile data:', data);
+                
+                if (data.success && data.user) {
+                    const user = data.user;
                     
                     // Обновляем localStorage
                     authData.balance = user.balance;
                     authData.badges = user.badges || {};
                     localStorage.setItem('bhstore_auth', JSON.stringify(authData));
                     
+                    if (window.updateAuthButton) {
+                        window.updateAuthButton();
+                    }
+                    
                     renderProfile(user);
                     renderBalance(user.balance || 0);
                     
                     // Получаем заказы пользователя
-                    const ordersData = await window.api.request(`/api/user/${authData.id}/orders`);
+                    const ordersResponse = await fetch(`/.netlify/functions/server/api/user/${authData.id}/orders`);
+                    const ordersData = await ordersResponse.json();
+                    
+                    console.log('Orders data:', ordersData);
                     
                     if (ordersData.success) {
                         renderOrders(ordersData.orders || []);
@@ -257,6 +269,7 @@
                         updateStats([], user);
                     }
                 } else {
+                    console.log('User not found, registering...');
                     // Если пользователь не найден в БД, создаем его
                     const registerResponse = await fetch('/.netlify/functions/server/api/register', {
                         method: 'POST',
@@ -270,9 +283,10 @@
                     });
                     
                     const registerData = await registerResponse.json();
+                    console.log('Register response:', registerData);
                     
                     if (registerData.success) {
-                        await loadProfile();
+                        await loadProfile(); // Повторно загружаем профиль
                     } else {
                         renderProfile(authData);
                         renderBalance(0);
@@ -524,6 +538,7 @@
         // Чат с поддержкой
         function initChatSystem() {
             const chatContainer = document.getElementById('supportChat');
+            if (!chatContainer) return;
             
             chatContainer.innerHTML = `
                 <div style="display: flex; flex-direction: column; height: 500px;">
@@ -547,9 +562,11 @@
         async function loadMessages() {
             try {
                 const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-                const data = await window.api.getChatMessages(authData.id);
+                const response = await fetch(`/.netlify/functions/server/api/chat/messages/${authData.id}`);
+                const data = await response.json();
                 
                 const messagesContainer = document.getElementById('chatMessages');
+                if (!messagesContainer) return;
                 
                 if (data.success) {
                     const messages = data.messages || [];
@@ -599,6 +616,8 @@
     
         window.sendMessage = async function() {
             const input = document.getElementById('chatMessageInput');
+            if (!input) return;
+            
             const message = input.value.trim();
             
             if (!message) return;
@@ -612,6 +631,7 @@
                     minute: '2-digit' 
                 });
                 
+                // Оптимистично добавляем сообщение в чат
                 const messageHTML = `
                     <div class="message-wrapper user">
                         <div class="message-sender user">
@@ -632,7 +652,17 @@
                 input.value = '';
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 
-                const data = await window.api.sendChatMessage(authData.id, message, false);
+                const response = await fetch('/.netlify/functions/server/api/chat/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: authData.id,
+                        message: message,
+                        fromAdmin: false
+                    })
+                });
+                
+                const data = await response.json();
                 
                 if (!data.success) {
                     console.error('Error sending message:', data.error);
@@ -643,6 +673,7 @@
             }
         };
     
+        // Polling для новых сообщений
         let pollingInterval;
     
         function startPolling() {
@@ -654,10 +685,13 @@
         async function checkNewMessages() {
             try {
                 const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-                const data = await window.api.getChatMessages(authData.id);
+                const response = await fetch(`/.netlify/functions/server/api/chat/messages/${authData.id}`);
+                const data = await response.json();
                 
                 if (data.success) {
                     const messagesContainer = document.getElementById('chatMessages');
+                    if (!messagesContainer) return;
+                    
                     const currentMessages = messagesContainer.querySelectorAll('.message-bubble').length;
                     
                     if (data.messages.length > currentMessages) {
@@ -675,9 +709,14 @@
             }
         });
     
+        // Логаут
         window.logout = function() {
-            localStorage.removeItem('bhstore_auth');
-            window.location.href = '/';
+            if (window.api) {
+                window.api.logout();
+            } else {
+                localStorage.removeItem('bhstore_auth');
+                window.location.href = '/';
+            }
         };
     </script>
 </body>
