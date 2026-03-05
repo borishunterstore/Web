@@ -1,3 +1,4 @@
+// js/promocode.js
 class PromocodeSystem {
     constructor() {
         this.activeDiscounts = []; 
@@ -15,7 +16,7 @@ class PromocodeSystem {
     }
 
     async init() {
-        await this.loadFromAPI(); // Загружаем с сервера, а не из localStorage
+        await this.loadFromAPI();
         this.initEventListeners();
         this.renderUI();
     }
@@ -25,22 +26,35 @@ class PromocodeSystem {
         if (!auth.id) return;
 
         try {
-            // Загружаем историю промокодов пользователя
-            const historyRes = await fetch(`/api/promocodes/user/${auth.id}`);
-            const historyData = await historyRes.json();
-            if (historyData.success) {
-                this.userPromocodes = historyData.promocodes || [];
-            }
+            // Используем глобальный API объект
+            if (window.api) {
+                // Загружаем историю промокодов пользователя
+                const historyData = await window.api.request(`/api/promocodes/user/${auth.id}`);
+                if (historyData.success) {
+                    this.userPromocodes = historyData.promocodes || [];
+                }
 
-            // Загружаем активные промокоды из БД
-            const activeRes = await fetch(`/api/promocodes/active/${auth.id}`);
-            const activeData = await activeRes.json();
-            if (activeData.success) {
-                this.activeDiscounts = activeData.promocodes || [];
+                // Загружаем активные промокоды
+                const activeData = await window.api.request(`/api/promocodes/active/${auth.id}`);
+                if (activeData.success) {
+                    this.activeDiscounts = activeData.promocodes || [];
+                }
+            } else {
+                // Fallback на прямые fetch запросы
+                const historyRes = await fetch(`/.netlify/functions/server/api/promocodes/user/${auth.id}`);
+                const historyData = await historyRes.json();
+                if (historyData.success) {
+                    this.userPromocodes = historyData.promocodes || [];
+                }
+
+                const activeRes = await fetch(`/.netlify/functions/server/api/promocodes/active/${auth.id}`);
+                const activeData = await activeRes.json();
+                if (activeData.success) {
+                    this.activeDiscounts = activeData.promocodes || [];
+                }
             }
         } catch (e) { 
             console.error('Ошибка загрузки промокодов:', e);
-            // Если сервер недоступен, пробуем загрузить из localStorage как запасной вариант
             this.loadFromStorage();
         }
     }
@@ -56,23 +70,31 @@ class PromocodeSystem {
         }
     }
 
-    // Сохраняем на сервер, а не в localStorage
     async saveToAPI() {
         const auth = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
         if (!auth.id) return;
 
         try {
-            await fetch('/api/promocodes/save-active', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    userId: auth.id, 
-                    activeDiscounts: this.activeDiscounts 
-                })
-            });
+            if (window.api) {
+                await window.api.request('/api/promocodes/save-active', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        userId: auth.id, 
+                        activeDiscounts: this.activeDiscounts 
+                    })
+                });
+            } else {
+                await fetch('/.netlify/functions/server/api/promocodes/save-active', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        userId: auth.id, 
+                        activeDiscounts: this.activeDiscounts 
+                    })
+                });
+            }
         } catch (e) {
             console.error('Ошибка сохранения промокодов:', e);
-            // Запасной вариант - сохраняем локально
             this.saveToStorage();
         }
     }
@@ -106,33 +128,50 @@ class PromocodeSystem {
         this.setLoading(true);
 
         try {
-            // Сначала проверяем промокод
-            const checkRes = await fetch('/api/promocodes/check', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: auth.id, code: code })
-            });
+            let checkData;
+            let activateData;
 
-            const checkData = await checkRes.json();
+            if (window.api) {
+                // Сначала проверяем промокод
+                checkData = await window.api.request('/api/promocodes/check', {
+                    method: 'POST',
+                    body: JSON.stringify({ userId: auth.id, code: code })
+                });
 
-            if (!checkData.success) {
-                return this.showMessage(checkData.error || 'Промокод недействителен', 'error');
+                if (!checkData.success) {
+                    return this.showMessage(checkData.error || 'Промокод недействителен', 'error');
+                }
+
+                // Активируем промокод
+                activateData = await window.api.request('/api/promocodes/activate', {
+                    method: 'POST',
+                    body: JSON.stringify({ userId: auth.id, code: code })
+                });
+            } else {
+                // Fallback на прямые fetch
+                const checkRes = await fetch('/.netlify/functions/server/api/promocodes/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: auth.id, code: code })
+                });
+                checkData = await checkRes.json();
+
+                if (!checkData.success) {
+                    return this.showMessage(checkData.error || 'Промокод недействителен', 'error');
+                }
+
+                const activateRes = await fetch('/.netlify/functions/server/api/promocodes/activate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: auth.id, code: code })
+                });
+                activateData = await activateRes.json();
             }
 
-            // Активируем промокод
-            const activateRes = await fetch('/api/promocodes/activate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: auth.id, code: code })
-            });
-
-            const activateData = await activateRes.json();
-
             if (activateData.success) {
-                const promo = checkData.promocode; // Используем данные из check
+                const promo = checkData.promocode;
                 
                 if (promo.type === 'discount') {
-                    // Добавляем скидку в активные
                     this.activeDiscounts.push({
                         code: promo.code,
                         value: promo.value,
@@ -140,22 +179,26 @@ class PromocodeSystem {
                         appliedAt: new Date().toISOString()
                     });
                     
-                    // Сохраняем на сервер
                     await this.saveToAPI();
                     
                     this.showMessage(`✓ Промокод активирован! Скидка ${promo.value}%`, 'success');
                     
-                    // Обновляем цены в магазине, если есть такая функция
+                    // Обновляем цены в магазине
                     if (window.shopSystem && window.shopSystem.updatePrices) {
                         window.shopSystem.updatePrices(this.activeDiscounts);
+                    }
+                    
+                    // Обновляем цены на главной странице
+                    if (typeof updateHomePagePrices === 'function') {
+                        updateHomePagePrices();
                     }
                     
                 } else if (promo.type === 'balance') {
                     this.showMessage(`💰 Баланс пополнен на ${promo.value} ₽`, 'success');
                     
                     // Обновляем баланс в интерфейсе
-                    if (window.loadProfileData) {
-                        window.loadProfileData(auth.id);
+                    if (typeof loadProfile === 'function') {
+                        await loadProfile();
                     }
                 }
                 
@@ -181,20 +224,26 @@ class PromocodeSystem {
         if (!auth.id) return;
 
         try {
-            // Удаляем с сервера
-            await fetch('/api/promocodes/remove-active', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    userId: auth.id, 
-                    code: code 
-                })
-            });
+            if (window.api) {
+                await window.api.request('/api/promocodes/remove-active', {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        userId: auth.id, 
+                        code: code 
+                    })
+                });
+            } else {
+                await fetch('/.netlify/functions/server/api/promocodes/remove-active', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        userId: auth.id, 
+                        code: code 
+                    })
+                });
+            }
             
-            // Удаляем локально
             this.activeDiscounts = this.activeDiscounts.filter(p => p.code !== code);
-            
-            // Сохраняем изменения
             await this.saveToAPI();
             
             this.renderUI();
@@ -205,17 +254,20 @@ class PromocodeSystem {
                 window.shopSystem.updatePrices(this.activeDiscounts);
             }
             
+            // Обновляем цены на главной странице
+            if (typeof updateHomePagePrices === 'function') {
+                updateHomePagePrices();
+            }
+            
         } catch (e) {
             console.error('Ошибка удаления промокода:', e);
             this.showMessage('Ошибка при удалении', 'error');
         }
     }
 
-    // Получить активную скидку для товара
     getDiscountForProduct(productId, price) {
         if (!this.activeDiscounts || this.activeDiscounts.length === 0) return price;
         
-        // Берем максимальную скидку
         const maxDiscount = Math.max(...this.activeDiscounts.map(d => d.value || 0));
         if (maxDiscount > 0) {
             return Math.round(price * (100 - maxDiscount) / 100);
@@ -299,6 +351,4 @@ class PromocodeSystem {
 
 // Создаем глобальный экземпляр
 const promocodeSystem = new PromocodeSystem();
-
-// Делаем доступным глобально
 window.promocodeSystem = promocodeSystem;
