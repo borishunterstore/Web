@@ -155,13 +155,13 @@
     <div id="promocodeInfoModal" class="modal" style="display: none;">
         <div class="modal-content">
             <h2>
-                <i class="fas"></i>
-                <img src="image/emoji/promocode.png" alt="BHStore" style="width: 30px;"> Промокод
+                <i class="fas fa-info-circle"></i>
+                Информация о промокоде
             </h2>
             <div id="promocodeInfoContent"></div>
             <div class="modal-actions">
                 <button class="btn-primary" onclick="closeModal('promocodeInfoModal')">
-                    <i class="fas fa-check"></i> ОК
+                    <i class="fas fa-check"></i> Понятно
                 </button>
             </div>
         </div>
@@ -214,49 +214,30 @@
         });
     
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 Загрузка профиля...');
+            console.log('Загрузка профиля...');
             
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            console.log('📦 Auth Data:', authData);
-            
             if (!authData.id) {
-                console.log('❌ Нет авторизации, перенаправление...');
                 window.location.href = '/auth.html';
                 return;
             }
             
-            try {
-                await loadProfile();
-                
-                setTimeout(() => {
-                    if (typeof initChatSystem === 'function') {
-                        initChatSystem();
-                    } else {
-                        console.log('⚠️ initChatSystem не найдена, используем chat.js');
-                        if (window.chatSystem) {
-                            window.chatSystem.init();
-                        }
-                    }
-                }, 500);
-            } catch (error) {
-                console.error('❌ Ошибка инициализации:', error);
-            }
+            await loadProfile();
+            initPromocodeSystem();
+            setTimeout(() => {
+                initChatSystem();
+            }, 500);
         });
     
         async function loadProfile() {
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             
             try {
-                console.log('📡 Загрузка пользователя:', `/.netlify/functions/server/api/user/${authData.id}`);
-                
-                const response = await fetch(`/.netlify/functions/server/api/user/${authData.id}`);
+                const response = await fetch(`/api/user/${authData.id}`);
                 const data = await response.json();
-                
-                console.log('📦 Ответ от сервера (пользователь):', data);
                 
                 if (data.success && data.user) {
                     const user = data.user;
-                    console.log('✅ Пользователь загружен:', user);
                     
                     // Обновляем localStorage
                     authData.balance = user.balance;
@@ -270,26 +251,20 @@
                     renderProfile(user);
                     renderBalance(user.balance || 0);
                     
-                    // Получаем заказы
-                    console.log('📡 Загрузка заказов:', `/.netlify/functions/server/api/user/${authData.id}/orders`);
-                    
-                    const ordersResponse = await fetch(`/.netlify/functions/server/api/user/${authData.id}/orders`);
+                    // Получаем заказы пользователя
+                    const ordersResponse = await fetch(`/api/user/${authData.id}/orders`);
                     const ordersData = await ordersResponse.json();
-                    
-                    console.log('📦 Ответ от сервера (заказы):', ordersData);
                     
                     if (ordersData.success) {
                         renderOrders(ordersData.orders || []);
                         updateStats(ordersData.orders || [], user);
                     } else {
-                        console.log('⚠️ Нет заказов или ошибка');
                         renderOrders([]);
                         updateStats([], user);
                     }
                 } else {
-                    console.log('👤 Пользователь не найден, регистрируем...');
-                    
-                    const registerResponse = await fetch('/.netlify/functions/server/api/register', {
+                    // Если пользователь не найден в БД, создаем его
+                    const registerResponse = await fetch('/api/register', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -301,13 +276,10 @@
                     });
                     
                     const registerData = await registerResponse.json();
-                    console.log('📦 Ответ от сервера (регистрация):', registerData);
                     
                     if (registerData.success) {
-                        console.log('✅ Регистрация успешна, повторная загрузка...');
-                        await loadProfile();
+                        await loadProfile(); // Повторно загружаем профиль
                     } else {
-                        console.log('⚠️ Регистрация не удалась, показываем базовые данные');
                         renderProfile(authData);
                         renderBalance(0);
                         renderOrders([]);
@@ -315,7 +287,7 @@
                     }
                 }
             } catch (error) {
-                console.error('❌ Ошибка загрузки профиля:', error);
+                console.error('Error loading profile:', error);
                 renderProfile(authData);
                 renderBalance(0);
                 renderOrders([]);
@@ -481,15 +453,11 @@
         }
     
         function renderBalance(balance) {
-            const balanceElement = document.getElementById('balanceAmount');
-            if (balanceElement) {
-                balanceElement.textContent = `${balance}₽`;
-            }
+            document.getElementById('balanceAmount').textContent = `${balance}₽`;
         }
     
         function renderOrders(orders) {
             const ordersList = document.getElementById('ordersList');
-            if (!ordersList) return;
             
             if (!orders || orders.length === 0) {
                 ordersList.innerHTML = `
@@ -559,10 +527,117 @@
             }).join('');
         }
     
+        async function initPromocodeSystem() {
+            const applyBtn = document.getElementById('applyPromocodeBtn');
+            const input = document.getElementById('promocodeInput');
+            
+            applyBtn.addEventListener('click', applyPromocode);
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    applyPromocode();
+                }
+            });
+            
+            await loadUserPromocodes();
+        }
+    
+        async function applyPromocode() {
+            const input = document.getElementById('promocodeInput');
+            const code = input.value.trim().toUpperCase();
+            const messageDiv = document.getElementById('promocodeMessage');
+            
+            if (!code) {
+                showPromocodeMessage('Введите промокод', 'error');
+                return;
+            }
+            
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            
+            try {
+                const response = await fetch('/api/promocodes/activate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: authData.id,
+                        code: code
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showPromocodeMessage(`Промокод ${code} успешно активирован!`, 'success');
+                    input.value = '';
+                    
+                    // Обновляем баланс если это промокод на пополнение
+                    if (data.newBalance !== undefined) {
+                        await loadProfile(); // Перезагружаем профиль для обновления баланса
+                    }
+                    
+                    await loadUserPromocodes();
+                    showPromocodeInfo(data);
+                } else {
+                    showPromocodeMessage(data.error || 'Не удалось активировать промокод', 'error');
+                }
+                
+            } catch (error) {
+                console.error('Error applying promocode:', error);
+                showPromocodeMessage('Ошибка при активации промокода', 'error');
+            }
+        }
+    
+        function showPromocodeMessage(message, type) {
+            const messageDiv = document.getElementById('promocodeMessage');
+            messageDiv.innerHTML = `
+                <div class="promocode-message ${type}">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    ${escapeHtml(message)}
+                </div>
+            `;
+            
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 5000);
+        }
+    
+        function showPromocodeInfo(data) {
+            const modal = document.getElementById('promocodeInfoModal');
+            const content = document.getElementById('promocodeInfoContent');
+            
+            let message = '';
+            if (data.message) {
+                message = data.message;
+            } else if (data.newBalance !== undefined) {
+                message = `Баланс пополнен на ${data.value}₽`;
+            } else {
+                message = 'Промокод успешно активирован!';
+            }
+            
+            content.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 3rem; color: #FEE75C; margin-bottom: 20px;">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <h3 style="color: white; margin-bottom: 15px;">${escapeHtml(message)}</h3>
+                    ${data.newBalance !== undefined ? `
+                        <p style="color: #b9bbbe; font-size: 1.2rem;">
+                            Текущий баланс: <strong style="color: #57F287;">${data.newBalance}₽</strong>
+                        </p>
+                    ` : ''}
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+        }
+    
+        async function loadUserPromocodes() {
+            // Здесь можно загрузить список использованных промокодов пользователя
+            //但目前 оставим пустым, так как промокоды одноразовые
+        }
+    
         // Чат с поддержкой
         function initChatSystem() {
             const chatContainer = document.getElementById('supportChat');
-            if (!chatContainer) return;
             
             chatContainer.innerHTML = `
                 <div style="display: flex; flex-direction: column; height: 500px;">
@@ -586,15 +661,10 @@
         async function loadMessages() {
             try {
                 const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-                console.log('📡 Загрузка сообщений для ID:', authData.id);
-                
-                const response = await fetch(`/.netlify/functions/server/api/chat/messages/${authData.id}`);
+                const response = await fetch(`/api/chat/messages/${authData.id}`);
                 const data = await response.json();
                 
-                console.log('📦 Ответ от сервера (чат):', data);
-                
                 const messagesContainer = document.getElementById('chatMessages');
-                if (!messagesContainer) return;
                 
                 if (data.success) {
                     const messages = data.messages || [];
@@ -638,14 +708,12 @@
                     }
                 }
             } catch (error) {
-                console.error('❌ Ошибка загрузки сообщений:', error);
+                console.error('Error loading messages:', error);
             }
         }
     
         window.sendMessage = async function() {
             const input = document.getElementById('chatMessageInput');
-            if (!input) return;
-            
             const message = input.value.trim();
             
             if (!message) return;
@@ -680,9 +748,7 @@
                 input.value = '';
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 
-                console.log('📡 Отправка сообщения...');
-                
-                const response = await fetch('/.netlify/functions/server/api/chat/send', {
+                const response = await fetch('/api/chat/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -693,14 +759,15 @@
                 });
                 
                 const data = await response.json();
-                console.log('📦 Ответ от сервера (отправка):', data);
                 
                 if (!data.success) {
-                    console.error('❌ Ошибка отправки сообщения:', data.error);
+                    console.error('Error sending message:', data.error);
+                    showPromocodeMessage('Ошибка отправки сообщения', 'error');
                 }
                 
             } catch (error) {
-                console.error('❌ Ошибка отправки сообщения:', error);
+                console.error('Error sending message:', error);
+                showPromocodeMessage('Ошибка отправки сообщения', 'error');
             }
         };
     
@@ -708,7 +775,6 @@
         let pollingInterval;
     
         function startPolling() {
-            if (pollingInterval) clearInterval(pollingInterval);
             pollingInterval = setInterval(async () => {
                 await checkNewMessages();
             }, 3000);
@@ -717,22 +783,19 @@
         async function checkNewMessages() {
             try {
                 const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-                const response = await fetch(`/.netlify/functions/server/api/chat/messages/${authData.id}`);
+                const response = await fetch(`/api/chat/messages/${authData.id}`);
                 const data = await response.json();
                 
                 if (data.success) {
                     const messagesContainer = document.getElementById('chatMessages');
-                    if (!messagesContainer) return;
-                    
                     const currentMessages = messagesContainer.querySelectorAll('.message-bubble').length;
                     
                     if (data.messages.length > currentMessages) {
-                        console.log('📨 Новые сообщения, обновляем...');
                         await loadMessages();
                     }
                 }
             } catch (error) {
-                console.error('❌ Ошибка проверки сообщений:', error);
+                console.error('Error checking messages:', error);
             }
         }
     
@@ -744,12 +807,8 @@
     
         // Логаут
         window.logout = function() {
-            if (window.api) {
-                window.api.logout();
-            } else {
-                localStorage.removeItem('bhstore_auth');
-                window.location.href = '/';
-            }
+            localStorage.removeItem('bhstore_auth');
+            window.location.href = '/';
         };
     </script>
 </body>
