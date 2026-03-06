@@ -16,6 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="/image/logo.png">
     
+    <!-- СКРИПТЫ ТОЛЬКО ЗДЕСЬ, БОЛЬШЕ НИГДЕ В HTML -->
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/promocode.js"></script>
@@ -254,6 +255,7 @@
     </footer>
 
     <script>
+        // ИСПОЛЬЗУЕМ ГЛОБАЛЬНЫЙ API ИЗ api.js, НЕ СОЗДАЕМ НОВЫЙ!
         const api = window.api;
         
         let currentFilter = 'all';
@@ -263,6 +265,7 @@
         let totalPages = 1;
 
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('📝 Загрузка страницы отзывов...');
             loadReviews();
             loadProducts();
             checkAuth();
@@ -286,7 +289,9 @@
 
         async function loadReviews() {
             try {
+                console.log('📡 Загрузка отзывов...');
                 const data = await api.request('/api/reviews');
+                console.log('📦 Отзывы загружены:', data);
                 
                 if (data.success) {
                     allReviews = data.reviews || [];
@@ -296,15 +301,16 @@
                     showNotification('Ошибка загрузки отзывов', 'error');
                 }
             } catch (error) {
-                console.error('Error loading reviews:', error);
+                console.error('❌ Ошибка загрузки отзывов:', error);
                 showNotification('Ошибка загрузки отзывов', 'error');
             }
         }
 
         async function loadProducts() {
             try {
-                // ИСПРАВЛЕНО: используем api.request с правильным путем
+                console.log('📡 Загрузка товаров...');
                 const data = await api.request('/api/products');
+                console.log('📦 Товары загружены:', data);
                 
                 if (data.success && data.products) {
                     const select = document.getElementById('reviewProduct');
@@ -316,7 +322,7 @@
                     });
                 }
             } catch (error) {
-                console.error('Error loading products:', error);
+                console.error('❌ Ошибка загрузки товаров:', error);
             }
         }
 
@@ -669,8 +675,7 @@
                 
                 const data = await api.request('/api/reviews', {
                     method: 'POST',
-                    body: formData,
-                    headers: {}
+                    body: formData
                 });
                 
                 if (data.success) {
@@ -684,7 +689,7 @@
                     showNotification(data.error || 'Ошибка при отправке отзыва', 'error');
                 }
             } catch (error) {
-                console.error('Error submitting review:', error);
+                console.error('❌ Ошибка отправки отзыва:', error);
                 showNotification('Ошибка при отправке отзыва', 'error');
             } finally {
                 submitBtn.disabled = false;
@@ -741,7 +746,9 @@
             }
         });
     </script>
-
+    
+    <!-- ВСЕ ДУБЛИРУЮЩИЕСЯ СКРИПТЫ УДАЛЕНЫ! -->
+    
     <div class="custom-cursor"></div>
     <canvas id="webCanvas"></canvas>
     <div class="scroll-indicator">
