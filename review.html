@@ -1,19 +1,5 @@
 <!DOCTYPE html>
 <html lang="ru">
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/promocode.js"></script>
-    <script src="js/payment.js"></script>
-    <script src="js/chat.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/cursor.js"></script>
-    <div class="custom-cursor"></div>
-    <canvas id="webCanvas"></canvas>
-    <div class="scroll-indicator">
-    <span class="scroll-value">0%</span>
-    </div>
-    <script src="js/pkm.js"></script>
-    <script src="js/mobile-nav.js"></script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,6 +15,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="/image/logo.png">
+    
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/promocode.js"></script>
+    <script src="js/payment.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/cursor.js"></script>
+    <script src="js/pkm.js"></script>
+    <script src="js/mobile-nav.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -257,10 +253,9 @@
         </div>
     </footer>
 
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
     <script>
         const api = window.api;
+        
         let currentFilter = 'all';
         let currentPage = 1;
         const reviewsPerPage = 6;
@@ -308,6 +303,7 @@
 
         async function loadProducts() {
             try {
+                // ИСПРАВЛЕНО: используем api.request с правильным путем
                 const data = await api.request('/api/products');
                 
                 if (data.success && data.products) {
@@ -420,19 +416,6 @@
                             </div>
                         </div>
                     ` : ''}
-                    
-                    <!-- <div class="review-helpful">
-                        <div class="helpful-buttons">
-                            <button class="helpful-btn" onclick="markHelpful('${review.id}')">
-                                <i class="fas fa-thumbs-up"></i>
-                                Полезно (${review.helpful || 0})
-                            </button>
-                        </div>
-                         <span class="helpful-count">
-                            <i class="fas fa-users"></i>
-                            ${review.helpful || 0} человек считают полезным
-                        </span>
-                    </div> -->
                 </div>
             `;
         }
@@ -496,11 +479,13 @@
             
             pagination.innerHTML = html;
         }
+        
         window.changePage = function(page) {
             currentPage = page;
             renderReviews();
             document.querySelector('.reviews-grid').scrollIntoView({ behavior: 'smooth' });
         };
+        
         window.resetFilters = function() {
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
@@ -510,6 +495,7 @@
             currentPage = 1;
             renderReviews();
         };
+        
         function initEventListeners() {
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -681,12 +667,11 @@
                     }
                 }
                 
-                const response = await fetch('/api/reviews', {
+                const data = await api.request('/api/reviews', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    headers: {}
                 });
-                
-                const data = await response.json();
                 
                 if (data.success) {
                     showNotification('Спасибо за ваш отзыв!', 'success');
@@ -706,36 +691,6 @@
                 submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Отправить отзыв';
             }
         }
-
-        window.markHelpful = async function(reviewId) {
-            const authData = api.getAuthData();
-            
-            try {
-                const response = await fetch(`/api/reviews/${reviewId}/helpful`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ userId: authData.id })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    const review = allReviews.find(r => r.id === reviewId);
-                    if (review) {
-                        review.helpful = (review.helpful || 0) + 1;
-                        renderReviews();
-                        updateStats();
-                    }
-                    showNotification('Спасибо за оценку!', 'success');
-                } else {
-                    showNotification(data.error || 'Ошибка', 'warning');
-                }
-            } catch (error) {
-                console.error('Error marking helpful:', error);
-            }
-        };
 
         window.openImageModal = function(imageUrl) {
             const modal = document.getElementById('imageModal');
@@ -786,5 +741,11 @@
             }
         });
     </script>
+
+    <div class="custom-cursor"></div>
+    <canvas id="webCanvas"></canvas>
+    <div class="scroll-indicator">
+        <span class="scroll-value">0%</span>
+    </div>
 </body>
 </html>
