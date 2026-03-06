@@ -1,5 +1,19 @@
 <!DOCTYPE html>
 <html lang="ru">
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/promocode.js"></script>
+    <script src="js/payment.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/cursor.js"></script>
+    <div class="custom-cursor"></div>
+    <canvas id="webCanvas"></canvas>
+    <div class="scroll-indicator">
+    <span class="scroll-value">0%</span>
+    </div>
+    <script src="js/pkm.js"></script>
+    <script src="js/mobile-nav.js"></script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -246,7 +260,7 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script>
-        const api = new BHStoreAPI();
+        const api = window.api;
         let currentFilter = 'all';
         let currentPage = 1;
         const reviewsPerPage = 6;
@@ -277,8 +291,7 @@
 
         async function loadReviews() {
             try {
-                const response = await fetch('/api/reviews');
-                const data = await response.json();
+                const data = await api.request('/api/reviews');
                 
                 if (data.success) {
                     allReviews = data.reviews || [];
@@ -295,8 +308,7 @@
 
         async function loadProducts() {
             try {
-                const response = await fetch('/api/products');
-                const data = await response.json();
+                const data = await api.request('/api/products');
                 
                 if (data.success && data.products) {
                     const select = document.getElementById('reviewProduct');
@@ -774,19 +786,5 @@
             }
         });
     </script>
-        <script src="js/api.js"></script>
-        <script src="js/auth.js"></script>
-        <script src="js/promocode.js"></script>
-        <script src="js/payment.js"></script>
-        <script src="js/chat.js"></script>
-        <script src="js/main.js"></script>
-        <script src="js/cursor.js"></script>
-        <div class="custom-cursor"></div>
-        <canvas id="webCanvas"></canvas>
-        <div class="scroll-indicator">
-        <span class="scroll-value">0%</span>
-        </div>
-        <script src="js/pkm.js"></script>
-        <script src="js/mobile-nav.js"></script>
 </body>
 </html>
