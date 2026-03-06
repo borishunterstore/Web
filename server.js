@@ -1,3075 +1,2322 @@
-// server.js - полная исправленная версия с чатом
+// netlify/functions/server.js
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
-const fs = require('fs');
+const serverless = require('serverless-http');
 const path = require('path');
-const multer = require('multer');
+const fs = require('fs');
+const { neon } = require('@neondatabase/serverless');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
+// Конфигурация
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'https://bhstore.netlify.app/auth/discord/callback';
-const BOT_API_URL = 'https://bhstore.netlify.app';
+const BOT_API_URL = process.env.BOT_API_URL || 'https://bhstore.netlify.app';
 
-console.log('🚀 Запуск BHStore Server...');
-console.log('✅ Client ID:', DISCORD_CLIENT_ID);
+console.log('🚀 Запуск BHStore Server (Netlify Function)...');
+console.log('✅ Client ID установлен:', !!DISCORD_CLIENT_ID);
+console.log('✅ Client Secret установлен:', !!DISCORD_CLIENT_SECRET);
 console.log('✅ Redirect URI:', DISCORD_REDIRECT_URI);
 console.log('✅ Bot API URL:', BOT_API_URL);
+console.log('✅ DATABASE_URL установлен:', !!process.env.DATABASE_URL);
 
+// Инициализация подключения к PostgreSQL (Neon)
+let sql;
+try {
+  if (process.env.DATABASE_URL) {
+    sql = neon(process.env.DATABASE_URL);
+    console.log('✅ Подключение к Neon создано');
+  } else {
+    console.log('⚠️ DATABASE_URL не установлен, работаем без БД');
+  }
+} catch (error) {
+  console.error('❌ Ошибка подключения к Neon:', error.message);
+}
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// Обслуживание статических файлов из корня проекта
+app.use(express.static(path.join(__dirname, '../../')));
+
+// Хранилище в памяти (как запасной вариант)
+let users = {};
 let chatStore = {};
+let reviewsData = { reviews: [], stats: { totalReviews: 0, averageRating: 0 } };
+let promocodes = {};
 
-app.get('/api/chat/admin/users', (req, res) => {
-    try {
-        const authHeader = req.headers.authorization;
-        
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
-        }
-
-        const token = authHeader.replace('Bearer ', '');
-        
-        try {
-            const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-            
-            const allUsers = Object.values(users).map(user => ({
-                discordId: user.discordId,
-                username: user.username,
-                email: user.email,
-                avatar: user.avatar,
-                registeredAt: user.registeredAt,
-                balance: user.balance,
-                orderCount: user.orders ? user.orders.length : 0,
-                lastOrder: user.orders && user.orders.length > 0 
-                    ? user.orders[user.orders.length - 1].date 
-                    : null,
-                unreadMessages: chatStore[user.discordId] ? 
-                    chatStore[user.discordId].filter(msg => !msg.fromAdmin && !msg.read).length : 0
-            }));
-            
-            res.json({
-                success: true,
-                users: allUsers,
-                total: allUsers.length
-            });
-            
-        } catch (decodeError) {
-            return res.status(401).json({ success: false, error: 'Неверный токен' });
-        }
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения пользователей чата:', error.message);
-        res.status(500).json({ success: false, error: 'Ошибка сервера' });
+// Тестовые данные
+const initTestData = () => {
+  users = {
+    "992442453833547886": {
+      discordId: "992442453833547886",
+      username: "borisonchik_yt",
+      email: "test@example.com",
+      avatar: null,
+      registeredAt: new Date().toISOString(),
+      balance: 1000,
+      orders: [],
+      badges: { verified: true, admin: true }
     }
-});
-
-app.post('/api/chat/admin/mark-read/:userId', (req, res) => {
-    try {
-        const authHeader = req.headers.authorization;
-        
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
-        }
-
-        const token = authHeader.replace('Bearer ', '');
-        
-        try {
-            const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-            
-            const userId = req.params.userId;
-            
-            if (chatStore[userId]) {
-                chatStore[userId].forEach(msg => {
-                    if (!msg.fromAdmin) {
-                        msg.read = true;
-                    }
-                });
-                
-                saveChatToFile();
-            }
-            
-            res.json({
-                success: true,
-                message: 'Сообщения отмечены как прочитанные'
-            });
-            
-        } catch (decodeError) {
-            return res.status(401).json({ success: false, error: 'Неверный токен' });
-        }
-        
-    } catch (error) {
-        console.error('❌ Ошибка отметки сообщений:', error.message);
-        res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  };
+  
+  promocodes = {
+    "WELCOME10": {
+      code: "WELCOME10",
+      type: "discount",
+      value: 10,
+      active: true,
+      maxUses: 100,
+      usedCount: 0,
+      usedBy: []
+    },
+    "BALANCE100": {
+      code: "BALANCE100",
+      type: "balance",
+      value: 100,
+      active: true,
+      maxUses: 50,
+      usedCount: 0,
+      usedBy: []
     }
-});
-
-app.get('/api/chat/admin/check', (req, res) => {
-    try {
-        const authHeader = req.headers.authorization;
-        
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
-        }
-
-        const token = authHeader.replace('Bearer ', '');
-        
-        try {
-            const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-            
-            const unreadCounts = {};
-            Object.keys(chatStore).forEach(userId => {
-                const unread = chatStore[userId].filter(msg => !msg.fromAdmin && !msg.read).length;
-                if (unread > 0) {
-                    unreadCounts[userId] = unread;
-                }
-            });
-            
-            res.json({
-                success: true,
-                unreadCounts: unreadCounts,
-                totalUnread: Object.values(unreadCounts).reduce((sum, count) => sum + count, 0)
-            });
-            
-        } catch (decodeError) {
-            return res.status(401).json({ success: false, error: 'Неверный токен' });
-        }
-        
-    } catch (error) {
-        console.error('❌ Ошибка проверки сообщений:', error.message);
-        res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  };
+  
+  reviewsData = {
+    reviews: [
+      {
+        id: "rev_1",
+        userId: "992442453833547886",
+        name: "borisonchik_yt",
+        avatar: "https://cdn.discordapp.com/embed/avatars/0.png",
+        rating: 5,
+        productId: "premium_month",
+        productName: "Премиум на 1 месяц",
+        text: "Отличный сервис!",
+        images: [],
+        verifiedPurchase: true,
+        verified: true,
+        helpful: 5,
+        createdAt: new Date().toISOString()
+      }
+    ],
+    stats: {
+      totalReviews: 1,
+      averageRating: 5,
+      verifiedPurchases: 1,
+      totalHelpful: 5
     }
-});
+  };
+};
 
-// Callback маршрут ДО статических файлов
-app.get('/auth/discord/callback', (req, res) => {
-    const { code, state } = req.query;
-    
-    console.log('🔗 Discord callback получен!');
-    console.log('   Code:', code ? '✓ получен' : '✗ отсутствует');
-    console.log('   State:', state || 'не указан');
-    
-    const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Авторизация BHStore</title>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-            body {
-                background: linear-gradient(135deg, #1e1f29 0%, #14151a 100%);
-                color: white;
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 100vh;
-                margin: 0;
-                padding: 20px;
-            }
-            .container {
-                text-align: center;
-                padding: 40px;
-                background: #2a2b36;
-                border-radius: 16px;
-                box-shadow: 0 10px 40px rgba(0,0,0,0.4);
-                max-width: 500px;
-                width: 100%;
-            }
-            .loader {
-                border: 5px solid rgba(255,255,255,0.1);
-                border-top: 5px solid #5865F2;
-                border-radius: 50%;
-                width: 60px;
-                height: 60px;
-                animation: spin 1s linear infinite;
-                margin: 0 auto 20px;
-            }
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-            h2 {
-                margin-bottom: 10px;
-                color: #5865F2;
-            }
-            p {
-                color: #b9bbbe;
-                margin-bottom: 20px;
-            }
-            .success {
-                color: #57F287;
-                font-weight: bold;
-            }
-        </style>
-        <script>
-            window.onload = function() {
-                const code = '${code || ''}';
-                const state = '${state || ''}';
-                
-                if (!code) {
-                    document.getElementById('status').textContent = 'Ошибка: код не получен';
-                    return;
-                }
-                
-                if (window.opener && !window.opener.closed) {
-                    try {
-                        window.opener.postMessage({
-                            type: 'DISCORD_AUTH_CALLBACK',
-                            code: code,
-                            state: state
-                        }, '*');
-                        
-                        document.getElementById('status').className = 'success';
-                        document.getElementById('status').textContent = 'Авторизация успешна!';
-                        document.getElementById('message').textContent = 'Закрываю окно...';
-                        
-                        setTimeout(function() {
-                            window.close();
-                        }, 1000);
-                        
-                    } catch (error) {
-                        document.getElementById('status').textContent = 'Ошибка отправки данных';
-                    }
-                } else {
-                    document.getElementById('status').textContent = 'Ошибка: окно авторизации закрыто';
-                }
-            };
-        </script>
-    </head>
-    <body>
-        <div class="container">
-            <div class="loader"></div>
-            <h2 id="status">Обработка авторизации...</h2>
-            <p id="message">Пожалуйста, подождите</p>
-        </div>
-    </body>
-    </html>
+initTestData();
+
+// ============================================
+// Инициализация базы данных
+// ============================================
+async function initDatabase() {
+  if (!sql) {
+    console.log('⚠️ БД не доступна, пропускаем инициализацию');
+    return;
+  }
+  
+  try {
+    // Таблица пользователей
+    await sql`
+      CREATE TABLE IF NOT EXISTS users (
+        discord_id TEXT PRIMARY KEY,
+        username TEXT,
+        email TEXT,
+        avatar TEXT,
+        balance INTEGER DEFAULT 0,
+        badges JSONB DEFAULT '{}',
+        orders JSONB DEFAULT '[]',
+        used_promocodes JSONB DEFAULT '[]',
+        active_promocodes JSONB DEFAULT '[]',
+        registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
     `;
     
-    res.send(html);
+    // Таблица сообщений чата
+    await sql`
+      CREATE TABLE IF NOT EXISTS messages (
+        id TEXT PRIMARY KEY,
+        user_id TEXT REFERENCES users(discord_id) ON DELETE CASCADE,
+        message TEXT,
+        from_admin BOOLEAN DEFAULT FALSE,
+        read BOOLEAN DEFAULT FALSE,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    
+    // Таблица отзывов
+    await sql`
+      CREATE TABLE IF NOT EXISTS reviews (
+        id TEXT PRIMARY KEY,
+        user_id TEXT REFERENCES users(discord_id) ON DELETE CASCADE,
+        name TEXT,
+        avatar TEXT,
+        product_id TEXT,
+        product_name TEXT,
+        rating INTEGER,
+        text TEXT,
+        images JSONB DEFAULT '[]',
+        verified_purchase BOOLEAN DEFAULT FALSE,
+        verified BOOLEAN DEFAULT FALSE,
+        helpful INTEGER DEFAULT 0,
+        admin_reply JSONB,
+        created_at TIMESTAMP,
+        updated_at TIMESTAMP
+      )
+    `;
+    
+    // Таблица промокодов
+    await sql`
+      CREATE TABLE IF NOT EXISTS promocodes (
+        code TEXT PRIMARY KEY,
+        type TEXT,
+        value INTEGER,
+        active BOOLEAN DEFAULT TRUE,
+        max_uses INTEGER,
+        used_count INTEGER DEFAULT 0,
+        used_by JSONB DEFAULT '[]'
+      )
+    `;
+
+    // Таблица уведомлений
+    await sql`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id TEXT PRIMARY KEY,
+        user_id TEXT REFERENCES users(discord_id) ON DELETE CASCADE,
+        type TEXT,
+        title TEXT,
+        message TEXT,
+        data JSONB,
+        read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP
+      )
+    `;
+
+    // Таблица ошибок
+    await sql`
+      CREATE TABLE IF NOT EXISTS errors (
+        id TEXT PRIMARY KEY,
+        type TEXT,
+        message TEXT,
+        user_id TEXT REFERENCES users(discord_id) ON DELETE SET NULL,
+        user_agent TEXT,
+        url TEXT,
+        created_at TIMESTAMP
+      )
+    `;
+
+    // Таблица статистики
+    await sql`
+      CREATE TABLE IF NOT EXISTS stats (
+        id SERIAL PRIMARY KEY,
+        data JSONB,
+        created_at TIMESTAMP
+      )
+    `;
+
+    // Таблица товаров
+    await sql`
+      CREATE TABLE IF NOT EXISTS products (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        description TEXT,
+        price INTEGER NOT NULL,
+        category TEXT,
+        icon TEXT,
+        image TEXT,
+        features JSONB DEFAULT '[]',
+        popular BOOLEAN DEFAULT FALSE,
+        discount INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
+    
+    console.log('✅ База данных инициализирована');
+    
+    // Проверяем, есть ли товары
+    await checkAndInsertProducts();
+    
+  } catch (error) {
+    console.error('❌ Ошибка инициализации БД:', error.message);
+  }
+}
+
+// Функция для проверки и добавления тестовых товаров
+async function checkAndInsertProducts() {
+  if (!sql) return;
+  
+  try {
+    const [count] = await sql`SELECT COUNT(*) as count FROM products`;
+    
+    if (parseInt(count.count) === 0) {
+      await insertTestProducts();
+    }
+  } catch (error) {
+    console.error('❌ Ошибка проверки товаров:', error.message);
+  }
+}
+
+// Функция для добавления тестовых товаров
+async function insertTestProducts() {
+  if (!sql) return;
+  
+  try {
+    const testProducts = [
+      {
+        id: "premium_month",
+        name: "Премиум на 1 месяц",
+        description: "Доступ ко всем премиум функциям на 30 дней",
+        price: 299,
+        category: "premium",
+        icon: "fas fa-crown",
+        image: "/image/premium.png",
+        features: JSON.stringify(["Все функции бота", "Приоритетная поддержка", "Эксклюзивные команды"]),
+        popular: true,
+        discount: 0
+      },
+      {
+        id: "premium_year",
+        name: "Премиум на 1 год",
+        description: "Доступ ко всем премиум функциям на 365 дней",
+        price: 2499,
+        category: "premium",
+        icon: "fas fa-crown",
+        image: "/image/premium.png",
+        features: JSON.stringify(["Все функции бота", "Приоритетная поддержка", "Эксклюзивные команды", "Скидка 30%"]),
+        popular: false,
+        discount: 30
+      }
+    ];
+    
+    for (const product of testProducts) {
+      await sql`
+        INSERT INTO products (
+          id, name, description, price, category, icon, image, features, popular, discount
+        ) VALUES (
+          ${product.id},
+          ${product.name},
+          ${product.description},
+          ${product.price},
+          ${product.category},
+          ${product.icon},
+          ${product.image},
+          ${product.features},
+          ${product.popular},
+          ${product.discount}
+        )
+        ON CONFLICT (id) DO UPDATE SET
+          name = EXCLUDED.name,
+          description = EXCLUDED.description,
+          price = EXCLUDED.price,
+          category = EXCLUDED.category,
+          icon = EXCLUDED.icon,
+          image = EXCLUDED.image,
+          features = EXCLUDED.features,
+          popular = EXCLUDED.popular,
+          discount = EXCLUDED.discount
+      `;
+    }
+    
+    console.log('✅ Тестовые товары добавлены в БД');
+  } catch (error) {
+    console.error('❌ Ошибка добавления тестовых товаров:', error.message);
+  }
+}
+
+// Запускаем инициализацию БД
+if (sql) {
+  initDatabase();
+}
+
+// ============================================
+// API маршруты
+// ============================================
+
+app.get('/api/admin/chat/users', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    
+    try {
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      
+      // Получаем всех пользователей из БД
+      const dbUsers = await sql`
+        SELECT * FROM users ORDER BY registered_at DESC
+      `;
+      
+      // Получаем непрочитанные сообщения для каждого пользователя
+      const usersWithMessages = await Promise.all(dbUsers.map(async (user) => {
+        const unreadMessages = await sql`
+          SELECT COUNT(*) as count FROM messages 
+          WHERE user_id = ${user.discord_id} 
+          AND from_admin = false 
+          AND read = false
+        `;
+        
+        const orders = user.orders || [];
+        const lastOrder = orders.length > 0 ? orders[orders.length - 1].date : null;
+        
+        return {
+          discordId: user.discord_id,
+          username: user.username,
+          email: user.email,
+          avatar: user.avatar,
+          registeredAt: user.registered_at,
+          balance: user.balance,
+          orderCount: orders.length,
+          lastOrder: lastOrder,
+          badges: user.badges || {},
+          unreadMessages: parseInt(unreadMessages[0].count) || 0
+        };
+      }));
+      
+      res.json({
+        success: true,
+        users: usersWithMessages,
+        total: usersWithMessages.length
+      });
+      
+    } catch (decodeError) {
+      return res.status(401).json({ success: false, error: 'Неверный токен' });
+    }
+    
+  } catch (error) {
+    console.error('❌ Ошибка получения пользователей чата:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
 });
 
-// Статические файлы
-app.use(express.static(__dirname));
+app.post('/api/chat/admin/mark-read/:userId', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
 
-// Создание папок
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-}
-
-// Файлы данных
-const usersFile = path.join(dataDir, 'users.json');
-const productsFile = path.join(dataDir, 'products.json');
-const newsFile = path.join(dataDir, 'news.json');
-const chatFile = path.join(dataDir, 'chat.json'); // Новый файл для чата
-
-// Инициализация файлов
-function initFiles() {
+    const token = authHeader.replace('Bearer ', '');
+    
     try {
-        if (!fs.existsSync(usersFile)) fs.writeFileSync(usersFile, '{}');
-        if (!fs.existsSync(productsFile)) {
-            fs.writeFileSync(productsFile, JSON.stringify([
-            ], null, 2));
-        }
-        if (!fs.existsSync(newsFile)) {
-            fs.writeFileSync(newsFile, JSON.stringify([
-                {
-                    id: 1,
-                    title: 'Добро пожаловать в BHStore!',
-                    content: 'Магазин успешно запущен.',
-                    date: new Date().toISOString().split('T')[0],
-                    category: 'announcement'
-                }
-            ], null, 2));
-        }
-        if (!fs.existsSync(chatFile)) {
-            fs.writeFileSync(chatFile, '{}');
-        }
-        console.log('✅ Файлы данных инициализированы');
-    } catch (error) {
-        console.error('❌ Ошибка инициализации файлов:', error.message);
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      
+      const userId = req.params.userId;
+      
+      // Отмечаем все сообщения пользователя как прочитанные
+      await sql`
+        UPDATE messages 
+        SET read = true 
+        WHERE user_id = ${userId} 
+        AND from_admin = false 
+        AND read = false
+      `;
+      
+      res.json({
+        success: true,
+        message: 'Сообщения отмечены как прочитанные'
+      });
+      
+    } catch (decodeError) {
+      return res.status(401).json({ success: false, error: 'Неверный токен' });
     }
-}
-initFiles();
+    
+  } catch (error) {
+    console.error('❌ Ошибка отметки сообщений:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
 
-// Загрузка пользователей
-let users = {};
-try {
-    users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
-    console.log(`✅ Загружено ${Object.keys(users).length} пользователей`);
-} catch {
-    users = {};
-}
+app.get('/api/chat/admin/check', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
 
-// Загрузка истории чата из файла
-try {
-    chatStore = JSON.parse(fs.readFileSync(chatFile, 'utf8'));
-    console.log(`✅ Загружено ${Object.keys(chatStore).length} чатов`);
-} catch {
-    chatStore = {};
-}
-
-// Функция для сохранения чата в файл
-function saveChatToFile() {
+    const token = authHeader.replace('Bearer ', '');
+    
     try {
-        fs.writeFileSync(chatFile, JSON.stringify(chatStore, null, 2));
-    } catch (error) {
-        console.error('❌ Ошибка сохранения чата:', error.message);
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      
+      // Получаем все непрочитанные сообщения от пользователей
+      const unreadMessages = await sql`
+        SELECT user_id, COUNT(*) as count 
+        FROM messages 
+        WHERE from_admin = false 
+        AND read = false 
+        GROUP BY user_id
+      `;
+      
+      const unreadCounts = {};
+      let totalUnread = 0;
+      
+      unreadMessages.forEach(row => {
+        unreadCounts[row.user_id] = parseInt(row.count);
+        totalUnread += parseInt(row.count);
+      });
+      
+      res.json({
+        success: true,
+        unreadCounts: unreadCounts,
+        totalUnread: totalUnread
+      });
+      
+    } catch (decodeError) {
+      return res.status(401).json({ success: false, error: 'Неверный токен' });
     }
-}
-
-// Функция для отправки вебхуков в Discord
-function sendDiscordWebhook(type, data) {
-    const webhookUrl = 'https://discord.com/api/webhooks/1475843832254828659/cT3e_PzIgPQFRFX-YTfs7StL4bgsNftpt9V8TaLUfVymneguPT1cWS6JojCTPeDkbwbH';
     
-    let embed;
-    
-    if (type === 'user_message') {
-        embed = {
-            title: '<:5947mailbox:1459506077950283868> Сообщение от ПОЛЬЗОВАТЕЛЯ',
-            description: `<:user:1428757055967068222> **Пользователь:** <@${data.userId}>\n<:embed:1426545603940192336> **Сообщение:** ${data.message}`,
-            color: 0x5865F2,
-            timestamp: new Date().toISOString()
-        };
-    } else if (type === 'admin_message') {
-        embed = {
-            title: '<:5947mailbox:1459506077950283868> Сообщение от АДМИНА',
-            description: `<:user:1428757055967068222> **Кому:** <@${data.userId}>\n<:embed:1426545603940192336> **Сообщение:** ${data.message}`,
-            color: 0x57F287,
-            timestamp: new Date().toISOString()
-        };
-    }
-    
-    if (embed) {
-        axios.post(webhookUrl, {
-            embeds: [embed]
-        }).catch(console.error);
-    }
-}
-
-// ============================================
-// API маршруты для чата (унифицированные)
-// ============================================
+  } catch (error) {
+    console.error('❌ Ошибка проверки сообщений:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
 
 // Получение сообщений пользователя
-app.get('/api/chat/messages/:userId', (req, res) => {
-    try {
-        const userId = req.params.userId;
-        const messages = chatStore[userId] || [];
-        
-        res.json({
-            success: true,
-            messages: messages,
-            total: messages.length
-        });
-    } catch (error) {
-        console.error('❌ Ошибка получения сообщений:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка сервера' 
-        });
-    }
+app.get('/api/chat/messages/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    
+    const messages = await sql`
+      SELECT * FROM messages 
+      WHERE user_id = ${userId} 
+      ORDER BY timestamp ASC
+      LIMIT 100
+    `;
+    
+    res.json({
+      success: true,
+      messages: messages,
+      total: messages.length
+    });
+  } catch (error) {
+    console.error('❌ Ошибка получения сообщений:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка сервера' 
+    });
+  }
 });
 
 // Отправка сообщения
-app.post('/api/chat/send', (req, res) => {
-    try {
-        const { userId, message, fromAdmin = false } = req.body;
-        
-        if (!userId || !message) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Неверные данные' 
-            });
-        }
-        
-        if (!chatStore[userId]) {
-            chatStore[userId] = [];
-        }
-        
-        const newMessage = {
-            id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            message: message,
-            fromAdmin: fromAdmin,
-            sender: fromAdmin ? 'admin' : 'user',
-            timestamp: new Date().toISOString(),
-            read: !fromAdmin // Сообщения от пользователя сразу считаем прочитанными админом
-        };
-        
-        chatStore[userId].push(newMessage);
-        
-        // Ограничиваем историю до 100 сообщений
-        if (chatStore[userId].length > 100) {
-            chatStore[userId] = chatStore[userId].slice(-100);
-        }
-        
-        // Сохраняем в файл
-        saveChatToFile();
-        
-        // Отправляем уведомление через вебхук
-        if (fromAdmin) {
-            // Админ отправил сообщение пользователю
-            sendDiscordWebhook('admin_message', {
-                userId: userId,
-                message: message
-            });
-        } else {
-            // Пользователь отправил сообщение админу
-            sendDiscordWebhook('user_message', {
-                userId: userId,
-                message: message
-            });
-        }
-        
-        res.json({
-            success: true,
-            messageId: newMessage.id
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка отправки сообщения:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка отправки' 
-        });
+app.post('/api/chat/send', async (req, res) => {
+  try {
+    const { userId, message, fromAdmin = false } = req.body;
+    
+    if (!userId || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Неверные данные' 
+      });
     }
+    
+    const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    await sql`
+      INSERT INTO messages (id, user_id, message, from_admin, read, timestamp)
+      VALUES (
+        ${messageId}, 
+        ${userId}, 
+        ${message}, 
+        ${fromAdmin}, 
+        ${!fromAdmin}, 
+        ${new Date().toISOString()}
+      )
+    `;
+    
+    // Отправляем уведомление через вебхук
+    const webhookUrl = 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG';
+    
+    axios.post(webhookUrl, {
+      embeds: [{
+        title: fromAdmin ? '<:CEO:1474931391505367040> Сообщение от АДМИНА' : '<:User:1474931634804359433> Сообщение от ПОЛЬЗОВАТЕЛЯ',
+        description: message,
+        color: fromAdmin ? 0x57F287 : 0x5865F2,
+        fields: [{ name: '<:User:1474931634804359433> Пользователь', value: userId, inline: true }],
+        timestamp: new Date().toISOString()
+      }]
+    }).catch(console.error);
+    
+    res.json({
+      success: true,
+      messageId: messageId
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка отправки сообщения:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка отправки' 
+    });
+  }
 });
 
-// Проверка новых сообщений
-app.get('/api/chat/check/:userId', (req, res) => {
-    try {
-        const userId = req.params.userId;
-        const lastChecked = req.query.lastChecked || 0;
-        
-        const messages = chatStore[userId] || [];
-        const newMessages = messages.filter(msg => 
-            new Date(msg.timestamp).getTime() > parseInt(lastChecked)
-        );
-        
-        // Проверяем онлайн ли администратор (всегда онлайн для демо)
-        const supportOnline = true;
-        
-        res.json({
-            success: true,
-            hasNewMessages: newMessages.length > 0,
-            newCount: newMessages.length,
-            supportOnline: supportOnline,
-            lastMessageTime: messages.length > 0 ? 
-                new Date(messages[messages.length - 1].timestamp).getTime() : 0
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка проверки сообщений:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка проверки' 
-        });
-    }
+// Callback маршрут
+app.get('/auth/discord/callback', (req, res) => {
+  const { code, state } = req.query;
+  
+  console.log('🔗 Discord callback получен!');
+  
+  const html = `
+  <!DOCTYPE html>
+  <html>
+  <head>
+      <title>Авторизация BHStore</title>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+          body {
+              background: linear-gradient(135deg, #1e1f29 0%, #14151a 100%);
+              color: white;
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 100vh;
+              margin: 0;
+              padding: 20px;
+          }
+          .container {
+              text-align: center;
+              padding: 40px;
+              background: #2a2b36;
+              border-radius: 16px;
+              box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+              max-width: 500px;
+              width: 100%;
+          }
+          .loader {
+              border: 5px solid rgba(255,255,255,0.1);
+              border-top: 5px solid #5865F2;
+              border-radius: 50%;
+              width: 60px;
+              height: 60px;
+              animation: spin 1s linear infinite;
+              margin: 0 auto 20px;
+          }
+          @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+          }
+          h2 {
+              margin-bottom: 10px;
+              color: #5865F2;
+          }
+          p {
+              color: #b9bbbe;
+              margin-bottom: 20px;
+          }
+          .success {
+              color: #57F287;
+              font-weight: bold;
+          }
+      </style>
+      <script>
+          window.onload = function() {
+              const code = '${code || ''}';
+              const state = '${state || ''}';
+              
+              if (!code) {
+                  document.getElementById('status').textContent = 'Ошибка: код не получен';
+                  return;
+              }
+              
+              if (window.opener && !window.opener.closed) {
+                  try {
+                      window.opener.postMessage({
+                          type: 'DISCORD_AUTH_CALLBACK',
+                          code: code,
+                          state: state
+                      }, '*');
+                      
+                      document.getElementById('status').className = 'success';
+                      document.getElementById('status').textContent = 'Авторизация успешна!';
+                      document.getElementById('message').textContent = 'Закрываю окно...';
+                      
+                      setTimeout(function() {
+                          window.close();
+                      }, 1000);
+                      
+                  } catch (error) {
+                      document.getElementById('status').textContent = 'Ошибка отправки данных';
+                  }
+              } else {
+                  document.getElementById('status').textContent = 'Ошибка: окно авторизации закрыто';
+              }
+          };
+      </script>
+  </head>
+  <body>
+      <div class="container">
+          <div class="loader"></div>
+          <h2 id="status">Обработка авторизации...</h2>
+          <p id="message">Пожалуйста, подождите</p>
+      </div>
+  </body>
+  </html>
+  `;
+  
+  res.send(html);
 });
 
-// Создание тикета
-app.post('/api/chat/create-ticket', (req, res) => {
-    try {
-        const { userId } = req.body;
-        const ticketId = `TICKET-${Date.now().toString().slice(-8)}`;
-        
-        // Добавляем системное сообщение в чат
-        if (!chatStore[userId]) {
-            chatStore[userId] = [];
-        }
-        
-        const systemMessage = {
-            id: `sys-${Date.now()}`,
-            message: `Создан тикет #${ticketId}. Ваш запрос будет рассмотрен в приоритетном порядке.`,
-            fromAdmin: false,
-            sender: 'system',
-            timestamp: new Date().toISOString(),
-            read: true
-        };
-        
-        chatStore[userId].push(systemMessage);
-        saveChatToFile();
-        
-        res.json({
-            success: true,
-            ticketId: ticketId
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка создания тикета:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка создания тикета' 
-        });
-    }
+// Получить активные промокоды пользователя
+app.get('/api/promocodes/active/:userId', async (req, res) => {
+  try {
+      const [user] = await sql`
+          SELECT active_promocodes FROM users WHERE discord_id = ${req.params.userId}
+      `;
+      
+      res.json({
+          success: true,
+          promocodes: user?.active_promocodes || []
+      });
+  } catch (error) {
+      res.json({ success: true, promocodes: [] });
+  }
 });
 
-// Индикатор набора текста
-app.post('/api/chat/typing', (req, res) => {
-    try {
-        const { userId, isTyping } = req.body;
-        
-        // В реальном приложении здесь можно сохранять статус набора
-        // и уведомлять админа через WebSocket или polling
-        
-        res.json({ 
-            success: true,
-            message: 'Статус набора получен'
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка индикатора набора:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка обработки' 
-        });
-    }
+// Сохранить активные промокоды
+app.post('/api/promocodes/save-active', async (req, res) => {
+  try {
+      const { userId, activeDiscounts } = req.body;
+      
+      await sql`
+          UPDATE users 
+          SET active_promocodes = ${JSON.stringify(activeDiscounts)}
+          WHERE discord_id = ${userId}
+      `;
+      
+      res.json({ success: true });
+  } catch (error) {
+      res.json({ success: false });
+  }
 });
 
-// ============================================
-// Основные API маршруты
-// ============================================
+// Удалить активный промокод
+app.post('/api/promocodes/remove-active', async (req, res) => {
+  try {
+      const { userId, code } = req.body;
+      
+      const [user] = await sql`
+          SELECT active_promocodes FROM users WHERE discord_id = ${userId}
+      `;
+      
+      const activePromocodes = (user?.active_promocodes || []).filter(p => p.code !== code);
+      
+      await sql`
+          UPDATE users 
+          SET active_promocodes = ${JSON.stringify(activePromocodes)}
+          WHERE discord_id = ${userId}
+      `;
+      
+      res.json({ success: true });
+  } catch (error) {
+      res.json({ success: false });
+  }
+});
+
+// История промокодов пользователя
+app.get('/api/promocodes/user/:userId', async (req, res) => {
+  try {
+      const [user] = await sql`
+          SELECT used_promocodes FROM users WHERE discord_id = ${req.params.userId}
+      `;
+      
+      res.json({
+          success: true,
+          promocodes: user?.used_promocodes || []
+      });
+  } catch (error) {
+      res.json({ success: true, promocodes: [] });
+  }
+});
+
+
+// Получение информации о текущем пользователе
+app.get('/api/user/me', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          // Получаем пользователя из БД
+          let userData = null;
+          
+          if (sql) {
+              const [user] = await sql`
+                  SELECT * FROM users WHERE discord_id = ${decoded.id}
+              `;
+              userData = user;
+          } else {
+              userData = users[decoded.id];
+          }
+          
+          if (!userData) {
+              return res.json({ 
+                  success: true, 
+                  user: {
+                      discordId: decoded.id,
+                      username: decoded.username,
+                      avatar: decoded.avatar,
+                      badges: {}
+                  }
+              });
+          }
+          
+          res.json({
+              success: true,
+              user: {
+                  discordId: userData.discord_id || userData.discordId,
+                  username: userData.username,
+                  avatar: userData.avatar,
+                  registeredAt: userData.registered_at || userData.registeredAt,
+                  balance: userData.balance || 0,
+                  badges: userData.badges || {},
+                  isAdmin: userData.badges?.admin === true || decoded.id === '992442453833547886'
+              }
+          });
+
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка получения пользователя:', error.message);
+      res.status(500).json({ 
+          success: false, 
+          error: 'Ошибка сервера' 
+      });
+  }
+});
+
+// Проверка прав администратора
+app.get('/api/admin/check', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.json({ isAdmin: false });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          // Проверяем, является ли пользователь админом
+          const isAdmin = decoded.id === '992442453833547886';
+          
+          // Или проверяем в БД
+          if (sql && !isAdmin) {
+              const [user] = await sql`
+                  SELECT badges FROM users WHERE discord_id = ${decoded.id}
+              `;
+              if (user?.badges?.admin) {
+                  return res.json({ isAdmin: true });
+              }
+          }
+          
+          res.json({ isAdmin });
+
+      } catch (decodeError) {
+          res.json({ isAdmin: false });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка проверки админа:', error.message);
+      res.json({ isAdmin: false });
+  }
+});
+
 
 // API авторизации
 app.post('/api/auth/discord', async (req, res) => {
-    try {
-        const { code } = req.body;
-        console.log('🔐 Получен запрос авторизации');
+  try {
+    const { code } = req.body;
+    console.log('🔐 Получен запрос авторизации');
+    console.log('📦 Получен code:', code ? 'да' : 'нет');
+    
+    // Проверяем переменные окружения
+    console.log('📊 Проверка переменных:');
+    console.log('- DISCORD_CLIENT_ID:', DISCORD_CLIENT_ID ? 'установлен' : 'ОТСУТСТВУЕТ');
+    console.log('- DISCORD_CLIENT_SECRET:', DISCORD_CLIENT_SECRET ? 'установлен' : 'ОТСУТСТВУЕТ');
+    console.log('- DISCORD_REDIRECT_URI:', DISCORD_REDIRECT_URI);
 
-        if (!code) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Отсутствует код авторизации' 
-            });
-        }
-
-        // Получение токена от Discord
-        const params = new URLSearchParams();
-        params.append('client_id', DISCORD_CLIENT_ID);
-        params.append('client_secret', DISCORD_CLIENT_SECRET);
-        params.append('grant_type', 'authorization_code');
-        params.append('code', code);
-        params.append('redirect_uri', DISCORD_REDIRECT_URI);
-        params.append('scope', 'identify rpc email openid');
-
-        const tokenResponse = await axios.post(
-            'https://discord.com/api/oauth2/token',
-            params,
-            {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Accept': 'application/json'
-                }
-            }
-        );
-
-        const { access_token, token_type } = tokenResponse.data;
-
-        // Получение информации о пользователе
-        const userResponse = await axios.get('https://discord.com/api/users/@me', {
-            headers: {
-                'Authorization': `${token_type} ${access_token}`,
-                'Accept': 'application/json'
-            }
-        });
-
-        const userData = {
-            id: userResponse.data.id,
-            username: userResponse.data.username,
-            avatar: userResponse.data.avatar,
-            email: userResponse.data.email,
-            global_name: userResponse.data.global_name || userResponse.data.username
-        };
-
-        console.log(`✅ Пользователь: ${userData.username}`);
-
-        // Токен для клиента
-        const token = Buffer.from(JSON.stringify({
-            ...userData,
-            exp: Date.now() + 7 * 24 * 60 * 60 * 1000
-        })).toString('base64');
-
-        res.json({
-            success: true,
-            token: token,
-            user: userData
-        });
-
-    } catch (error) {
-        console.error('❌ Ошибка авторизации:', error.response?.data || error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка авторизации через Discord',
-            details: error.response?.data || error.message
-        });
+    if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET) {
+      console.error('❌ Не настроены Discord credentials');
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Сервер не настроен для Discord авторизации' 
+      });
     }
+
+    if (!code) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Отсутствует код авторизации' 
+      });
+    }
+
+    // Получение токена от Discord
+    const params = new URLSearchParams();
+    params.append('client_id', DISCORD_CLIENT_ID);
+    params.append('client_secret', DISCORD_CLIENT_SECRET);
+    params.append('grant_type', 'authorization_code');
+    params.append('code', code);
+    params.append('redirect_uri', DISCORD_REDIRECT_URI);
+    params.append('scope', 'identify email');
+
+    console.log('📤 Отправка запроса в Discord для получения токена...');
+    console.log('URL:', 'https://discord.com/api/oauth2/token');
+    
+    const tokenResponse = await axios.post(
+      'https://discord.com/api/oauth2/token',
+      params,
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
+    );
+
+    console.log('✅ Токен успешно получен от Discord');
+
+    const { access_token, token_type } = tokenResponse.data;
+
+    // Получение информации о пользователе
+    console.log('📤 Запрос данных пользователя из Discord...');
+    
+    const userResponse = await axios.get('https://discord.com/api/users/@me', {
+      headers: {
+        'Authorization': `${token_type} ${access_token}`
+      }
+    });
+
+    console.log('✅ Данные пользователя получены');
+
+    const userData = {
+      id: userResponse.data.id,
+      username: userResponse.data.username,
+      avatar: userResponse.data.avatar,
+      email: userResponse.data.email,
+      global_name: userResponse.data.global_name || userResponse.data.username
+    };
+
+    console.log(`👤 Пользователь: ${userData.username} (${userData.id})`);
+
+    // Сохраняем пользователя (сначала в памяти)
+    if (!users[userData.id]) {
+      users[userData.id] = {
+        discordId: userData.id,
+        username: userData.username,
+        email: userData.email,
+        avatar: userData.avatar,
+        registeredAt: new Date().toISOString(),
+        balance: 0,
+        orders: [],
+        badges: {}
+      };
+      console.log('✅ Пользователь сохранен в памяти');
+    }
+
+    // Пытаемся сохранить в БД, если доступна
+    if (sql) {
+      try {
+        const [existingUser] = await sql`
+          SELECT * FROM users WHERE discord_id = ${userData.id}
+        `;
+        
+        if (!existingUser) {
+          await sql`
+            INSERT INTO users (discord_id, username, email, avatar, balance, badges)
+            VALUES (
+              ${userData.id}, 
+              ${userData.username}, 
+              ${userData.email || ''}, 
+              ${userData.avatar}, 
+              0,
+              ${JSON.stringify({})}
+            )
+          `;
+          console.log('✅ Пользователь сохранен в БД');
+        } else {
+          await sql`
+            UPDATE users 
+            SET username = ${userData.username}, 
+                email = ${userData.email || ''}, 
+                avatar = ${userData.avatar}
+            WHERE discord_id = ${userData.id}
+          `;
+          console.log('✅ Данные пользователя обновлены в БД');
+        }
+      } catch (dbError) {
+        console.error('⚠️ Ошибка сохранения в БД (используем память):', dbError.message);
+      }
+    }
+
+    // Создаем токен для клиента
+    const token = Buffer.from(JSON.stringify({
+      ...userData,
+      exp: Date.now() + 7 * 24 * 60 * 60 * 1000
+    })).toString('base64');
+
+    console.log('✅ Токен для клиента создан');
+
+    res.json({
+      success: true,
+      token: token,
+      user: userData
+    });
+
+  } catch (error) {
+    console.error('❌ ОШИБКА АВТОРИЗАЦИИ:');
+    console.error('- Сообщение:', error.message);
+    
+    if (error.response) {
+      console.error('- Статус ответа Discord:', error.response.status);
+      console.error('- Данные от Discord:', error.response.data);
+    }
+    
+    console.error('- Полный стек:', error.stack);
+
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка авторизации через Discord',
+      details: error.response?.data || error.message
+    });
+  }
 });
 
-// Глобальная переменная для отслеживания последней отправки кода
-let lastCodeSendTime = {};
-
+// Отправка кода верификации
 app.post('/api/send-verification', async (req, res) => {
-    try {
-        const { userId, code } = req.body;
-        console.log(`📨 Отправка кода ${code} пользователю ${userId}`);
-        
-        // ТОЛЬКО через бота в ЛС, без вебхука
-        const botResponse = await axios.post(`${BOT_API_URL}/send_verification`, {
-            user_id: userId,
-            code: code
-        }, {
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            timeout: 10000
-        });
+  try {
+    const { userId, code } = req.body;
+    console.log(`📨 Отправка кода ${code} пользователю ${userId}`);
+    
+    // Отправляем через вебхук Discord
+    const webhookUrl = 'https://discord.com/api/webhooks/1475846621425303674/Cm1D7yfWCjoh0nJys6jyedmEawUID6kpe2ycOc7xfjIC-p0M7i341cekSOVfMA2HLWn5';
+    
+    await axios.post(webhookUrl, {
+      content: `<@${userId}>`,
+      embeds: [{
+        title: '<:Hearts:1474933149422059712> Код верификации',
+        description: `<a:Dot:1386279213278953545> Код - \`${code}\``,
+        color: 0x5865F2,
+        timestamp: new Date().toISOString()
+      }]
+    });
+    
+    console.log('✅ Код отправлен через вебхук');
+    
+    res.json({ 
+      success: true,
+      message: 'Код отправлен в Discord'
+    });
 
-        console.log('✅ Код отправлен через бота:', botResponse.data);
-
-        res.json({ 
-            success: true,
-            message: 'Код отправлен в личные сообщения Discord'
-        });
-
-    } catch (error) {
-        console.error('❌ Ошибка отправки через бота:', error.message);
-        
-        // Fallback: если бот не отвечает, отправляем вебхук
-        try {
-            const webhookUrl = 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
-            await axios.post(webhookUrl, {
-                embeds: [{
-                    title: '🔐 Код верификации (вебхук)',
-                    description: `<@${req.body.userId}> ваш код: \`${req.body.code}\``,
-                    color: 0x5865F2,
-                    timestamp: new Date().toISOString(),
-                    footer: { text: 'BHStore | Вебхук (бот недоступен)' }
-                }]
-            });
-            
-            console.log('✅ Код отправлен через вебхук (бот недоступен)');
-            
-            res.json({ 
-                success: true,
-                message: 'Код отправлен через вебхук (бот недоступен)',
-                method: 'webhook'
-            });
-        } catch (webhookError) {
-            console.error('❌ Ошибка отправки через вебхук:', webhookError.message);
-            res.status(500).json({ 
-                success: false, 
-                error: 'Не удалось отправить код',
-                details: error.message
-            });
-        }
-    }
+  } catch (error) {
+    console.error('❌ Ошибка отправки кода:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Не удалось отправить код'
+    });
+  }
 });
 
 // Регистрация пользователя
-app.post('/api/register', (req, res) => {
-    try {
-        const { discordId, username, email, avatar } = req.body;
-        console.log(`📝 Регистрация: ${username}`);
+app.post('/api/register', async (req, res) => {
+  try {
+    const { discordId, username, email, avatar } = req.body;
+    console.log(`📝 Регистрация: ${username}`);
 
-        if (users[discordId]) {
-            return res.json({ 
-                success: true,
-                message: 'Пользователь уже зарегистрирован'
-            });
-        }
+    const [existingUser] = await sql`
+      SELECT * FROM users WHERE discord_id = ${discordId}
+    `;
 
-        users[discordId] = {
-            discordId,
-            username,
-            email,
-            avatar,
-            registeredAt: new Date().toISOString(),
-            balance: 0,
-            orders: []
-        };
-
-        fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
-
-        res.json({ 
-            success: true,
-            message: 'Пользователь зарегистрирован'
-        });
-
-    } catch (error) {
-        console.error('❌ Ошибка регистрации:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка регистрации' 
-        });
+    if (existingUser) {
+      return res.json({ 
+        success: true,
+        message: 'Пользователь уже зарегистрирован'
+      });
     }
+
+    await sql`
+      INSERT INTO users (discord_id, username, email, avatar, balance, badges)
+      VALUES (
+        ${discordId}, 
+        ${username}, 
+        ${email}, 
+        ${avatar}, 
+        0,
+        ${JSON.stringify({})}
+      )
+    `;
+
+    res.json({ 
+      success: true,
+      message: 'Пользователь зарегистрирован'
+    });
+
+  } catch (error) {
+    console.error('❌ Ошибка регистрации:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка регистрации' 
+    });
+  }
 });
 
-// Отправка приветственного сообщения через бота
-app.post('/api/welcome-message', async (req, res) => {
-    try {
-        const { userId } = req.body;
-        console.log(`👋 Приветствие для ${userId}`);
-
-        // Отправляем запрос к боту
-        await axios.post(`${BOT_API_URL}/welcome_message`, {
-            user_id: userId
-        });
-
-        res.json({ success: true });
-
-    } catch (error) {
-        console.error('❌ Ошибка приветствия:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка отправки' 
-        });
-    }
-});
-
+// Создание заказа
 app.post('/api/create-order', async (req, res) => {
-    try {
-        const { userId, productName, price, username, originalPrice, finalPrice, promocodes, discount, discountAmount } = req.body;
-        console.log(`🛒 Заказ от ${userId}: ${productName}`);
-        console.log(`📊 Цены: оригинальная=${originalPrice}, итоговая=${finalPrice}, скидка=${discount}%`);
-        console.log(`📊 Промокоды: ${promocodes ? promocodes.join(', ') : 'нет'}`);
-        
-        const orderId = `ORD-${Date.now()}`;
-        
-        // Обновляем баланс пользователя
-        if (users[userId]) {
-            // Проверяем баланс
-            const currentBalance = users[userId].balance || 0;
-            console.log(`💰 Текущий баланс: ${currentBalance} ₽`);
-            
-            // Используем finalPrice (цена со скидкой) для списания
-            const priceToDeduct = finalPrice || price;
-            console.log(`💰 Сумма к списанию: ${priceToDeduct} ₽`);
-            
-            if (currentBalance < priceToDeduct) {
-                console.log(`❌ Недостаточно средств: нужно ${priceToDeduct} ₽, есть ${currentBalance} ₽`);
-                return res.status(400).json({ 
-                    success: false, 
-                    error: 'Недостаточно средств на балансе' 
-                });
-            }
-            
-            // Списываем средства
-            users[userId].balance = currentBalance - priceToDeduct;
-            console.log(`✅ Баланс после списания: ${users[userId].balance} ₽`);
-            
-            // Добавляем заказ
-            users[userId].orders = users[userId].orders || [];
-            users[userId].orders.push({
-                id: orderId,
-                productName: productName,
-                originalPrice: originalPrice || price,
-                finalPrice: finalPrice || price,
-                discount: discount || 0,
-                discountAmount: discountAmount || 0,
-                promocodes: promocodes || [],
-                date: new Date().toISOString(),
-                status: 'completed'
-            });
-
-            // Добавляем транзакцию
-            if (!users[userId].transactions) {
-                users[userId].transactions = [];
-            }
-            
-            users[userId].transactions.push({
-                id: `TRX-${Date.now()}`,
-                amount: -priceToDeduct,
-                type: 'withdrawal',
-                reason: `Покупка товара: ${productName} (заказ ${orderId}) ${discount ? `со скидкой ${discount}%` : ''}`,
-                date: new Date().toISOString()
-            });
-
-            // Обновляем бейдж "Покупатель"
-            if (!users[userId].badges) users[userId].badges = {};
-            users[userId].badges.buyer = true;
-
-            // Сохраняем изменения в файл
-            fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
-            
-            console.log(`✅ Заказ создан: ${orderId}, списано: ${priceToDeduct} ₽`);
-        }
-
-        // Отправляем уведомление
-        const webhookUrl = 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
-        try {
-            await axios.post(webhookUrl, {
-                embeds: [{
-                    title: '💰 Новая покупка!',
-                    description: `<@${userId}> купил "${productName}"`,
-                    color: 0x57F287,
-                    fields: [
-                        { name: 'Оригинальная цена', value: `${originalPrice || price} ₽`, inline: true },
-                        { name: 'Итоговая цена', value: `${finalPrice || price} ₽`, inline: true },
-                        { name: 'Скидка', value: discount ? `${discount}% (-${discountAmount} ₽)` : '0%', inline: true },
-                        { name: 'Промокоды', value: promocodes && promocodes.length > 0 ? promocodes.join(', ') : 'нет', inline: true },
-                        { name: 'Заказ', value: orderId, inline: true },
-                        { name: 'Баланс', value: `${users[userId]?.balance || 0} ₽`, inline: true }
-                    ],
-                    timestamp: new Date().toISOString()
-                }]
-            });
-        } catch (webhookError) {
-            console.error('Ошибка отправки вебхука:', webhookError.message);
-        }
-
-        res.json({
-            success: true,
-            orderId: orderId,
-            newBalance: users[userId]?.balance || 0,
-            message: discount ? `Заказ оплачен со скидкой ${discount}%` : 'Заказ успешно оплачен'
-        });
-
-    } catch (error) {
-        console.error('❌ Ошибка заказа:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка создания заказа' 
-        });
-    }
-});
-
-// Получение товаров
-app.get('/api/products', (req, res) => {
-    try {
-        const products = JSON.parse(fs.readFileSync(productsFile, 'utf8'));
-        res.json({ success: true, products });
-    } catch (error) {
-        console.error('❌ Ошибка товаров:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка загрузки товаров' 
-        });
-    }
-});
-
-app.get('/api/news', (req, res) => {
-    console.log('📰 Запрос к /api/news получен');
+  try {
+    const { userId, productId, productName, price, originalPrice, username, promocodes, discount, discountAmount } = req.body;
     
-    try {
-        const newsPath = path.join(__dirname, 'data', 'news.json');
-        console.log('📁 Путь к файлу:', newsPath);
+    console.log(`🛒 Заказ от ${username || userId}: ${productName} за ${price} ₽`);
+    
+    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    
+    // Получаем пользователя
+    let user = null;
+    let userBalance = 0;
+    
+    if (sql) {
+      try {
+        const [dbUser] = await sql`
+          SELECT * FROM users WHERE discord_id = ${userId}
+        `;
+        user = dbUser;
         
-        if (!fs.existsSync(newsPath)) {
-            console.error('❌ Файл не найден');
-            return res.status(404).json({ 
-                success: false, 
-                error: 'Файл новостей не найден' 
-            });
+        if (user) {
+          userBalance = user.balance || 0;
         }
-        
-        // Читаем файл как буфер для обработки BOM
-        const buffer = fs.readFileSync(newsPath);
-        
-        // Удаляем UTF-8 BOM если есть
-        let content = buffer.toString('utf8');
-        if (buffer[0] === 0xEF && buffer[1] === 0xBB && buffer[2] === 0xBF) {
-            content = buffer.toString('utf8', 3); // Пропускаем первые 3 байта (BOM)
-            console.log('🔧 Обнаружен и удален UTF-8 BOM');
-        }
-        
-        // Удаляем UTF-16 BOM если есть
-        if (buffer[0] === 0xFF && buffer[1] === 0xFE) {
-            content = buffer.toString('utf16le', 2);
-            console.log('🔧 Обнаружен и удален UTF-16 LE BOM');
-        } else if (buffer[0] === 0xFE && buffer[1] === 0xFF) {
-            content = buffer.toString('utf16be', 2);
-            console.log('🔧 Обнаружен и удален UTF-16 BE BOM');
-        }
-        
-        console.log('📄 Длина контента после обработки:', content.length);
-        console.log('📄 Первые 100 символов:', content.substring(0, 100));
-        
-        // Парсим JSON
-        const news = JSON.parse(content);
-        console.log(`✅ Успешно загружено ${news.length} новостей`);
-        
-        res.json({ 
-            success: true, 
-            news: news,
-            total: news.length 
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка загрузки новостей:', error.message);
-        
-        // Показываем hex дамп начала файла для отладки
-        try {
-            const buffer = fs.readFileSync(path.join(__dirname, 'data', 'news.json'));
-            console.log('🔍 Hex дамп первых 20 байт файла:');
-            console.log(buffer.slice(0, 20).toString('hex').match(/.{2}/g).join(' '));
-        } catch (e) {}
-        
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка загрузки новостей: ' + error.message 
-        });
+      } catch (dbError) {
+        console.error('❌ Ошибка получения пользователя из БД:', dbError.message);
+      }
     }
+    
+    // Если нет в БД, проверяем в памяти
+    if (!user) {
+      user = users[userId];
+      userBalance = user?.balance || 0;
+    }
+    
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Пользователь не найден' 
+      });
+    }
+    
+    if (userBalance < price) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Недостаточно средств на балансе' 
+      });
+    }
+    
+    const newBalance = userBalance - price;
+    
+    // Создаем заказ
+    const order = {
+      id: orderId,
+      productId,
+      productName,
+      price,
+      originalPrice: originalPrice || price,
+      discount,
+      discountAmount,
+      promocodes: promocodes || [],
+      date: new Date().toISOString(),
+      status: 'completed'
+    };
+    
+    // Обновляем в памяти
+    if (users[userId]) {
+      users[userId].balance = newBalance;
+      users[userId].orders = users[userId].orders || [];
+      users[userId].orders.push(order);
+      users[userId].badges = users[userId].badges || {};
+      users[userId].badges.buyer = true;
+    }
+    
+    // Обновляем в БД
+    if (sql) {
+      try {
+        const orders = user.orders || [];
+        orders.push(order);
+        
+        const badges = user.badges || {};
+        badges.buyer = true;
+        
+        await sql`
+          UPDATE users 
+          SET balance = ${newBalance}, 
+              orders = ${JSON.stringify(orders)},
+              badges = ${JSON.stringify(badges)}
+          WHERE discord_id = ${userId}
+        `;
+        console.log('✅ Заказ сохранен в БД');
+      } catch (dbError) {
+        console.error('❌ Ошибка сохранения заказа в БД:', dbError.message);
+      }
+    }
+
+    // Отправляем уведомление в Discord
+    try {
+      const webhookUrl = 'https://discord.com/api/webhooks/1475847164801581127/8YklZGMVs-4reVU9yr4WbsO5OM1R5l2lM6yYmYyIPxhFICS1fDRZCD4ATL8sLEIaF1v5';
+      
+      await axios.post(webhookUrl, {
+        embeds: [{
+          title: '💰 Новая покупка!',
+          description: `<@${userId}> купил "${productName}"`,
+          color: 0x57F287,
+          fields: [
+            { name: 'Цена', value: `${price} ₽`, inline: true },
+            { name: 'Заказ', value: orderId, inline: true },
+            { name: 'Баланс после', value: `${newBalance} ₽`, inline: true }
+          ],
+          timestamp: new Date().toISOString()
+        }]
+      });
+    } catch (webhookError) {
+      console.error('❌ Ошибка отправки вебхука:', webhookError.message);
+    }
+
+    res.json({
+      success: true,
+      orderId: orderId,
+      newBalance: newBalance
+    });
+
+  } catch (error) {
+    console.error('❌ Ошибка заказа:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка создания заказа' 
+    });
+  }
 });
 
+// Получение заказов пользователя
+app.get('/api/user/:id/orders', async (req, res) => {
+  try {
+      const [user] = await sql`
+          SELECT orders FROM users WHERE discord_id = ${req.params.id}
+      `;
+      
+      res.json({
+          success: true,
+          orders: user?.orders || []
+      });
+  } catch (error) {
+      console.error('❌ Ошибка получения заказов:', error.message);
+      res.status(500).json({ 
+          success: false, 
+          error: 'Ошибка сервера' 
+      });
+  }
+});
+
+// Получение товаров из БД
+app.get('/api/products', async (req, res) => {
+  try {
+    console.log('📦 Запрос товаров');
+    
+    let products = [];
+    
+    if (sql) {
+      try {
+        products = await sql`SELECT * FROM products ORDER BY created_at DESC`;
+        console.log(`✅ Загружено ${products.length} товаров из БД`);
+      } catch (dbError) {
+        console.error('❌ Ошибка при работе с БД:', dbError.message);
+      }
+    }
+    
+    // Если БД не доступна или нет товаров, используем тестовые данные
+    if (!products || products.length === 0) {
+      console.log('📝 Используем тестовые товары из памяти');
+      products = getTestProducts();
+    }
+    
+    res.json({
+      success: true,
+      products: products
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка получения товаров:', error.message);
+    res.json({
+      success: true,
+      products: getTestProducts()
+    });
+  }
+});
+
+function getTestProducts() {
+  return [
+    {
+      "id": "discord_bot_economy",
+      "name": "Экономический бот",
+      "description": "Что входит в тариф:",
+      "price": 999,
+      "category": "discordbot",
+      "icon": "image/emoji/shop_discord.png",
+      "features": [
+        "База данных - JSON или DATABASE",
+        "Команды: !хелп, !баланс, !продать, !купить-товар, !вывести, !положить, !профиль, !работа, !казино, !магазин, !добавить-товар, !убрать-товар, !выдать-монеты, !снять-монеты.",
+        "Выбор формата команд - Slash Commands или Default Commands",
+        "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
+        "Язык ответа на ваше усмотрение - Русский или Английский",
+        "Дизайн эмодзи на выбор - Белый, Синий, Фиолетовый, Красный.",
+        "Гарантия 2 недели"
+      ]
+    },
+    {
+      "id": "discord_bot_moderation",
+      "name": "Модераторский бот",
+      "description": "Что входит в тариф:",
+      "price": 1119,
+      "category": "discordbot",
+      "icon": "image/emoji/shop_discord.png",
+      "features": [
+        "База данных - JSON или DATABASE",
+        "Команды: !хелп, !бан, !банлист, !разбан, !варн, !варнлист, !варнснять, !мьют, !размьют, !мутлист, !войскик, !изменить-ник.",
+        "Выбор формата команд - Slash Commands или Default Commands",
+        "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
+        "Язык ответа на ваше усмотрение - Русский или Английский",
+        "Дизайн эмодзи на выбор - Белый, Синий, Фиолетовый, Красный.",
+        "Гарантия 2 недели"
+      ]
+    },
+    {
+      "id": "discord_bot_levels",
+      "name": "Уровень бот",
+      "description": "Что входит в тариф:",
+      "price": 888,
+      "category": "discordbot",
+      "icon": "image/emoji/shop_discord.png",
+      "features": [
+        "База данных - JSON или DATABASE",
+        "Команды: !хелп, !ранг, !выдать-опыт, !снять-опыт, !выдать-уровень, !снять-уровень, !ранг-топ, !общий-сброс.",
+        "Настройки: !настройка - Настроить за определенный уровень выдачу роли.",
+        "Выбор формата команд - Slash Commands или Default Commands",
+        "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
+        "Язык ответа на ваше усмотрение - Русский или Английский",
+        "Дизайн эмодзи на выбор - Белый, Синий, Фиолетовый, Красный.",
+        "Гарантия 2 недели"
+      ]
+    },
+    {
+      "id": "discord_bot_all",
+      "name": "Полноценный бот",
+      "description": "Что входит в тариф:",
+      "price": 1999,
+      "category": "discordbot",
+      "icon": "image/emoji/shop_discord.png",
+      "features": [
+        "Тариф: Экономический бот",
+        "Тариф: Модераторский бот",
+        "Тариф: Уровень бот",
+        "Команды: !хелп, !профиль, !сервер, !бот...",
+        "Выбор формата команд - Slash Commands или Default Commands",
+        "Язык команд на ваше усмотрение - Русский(!хелп) или Английский(!help)",
+        "Язык ответа на ваше усмотрение - Русский или Английский",
+        "Дизайн эмодзи на выбор - Любой",
+        "Гарантия 1 мес."
+      ]
+    },
+    {
+      "id": "discord_guild_full",
+      "name": "Полная настройка Discord сервера",
+      "description": "Что входит в тариф:",
+      "price": 999,
+      "category": "discord",
+      "icon": "image/emoji/shop_discord.png",
+      "features": [
+        "1. Полная настройка всех функций Discord",
+        "2. Авто-модерация",
+        "3. Каналы-роли",
+        "4. Дизайн Каналы, Категории, Роли, Голосовые, Трибуны, Форумы",
+        "5. Права для всех каналов..."
+      ]
+    },
+    {
+      "id": "video_montaz",
+      "name": "Монтаж для видео",
+      "description": "",
+      "price": 499,
+      "category": "events",
+      "icon": "image/emoji/montaz.png",
+      "features": [
+        "Приоритетный доступ",
+        "Эксклюзивные награды",
+        "Личное приветствие",
+        "Особые привилегии"
+      ]
+    }
+  ];
+}
+
+// Получение новостей
+app.get('/api/news', async (req, res) => {
+  try {
+      // В реальном проекте здесь должно быть получение из БД
+      // Сейчас возвращаем тестовые данные
+      const news = [
+          {
+              id: 1,
+              title: 'Добро пожаловать в BHStore!',
+              content: 'Мы рады приветствовать вас в нашем магазине! BHStore - это современный Discord магазин с широким выбором товаров и услуг. У нас вы найдете премиум подписки, игровые валюты и многое другое.',
+              date: new Date().toISOString().split('T')[0],
+              category: 'announcement',
+              views: 156,
+              author: 'Borisonchik',
+              tags: ['welcome', 'new', 'bhstore']
+          },
+          {
+              id: 2,
+              title: 'Запуск системы отзывов',
+              content: 'Мы запустили новую систему отзывов! Теперь вы можете оценивать товары и делиться своим мнением с другими покупателями. Лучшие отзывы будут получать бонусы на баланс!',
+              date: new Date(Date.now() - 2*24*60*60*1000).toISOString().split('T')[0],
+              category: 'update',
+              views: 89,
+              author: 'Borisonchik',
+              tags: ['reviews', 'update', 'features']
+          },
+          {
+              id: 3,
+              title: 'Новогодняя распродажа!',
+              content: 'Скидки до 50% на все премиум подписки! Успейте приобрести товары по выгодным ценам. Акция действует до 15 января.',
+              date: new Date(Date.now() - 5*24*60*60*1000).toISOString().split('T')[0],
+              category: 'promo',
+              views: 234,
+              author: 'Borisonchik',
+              tags: ['sale', 'discount', 'newyear']
+          }
+      ];
+      
+      res.json({
+          success: true,
+          news: news,
+          total: news.length
+      });
+      
+  } catch (error) {
+      console.error('❌ Ошибка получения новостей:', error.message);
+      res.status(500).json({ 
+          success: false, 
+          error: 'Ошибка загрузки новостей' 
+      });
+  }
+});
+
+// Получение одной новости по ID
+app.get('/api/news/:id', async (req, res) => {
+  try {
+      const newsId = parseInt(req.params.id);
+      
+      // В реальном проекте здесь запрос к БД
+      const news = [
+          {
+              id: 1,
+              title: 'Добро пожаловать в BHStore!',
+              content: 'Мы рады приветствовать вас в нашем магазине! BHStore - это современный Discord магазин с широким выбором товаров и услуг. У нас вы найдете премиум подписки, игровые валюты и многое другое.',
+              date: new Date().toISOString().split('T')[0],
+              category: 'announcement',
+              views: 156,
+              author: 'Borisonchik',
+              tags: ['welcome', 'new', 'bhstore']
+          },
+          {
+              id: 2,
+              title: 'Запуск системы отзывов',
+              content: 'Мы запустили новую систему отзывов! Теперь вы можете оценивать товары и делиться своим мнением с другими покупателями. Лучшие отзывы будут получать бонусы на баланс!',
+              date: new Date(Date.now() - 2*24*60*60*1000).toISOString().split('T')[0],
+              category: 'update',
+              views: 89,
+              author: 'Borisonchik',
+              tags: ['reviews', 'update', 'features']
+          },
+          {
+              id: 3,
+              title: 'Новогодняя распродажа!',
+              content: 'Скидки до 50% на все премиум подписки! Успейте приобрести товары по выгодным ценам. Акция действует до 15 января.',
+              date: new Date(Date.now() - 5*24*60*60*1000).toISOString().split('T')[0],
+              category: 'promo',
+              views: 234,
+              author: 'Borisonchik',
+              tags: ['sale', 'discount', 'newyear']
+          }
+      ];
+      
+      const article = news.find(n => n.id === newsId);
+      
+      if (!article) {
+          return res.status(404).json({
+              success: false,
+              error: 'Новость не найдена'
+          });
+      }
+      
+      // Увеличиваем счетчик просмотров
+      article.views = (article.views || 0) + 1;
+      
+      res.json({
+          success: true,
+          news: article
+      });
+      
+  } catch (error) {
+      console.error('❌ Ошибка получения новости:', error.message);
+      res.status(500).json({ 
+          success: false, 
+          error: 'Ошибка загрузки новости' 
+      });
+  }
+});
 
 // ============================================
 // Админ маршруты
 // ============================================
 
 function isAdminUser(decodedToken) {
-    const adminIds = ['992442453833547886'];
-    return adminIds.includes(decodedToken.id);
+  const adminIds = ['992442453833547886'];
+  return adminIds.includes(decodedToken.id);
 }
 
-app.get('/api/admin/users', (req, res) => {
-    try {
-        const authHeader = req.headers.authorization;
-        
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
-        }
-
-        const token = authHeader.replace('Bearer ', '');
-        
-        try {
-            const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-            
-            if (!isAdminUser(decoded)) {
-                return res.status(403).json({ success: false, error: 'Требуются права администратора' });
-            }
-            
-            const allUsers = Object.values(users).map(user => ({
-                discordId: user.discordId,
-                username: user.username,
-                email: user.email,
-                avatar: user.avatar,
-                registeredAt: user.registeredAt,
-                balance: user.balance,
-                orderCount: user.orders ? user.orders.length : 0,
-                lastOrder: user.orders && user.orders.length > 0 
-                    ? user.orders[user.orders.length - 1].date 
-                    : null,
-                unreadMessages: chatStore[user.discordId] ? 
-                    chatStore[user.discordId].filter(msg => !msg.fromAdmin && !msg.read).length : 0
-            }));
-            
-            res.json({
-                success: true,
-                users: allUsers,
-                total: allUsers.length
-            });
-            
-        } catch (decodeError) {
-            return res.status(401).json({ success: false, error: 'Неверный токен' });
-        }
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения пользователей:', error.message);
-        res.status(500).json({ success: false, error: 'Ошибка сервера' });
+app.get('/api/admin/users', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
     }
-});
 
-app.get('/api/admin/orders', (req, res) => {
+    const token = authHeader.replace('Bearer ', '');
+    
     try {
-        const authHeader = req.headers.authorization;
-        
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
-        }
-        
-        let allOrders = [];
-        
-        Object.values(users).forEach(user => {
-            if (user.orders && user.orders.length > 0) {
-                user.orders.forEach(order => {
-                    allOrders.push({
-                        ...order,
-                        userDiscordId: user.discordId,
-                        username: user.username
-                    });
-                });
-            }
-        });
-        
-        // Сортируем по дате (новые сначала)
-        allOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
-        res.json({
-            success: true,
-            orders: allOrders,
-            total: allOrders.length,
-            totalRevenue: allOrders.reduce((sum, order) => sum + order.amount, 0)
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения заказов:', error.message);
-        res.status(500).json({ success: false, error: 'Ошибка сервера' });
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      
+      if (!isAdminUser(decoded)) {
+        return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+      }
+      
+      const dbUsers = await sql`
+        SELECT * FROM users ORDER BY registered_at DESC
+      `;
+      
+      const allUsers = dbUsers.map(user => ({
+        discordId: user.discord_id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        registeredAt: user.registered_at,
+        balance: user.balance,
+        orderCount: (user.orders || []).length,
+        lastOrder: (user.orders || []).length > 0 
+          ? user.orders[user.orders.length - 1].date 
+          : null,
+        badges: user.badges || {}
+      }));
+      
+      res.json({
+        success: true,
+        users: allUsers,
+        total: allUsers.length
+      });
+      
+    } catch (decodeError) {
+      return res.status(401).json({ success: false, error: 'Неверный токен' });
     }
-});
-
-// Отправка сообщения пользователю (только для админа) - совместимость со старым API
-app.post('/api/admin/send-message', async (req, res) => {
-    try {
-        const { userId, message } = req.body;
-        
-        if (!userId || !message) {
-            return res.status(400).json({ success: false, error: 'Отсутствуют данные' });
-        }
-        
-        // Используем унифицированный API чата
-        if (!chatStore[userId]) {
-            chatStore[userId] = [];
-        }
-        
-        const newMessage = {
-            id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            message: message,
-            fromAdmin: true,
-            sender: 'admin',
-            timestamp: new Date().toISOString(),
-            read: false
-        };
-        
-        chatStore[userId].push(newMessage);
-        
-        // Ограничиваем историю до 100 сообщений
-        if (chatStore[userId].length > 100) {
-            chatStore[userId] = chatStore[userId].slice(-100);
-        }
-        
-        saveChatToFile();
-        
-        // Отправляем через вебхук
-        const webhookUrl = 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG';
-        await axios.post(webhookUrl, {
-        //    content: `<@${userId}>`,
-            embeds: [{
-                title: '📨 Сообщение от администратора BHStore',
-                description: message,
-                color: 0xFEE75C,
-                timestamp: new Date().toISOString(),
-                footer: {
-                    text: 'Администратор магазина'
-                }
-            }]
-        });
-        
-        res.json({
-            success: true,
-            message: 'Сообщение отправлено',
-            messageId: newMessage.id
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка отправки сообщения:', error.message);
-        res.status(500).json({ success: false, error: 'Ошибка отправки' });
-    }
-});
-
-// Получение переписки с пользователем (только для админа) - совместимость со старым API
-app.get('/api/admin/chat/:userId', (req, res) => {
-    try {
-        const userId = req.params.userId;
-        const messages = chatStore[userId] || [];
-        
-        const user = users[userId];
-        const userInfo = user ? {
-            discordId: user.discordId,
-            username: user.username,
-            avatar: user.avatar,
-            registeredAt: user.registeredAt,
-            orderCount: user.orders ? user.orders.length : 0,
-            totalSpent: user.orders ? user.orders.reduce((sum, order) => sum + order.amount, 0) : 0
-        } : null;
-        
-        res.json({
-            success: true,
-            chat: messages,
-            userInfo: userInfo
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения переписки:', error.message);
-        res.status(500).json({ success: false, error: 'Ошибка сервера' });
-    }
+    
+  } catch (error) {
+    console.error('❌ Ошибка получения пользователей:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
 });
 
 // ============================================
 // API для промокодов
 // ============================================
 
-const promocodesFile = path.join(dataDir, 'promocodes.json');
-const promocodeLogsFile = path.join(dataDir, 'promocode_logs.json');
-
-// Инициализация файла промокодов
-if (!fs.existsSync(promocodesFile)) {
-    const defaultPromocodes = {
-        "WELCOME10": {
-            "code": "WELCOME10",
-            "type": "discount", // discount, balance, gift
-            "value": 10, // процент скидки или сумма пополнения
-            "active": true,
-            "maxUses": 100,
-            "usedCount": 0,
-            "usedBy": [],
-            "minPurchase": 0, // минимальная сумма покупки
-            "productId": null, // null для всех товаров или конкретный productId
-            "expiresAt": null, // дата истечения
-            "createdAt": new Date().toISOString()
-        },
-        "BALANCE100": {
-            "code": "BALANCE100",
-            "type": "balance", // пополнение баланса
-            "value": 100, // сумма пополнения в рублях
-            "active": true,
-            "maxUses": 50,
-            "usedCount": 0,
-            "usedBy": [],
-            "expiresAt": null,
-            "createdAt": new Date().toISOString()
-        },
-        "BHS50": {
-            "code": "BHS50",
-            "type": "discount",
-            "value": 50,
-            "active": true,
-            "maxUses": 50,
-            "usedCount": 0,
-            "usedBy": [],
-            "productId": null, // скидка на все товары
-            "expiresAt": null,
-            "createdAt": new Date().toISOString()
-        },
-        "BHS20": {
-            "code": "BHS20",
-            "type": "balance",
-            "value": 100, // при активации дает 100 рублей
-            "active": true,
-            "maxUses": 100,
-            "usedCount": 0,
-            "usedBy": [],
-            "expiresAt": "2026-12-31T23:59:59.999Z",
-            "createdAt": new Date().toISOString()
-        }
-    };
-    fs.writeFileSync(promocodesFile, JSON.stringify(defaultPromocodes, null, 2));
-    console.log('✅ Файл промокодов создан');
-}
-
-// Инициализация логов промокодов
-if (!fs.existsSync(promocodeLogsFile)) {
-    fs.writeFileSync(promocodeLogsFile, JSON.stringify([], null, 2));
-}
-
-// Загрузка промокодов
-let promocodes = {};
-try {
-    promocodes = JSON.parse(fs.readFileSync(promocodesFile, 'utf8'));
-    console.log(`✅ Загружено ${Object.keys(promocodes).length} промокодов`);
-} catch {
-    promocodes = {};
-}
-
-// Загрузка логов промокодов
-let promocodeLogs = [];
-try {
-    promocodeLogs = JSON.parse(fs.readFileSync(promocodeLogsFile, 'utf8'));
-} catch {
-    promocodeLogs = [];
-}
-
-// Проверка и активация промокода
-app.post('/api/promocodes/check', (req, res) => {
-    try {
-        const { userId, code, productId = null } = req.body;
-        
-        if (!userId || !code) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Не указаны userId или code' 
-            });
-        }
-        
-        const codeUpper = code.toUpperCase();
-        const promocode = promocodes[codeUpper];
-        
-        if (!promocode) {
-            return res.json({ 
-                success: false, 
-                error: 'Промокод не найден' 
-            });
-        }
-        
-        // Проверка активности
-        if (!promocode.active) {
-            return res.json({ 
-                success: false, 
-                error: 'Промокод неактивен' 
-            });
-        }
-        
-        // Проверка срока действия
-        if (promocode.expiresAt && new Date(promocode.expiresAt) < new Date()) {
-            return res.json({ 
-                success: false, 
-                error: 'Промокод истек' 
-            });
-        }
-        
-        // Проверка лимита использования
-        if (promocode.usedCount >= promocode.maxUses) {
-            return res.json({ 
-                success: false, 
-                error: 'Промокод больше недействителен' 
-            });
-        }
-        
-        // Проверка, использовал ли уже пользователь этот промокод
-        if (promocode.usedBy && promocode.usedBy.includes(userId)) {
-            return res.json({ 
-                success: false, 
-                error: 'Вы уже использовали этот промокод' 
-            });
-        }
-        
-        // Для скидочных промокодов проверяем товар
-        if (promocode.type === 'discount' && promocode.productId && productId && promocode.productId !== productId) {
-            console.log(`🔍 Проверка товара: промокод для ${promocode.productId}, запрошен для ${productId}`);
-            return res.json({ 
-                success: false, 
-                error: 'Этот промокод не применяется к данному товару' 
-            });
-        }
-        
-        // Проверяем минимальную сумму покупки
-        if (promocode.minPurchase && promocode.minPurchase > 0) {
-            const user = users[userId];
-            const lastOrderAmount = user && user.orders && user.orders.length > 0 ? 
-                user.orders[user.orders.length - 1].price : 0;
-            
-            if (lastOrderAmount < promocode.minPurchase) {
-                return res.json({ 
-                    success: false, 
-                    error: `Для этого промокода минимальная сумма покупки ${promocode.minPurchase} ₽` 
-                });
-            }
-        }
-        
-        // Всё проверки пройдены
-        res.json({
-            success: true,
-            promocode: {
-                id: promocode.code, // Используем code как id
-                code: promocode.code,
-                type: promocode.type,
-                value: promocode.value,
-                productId: promocode.productId || null,
-                minPurchase: promocode.minPurchase || 0,
-                expiresAt: promocode.expiresAt
-            }
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка проверки промокода:', error.message);
-        console.error('❌ Stack trace:', error.stack);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка проверки промокода: ' + error.message 
-        });
-    }
-});
-
-// Активация промокода (добавляем в историю пользователя)
-app.post('/api/promocodes/activate', async (req, res) => {
-    try {
-        const { userId, code, type = 'discount', productId = null } = req.body;
-        
-        if (!userId || !code) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Не указаны данные' 
-            });
-        }
-        
-        const promocode = promocodes[code.toUpperCase()];
-
-        if (!promocode) {
-            return res.status(404).json({ 
-                success: false, 
-                error: 'Промокод не найден' 
-            });
-        }
-        
-        // Повторяем проверки
-        if (!promocode.active) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Промокод неактивен' 
-            });
-        }
-        
-        if (promocode.usedCount >= promocode.maxUses) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Промокод больше недействителен' 
-            });
-        }
-        
-        if (promocode.usedBy.includes(userId)) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Вы уже использовали этот промокод' 
-            });
-        }
-        
-        // Обновляем данные промокода
-        promocode.usedCount += 1;
-        promocode.usedBy.push(userId);
-        
-        // Добавляем запись в логи
-        const logEntry = {
-            id: `PROMO-${Date.now()}`,
-            userId,
-            code: promocode.code,
-            type: promocode.type,
-            value: promocode.value,
-            productId,
-            date: new Date().toISOString(),
-            status: 'activated'
-        };
-        
-        promocodeLogs.push(logEntry);
-        
-        // Если промокод на пополнение баланса - пополняем баланс
-        if (promocode.type === 'balance') {
-            const user = users[userId];
-            if (user) {
-                user.balance = (user.balance || 0) + promocode.value;
-                
-                // Добавляем транзакцию
-                if (!user.transactions) user.transactions = [];
-                user.transactions.push({
-                    id: `TRX-${Date.now()}`,
-                    amount: promocode.value,
-                    type: 'deposit',
-                    reason: `Пополнение по промокоду ${promocode.code}`,
-                    date: new Date().toISOString()
-                });
-                
-                logEntry.status = 'balance_added';
-                logEntry.newBalance = user.balance;
-            }
-        }
-        
-        // Сохраняем изменения
-        fs.writeFileSync(promocodesFile, JSON.stringify(promocodes, null, 2));
-        fs.writeFileSync(promocodeLogsFile, JSON.stringify(promocodeLogs, null, 2));
-        
-        if (users[userId]) {
-            fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
-        }
-        
-        console.log(`🎫 Промокод активирован: ${userId} -> ${promocode.code}`);
-        
-        // Отправляем уведомление в Discord
-        const webhookUrl = 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
-        try {
-            await axios.post(webhookUrl, {
-                embeds: [{
-                    title: '🎫 Промокод активирован',
-                    description: `<@${userId}> активировал промокод \`${promocode.code}\``,
-                    color: 0xFEE75C,
-                    fields: [
-                        { name: 'Пользователь', value: users[userId]?.username || userId, inline: true },
-                        { name: 'Промокод', value: promocode.code, inline: true },
-                        { name: 'Тип', value: promocode.type === 'discount' ? 'Скидка' : 'Пополнение', inline: true },
-                        { name: 'Значение', value: promocode.type === 'discount' ? `${promocode.value}%` : `${promocode.value} ₽`, inline: true },
-                        { name: 'Использований', value: `${promocode.usedCount}/${promocode.maxUses}`, inline: true }
-                    ],
-                    timestamp: new Date().toISOString()
-                }]
-            });
-        } catch (webhookError) {
-            console.error('Ошибка отправки вебхука:', webhookError.message);
-        }
-        
-        res.json({
-            success: true,
-            message: promocode.type === 'balance' ? 
-                `Баланс пополнен на ${promocode.value} ₽` :
-                `Промокод "${promocode.code}" активирован`,
-            promocode: {
-                code: promocode.code,
-                type: promocode.type,
-                value: promocode.value,
-                productId: promocode.productId
-            },
-            newBalance: users[userId]?.balance || 0
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка активации промокода:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка активации промокода' 
-        });
-    }
-});
-
-// Получение истории промокодов пользователя
-app.get('/api/promocodes/user/:userId', (req, res) => {
-    try {
-        const { userId } = req.params;
-        const userLogs = promocodeLogs.filter(log => log.userId === userId);
-        
-        res.json({
-            success: true,
-            promocodes: userLogs,
-            total: userLogs.length
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения истории промокодов:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка сервера' 
-        });
-    }
-});
-
-// Получение всех промокодов (админ)
-app.get('/api/admin/promocodes', (req, res) => {
-    try {
-        const authHeader = req.headers.authorization;
-        
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
-        }
-        
-        const token = authHeader.replace('Bearer ', '');
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        
-        if (!isAdminUser(decoded)) {
-            return res.status(403).json({ 
-                success: false, 
-                error: 'Требуются права администратора' 
-            });
-        }
-        
-        const allPromocodes = Object.values(promocodes);
-        const stats = {
-            total: allPromocodes.length,
-            active: allPromocodes.filter(p => p.active).length,
-            discount: allPromocodes.filter(p => p.type === 'discount').length,
-            balance: allPromocodes.filter(p => p.type === 'balance').length,
-            totalUses: allPromocodes.reduce((sum, p) => sum + p.usedCount, 0)
-        };
-        
-        res.json({
-            success: true,
-            promocodes: allPromocodes,
-            stats
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения промокодов:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка сервера' 
-        });
-    }
-});
-
-// Создание промокода (админ)
-app.post('/api/admin/promocodes', (req, res) => {
-    try {
-        const authHeader = req.headers.authorization;
-        
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
-        }
-        
-        const token = authHeader.replace('Bearer ', '');
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        
-        if (!isAdminUser(decoded)) {
-            return res.status(403).json({ 
-                success: false, 
-                error: 'Требуются права администратора' 
-            });
-        }
-        
-        const { code, type, value, maxUses, productId, minPurchase, expiresAt } = req.body;
-        
-        if (!code || !type || value === undefined) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Не указаны обязательные поля' 
-            });
-        }
-        
-        const codeUpper = code.toUpperCase();
-        
-        // Проверяем, не существует ли уже такой промокод
-        if (promocodes[codeUpper]) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Промокод с таким кодом уже существует' 
-            });
-        }
-        
-        const newPromocode = {
-            code: codeUpper,
-            type: type, // discount, balance, gift
-            value: parseFloat(value),
-            active: true,
-            maxUses: parseInt(maxUses) || 100,
-            usedCount: 0,
-            usedBy: [],
-            productId: productId || null,
-            minPurchase: minPurchase ? parseFloat(minPurchase) : 0,
-            expiresAt: expiresAt || null,
-            createdAt: new Date().toISOString(),
-            createdBy: decoded.id
-        };
-        
-        promocodes[codeUpper] = newPromocode;
-        fs.writeFileSync(promocodesFile, JSON.stringify(promocodes, null, 2));
-        
-        console.log(`✅ Создан промокод: ${codeUpper} (${type}: ${value})`);
-        
-        res.json({
-            success: true,
-            promocode: newPromocode
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка создания промокода:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка создания промокода' 
-        });
-    }
-});
-
-// Функция для конвертации старого формата badges
-function convertBadgesFormat() {
-    let updated = false;
+// Проверка промокода
+app.post('/api/promocodes/check', async (req, res) => {
+  try {
+    const { userId, code } = req.body;
     
-    Object.keys(users).forEach(userId => {
-        const user = users[userId];
-        
-        if (user.badges) {
-            // Если badges - строка
-            if (typeof user.badges === 'string') {
-                console.log(`🔄 Конвертация badges для пользователя ${user.username}`);
-                
-                if (user.badges === 'verified') {
-                    user.badges = { verified: true };
-                    updated = true;
-                } else if (user.badges.includes(',')) {
-                    // Если несколько badges через запятую
-                    const badgesArray = user.badges.split(',').map(b => b.trim());
-                    const badgesObj = {};
-                    badgesArray.forEach(badge => {
-                        badgesObj[badge] = true;
-                    });
-                    user.badges = badgesObj;
-                    updated = true;
-                }
-            }
-            
-            // Если badges - массив
-            if (Array.isArray(user.badges)) {
-                console.log(`🔄 Конвертация badges массива для пользователя ${user.username}`);
-                const badgesObj = {};
-                user.badges.forEach(badge => {
-                    if (typeof badge === 'string') {
-                        badgesObj[badge] = true;
-                    } else if (typeof badge === 'object') {
-                        Object.assign(badgesObj, badge);
-                    }
-                });
-                user.badges = badgesObj;
-                updated = true;
-            }
-        } else {
-            // Если badges не существует, создаем пустой объект
-            user.badges = {};
-        }
+    if (!userId || !code) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Не указаны userId или code' 
+      });
+    }
+    
+    const codeUpper = code.toUpperCase();
+    const [promocode] = await sql`
+      SELECT * FROM promocodes WHERE code = ${codeUpper}
+    `;
+    
+    if (!promocode) {
+      return res.json({ 
+        success: false, 
+        error: 'Промокод не найден' 
+      });
+    }
+    
+    if (!promocode.active) {
+      return res.json({ 
+        success: false, 
+        error: 'Промокод неактивен' 
+      });
+    }
+    
+    if (promocode.used_count >= promocode.max_uses) {
+      return res.json({ 
+        success: false, 
+        error: 'Промокод больше недействителен' 
+      });
+    }
+    
+    const usedBy = promocode.used_by || [];
+    if (usedBy.includes(userId)) {
+      return res.json({ 
+        success: false, 
+        error: 'Вы уже использовали этот промокод' 
+      });
+    }
+    
+    res.json({
+      success: true,
+      promocode: {
+        code: promocode.code,
+        type: promocode.type,
+        value: promocode.value
+      }
     });
     
-    if (updated) {
-        fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
-        console.log('✅ Формат badges обновлен для всех пользователей');
-    }
-}
+  } catch (error) {
+    console.error('❌ Ошибка проверки промокода:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка проверки промокода' 
+    });
+  }
+});
 
-// Вызовите эту функцию после загрузки пользователей:
-users = JSON.parse(fs.readFileSync(usersFile, 'utf8'));
-console.log(`✅ Загружено ${Object.keys(users).length} пользователей`);
-convertBadgesFormat(); // <-- Добавьте эту строку
-
-// Функция для проверки и обновления бейджей пользователя
-function updateUserBadges(userId) {
-    const user = users[userId];
-    if (!user) return {};
+// Активация промокода
+app.post('/api/promocodes/activate', async (req, res) => {
+  try {
+    const { userId, code } = req.body;
     
-    // Инициализируем badges как объект
-    if (!user.badges || typeof user.badges !== 'object') {
-        user.badges = {};
-    }
-    
-    // Бейдж "Покупатель" - если есть хотя бы 1 завершенный заказ
-    if (user.orders && user.orders.length > 0) {
-        const completedOrders = user.orders.filter(order => 
-            order.status === 'completed' || 
-            order.status === 'КУПЛЕНО' || 
-            order.status === 'paid'
-        );
-        user.badges.buyer = completedOrders.length >= 1;
-    } else {
-        user.badges.buyer = false;
+    if (!userId || !code) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Не указаны данные' 
+      });
     }
     
-    // Бейдж "Верифицированный" - если email подтвержден
-    if (user.email && (user.isVerified || user.verifiedAt)) {
-        user.badges.verified = true;
-    } else {
-        user.badges.verified = false;
+    const [promocode] = await sql`
+      SELECT * FROM promocodes WHERE code = ${code.toUpperCase()}
+    `;
+
+    if (!promocode) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Промокод не найден' 
+      });
     }
     
-    // Бейдж "Партнер" - для определенных пользователей
-    const partnerUsers = [
-        '992442453833547886', // borisonchik_yt
-        // добавьте другие ID партнеров
-    ];
-    user.badges.partner = partnerUsers.includes(userId);
+    if (!promocode.active) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Промокод неактивен' 
+      });
+    }
     
-    return user.badges;
-}
+    if (promocode.used_count >= promocode.max_uses) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Промокод больше недействителен' 
+      });
+    }
+    
+    const usedBy = promocode.used_by || [];
+    if (usedBy.includes(userId)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Вы уже использовали этот промокод' 
+      });
+    }
+    
+    // Обновляем данные промокода
+    usedBy.push(userId);
+    await sql`
+      UPDATE promocodes 
+      SET used_count = ${promocode.used_count + 1}, 
+          used_by = ${JSON.stringify(usedBy)}
+      WHERE code = ${promocode.code}
+    `;
+    
+    let newBalance = 0;
+    
+    // Если промокод на пополнение баланса
+    if (promocode.type === 'balance') {
+      const [user] = await sql`
+        SELECT * FROM users WHERE discord_id = ${userId}
+      `;
+      
+      if (user) {
+        newBalance = (user.balance || 0) + promocode.value;
+        await sql`
+          UPDATE users 
+          SET balance = ${newBalance}
+          WHERE discord_id = ${userId}
+        `;
+      }
+    }
+    
+    console.log(`🎫 Промокод активирован: ${userId} -> ${promocode.code}`);
+    
+    // Отправляем уведомление
+    const webhookUrl = 'https://discord.com/api/webhooks/1475847787424776234/JH5b-8pfG3auhYIR2hQResaQv3EVtkbWAmXExkz6ssUQVddADgjrQ-YAGO5OI2s3oLuv';
+    
+    await axios.post(webhookUrl, {
+      embeds: [{
+        title: '<:Yes:1474931426951430225> Промокод активирован',
+        description: `<:User:1474931634804359433> <@${userId}> активировал промокод <:Premium:1474931599622803628> \`${promocode.code}\``,
+        color: 0xFEE75C,
+        fields: [
+          { name: '<:Wave:1386273780556496967> Тип', value: promocode.type === 'discount' ? 'Скидка' : 'Пополнение', inline: true },
+          { name: '<:Wave:1386273780556496967> Значение', value: promocode.type === 'discount' ? `${promocode.value}%` : `${promocode.value} ₽`, inline: true }
+        ],
+        timestamp: new Date().toISOString()
+      }]
+    });
+    
+    res.json({
+      success: true,
+      message: promocode.type === 'balance' ? 
+        `<:Money:1474931656610811966> Баланс пополнен на ${promocode.value}₽` :
+        `<:Yes:1474931426951430225> Промокод "${promocode.code}" активирован`,
+      newBalance: newBalance
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка активации промокода:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка активации промокода' 
+    });
+  }
+});
 
-// Файл для истории пополнений
-const balanceHistoryFile = path.join(dataDir, 'balance_history.json');
+// ============================================
+// API для баланса
+// ============================================
 
-// Инициализация файла истории пополнений
-if (!fs.existsSync(balanceHistoryFile)) {
-    fs.writeFileSync(balanceHistoryFile, JSON.stringify([], null, 2));
-}
-
-// Загрузка истории пополнений
-let balanceHistory = [];
-try {
-    balanceHistory = JSON.parse(fs.readFileSync(balanceHistoryFile, 'utf8'));
-} catch {
-    balanceHistory = [];
-}
-
-// API для получения баланса пользователя
-app.get('/api/user/:id/balance', (req, res) => {
-    try {
-        const user = users[req.params.id];
+// Получение баланса пользователя
+app.get('/api/user/:id/balance', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    if (sql) {
+      try {
+        const [user] = await sql`
+          SELECT balance FROM users WHERE discord_id = ${userId}
+        `;
         
-        if (!user) {
-            return res.json({
-                success: true,
-                balance: 0,
-                currency: 'RUB'
-            });
-        }
-        
-        res.json({
+        if (user) {
+          return res.json({
             success: true,
             balance: user.balance || 0,
             currency: 'RUB'
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения баланса:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка сервера' 
-        });
+          });
+        }
+      } catch (dbError) {
+        console.error('❌ Ошибка БД:', dbError.message);
+      }
     }
+    
+    const user = users[userId];
+    
+    res.json({
+      success: true,
+      balance: user?.balance || 0,
+      currency: 'RUB'
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка получения баланса:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка сервера' 
+    });
+  }
+});
+
+app.post('/api/update-balance', async (req, res) => {
+  try {
+    const { userId, amount, reason } = req.body;
+    
+    if (!userId || !amount) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Не указаны userId или amount' 
+      });
+    }
+    
+    const [user] = await sql`
+      SELECT * FROM users WHERE discord_id = ${userId}
+    `;
+    
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Пользователь не найден' 
+      });
+    }
+    
+    if (amount < 0 && (user.balance || 0) < Math.abs(amount)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Недостаточно средств на балансе' 
+      });
+    }
+    
+    const newBalance = (user.balance || 0) + parseFloat(amount);
+    
+    await sql`
+      UPDATE users 
+      SET balance = ${newBalance}
+      WHERE discord_id = ${userId}
+    `;
+    
+    console.log(`💰 Баланс обновлен: ${userId} ${amount > 0 ? '+' : ''}${amount} ₽ = ${newBalance} ₽`);
+    
+    res.json({
+      success: true,
+      message: 'Баланс обновлен',
+      newBalance: newBalance
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка обновления баланса:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка обновления баланса' 
+    });
+  }
 });
 
 // ============================================
-// API для отзывов (reviews)
+// API для отзывов
 // ============================================
-
-const reviewsFile = path.join(dataDir, 'reviews.json');
-
-// Инициализация файла отзывов
-if (!fs.existsSync(reviewsFile)) {
-    const defaultReviews = {
-        reviews: [
-            {
-                id: "rev_1738765432101",
-                userId: "123456789012345678",
-                name: "Алексей Петров",
-                avatar: "https://cdn.discordapp.com/embed/avatars/0.png",
-                rating: 5,
-                productId: "premium-1",
-                productName: "Premium Подписка",
-                text: "Отличный бот! Все функции работают идеально. Поддержка отвечает быстро, помогли с настройкой. Очень доволен покупкой!",
-                images: [],
-                verifiedPurchase: true,
-                verified: true,
-                helpful: 12,
-                createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-                updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-                adminReply: null
-            },
-            {
-                id: "rev_1738765432102",
-                userId: "234567890123456789",
-                name: "Екатерина Смирнова",
-                avatar: "https://cdn.discordapp.com/embed/avatars/1.png",
-                rating: 5,
-                productId: "service-1",
-                productName: "Музыкальный бот",
-                text: "Заказала музыкального бота для своего сервера. Сделали быстро, качественно. Теперь у нас отличная музыка на сервере!",
-                images: [],
-                verifiedPurchase: true,
-                verified: false,
-                helpful: 8,
-                createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-                updatedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-                adminReply: null
-            },
-            {
-                id: "rev_1738765432103",
-                userId: "345678901234567890",
-                name: "Дмитрий Иванов",
-                avatar: "https://cdn.discordapp.com/embed/avatars/2.png",
-                rating: 4,
-                productId: "premium-2",
-                productName: "Premium Годовая",
-                text: "Пользуюсь премиумом уже полгода. Всё супер, но хотелось бы больше команд. В остальном отлично, багов не замечал.",
-                images: [],
-                verifiedPurchase: true,
-                verified: true,
-                helpful: 5,
-                createdAt: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
-                updatedAt: new Date(Date.now() - 21 * 24 * 60 * 60 * 1000).toISOString(),
-                adminReply: {
-                    text: "Спасибо за отзыв! Мы работаем над добавлением новых команд!",
-                    createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-                    adminId: "992442453833547886"
-                }
-            }
-        ],
-        stats: {
-            totalReviews: 3,
-            averageRating: 4.7,
-            verifiedPurchases: 3,
-            totalHelpful: 25,
-            reviewsWithPhotos: 0,
-            lastUpdated: new Date().toISOString()
-        },
-        config: {
-            maxImagesPerReview: 3,
-            allowedImageTypes: ["image/jpeg", "image/png", "image/jpg"],
-            maxImageSize: 5242880,
-            minReviewLength: 10,
-            maxReviewLength: 1000,
-            reviewsPerPage: 6
-        }
-    };
-    fs.writeFileSync(reviewsFile, JSON.stringify(defaultReviews, null, 2));
-    console.log('✅ Файл отзывов создан');
-}
-
-// Загрузка отзывов
-let reviewsData = {};
-try {
-    reviewsData = JSON.parse(fs.readFileSync(reviewsFile, 'utf8'));
-    console.log(`✅ Загружено ${reviewsData.reviews?.length || 0} отзывов`);
-} catch {
-    reviewsData = { reviews: [], stats: { totalReviews: 0, averageRating: 0 } };
-}
-
-// Функция для сохранения отзывов
-function saveReviews() {
-    try {
-        fs.writeFileSync(reviewsFile, JSON.stringify(reviewsData, null, 2));
-    } catch (error) {
-        console.error('❌ Ошибка сохранения отзывов:', error.message);
-    }
-}
-
-// Функция для обновления статистики отзывов
-function updateReviewsStats() {
-    const reviews = reviewsData.reviews || [];
-    const totalReviews = reviews.length;
-    
-    if (totalReviews === 0) {
-        reviewsData.stats = {
-            totalReviews: 0,
-            averageRating: 0,
-            verifiedPurchases: 0,
-            totalHelpful: 0,
-            reviewsWithPhotos: 0,
-            lastUpdated: new Date().toISOString()
-        };
-        return;
-    }
-    
-    const averageRating = Number((reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews).toFixed(1));
-    const verifiedPurchases = reviews.filter(r => r.verifiedPurchase).length;
-    const totalHelpful = reviews.reduce((sum, r) => sum + (r.helpful || 0), 0);
-    const reviewsWithPhotos = reviews.filter(r => r.images && r.images.length > 0).length;
-    
-    reviewsData.stats = {
-        totalReviews,
-        averageRating,
-        verifiedPurchases,
-        totalHelpful,
-        reviewsWithPhotos,
-        lastUpdated: new Date().toISOString()
-    };
-}
-
-// Настройка multer для загрузки изображений отзывов
-const reviewStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, 'uploads', 'reviews');
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-        cb(null, uploadDir);
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.originalname);
-        cb(null, 'review-' + uniqueSuffix + ext);
-    }
-});
-
-const uploadReviews = multer({ 
-    storage: reviewStorage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-    fileFilter: (req, file, cb) => {
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error('Неподдерживаемый формат файла. Разрешены: JPG, PNG'));
-        }
-    }
-});
 
 // GET /api/reviews - получение всех отзывов
-app.get('/api/reviews', (req, res) => {
-    try {
-        const { page = 1, limit = 10, filter = 'all' } = req.query;
-        
-        let reviews = [...(reviewsData.reviews || [])];
-        
-        // Применяем фильтры
-        if (filter === 'verified') {
-            reviews = reviews.filter(r => r.verifiedPurchase);
-        } else if (filter === 'with-photo') {
-            reviews = reviews.filter(r => r.images && r.images.length > 0);
-        } else if (filter === '5' || filter === '4' || filter === '3' || filter === '2' || filter === '1') {
-            reviews = reviews.filter(r => r.rating === parseInt(filter));
-        }
-        
-        // Сортируем по дате (новые сначала)
-        reviews.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        
-        // Пагинация
-        const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + parseInt(limit);
-        const paginatedReviews = reviews.slice(startIndex, endIndex);
-        
-        res.json({
-            success: true,
-            reviews: paginatedReviews,
-            stats: reviewsData.stats,
-            pagination: {
-                total: reviews.length,
-                page: parseInt(page),
-                limit: parseInt(limit),
-                totalPages: Math.ceil(reviews.length / limit)
-            }
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения отзывов:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка загрузки отзывов' 
-        });
-    }
-});
-
-// GET /api/reviews/:id - получение конкретного отзыва
-app.get('/api/reviews/:id', (req, res) => {
-    try {
-        const review = (reviewsData.reviews || []).find(r => r.id === req.params.id);
-        
-        if (!review) {
-            return res.status(404).json({
-                success: false,
-                error: 'Отзыв не найден'
-            });
-        }
-        
-        res.json({
-            success: true,
-            review
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения отзыва:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка загрузки отзыва' 
-        });
-    }
+app.get('/api/reviews', async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+    
+    const offset = (page - 1) * limit;
+    
+    const reviews = await sql`
+      SELECT * FROM reviews 
+      ORDER BY created_at DESC 
+      LIMIT ${parseInt(limit)} 
+      OFFSET ${offset}
+    `;
+    
+    const [stats] = await sql`
+      SELECT 
+        COUNT(*) as total_reviews,
+        AVG(rating) as avg_rating,
+        SUM(CASE WHEN verified_purchase = true THEN 1 ELSE 0 END) as verified_purchases,
+        SUM(helpful) as total_helpful
+      FROM reviews
+    `;
+    
+    res.json({
+      success: true,
+      reviews: reviews,
+      stats: {
+        totalReviews: parseInt(stats.total_reviews) || 0,
+        averageRating: parseFloat(stats.avg_rating) || 0,
+        verifiedPurchases: parseInt(stats.verified_purchases) || 0,
+        totalHelpful: parseInt(stats.total_helpful) || 0
+      },
+      pagination: {
+        total: parseInt(stats.total_reviews) || 0,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: Math.ceil((parseInt(stats.total_reviews) || 0) / parseInt(limit))
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка получения отзывов:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка загрузки отзывов' 
+    });
+  }
 });
 
 // POST /api/reviews - создание нового отзыва
-app.post('/api/reviews', uploadReviews.array('images', 3), (req, res) => {
-    try {
-        const { userId, name, productId, productName, rating, text, verifiedPurchase } = req.body;
-        
-        console.log('📝 Получен запрос на создание отзыва:', { userId, name, productId, productName, rating });
-        
-        // Валидация
-        if (!userId || !name || !productId || !productName || !rating || !text) {
-            return res.status(400).json({
-                success: false,
-                error: 'Заполните все обязательные поля'
-            });
-        }
-        
-        if (text.length < 10) {
-            return res.status(400).json({
-                success: false,
-                error: 'Отзыв должен содержать минимум 10 символов'
-            });
-        }
-        
-        if (text.length > 1000) {
-            return res.status(400).json({
-                success: false,
-                error: 'Отзыв не может превышать 1000 символов'
-            });
-        }
-        
-        // Проверяем, не оставлял ли уже пользователь отзыв на этот товар
-        const existingReview = (reviewsData.reviews || []).find(
-            r => r.userId === userId && r.productId === productId
-        );
-        
-        if (existingReview) {
-            return res.status(400).json({
-                success: false,
-                error: 'Вы уже оставляли отзыв на этот товар'
-            });
-        }
-        
-        // Обработка загруженных изображений
-        const images = [];
-        if (req.files && req.files.length > 0) {
-            req.files.forEach(file => {
-                // Сохраняем относительный путь к изображению
-                images.push(`/uploads/reviews/${file.filename}`);
-            });
-        }
-        
-        // Получаем информацию о пользователе
-        const user = users[userId];
-        const avatar = user?.avatar 
-            ? `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}.png?size=64`
-            : `https://cdn.discordapp.com/embed/avatars/${Math.floor(Math.random() * 5)}.png`;
-        
-        // Проверяем, действительно ли пользователь покупал этот товар
-        let hasPurchased = false;
-        if (user && user.orders) {
-            hasPurchased = user.orders.some(order => 
-                order.productId === productId && 
-                (order.status === 'completed' || order.status === 'КУПЛЕНО')
-            );
-        }
-        
-        // Создание нового отзыва
-        const newReview = {
-            id: `rev_${Date.now()}`,
-            userId,
-            name,
-            avatar,
-            rating: parseInt(rating),
-            productId,
-            productName,
-            text,
-            images,
-            verifiedPurchase: hasPurchased, // Автоматически определяем по истории покупок
-            verified: user?.badges?.verified || false,
-            helpful: 0,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            adminReply: null
-        };
-        
-        // Добавляем отзыв
-        if (!reviewsData.reviews) {
-            reviewsData.reviews = [];
-        }
-        reviewsData.reviews.unshift(newReview);
-        
-        // Обновляем статистику
-        updateReviewsStats();
-        
-        // Сохраняем
-        saveReviews();
-        
-        console.log(`✅ Отзыв создан: ${newReview.id} от ${name}`);
-        
-        // Отправляем уведомление в Discord
-        const webhookUrl = 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
-        axios.post(webhookUrl, {
-            embeds: [{
-                title: '⭐ Новый отзыв!',
-                description: `**${name}** оставил отзыв на товар **${productName}**`,
-                color: 0xFEE75C,
-                fields: [
-                    { name: 'Оценка', value: '⭐'.repeat(parseInt(rating)), inline: true },
-                    { name: 'Подтвержденная покупка', value: hasPurchased ? '✅ Да' : '❌ Нет', inline: true },
-                    { name: 'Текст отзыва', value: text.substring(0, 200) + (text.length > 200 ? '...' : ''), inline: false }
-                ],
-                timestamp: new Date().toISOString()
-            }]
-        }).catch(err => console.error('Ошибка отправки вебхука:', err.message));
-        
-        res.json({
-            success: true,
-            message: 'Отзыв успешно добавлен',
-            review: {
-                id: newReview.id,
-                name: newReview.name,
-                rating: newReview.rating,
-                productName: newReview.productName,
-                createdAt: newReview.createdAt
-            }
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка создания отзыва:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка при создании отзыва: ' + error.message 
-        });
+app.post('/api/reviews', async (req, res) => {
+  try {
+    const { userId, name, productId, productName, rating, text } = req.body;
+    
+    console.log('📝 Получен запрос на создание отзыва:', { userId, name, productId, productName, rating });
+    
+    if (!userId || !name || !productId || !productName || !rating || !text) {
+      return res.status(400).json({
+        success: false,
+        error: 'Заполните все обязательные поля'
+      });
     }
+    
+    if (text.length < 10) {
+      return res.status(400).json({
+        success: false,
+        error: 'Отзыв должен содержать минимум 10 символов'
+      });
+    }
+    
+    const [user] = await sql`
+      SELECT * FROM users WHERE discord_id = ${userId}
+    `;
+    
+    const avatar = user?.avatar 
+      ? `https://cdn.discordapp.com/avatars/${userId}/${user.avatar}.png`
+      : `https://cdn.discordapp.com/embed/avatars/0.png`;
+    
+    // Проверяем, покупал ли пользователь этот товар
+    const orders = user?.orders || [];
+    const hasPurchased = orders.some(order => 
+      order.productName === productName || order.productId === productId
+    ) || false;
+    
+    const reviewId = `rev_${Date.now()}`;
+    const now = new Date().toISOString();
+    
+    await sql`
+      INSERT INTO reviews (
+        id, user_id, name, avatar, rating, product_id, 
+        product_name, text, verified_purchase, verified, 
+        helpful, created_at, updated_at
+      ) VALUES (
+        ${reviewId}, ${userId}, ${name}, ${avatar}, ${parseInt(rating)}, 
+        ${productId}, ${productName}, ${text}, ${hasPurchased}, 
+        ${user?.badges?.verified || false}, 0, ${now}, ${now}
+      )
+    `;
+    
+    console.log(`✅ Отзыв создан: ${reviewId} от ${name}`);
+    
+    // Отправляем уведомление в Discord
+    const webhookUrl = 'https://discord.com/api/webhooks/1475843665921576960/dzWLdmiJOrsOH_Lnvj7I3DVB69UaAiCg4b-Leiu7-LlhiZZzVYL2thbjvXdXvwtVTw89';
+    
+    axios.post(webhookUrl, {
+      embeds: [{
+        title: '<:Wave:1386273780556496967> Новый отзыв!',
+        description: `**${name}** оставил отзыв на товар **${productName}**`,
+        color: 0xFEE75C,
+        fields: [
+          { name: '<a:Dot:1386279213278953545> Оценка', value: '<:Premium:1474931599622803628>'.repeat(parseInt(rating)), inline: true },
+          { name: '<a:Dot:1386279213278953545> Текст', value: text.substring(0, 100) + (text.length > 100 ? '...' : ''), inline: false }
+        ],
+        timestamp: now
+      }]
+    }).catch(console.error);
+    
+    res.json({
+      success: true,
+      message: 'Отзыв успешно добавлен',
+      review: {
+        id: reviewId,
+        userId,
+        name,
+        avatar,
+        rating: parseInt(rating),
+        productId,
+        productName,
+        text,
+        verifiedPurchase: hasPurchased,
+        verified: user?.badges?.verified || false,
+        helpful: 0,
+        createdAt: now
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка создания отзыва:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка при создании отзыва' 
+    });
+  }
 });
 
 // POST /api/reviews/:id/helpful - отметка "полезно"
-app.post('/api/reviews/:id/helpful', (req, res) => {
-    try {
-        const { userId } = req.body;
-        const reviewId = req.params.id;
-        
-        if (!userId) {
-            return res.status(400).json({
-                success: false,
-                error: 'Необходимо указать userId'
-            });
-        }
-        
-        const reviewIndex = (reviewsData.reviews || []).findIndex(r => r.id === reviewId);
-        
-        if (reviewIndex === -1) {
-            return res.status(404).json({
-                success: false,
-                error: 'Отзыв не найден'
-            });
-        }
-        
-        // Проверяем, не голосовал ли уже пользователь (можно хранить в отдельном поле)
-        // Для простоты просто увеличиваем счетчик
-        reviewsData.reviews[reviewIndex].helpful = (reviewsData.reviews[reviewIndex].helpful || 0) + 1;
-        
-        // Обновляем статистику
-        updateReviewsStats();
-        
-        // Сохраняем
-        saveReviews();
-        
-        res.json({
-            success: true,
-            message: 'Спасибо за оценку!',
-            helpful: reviewsData.reviews[reviewIndex].helpful
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка отметки "полезно":', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка при отметке' 
-        });
-    }
+app.post('/api/reviews/:id/helpful', async (req, res) => {
+  try {
+    const reviewId = req.params.id;
+    
+    await sql`
+      UPDATE reviews 
+      SET helpful = helpful + 1 
+      WHERE id = ${reviewId}
+    `;
+    
+    const [updated] = await sql`
+      SELECT helpful FROM reviews WHERE id = ${reviewId}
+    `;
+    
+    res.json({
+      success: true,
+      message: 'Спасибо за оценку!',
+      helpful: updated?.helpful || 0
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка отметки "полезно":', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка при отметке' 
+    });
+  }
 });
 
-// PUT /api/reviews/:id - обновление отзыва (только для автора или админа)
-app.put('/api/reviews/:id', (req, res) => {
-    try {
-        const { userId, text, rating } = req.body;
-        const reviewId = req.params.id;
-        
-        // Проверка авторизации
-        const authHeader = req.headers.authorization;
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
-        }
-        
-        const token = authHeader.replace('Bearer ', '');
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        
-        const reviewIndex = (reviewsData.reviews || []).findIndex(r => r.id === reviewId);
-        
-        if (reviewIndex === -1) {
-            return res.status(404).json({
-                success: false,
-                error: 'Отзыв не найден'
-            });
-        }
-        
-        // Проверка прав (только автор или админ)
-        const isAdmin = isAdminUser(decoded);
-        
-        if (reviewsData.reviews[reviewIndex].userId !== userId && !isAdmin) {
-            return res.status(403).json({
-                success: false,
-                error: 'Нет прав для редактирования этого отзыва'
-            });
-        }
-        
-        // Обновляем поля
-        if (text) {
-            if (text.length < 10 || text.length > 1000) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Текст отзыва должен быть от 10 до 1000 символов'
-                });
-            }
-            reviewsData.reviews[reviewIndex].text = text;
-        }
-        
-        if (rating) {
-            reviewsData.reviews[reviewIndex].rating = parseInt(rating);
-        }
-        
-        reviewsData.reviews[reviewIndex].updatedAt = new Date().toISOString();
-        
-        // Обновляем статистику
-        updateReviewsStats();
-        
-        // Сохраняем
-        saveReviews();
-        
-        res.json({
-            success: true,
-            message: 'Отзыв успешно обновлен',
-            review: reviewsData.reviews[reviewIndex]
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка обновления отзыва:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка при обновлении отзыва' 
-        });
-    }
-});
+// ============================================
+// API для пользователя
+// ============================================
 
-// DELETE /api/reviews/:id - удаление отзыва (только для админа)
-app.delete('/api/reviews/:id', (req, res) => {
-    try {
-        const reviewId = req.params.id;
-        
-        // Проверка авторизации
-        const authHeader = req.headers.authorization;
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
-        }
-        
-        const token = authHeader.replace('Bearer ', '');
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        
-        // Проверка прав админа
-        if (!isAdminUser(decoded)) {
-            return res.status(403).json({
-                success: false,
-                error: 'Требуются права администратора'
-            });
-        }
-        
-        const reviewIndex = (reviewsData.reviews || []).findIndex(r => r.id === reviewId);
-        
-        if (reviewIndex === -1) {
-            return res.status(404).json({
-                success: false,
-                error: 'Отзыв не найден'
-            });
-        }
-        
-        // Удаляем изображения с сервера
-        const review = reviewsData.reviews[reviewIndex];
-        if (review.images && review.images.length > 0) {
-            review.images.forEach(imagePath => {
-                const fullPath = path.join(__dirname, imagePath);
-                if (fs.existsSync(fullPath)) {
-                    fs.unlinkSync(fullPath);
-                }
-            });
-        }
-        
-        // Удаляем отзыв
-        reviewsData.reviews.splice(reviewIndex, 1);
-        
-        // Обновляем статистику
-        updateReviewsStats();
-        
-        // Сохраняем
-        saveReviews();
-        
-        console.log(`🗑️ Отзыв удален: ${reviewId}`);
-        
-        res.json({
-            success: true,
-            message: 'Отзыв успешно удален'
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка удаления отзыва:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка при удалении отзыва' 
-        });
-    }
-});
-
-// POST /api/reviews/:id/reply - ответ администратора
-app.post('/api/reviews/:id/reply', (req, res) => {
-    try {
-        const { reply } = req.body;
-        const reviewId = req.params.id;
-        
-        // Проверка авторизации
-        const authHeader = req.headers.authorization;
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
-        }
-        
-        const token = authHeader.replace('Bearer ', '');
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        
-        // Проверка прав админа
-        if (!isAdminUser(decoded)) {
-            return res.status(403).json({
-                success: false,
-                error: 'Требуются права администратора'
-            });
-        }
-        
-        if (!reply || reply.length < 5) {
-            return res.status(400).json({
-                success: false,
-                error: 'Ответ должен содержать минимум 5 символов'
-            });
-        }
-        
-        const reviewIndex = (reviewsData.reviews || []).findIndex(r => r.id === reviewId);
-        
-        if (reviewIndex === -1) {
-            return res.status(404).json({
-                success: false,
-                error: 'Отзыв не найден'
-            });
-        }
-        
-        reviewsData.reviews[reviewIndex].adminReply = {
-            text: reply,
-            createdAt: new Date().toISOString(),
-            adminId: decoded.id,
-            adminName: decoded.username
-        };
-        
-        // Сохраняем
-        saveReviews();
-        
-        console.log(`💬 Ответ администратора на отзыв ${reviewId}`);
-        
-        res.json({
-            success: true,
-            message: 'Ответ успешно добавлен',
-            adminReply: reviewsData.reviews[reviewIndex].adminReply
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка добавления ответа:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка при добавлении ответа' 
-        });
-    }
-});
-
-// GET /api/reviews/user/:userId - получение отзывов пользователя
-app.get('/api/reviews/user/:userId', (req, res) => {
-    try {
-        const { userId } = req.params;
-        
-        const userReviews = (reviewsData.reviews || []).filter(r => r.userId === userId);
-        
-        res.json({
-            success: true,
-            reviews: userReviews,
-            total: userReviews.length
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения отзывов пользователя:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка загрузки отзывов' 
-        });
-    }
-});
-
-// GET /api/reviews/product/:productId - получение отзывов на товар
-app.get('/api/reviews/product/:productId', (req, res) => {
-    try {
-        const { productId } = req.params;
-        
-        const productReviews = (reviewsData.reviews || [])
-            .filter(r => r.productId === productId)
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        
-        const averageRating = productReviews.length > 0
-            ? Number((productReviews.reduce((sum, r) => sum + r.rating, 0) / productReviews.length).toFixed(1))
-            : 0;
-        
-        res.json({
-            success: true,
-            reviews: productReviews,
-            total: productReviews.length,
-            averageRating,
-            ratingCounts: {
-                5: productReviews.filter(r => r.rating === 5).length,
-                4: productReviews.filter(r => r.rating === 4).length,
-                3: productReviews.filter(r => r.rating === 3).length,
-                2: productReviews.filter(r => r.rating === 2).length,
-                1: productReviews.filter(r => r.rating === 1).length
-            }
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения отзывов на товар:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка загрузки отзывов' 
-        });
-    }
-});
-
-// API для пополнения баланса (админ)
-app.post('/api/admin/balance/add', (req, res) => {
-    try {
-        const authHeader = req.headers.authorization;
-        
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
-        }
-        
-        const token = authHeader.replace('Bearer ', '');
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        
-        if (!isAdminUser(decoded)) {
-            return res.status(403).json({ 
-                success: false, 
-                error: 'Требуются права администратора' 
-            });
-        }
-        
-        const { userId, amount, reason } = req.body;
-        
-        if (!userId || !amount || amount <= 0) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Неверные данные' 
-            });
-        }
-        
-        const user = users[userId];
-        
-        if (!user) {
-            return res.status(404).json({ 
-                success: false, 
-                error: 'Пользователь не найден' 
-            });
-        }
-        
-        // Пополняем баланс
-        user.balance = (user.balance || 0) + parseInt(amount);
-        
-        // Добавляем запись в историю
-        const historyEntry = {
-            id: `TR-${Date.now()}`,
-            userId,
-            amount: parseInt(amount),
-            reason: reason || 'Пополнение администратором',
-            adminId: decoded.id,
-            adminName: decoded.username,
-            date: new Date().toISOString(),
-            type: 'deposit',
-            status: 'completed'
-        };
-        
-        balanceHistory.push(historyEntry);
-        
-        // Сохраняем изменения
-        fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
-        fs.writeFileSync(balanceHistoryFile, JSON.stringify(balanceHistory, null, 2));
-        
-        console.log(`💰 Баланс пополнен: ${userId} +${amount} ₽`);
-        
-        // Отправляем уведомление пользователю через Discord
-        const webhookUrl = 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
-        axios.post(webhookUrl, {
-            content: `<@${userId}>`,
-            embeds: [{
-                title: '💰 Баланс пополнен!',
-                description: `Ваш баланс пополнен на **${amount} ₽**`,
-                color: 0x57F287,
-                fields: [
-                    { name: 'Сумма', value: `+${amount} ₽`, inline: true },
-                    { name: 'Текущий баланс', value: `${user.balance} ₽`, inline: true },
-                    { name: 'Причина', value: reason || 'Пополнение администратором', inline: false },
-                    { name: 'Дата', value: new Date().toLocaleString('ru-RU'), inline: true }
-                ],
-                timestamp: new Date().toISOString()
-            }]
-        }).catch(console.error);
-        
-        res.json({
-            success: true,
-            message: 'Баланс успешно пополнен',
-            newBalance: user.balance,
-            transactionId: historyEntry.id
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка пополнения баланса:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка сервера' 
-        });
-    }
-});
-
-// API для списания баланса (админ)
-app.post('/api/admin/balance/remove', (req, res) => {
-    try {
-        const authHeader = req.headers.authorization;
-        
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
-        }
-        
-        const token = authHeader.replace('Bearer ', '');
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        
-        if (!isAdminUser(decoded)) {
-            return res.status(403).json({ 
-                success: false, 
-                error: 'Требуются права администратора' 
-            });
-        }
-        
-        const { userId, amount, reason } = req.body;
-        
-        if (!userId || !amount || amount <= 0) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Неверные данные' 
-            });
-        }
-        
-        const user = users[userId];
-        
-        if (!user) {
-            return res.status(404).json({ 
-                success: false, 
-                error: 'Пользователь не найден' 
-            });
-        }
-        
-        // Проверяем, достаточно ли средств
-        if (user.balance < amount) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Недостаточно средств на балансе' 
-            });
-        }
-        
-        // Списание баланса
-        user.balance -= parseInt(amount);
-        
-        // Добавляем запись в историю
-        const historyEntry = {
-            id: `TR-${Date.now()}`,
-            userId,
-            amount: -parseInt(amount),
-            reason: reason || 'Списание администратором',
-            adminId: decoded.id,
-            adminName: decoded.username,
-            date: new Date().toISOString(),
-            type: 'withdrawal',
-            status: 'completed'
-        };
-        
-        balanceHistory.push(historyEntry);
-        
-        // Сохраняем изменения
-        fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
-        fs.writeFileSync(balanceHistoryFile, JSON.stringify(balanceHistory, null, 2));
-        
-        console.log(`💰 Баланс списан: ${userId} -${amount} ₽`);
-        
-        res.json({
-            success: true,
-            message: 'Баланс успешно списан',
-            newBalance: user.balance,
-            transactionId: historyEntry.id
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка списания баланса:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка сервера' 
-        });
-    }
-});
-
-// API для получения истории транзакций пользователя (админ)
-app.get('/api/admin/balance/history/:userId', (req, res) => {
-    try {
-        const authHeader = req.headers.authorization;
-        
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
-        }
-        
-        const token = authHeader.replace('Bearer ', '');
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        
-        if (!isAdminUser(decoded)) {
-            return res.status(403).json({ 
-                success: false, 
-                error: 'Требуются права администратора' 
-            });
-        }
-        
-        const { userId } = req.params;
-        const userHistory = balanceHistory.filter(entry => entry.userId === userId);
-        
-        res.json({
-            success: true,
-            transactions: userHistory.sort((a, b) => new Date(b.date) - new Date(a.date)),
-            total: userHistory.length,
-            totalDeposits: userHistory.filter(t => t.amount > 0).reduce((sum, t) => sum + t.amount, 0),
-            totalWithdrawals: userHistory.filter(t => t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0)
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения истории:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка сервера' 
-        });
-    }
-});
-
-// API для установки баланса (админ)
-app.post('/api/admin/balance/set', (req, res) => {
-    try {
-        const authHeader = req.headers.authorization;
-        
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
-        }
-        
-        const token = authHeader.replace('Bearer ', '');
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        
-        if (!isAdminUser(decoded)) {
-            return res.status(403).json({ 
-                success: false, 
-                error: 'Требуются права администратора' 
-            });
-        }
-        
-        const { userId, newBalance, reason } = req.body;
-        
-        if (!userId || newBalance === undefined || newBalance < 0) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Неверные данные' 
-            });
-        }
-        
-        const user = users[userId];
-        
-        if (!user) {
-            return res.status(404).json({ 
-                success: false, 
-                error: 'Пользователь не найден' 
-            });
-        }
-        
-        const oldBalance = user.balance || 0;
-        user.balance = parseInt(newBalance);
-        
-        // Добавляем запись в историю
-        const historyEntry = {
-            id: `TR-${Date.now()}`,
-            userId,
-            oldBalance,
-            newBalance: parseInt(newBalance),
-            difference: parseInt(newBalance) - oldBalance,
-            reason: reason || 'Изменение баланса администратором',
-            adminId: decoded.id,
-            adminName: decoded.username,
-            date: new Date().toISOString(),
-            type: 'adjustment',
-            status: 'completed'
-        };
-        
-        balanceHistory.push(historyEntry);
-        
-        // Сохраняем изменения
-        fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
-        fs.writeFileSync(balanceHistoryFile, JSON.stringify(balanceHistory, null, 2));
-        
-        console.log(`💰 Баланс изменен: ${userId} ${oldBalance} → ${newBalance} ₽`);
-        
-        res.json({
-            success: true,
-            message: 'Баланс успешно изменен',
-            oldBalance,
-            newBalance: user.balance,
-            transactionId: historyEntry.id
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка изменения баланса:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка сервера' 
-        });
-    }
-});
-
-// Маршрут для обновления баланса
-app.post('/api/update-balance', (req, res) => {
-    try {
-        const { userId, amount, reason } = req.body;
-        
-        if (!userId || !amount) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Не указаны userId или amount' 
-            });
-        }
-        
-        const user = users[userId];
-        
-        if (!user) {
-            return res.status(404).json({ 
-                success: false, 
-                error: 'Пользователь не найден' 
-            });
-        }
-        
-        // Проверяем, достаточно ли средств для списания
-        if (amount < 0 && (user.balance || 0) < Math.abs(amount)) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Недостаточно средств на балансе' 
-            });
-        }
-        
-        // Обновляем баланс
-        user.balance = (user.balance || 0) + parseFloat(amount);
-        
-        // Добавляем запись в историю транзакций
-        if (!user.transactions) {
-            user.transactions = [];
-        }
-        
-        user.transactions.push({
-            id: `TRX-${Date.now()}`,
-            amount: parseFloat(amount),
-            type: amount > 0 ? 'deposit' : 'withdrawal',
-            reason: reason || 'Обновление баланса',
-            date: new Date().toISOString(),
-            orderId: req.body.orderId
-        });
-        
-        // Сохраняем изменения
-        fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
-        
-        console.log(`💰 Баланс обновлен: ${userId} ${amount > 0 ? '+' : ''}${amount} ₽ = ${user.balance} ₽`);
-        
-        res.json({
-            success: true,
-            message: 'Баланс обновлен',
-            newBalance: user.balance
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка обновления баланса:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка обновления баланса' 
-        });
-    }
-});
-
-// Маршрут для обновления бейджей пользователя
-app.post('/api/update-user-badges', (req, res) => {
-    try {
-        const { userId, badges } = req.body;
-        
-        if (!userId || !badges) {
-            return res.status(400).json({ 
-                success: false, 
-                error: 'Не указаны данные' 
-            });
-        }
-        
-        const user = users[userId];
-        
-        if (!user) {
-            return res.status(404).json({ 
-                success: false, 
-                error: 'Пользователь не найден' 
-            });
-        }
-        
-        // Обновляем бейджи
-        if (!user.badges) {
-            user.badges = {};
-        }
-        
-        Object.assign(user.badges, badges);
-        
-        // Сохраняем изменения
-        fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
-        
-        res.json({
-            success: true,
-            message: 'Бейджи обновлены',
-            badges: user.badges
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка обновления бейджей:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка обновления бейджей' 
-        });
-    }
-});
-
-// Обновленный API получения пользователя
-app.get('/api/user/:id', (req, res) => {
-    try {
-        const user = users[req.params.id];
-        
-        if (!user) {
-            return res.json({ 
-                success: true, 
-                user: null 
-            });
-        }
-        
-        // Нормализуем бейджи
-        let badges = {};
-        if (user.badges) {
-            if (typeof user.badges === 'string') {
-                badges = { verified: user.badges === 'verified' };
-            } else if (typeof user.badges === 'object') {
-                badges = {
-                    verified: !!user.badges.verified,
-                    partner: !!user.badges.partner,
-                    buyer: !!user.badges.buyer
-                };
-            }
-        }
-        
-        // Автоматически даем бейдж "Покупатель" если есть заказы
-        if (user.orders && user.orders.length > 0) {
-            const completedOrders = user.orders.filter(order => 
-                order.status === 'completed' || order.status === 'КУПЛЕНО'
-            );
-            badges.buyer = completedOrders.length >= 1;
-        }
-        
-        res.json({
+// Получение информации о пользователе
+app.get('/api/user/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    // Сначала пробуем получить из БД
+    if (sql) {
+      try {
+        const [user] = await sql`
+          SELECT * FROM users WHERE discord_id = ${userId}
+        `;
+        
+        if (user) {
+          return res.json({
             success: true,
             user: {
-                discordId: user.discordId,
-                username: user.username,
-                avatar: user.avatar,
-                registeredAt: user.registeredAt,
-                verifiedAt: user.verifiedAt,
-                isVerified: user.isVerified || false,
-                balance: user.balance || 0,
-                badges: badges,
-                orders: user.orders || []
+              discordId: user.discord_id,
+              username: user.username,
+              avatar: user.avatar,
+              registeredAt: user.registered_at,
+              balance: user.balance || 0,
+              badges: user.badges || {},
+              orders: user.orders || []
             }
-        });
-
-    } catch (error) {
-        console.error('❌ Ошибка получения пользователя:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка сервера' 
-        });
+          });
+        }
+      } catch (dbError) {
+        console.error('❌ Ошибка БД:', dbError.message);
+      }
     }
+    
+    // Если нет в БД, проверяем в памяти
+    const user = users[userId];
+    
+    if (!user) {
+      return res.json({ 
+        success: true, 
+        user: null 
+      });
+    }
+    
+    res.json({
+      success: true,
+      user: {
+        discordId: user.discordId,
+        username: user.username,
+        avatar: user.avatar,
+        registeredAt: user.registeredAt,
+        balance: user.balance || 0,
+        badges: user.badges || {},
+        orders: (user.orders || []).slice(-10)
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Ошибка получения пользователя:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка сервера' 
+    });
+  }
 });
 
-// API для обновления бейджей (админ)
-app.post('/api/admin/update-badges', (req, res) => {
-    try {
-        const authHeader = req.headers.authorization;
-        
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
-        }
-        
-        const token = authHeader.replace('Bearer ', '');
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        
-        if (!isAdminUser(decoded)) {
-            return res.status(403).json({ 
-                success: false, 
-                error: 'Требуются права администратора' 
-            });
-        }
-        
-        const { userId, badges } = req.body;
-        
-        if (!users[userId]) {
-            return res.status(404).json({ 
-                success: false, 
-                error: 'Пользователь не найден' 
-            });
-        }
-        
-        // Обновляем бейджи
-        users[userId].badges = {
-            ...users[userId].badges,
-            ...badges
-        };
-        
-        fs.writeFileSync(usersFile, JSON.stringify(users, null, 2));
-        
-        res.json({
-            success: true,
-            message: 'Бейджи обновлены',
-            badges: users[userId].badges
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка обновления бейджей:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка сервера' 
-        });
-    }
-});
+// ============================================
+// Админ статистика
+// ============================================
 
-// Получение списка промокодов (админ)
-app.get('/api/admin/promocodes', (req, res) => {
-    try {
-        const authHeader = req.headers.authorization;
-        
-        if (!authHeader) {
-            return res.status(401).json({ success: false, error: 'Не авторизован' });
+app.get('/api/admin/stats', async (req, res) => {
+  try {
+    const [userStats] = await sql`
+      SELECT 
+        COUNT(*) as total_users,
+        SUM(CASE WHEN registered_at > NOW() - INTERVAL '7 days' THEN 1 ELSE 0 END) as new_users
+      FROM users
+    `;
+    
+    // Получаем всех пользователей для подсчета заказов
+    const users = await sql`SELECT orders FROM users`;
+    
+    let totalOrders = 0;
+    let totalRevenue = 0;
+    let newOrders = 0;
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    
+    users.forEach(user => {
+      const orders = user.orders || [];
+      totalOrders += orders.length;
+      
+      orders.forEach(order => {
+        totalRevenue += order.price || 0;
+        if (new Date(order.date) > weekAgo) {
+          newOrders++;
         }
-        
-        const token = authHeader.replace('Bearer ', '');
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        
-        if (!isAdminUser(decoded)) {
-            return res.status(403).json({ 
-                success: false, 
-                error: 'Требуются права администратора' 
-            });
-        }
-        
-        res.json({
-            success: true,
-            promocodes: promocodes,
-            total: promocodes.length,
-            stats: {
-                active: promocodes.filter(p => new Date(p.validUntil) > new Date() && p.usedCount < p.maxUses).length,
-                expired: promocodes.filter(p => new Date(p.validUntil) < new Date()).length,
-                used: promocodes.reduce((sum, p) => sum + p.usedCount, 0),
-                totalUses: promocodes.reduce((sum, p) => sum + p.maxUses, 0)
-            }
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения промокодов:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            error: 'Ошибка сервера' 
-        });
-    }
-});
-
-// Получение статистики (только для админа)
-app.get('/api/admin/stats', (req, res) => {
-    try {
-        const totalUsers = Object.keys(users).length;
-        
-        // Считаем заказы
-        let totalOrders = 0;
-        let totalRevenue = 0;
-        
-        Object.values(users).forEach(user => {
-            if (user.orders) {
-                totalOrders += user.orders.length;
-                totalRevenue += user.orders.reduce((sum, order) => sum + order.amount, 0);
-            }
-        });
-        
-        // Новые пользователи за последние 7 дней
-        const weekAgo = new Date();
-        weekAgo.setDate(weekAgo.getDate() - 7);
-        
-        const newUsers = Object.values(users).filter(user => 
-            new Date(user.registeredAt) > weekAgo
-        ).length;
-        
-        // Новые заказы за последние 7 дней
-        let newOrders = 0;
-        Object.values(users).forEach(user => {
-            if (user.orders) {
-                newOrders += user.orders.filter(order => 
-                    new Date(order.date) > weekAgo
-                ).length;
-            }
-        });
-        
-        // Конверсия
-        const conversion = totalUsers > 0 ? Math.round((totalOrders / totalUsers) * 100) : 0;
-        
-        res.json({
-            success: true,
-            stats: {
-                totalUsers,
-                newUsers,
-                totalOrders,
-                newOrders,
-                revenue: totalRevenue,
-                conversion,
-                avgOrderValue: totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0
-            },
-            chartData: {
-                labels: ['Пользователи', 'Заказы', 'Выручка'],
-                values: [totalUsers, totalOrders, totalRevenue]
-            }
-        });
-        
-    } catch (error) {
-        console.error('❌ Ошибка получения статистики:', error.message);
-        res.status(500).json({ success: false, error: 'Ошибка сервера' });
-    }
+      });
+    });
+    
+    const conversion = userStats.total_users > 0 ? Math.round((totalOrders / userStats.total_users) * 100) : 0;
+    
+    res.json({
+      success: true,
+      stats: {
+        totalUsers: parseInt(userStats.total_users) || 0,
+        newUsers: parseInt(userStats.new_users) || 0,
+        totalOrders,
+        newOrders,
+        revenue: totalRevenue,
+        conversion,
+        avgOrderValue: totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка получения статистики:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
 });
 
 // ============================================
 // HTML маршруты
 // ============================================
 
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-app.get('/auth.html', (req, res) => res.sendFile(path.join(__dirname, 'auth.html')));
-app.get('/verify.html', (req, res) => res.sendFile(path.join(__dirname, 'verify.html')));
-app.get('/shop.html', (req, res) => res.sendFile(path.join(__dirname, 'shop.html')));
-app.get('/news.html', (req, res) => res.sendFile(path.join(__dirname, 'news.html')));
-app.get('/profile.html', (req, res) => res.sendFile(path.join(__dirname, 'profile.html')));
-app.get('/legal.html', (req, res) => res.sendFile(path.join(__dirname, 'legal.html')));
-app.get('/faq.html', (req, res) => res.sendFile(path.join(__dirname, 'faq.html')));
-app.get('/success.html', (req, res) => res.sendFile(path.join(__dirname, 'success.html')));
-app.get('/chat.html', (req, res) => res.sendFile(path.join(__dirname, 'chat.html')));
-app.get('/admin.html', (req, res) => res.sendFile(path.join(__dirname, 'admin.html')));
-
 // Тестовый маршрут
 app.get('/api/test', (req, res) => {
-    res.json({
-        success: true,
-        message: 'Сервер работает',
-        config: {
-            clientId: DISCORD_CLIENT_ID,
-            redirectUri: DISCORD_REDIRECT_URI,
-            botApiUrl: BOT_API_URL
-        },
-        stats: {
-            users: Object.keys(users).length,
-            chatSessions: Object.keys(chatStore).length,
-            totalMessages: Object.values(chatStore).reduce((sum, msgs) => sum + msgs.length, 0)
-        }
-    });
+  res.json({
+    success: true,
+    message: 'Сервер работает',
+    stats: {
+      users: Object.keys(users).length,
+      chatSessions: Object.keys(chatStore).length,
+      totalMessages: Object.values(chatStore).reduce((sum, msgs) => sum + msgs.length, 0),
+      reviews: reviewsData.reviews?.length || 0,
+      promocodes: Object.keys(promocodes).length
+    }
+  });
 });
 
 // ============================================
-// Запуск сервера
+// API для уведомлений
 // ============================================
 
-app.listen(PORT, () => {
-    console.log(`
-╔══════════════════════════════════════════════════════════════════════╗
-║                           🚀 BHStore Server                          ║
-╠══════════════════════════════════════════════════════════════════════╣
-║  ✅ Сервер запущен на порту ${PORT}                                  ║
-║  ✅ Discord OAuth2 настроен                                         ║
-║  ✅ Bot API: ${BOT_API_URL}                                        ║
-║  ✅ Пользователей: ${Object.keys(users).length}                      ║
-║  ✅ Чатов: ${Object.keys(chatStore).length}                          ║
-╚══════════════════════════════════════════════════════════════════════╝
-    `);
-    console.log('\n📡 Доступные API маршруты:');
-    
-    
-    console.log('  POST /api/admin/balance/add        - Отправка сообщения');
-    console.log('  POST /api/admin/balance/remove        - Отправка сообщения');
-    console.log('  POST /api/admin/balance/set        - Отправка сообщения');
-    console.log('  POST /api/create-order-balance        - Отправка сообщения');
-    console.log('  POST /api/admin/update-balance        - Отправка сообщения');
-    console.log('  POST /api/admin/send-message        - Отправка сообщения');
-    console.log('  POST /api/admin/products        - Отправка сообщения');
-    console.log('  POST /api/create-order        - Отправка сообщения');
-    console.log('  POST /api/chat/send        - Отправка сообщения');
-    console.log('  POST /api/chat/create-ticket        - Отправка сообщения');
-    console.log('  POST /api/chat/typing        - Отправка сообщения');
-    console.log('  POST /api/admin/users        - Отправка сообщения');
-    console.log('  POST /api/user/${userId}/balance        - Отправка сообщения');
-    console.log('  POST /api/admin/balance/history/${userId}        - Отправка сообщения');
-    console.log('  POST /api/admin/orders        - Отправка сообщения');
-    console.log('  POST /api/chat/send        - Отправка сообщения');
+// Получение уведомлений пользователя
+app.get('/api/notifications/user/:userId', async (req, res) => {
+  try {
+      const userId = req.params.userId;
+      
+      const notifications = await sql`
+          SELECT * FROM notifications 
+          WHERE user_id = ${userId}
+          ORDER BY created_at DESC
+          LIMIT 50
+      `;
+      
+      res.json({
+          success: true,
+          notifications: notifications
+      });
+  } catch (error) {
+      console.error('❌ Ошибка получения уведомлений:', error);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
 });
+
+// Отметить уведомление как прочитанное
+app.post('/api/notifications/:id/read', async (req, res) => {
+  try {
+      const notificationId = req.params.id;
+      
+      await sql`
+          UPDATE notifications 
+          SET read = true 
+          WHERE id = ${notificationId}
+      `;
+      
+      res.json({ success: true });
+  } catch (error) {
+      console.error('❌ Ошибка отметки уведомления:', error);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Сохранение уведомления о покупке
+app.post('/api/notifications/purchase', async (req, res) => {
+  try {
+      const { userId, productName, amount, orderId } = req.body;
+      
+      const notificationId = `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      await sql`
+          INSERT INTO notifications (id, user_id, type, title, message, data, created_at)
+          VALUES (
+              ${notificationId},
+              ${userId},
+              'purchase',
+              'Новая покупка',
+              ${`Вы купили ${productName} за ${amount} ₽`},
+              ${JSON.stringify({ productName, amount, orderId })},
+              ${new Date().toISOString()}
+          )
+      `;
+      
+      res.json({ success: true });
+  } catch (error) {
+      console.error('❌ Ошибка сохранения уведомления:', error);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Сохранение уведомления о регистрации
+app.post('/api/notifications/registration', async (req, res) => {
+  try {
+      const { userId, username } = req.body;
+      
+      const notificationId = `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      await sql`
+          INSERT INTO notifications (id, user_id, type, title, message, data, created_at)
+          VALUES (
+              ${notificationId},
+              ${userId},
+              'registration',
+              'Добро пожаловать!',
+              ${`${username}, вы успешно зарегистрировались в BHStore`},
+              ${JSON.stringify({ username })},
+              ${new Date().toISOString()}
+          )
+      `;
+      
+      res.json({ success: true });
+  } catch (error) {
+      console.error('❌ Ошибка сохранения уведомления:', error);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Сохранение ошибки
+app.post('/api/notifications/error', async (req, res) => {
+  try {
+      const { errorType, errorMessage, userId, userAgent, url } = req.body;
+      
+      const errorId = `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      await sql`
+          INSERT INTO errors (id, type, message, user_id, user_agent, url, created_at)
+          VALUES (
+              ${errorId},
+              ${errorType},
+              ${errorMessage},
+              ${userId || null},
+              ${userAgent},
+              ${url},
+              ${new Date().toISOString()}
+          )
+      `;
+      
+      res.json({ success: true });
+  } catch (error) {
+      console.error('❌ Ошибка сохранения ошибки:', error);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Сохранение статистики
+app.post('/api/stats/save', async (req, res) => {
+  try {
+      const stats = req.body;
+      
+      await sql`
+          INSERT INTO stats (data, created_at)
+          VALUES (
+              ${JSON.stringify(stats)},
+              ${new Date().toISOString()}
+          )
+      `;
+      
+      res.json({ success: true });
+  } catch (error) {
+      console.error('❌ Ошибка сохранения статистики:', error);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Отправка вебхука (безопасно, с сервера)
+app.post('/api/webhook/send', async (req, res) => {
+  try {
+      const { title, description, color, fields } = req.body;
+      
+      // Вебхук теперь хранится только на сервере, в переменных окружения
+      const webhookUrl = process.env.DISCORD_WEBHOOK_URL || 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
+      
+      const response = await axios.post(webhookUrl, {
+          embeds: [{
+              title,
+              description,
+              color,
+              fields,
+              timestamp: new Date().toISOString()
+          }]
+      });
+      
+      res.json({ success: true });
+  } catch (error) {
+      console.error('❌ Ошибка отправки вебхука:', error);
+      res.status(500).json({ success: false, error: 'Ошибка отправки' });
+  }
+});
+
+// Экспорт для serverless
+module.exports.handler = serverless(app);
