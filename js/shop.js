@@ -40,13 +40,13 @@
         }
     });
 
-    // Загрузка данных пользователя из БД
+    // Загрузка данных пользователя из БД (БЕЗ /api)
     async function loadUserData() {
         const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
         
         if (authData.id && !authData.verificationCode) {
             try {
-                const response = await fetch(`/api/user/${authData.id}`);
+                const response = await fetch(`/.netlify/functions/server/user/${authData.id}`);
                 const data = await response.json();
                 
                 if (data.success && data.user) {
@@ -235,7 +235,7 @@
         });
     }
 
-    // Загрузка товаров из БД через API
+    // Загрузка товаров из БД через API (БЕЗ /api)
     async function loadProducts(category) {
         const container = document.getElementById('productsContainer');
         if (!container) return;
@@ -245,7 +245,7 @@
         showLoading(container);
         
         try {
-            // Загружаем товары из API (из БД)
+            // Загружаем товары из API (из БД) - БЕЗ /api
             let productsData = await fetchProductsFromAPI();
             
             if (!productsData || productsData.length === 0) {
@@ -275,10 +275,10 @@
         }
     }
 
-    // Загрузка товаров с API (из БД)
+    // Загрузка товаров с API (из БД) - БЕЗ /api
     async function fetchProductsFromAPI() {
         try {
-            const response = await fetch('/api/products', {
+            const response = await fetch('/.netlify/functions/server/products', {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -379,12 +379,12 @@
                         
                         ${product.features ? `
                             <div class="product-features">
-                                ${product.features.map(feature => `
+                                ${Array.isArray(product.features) ? product.features.map(feature => `
                                     <div class="feature-item">
                                         <i class="fas fa-check"></i>
                                         <span>${escapeHtml(feature)}</span>
                                     </div>
-                                `).join('')}
+                                `).join('') : ''}
                             </div>
                         ` : ''}
                         
@@ -606,8 +606,8 @@
         }
         
         try {
-            // Получаем актуальный баланс пользователя из БД
-            const response = await fetch(`/api/user/${authData.id}`);
+            // Получаем актуальный баланс пользователя из БД (БЕЗ /api)
+            const response = await fetch(`/.netlify/functions/server/user/${authData.id}`);
             const data = await response.json();
             
             if (!data.success || !data.user) {
@@ -758,7 +758,8 @@
                 orderData.discountAmount = discountInfo.discountAmount;
             }
             
-            const response = await fetch('/api/create-order', {
+            // Отправляем запрос на создание заказа (БЕЗ /api)
+            const response = await fetch('/.netlify/functions/server/create-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(orderData)

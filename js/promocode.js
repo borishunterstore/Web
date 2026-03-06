@@ -29,25 +29,25 @@ class PromocodeSystem {
             // Используем глобальный API объект
             if (window.api) {
                 // Загружаем историю промокодов пользователя
-                const historyData = await window.api.request(`/api/promocodes/user/${auth.id}`);
+                const historyData = await window.api.request(`/promocodes/user/${auth.id}`);
                 if (historyData.success) {
                     this.userPromocodes = historyData.promocodes || [];
                 }
 
                 // Загружаем активные промокоды
-                const activeData = await window.api.request(`/api/promocodes/active/${auth.id}`);
+                const activeData = await window.api.request(`/promocodes/active/${auth.id}`);
                 if (activeData.success) {
                     this.activeDiscounts = activeData.promocodes || [];
                 }
             } else {
-                // Fallback на прямые fetch запросы
-                const historyRes = await fetch(`/.netlify/functions/server/api/promocodes/user/${auth.id}`);
+                // Fallback на прямые fetch запросы (БЕЗ /api)
+                const historyRes = await fetch(`/.netlify/functions/server/promocodes/user/${auth.id}`);
                 const historyData = await historyRes.json();
                 if (historyData.success) {
                     this.userPromocodes = historyData.promocodes || [];
                 }
 
-                const activeRes = await fetch(`/.netlify/functions/server/api/promocodes/active/${auth.id}`);
+                const activeRes = await fetch(`/.netlify/functions/server/promocodes/active/${auth.id}`);
                 const activeData = await activeRes.json();
                 if (activeData.success) {
                     this.activeDiscounts = activeData.promocodes || [];
@@ -76,7 +76,7 @@ class PromocodeSystem {
 
         try {
             if (window.api) {
-                await window.api.request('/api/promocodes/save-active', {
+                await window.api.request('/promocodes/save-active', {
                     method: 'POST',
                     body: JSON.stringify({ 
                         userId: auth.id, 
@@ -84,7 +84,7 @@ class PromocodeSystem {
                     })
                 });
             } else {
-                await fetch('/.netlify/functions/server/api/promocodes/save-active', {
+                await fetch('/.netlify/functions/server/promocodes/save-active', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -133,7 +133,7 @@ class PromocodeSystem {
 
             if (window.api) {
                 // Сначала проверяем промокод
-                checkData = await window.api.request('/api/promocodes/check', {
+                checkData = await window.api.request('/promocodes/check', {
                     method: 'POST',
                     body: JSON.stringify({ userId: auth.id, code: code })
                 });
@@ -143,13 +143,13 @@ class PromocodeSystem {
                 }
 
                 // Активируем промокод
-                activateData = await window.api.request('/api/promocodes/activate', {
+                activateData = await window.api.request('/promocodes/activate', {
                     method: 'POST',
                     body: JSON.stringify({ userId: auth.id, code: code })
                 });
             } else {
-                // Fallback на прямые fetch
-                const checkRes = await fetch('/.netlify/functions/server/api/promocodes/check', {
+                // Fallback на прямые fetch (БЕЗ /api)
+                const checkRes = await fetch('/.netlify/functions/server/promocodes/check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userId: auth.id, code: code })
@@ -160,7 +160,7 @@ class PromocodeSystem {
                     return this.showMessage(checkData.error || 'Промокод недействителен', 'error');
                 }
 
-                const activateRes = await fetch('/.netlify/functions/server/api/promocodes/activate', {
+                const activateRes = await fetch('/.netlify/functions/server/promocodes/activate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ userId: auth.id, code: code })
@@ -225,7 +225,7 @@ class PromocodeSystem {
 
         try {
             if (window.api) {
-                await window.api.request('/api/promocodes/remove-active', {
+                await window.api.request('/promocodes/remove-active', {
                     method: 'POST',
                     body: JSON.stringify({ 
                         userId: auth.id, 
@@ -233,7 +233,7 @@ class PromocodeSystem {
                     })
                 });
             } else {
-                await fetch('/.netlify/functions/server/api/promocodes/remove-active', {
+                await fetch('/.netlify/functions/server/promocodes/remove-active', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 

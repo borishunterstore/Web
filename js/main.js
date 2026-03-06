@@ -40,7 +40,7 @@ async function checkAuth() {
     // Если есть токен, но нет данных пользователя - пытаемся получить с сервера
     if (authData.token && authData.id) {
         try {
-            // Получаем актуальные данные пользователя с сервера
+            // Получаем актуальные данные пользователя с сервера (БЕЗ /api)
             const response = await fetch(`/.netlify/functions/server/user/${authData.id}`);
             const data = await response.json();
             
@@ -65,7 +65,7 @@ async function checkAuth() {
         // Получаем бейджи пользователя
         const badges = getUserBadges(authData);
         
-        // Загружаем баланс с сервера (еще раз, для уверенности)
+        // Загружаем баланс с сервера (еще раз, для уверенности) (БЕЗ /api)
         try {
             const balanceResponse = await fetch(`/.netlify/functions/server/user/${authData.id}/balance`);
             const balanceData = await balanceResponse.json();
@@ -109,7 +109,7 @@ async function checkAuth() {
 async function showUserMenu() {
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
     
-    // Получаем свежие данные с сервера перед показом меню
+    // Получаем свежие данные с сервера перед показом меню (БЕЗ /api)
     try {
         const response = await fetch(`/.netlify/functions/server/user/${authData.id}`);
         const data = await response.json();
@@ -222,21 +222,22 @@ async function showUserMenu() {
 async function isAdmin() {
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
     
-    // Проверяем админ-права через API
+    // Проверяем админ-права через API (БЕЗ /api)
     if (authData.token) {
         try {
-            const response = await fetch('/.netlify/functions/server/admin/users', {
+            const response = await fetch('/.netlify/functions/server/admin/check', {
                 headers: {
                     'Authorization': `Bearer ${authData.token}`
                 }
             });
-            return response.status !== 403;
+            const data = await response.json();
+            return data.isAdmin === true;
         } catch (error) {
             console.error('Ошибка проверки админ-прав:', error);
         }
     }
     
-    return authData.discordId === '830087428214751284';
+    return authData.discordId === '830087428214751284' || authData.id === '992442453833547886';
 }
 
 // Получение бейджей пользователя (для кнопки)
@@ -439,7 +440,7 @@ function buyProduct(productId, productName, originalPrice) {
         return;
     }
     
-    // Проверяем баланс через API
+    // Проверяем баланс через API (БЕЗ /api)
     fetch(`/.netlify/functions/server/user/${authData.id}`)
         .then(response => response.json())
         .then(data => {
@@ -499,7 +500,7 @@ async function createOrder(productId, productName, price) {
                 userId: authData.id,
                 productId: productId,
                 productName: productName,
-                amount: price,
+                price: price,
                 username: authData.username
             })
         });
@@ -507,7 +508,7 @@ async function createOrder(productId, productName, price) {
         const data = await response.json();
         
         if (data.success) {
-            // Получаем свежий баланс с сервера
+            // Получаем свежий баланс с сервера (БЕЗ /api)
             const balanceResponse = await fetch(`/.netlify/functions/server/user/${authData.id}/balance`);
             const balanceData = await balanceResponse.json();
             
