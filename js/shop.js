@@ -434,56 +434,55 @@
         }
     }
 
-    // Покупка товара (ИСПРАВЛЕННАЯ ВЕРСИЯ)
-    window.buyProduct = async function(productId, productName, originalPrice) {
-        console.log('🛒 buyProduct вызван из shop.js с параметрами:', { productId, productName, originalPrice });
-        
-        // Проверка параметров
-        if (!productId || !productName || originalPrice === undefined || originalPrice === null) {
-            console.error('❌ Ошибка: отсутствуют параметры', { productId, productName, originalPrice });
-            showNotification('Ошибка: не удалось получить данные товара', 'error');
+window.buyProduct = async function(productId, productName, originalPrice) {
+    console.log('🛒 buyProduct вызван из shop.js с параметрами:', { productId, productName, originalPrice });
+    
+    // Проверка параметров
+    if (!productId || !productName || originalPrice === undefined || originalPrice === null) {
+        console.error('❌ Ошибка: отсутствуют параметры', { productId, productName, originalPrice });
+        showNotification('Ошибка: не удалось получить данные товара', 'error');
+        return;
+    }
+
+    const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+
+    if (!authData.id) {
+        showNotification('Пожалуйста, авторизуйтесь для покупки', 'warning');
+        setTimeout(() => window.location.href = '/auth.html', 2000);
+        return;
+    }
+
+    if (authData.verificationCode) {
+        showNotification('Завершите регистрацию', 'warning');
+        setTimeout(() => window.location.href = '/verify.html', 2000);
+        return;
+    }
+
+    try {
+        if (!window.api) throw new Error('API not available');
+
+        // Получаем актуальные данные пользователя
+        const userData = await window.api.getUser(authData.id);
+        if (!userData?.success || !userData.user) {
+            throw new Error('Не удалось получить данные пользователя');
+        }
+
+        const userBalance = userData.user.balance || 0;
+        const discountInfo = getDiscountInfo(originalPrice, productId);
+        const finalPrice = discountInfo.finalPrice;
+
+        if (userBalance < finalPrice) {
+            showInsufficientFundsModal(finalPrice, userBalance, productName, productId);
             return;
         }
 
-        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+        showPurchaseConfirmation(productName, finalPrice, productId, userBalance, discountInfo);
 
-        if (!authData.id) {
-            showNotification('Пожалуйста, авторизуйтесь для покупки', 'warning');
-            setTimeout(() => window.location.href = '/auth.html', 2000);
-            return;
-        }
-
-        if (authData.verificationCode) {
-            showNotification('Завершите регистрацию', 'warning');
-            setTimeout(() => window.location.href = '/verify.html', 2000);
-            return;
-        }
-
-        try {
-            if (!window.api) throw new Error('API not available');
-
-            // Получаем актуальные данные пользователя
-            const userData = await window.api.getUser(authData.id);
-            if (!userData?.success || !userData.user) {
-                throw new Error('Не удалось получить данные пользователя');
-            }
-
-            const userBalance = userData.user.balance || 0;
-            const discountInfo = getDiscountInfo(originalPrice, productId);
-            const finalPrice = discountInfo.finalPrice;
-
-            if (userBalance < finalPrice) {
-                showInsufficientFundsModal(finalPrice, userBalance, productName, productId);
-                return;
-            }
-
-            showPurchaseConfirmation(productName, finalPrice, productId, userBalance, discountInfo);
-
-        } catch (error) {
-            console.error('Error buying product:', error);
-            showNotification('Ошибка: ' + error.message, 'error');
-        }
-    };
+    } catch (error) {
+        console.error('Error buying product:', error);
+        showNotification('Ошибка: ' + error.message, 'error');
+    }
+};
 
     // Показать подтверждение покупки
     function showPurchaseConfirmation(productName, finalPrice, productId, userBalance, discountInfo) {
