@@ -100,47 +100,6 @@
     </footer>
 
     <script>
-        // Прямая загрузка товаров для магазина (как в index.html)
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🛍️ Загрузка товаров для магазина...');
-            
-            try {
-                // Загружаем все товары через API
-                const response = await fetch('/api/products');
-                const data = await response.json();
-                
-                console.log('📦 Получены товары:', data);
-                
-                const container = document.getElementById('productsContainer');
-                
-                if (data.success && data.products && data.products.length > 0) {
-                    renderProducts(data.products);
-                    
-                    // Инициализируем фильтрацию по категориям
-                    initCategoryFilters(data.products);
-                } else {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-box-open"></i>
-                            <h3>Товары не найдены</h3>
-                            <p>В магазине пока нет товаров. Попробуйте зайти позже.</p>
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                console.error('❌ Ошибка загрузки товаров:', error);
-                document.getElementById('productsContainer').innerHTML = `
-                    <div class="error-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>Не удалось загрузить товары</p>
-                        <button class="btn-primary" onclick="location.reload()">
-                            <i class="fas fa-sync-alt"></i> Попробовать снова
-                        </button>
-                    </div>
-                `;
-            }
-        });
-        
         // Функция для отображения товаров
         function renderProducts(products) {
             const container = document.getElementById('productsContainer');
@@ -151,8 +110,13 @@
                 let discountHtml = '';
                 
                 if (window.paymentSystem) {
-                    finalPrice = window.paymentSystem.calculateDiscountedPrice(product.price, product.id);
-                    const discountInfo = window.paymentSystem.getDiscountInfo(product.price, product.id);
+                    finalPrice = window.paymentSystem.calculateDiscountedPrice ? 
+                        window.paymentSystem.calculateDiscountedPrice(product.price, product.id) : 
+                        product.price;
+                    
+                    const discountInfo = window.paymentSystem.getDiscountInfo ? 
+                        window.paymentSystem.getDiscountInfo(product.price, product.id) : 
+                        { discount: 0 };
                     
                     if (discountInfo.discount > 0) {
                         discountHtml = `
@@ -162,6 +126,11 @@
                         `;
                     }
                 }
+                
+                // Экранируем данные для безопасного использования в onclick
+                const safeProductId = escapeHtml(product.id);
+                const safeProductName = escapeHtml(product.name);
+                const safePrice = product.price;
                 
                 return `
                     <div class="product-card">
@@ -204,8 +173,8 @@
                             </div>
                             
                             <button class="btn-buy" 
-                                    onclick="buyProduct('${escapeHtml(product.id)}', '${escapeHtml(product.name)}', ${product.price})"
-                                    data-product-id="${escapeHtml(product.id)}">
+                                    onclick="buyProduct('${safeProductId}', '${safeProductName}', ${safePrice})"
+                                    data-product-id="${safeProductId}">
                                 <i class="fas fa-shopping-cart"></i>
                                 Купить сейчас
                             </button>
@@ -215,63 +184,135 @@
             }).join('');
         }
         
-        // Функция для фильтрации по категориям
-        function initCategoryFilters(allProducts) {
-            const categoryButtons = document.querySelectorAll('.category-btn');
-            
-            categoryButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    // Убираем активный класс у всех кнопок
-                    categoryButtons.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    const category = this.dataset.category;
-                    
-                    if (category === 'all') {
-                        renderProducts(allProducts);
-                    } else {
-                        const filtered = allProducts.filter(p => 
-                            p.category?.toLowerCase() === category.toLowerCase()
-                        );
-                        
-                        if (filtered.length > 0) {
-                            renderProducts(filtered);
-                        } else {
-                            document.getElementById('productsContainer').innerHTML = `
-                                <div class="empty-state">
-                                    <i class="fas fa-box-open"></i>
-                                    <h3>Нет товаров в этой категории</h3>
-                                    <button class="btn-primary" onclick="document.querySelector('[data-category=\"all\"]').click()">
-                                        <i class="fas fa-store"></i> Показать все
-                                    </button>
-                                </div>
-                            `;
-                        }
-                    }
-                });
-            });
-        }
-        
-        // Вспомогательная функция для экранирования HTML
-        function escapeHtml(unsafe) {
-            if (!unsafe) return '';
-            return String(unsafe)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-        
-        // Функция покупки (использует глобальную функцию из main.js)
+        // Функция покупки (исправленная)
         window.buyProduct = function(productId, productName, price) {
+            console.log('🛒 Попытка покупки:', { productId, productName, price });
+            
+            // Проверяем авторизацию
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            
+            if (!authData.id) {
+                alert('Пожалуйста, авторизуйтесь для покупки');
+                window.location.href = '/auth.html';
+                return;
+            }
+            
+            if (authData.verificationCode) {
+                alert('Завершите регистрацию');
+                window.location.href = '/verify.html';
+                return;
+            }
+            
+            // Проверяем наличие всех необходимых данных
+            if (!productId || !productName || !price) {
+                console.error('❌ Отсутствуют данные для покупки:', { productId, productName, price });
+                alert('Ошибка: не удалось получить данные товара');
+                return;
+            }
+            
+            // Вызываем функцию из main.js, если она существует
             if (typeof window.buyProductFromMain === 'function') {
                 window.buyProductFromMain(productId, productName, price);
             } else {
-                console.log('Покупка товара:', productId, productName, price);
-                alert('Функция покупки временно недоступна');
+                // Или используем прямой вызов API
+                handleDirectPurchase(productId, productName, price);
             }
         };
+        
+        // Прямая обработка покупки (если нет main.js)
+        async function handleDirectPurchase(productId, productName, price) {
+            try {
+                const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+                
+                // Получаем информацию о скидке
+                let finalPrice = price;
+                let discountInfo = { discount: 0, discountAmount: 0, appliedPromocodes: [] };
+                
+                if (window.paymentSystem) {
+                    finalPrice = window.paymentSystem.calculateDiscountedPrice ? 
+                        window.paymentSystem.calculateDiscountedPrice(price, productId) : 
+                        price;
+                        
+                    discountInfo = window.paymentSystem.getDiscountInfo ? 
+                        window.paymentSystem.getDiscountInfo(price, productId) : 
+                        discountInfo;
+                }
+                
+                // Проверяем баланс
+                const balanceResponse = await fetch(`/api/user/${authData.id}/balance`);
+                const balanceData = await balanceResponse.json();
+                
+                if (!balanceData.success) {
+                    throw new Error('Не удалось получить баланс');
+                }
+                
+                const userBalance = balanceData.balance || 0;
+                
+                if (userBalance < finalPrice) {
+                    showInsufficientFundsModal(finalPrice, userBalance, productName);
+                    return;
+                }
+                
+                // Создаем заказ
+                const orderId = 'BH-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                
+                const orderData = {
+                    userId: authData.id,
+                    productId,
+                    productName,
+                    price: finalPrice,
+                    originalPrice: price,
+                    username: authData.username
+                };
+                
+                if (discountInfo.appliedPromocodes?.length > 0) {
+                    orderData.promocodes = discountInfo.appliedPromocodes.map(p => p.code);
+                    orderData.discount = discountInfo.discount;
+                    orderData.discountAmount = discountInfo.discountAmount;
+                }
+                
+                const orderResponse = await fetch('/api/create-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                
+                const orderResult = await orderResponse.json();
+                
+                if (orderResult.success) {
+                    // Обновляем данные пользователя
+                    authData.balance = orderResult.newBalance;
+                    if (!authData.badges) authData.badges = {};
+                    authData.badges.buyer = true;
+                    localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                    
+                    // Показываем успех
+                    alert(`Покупка успешна!\nЗаказ: ${orderResult.orderId}\nОстаток: ${orderResult.newBalance} ₽`);
+                    
+                    // Обновляем интерфейс
+                    if (typeof window.updateAuthButton === 'function') {
+                        window.updateAuthButton();
+                    }
+                    
+                    // Перезагружаем страницу через 2 секунды
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    throw new Error(orderResult.error || 'Ошибка при создании заказа');
+                }
+                
+            } catch (error) {
+                console.error('❌ Ошибка покупки:', error);
+                alert('Ошибка при покупке: ' + error.message);
+            }
+        }
+        
+        function showInsufficientFundsModal(price, balance, productName) {
+            alert(`Недостаточно средств!\n\nСтоимость: ${price} ₽\nВаш баланс: ${balance} ₽\nНе хватает: ${price - balance} ₽`);
+            
+            if (confirm('Хотите пополнить баланс?')) {
+                window.location.href = '/profile.html#balance';
+            }
+        }
     </script>
     
     <div class="custom-cursor"></div>
