@@ -46,7 +46,7 @@ async function checkAuth() {
             console.error('❌ Ошибка обновления пользователя:', error);
         }
     }
-    
+
     // Обновляем интерфейс
     if (authData.username && !authData.verificationCode) {
         // Авторизован
@@ -396,6 +396,71 @@ function logout() {
         localStorage.removeItem('bhstore_active_promocodes');
         window.location.reload();
     }
+}
+
+// Функция-мост для вызова из shop.html
+window.buyProductFromMain = function(productId, productName, price) {
+    console.log('🛒 buyProductFromMain вызван:', { productId, productName, price });
+    
+    // Проверяем авторизацию
+    const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+    
+    if (!authData.username) {
+        alert('Пожалуйста, авторизуйтесь');
+        window.location.href = '/auth.html';
+        return;
+    }
+    
+    if (authData.verificationCode) {
+        alert('Завершите регистрацию');
+        window.location.href = '/verify.html';
+        return;
+    }
+
+    // Проверяем баланс через API
+    window.api.getUser(authData.id)
+        .then(data => {
+            if (!data?.success || !data.user) throw new Error('Нет данных пользователя');
+            
+            const userBalance = data.user.balance || 0;
+            const finalPrice = window.paymentSystem?.calculateDiscountedPrice(price, productId) || price;
+
+            if (userBalance < finalPrice) {
+                if (window.paymentSystem && window.paymentSystem.showInsufficientFundsModal) {
+                    window.paymentSystem.showInsufficientFundsModal(finalPrice, userBalance, productName);
+                } else {
+                    alert(`Недостаточно средств: нужно ${finalPrice} ₽, у вас ${userBalance} ₽`);
+                }
+                return;
+            }
+
+            if (window.paymentSystem && window.paymentSystem.showPaymentModal) {
+                window.paymentSystem.showPaymentModal(productName, price, productId);
+            } else {
+                // Динамическая загрузка payment.js
+                const script = document.createElement('script');
+                script.src = '/js/payment.js';
+                script.onload = () => {
+                    if (window.paymentSystem?.showPaymentModal) {
+                        window.paymentSystem.showPaymentModal(productName, price, productId);
+                    } else {
+                        alert('Система оплаты временно недоступна');
+                    }
+                };
+                document.head.appendChild(script);
+            }
+        })
+        .catch(error => {
+            console.error('❌ Ошибка покупки:', error);
+            alert('Ошибка: ' + error.message);
+        });
+};
+
+// Также убедитесь, что оригинальная функция buyProduct тоже доступна глобально
+// (она уже должна быть, но на всякий случай)
+if (typeof window.buyProduct !== 'function') {
+    window.buyProductFromMain = buyProduct;
+    window.buyProduct = buyProduct; // оставьте и старую для совместимости
 }
 
 // Глобальные функции

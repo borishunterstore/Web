@@ -100,21 +100,63 @@
     </footer>
 
     <script>
+        // Прямая загрузка товаров для магазина (как в index.html)
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🛍️ Загрузка товаров для магазина...');
+            
+            try {
+                // Загружаем все товары через API
+                const response = await fetch('/api/products');
+                const data = await response.json();
+                
+                console.log('📦 Получены товары:', data);
+                
+                const container = document.getElementById('productsContainer');
+                
+                if (data.success && data.products && data.products.length > 0) {
+                    renderProducts(data.products);
+                    
+                    // Инициализируем фильтрацию по категориям
+                    initCategoryFilters(data.products);
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-box-open"></i>
+                            <h3>Товары не найдены</h3>
+                            <p>В магазине пока нет товаров. Попробуйте зайти позже.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('❌ Ошибка загрузки товаров:', error);
+                document.getElementById('productsContainer').innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Не удалось загрузить товары</p>
+                        <button class="btn-primary" onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i> Попробовать снова
+                        </button>
+                    </div>
+                `;
+            }
+        });
+        
         // Функция для отображения товаров
         function renderProducts(products) {
             const container = document.getElementById('productsContainer');
             
-            container.innerHTML = products.map(product => {
+            container.innerHTML = products.map((product, index) => {
                 // Получаем информацию о скидке если есть промокоды
                 let finalPrice = product.price;
                 let discountHtml = '';
+                let discountInfo = { discount: 0 };
                 
                 if (window.paymentSystem) {
                     finalPrice = window.paymentSystem.calculateDiscountedPrice ? 
                         window.paymentSystem.calculateDiscountedPrice(product.price, product.id) : 
                         product.price;
-                    
-                    const discountInfo = window.paymentSystem.getDiscountInfo ? 
+                        
+                    discountInfo = window.paymentSystem.getDiscountInfo ? 
                         window.paymentSystem.getDiscountInfo(product.price, product.id) : 
                         { discount: 0 };
                     
@@ -127,13 +169,13 @@
                     }
                 }
                 
-                // Экранируем данные для безопасного использования в onclick
-                const safeProductId = escapeHtml(product.id);
-                const safeProductName = escapeHtml(product.name);
-                const safePrice = product.price;
+                // Создаем безопасный вызов функции с правильными параметрами
+                const buyButton = `<button class="btn-buy" onclick="window.buyProduct('${escapeHtml(product.id)}', '${escapeHtml(product.name)}', ${product.price})">
+                    <i class="fas fa-shopping-cart"></i> Купить сейчас
+                </button>`;
                 
                 return `
-                    <div class="product-card">
+                    <div class="product-card" style="animation-delay: ${index * 0.1}s">
                         ${discountHtml}
                         <div class="product-image">
                             <img src="${product.image || product.icon || '/image/default-product.png'}" 
@@ -156,7 +198,7 @@
                             ` : ''}
                             
                             <div class="price-section">
-                                ${discountHtml ? `
+                                ${discountInfo.discount > 0 ? `
                                     <div class="original-price">
                                         <span><i class="fas fa-clock"></i> Обычная цена</span>
                                         <span>${product.price} ₽</span>
@@ -172,34 +214,79 @@
                                 `}
                             </div>
                             
-                            <button class="btn-buy" 
-                                    onclick="buyProduct('${safeProductId}', '${safeProductName}', ${safePrice})"
-                                    data-product-id="${safeProductId}">
-                                <i class="fas fa-shopping-cart"></i>
-                                Купить сейчас
-                            </button>
+                            ${buyButton}
                         </div>
                     </div>
                 `;
             }).join('');
         }
         
-        // Функция покупки (исправленная)
+        // Функция для фильтрации по категориям
+        function initCategoryFilters(allProducts) {
+            const categoryButtons = document.querySelectorAll('.category-btn');
+            
+            categoryButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Убираем активный класс у всех кнопок
+                    categoryButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const category = this.dataset.category;
+                    
+                    if (category === 'all') {
+                        renderProducts(allProducts);
+                    } else {
+                        const filtered = allProducts.filter(p => 
+                            p.category?.toLowerCase() === category.toLowerCase()
+                        );
+                        
+                        if (filtered.length > 0) {
+                            renderProducts(filtered);
+                        } else {
+                            document.getElementById('productsContainer').innerHTML = `
+                                <div class="empty-state">
+                                    <i class="fas fa-box-open"></i>
+                                    <h3>Нет товаров в этой категории</h3>
+                                    <button class="btn-primary" onclick="document.querySelector('[data-category=\"all\"]').click()">
+                                        <i class="fas fa-store"></i> Показать все
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Вспомогательная функция для экранирования HTML
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return String(unsafe)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+        
+        // Функция покупки (использует глобальную функцию из main.js)
         window.buyProduct = function(productId, productName, price) {
-            console.log('🛒 Попытка покупки:', { productId, productName, price });
+            console.log('🛒 Вызов buyProduct из shop.html:', { productId, productName, price });
             
             // Проверяем авторизацию
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             
             if (!authData.id) {
-                alert('Пожалуйста, авторизуйтесь для покупки');
-                window.location.href = '/auth.html';
+                if (confirm('Для покупки необходимо авторизоваться. Перейти на страницу входа?')) {
+                    window.location.href = '/auth.html';
+                }
                 return;
             }
             
             if (authData.verificationCode) {
-                alert('Завершите регистрацию');
-                window.location.href = '/verify.html';
+                if (confirm('Необходимо завершить регистрацию. Перейти на страницу верификации?')) {
+                    window.location.href = '/verify.html';
+                }
                 return;
             }
             
@@ -210,11 +297,12 @@
                 return;
             }
             
-            // Вызываем функцию из main.js, если она существует
+            // Вызываем функцию из main.js
             if (typeof window.buyProductFromMain === 'function') {
                 window.buyProductFromMain(productId, productName, price);
             } else {
-                // Или используем прямой вызов API
+                // Если функция из main.js не доступна, используем прямую
+                console.warn('⚠️ buyProductFromMain не найдена, используем прямую покупку');
                 handleDirectPurchase(productId, productName, price);
             }
         };
@@ -249,13 +337,15 @@
                 const userBalance = balanceData.balance || 0;
                 
                 if (userBalance < finalPrice) {
-                    showInsufficientFundsModal(finalPrice, userBalance, productName);
+                    if (window.paymentSystem && window.paymentSystem.showInsufficientFundsModal) {
+                        window.paymentSystem.showInsufficientFundsModal(finalPrice, userBalance, productName);
+                    } else {
+                        alert(`Недостаточно средств!\n\nСтоимость: ${finalPrice} ₽\nВаш баланс: ${userBalance} ₽\nНе хватает: ${finalPrice - userBalance} ₽`);
+                    }
                     return;
                 }
                 
                 // Создаем заказ
-                const orderId = 'BH-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-                
                 const orderData = {
                     userId: authData.id,
                     productId,
@@ -287,11 +377,11 @@
                     localStorage.setItem('bhstore_auth', JSON.stringify(authData));
                     
                     // Показываем успех
-                    alert(`Покупка успешна!\nЗаказ: ${orderResult.orderId}\nОстаток: ${orderResult.newBalance} ₽`);
+                    alert(`✅ Покупка успешна!\nЗаказ: ${orderResult.orderId}\nОстаток: ${orderResult.newBalance} ₽`);
                     
                     // Обновляем интерфейс
-                    if (typeof window.updateAuthButton === 'function') {
-                        window.updateAuthButton();
+                    if (typeof window.checkAuth === 'function') {
+                        window.checkAuth();
                     }
                     
                     // Перезагружаем страницу через 2 секунды
@@ -303,14 +393,6 @@
             } catch (error) {
                 console.error('❌ Ошибка покупки:', error);
                 alert('Ошибка при покупке: ' + error.message);
-            }
-        }
-        
-        function showInsufficientFundsModal(price, balance, productName) {
-            alert(`Недостаточно средств!\n\nСтоимость: ${price} ₽\nВаш баланс: ${balance} ₽\nНе хватает: ${price - balance} ₽`);
-            
-            if (confirm('Хотите пополнить баланс?')) {
-                window.location.href = '/profile.html#balance';
             }
         }
     </script>
