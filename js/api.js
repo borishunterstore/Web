@@ -1,7 +1,7 @@
 // api.js - Исправленная версия
 class BHStoreAPI {
     constructor() {
-        this.baseUrl = 'https://bhstore.netlify.app/.netlify/functions/server';
+        this.baseUrl = 'https://bhstore.netlify.app';
         this.authData = this.getAuthData();
         console.log('✅ BHStoreAPI initialized with baseUrl:', this.baseUrl);
     }
@@ -120,46 +120,46 @@ class BHStoreAPI {
     // ========== Чат поддержки ==========
     
     async getChatUsers() {
-        return this.request('/admin/chat/users');
+        return this.request('/api/admin/chat/users');
     }
 
     async checkAdminMessages() {
-        return this.request('/chat/admin/check', {
+        return this.request('/api/chat/admin/check', {
             method: 'POST',
             body: JSON.stringify({ lastChecked: Date.now() })
         });
     }
 
     async markMessagesAsRead(userId) {
-        return this.request(`/chat/admin/mark-read/${userId}`, {
+        return this.request(`/api/chat/admin/mark-read/${userId}`, {
             method: 'POST'
         });
     }
 
     async sendChatMessage(userId, message, fromAdmin = false) {
-        return this.request('/chat/send', {
+        return this.request('/api/chat/send', {
             method: 'POST',
             body: JSON.stringify({ userId, message, fromAdmin })
         });
     }
 
     async getChatMessages(userId) {
-        return this.request(`/chat/messages/${userId}`);
+        return this.request(`/api/chat/messages/${userId}`);
     }
 
     async checkNewMessages(userId, lastChecked) {
-        return this.request('/chat/check', {
+        return this.request('/api/chat/check', {
             method: 'POST',
             body: JSON.stringify({ userId, lastChecked })
         });
     }
 
     async getUserChat(userId) {
-        return this.request(`/admin/chat/${userId}`);
+        return this.request(`/api/admin/chat/${userId}`);
     }
 
     async sendMessageToUser(userId, message) {
-        return this.request('/admin/send-message', {
+        return this.request('/api/admin/send-message', {
             method: 'POST',
             body: JSON.stringify({ userId, message })
         });
@@ -168,57 +168,57 @@ class BHStoreAPI {
     // ========== Управление пользователями ==========
 
     async getAllUsers() {
-        return this.request('/admin/users');
+        return this.request('/api/admin/users');
     }
 
     async getUser(userId) {
-        return this.request(`/user/${userId}`);
+        return this.request(`/api/user/${userId}`);
     }
 
     async getUserBalance(userId) {
-        return this.request(`/user/${userId}/balance`);
+        return this.request(`/api/user/${userId}/balance`);
     }
 
     async addUserBalance(userId, amount, reason) {
-        return this.request('/admin/balance/add', {
+        return this.request('/api/admin/balance/add', {
             method: 'POST',
             body: JSON.stringify({ userId, amount, reason })
         });
     }
 
     async removeUserBalance(userId, amount, reason) {
-        return this.request('/admin/balance/remove', {
+        return this.request('/api/admin/balance/remove', {
             method: 'POST',
             body: JSON.stringify({ userId, amount, reason })
         });
     }
 
     async setUserBalance(userId, newBalance, reason) {
-        return this.request('/admin/balance/set', {
+        return this.request('/api/admin/balance/set', {
             method: 'POST',
             body: JSON.stringify({ userId, newBalance, reason })
         });
     }
 
     async getUserBalanceHistory(userId) {
-        return this.request(`/admin/balance/history/${userId}`);
+        return this.request(`/api/admin/balance/history/${userId}`);
     }
 
     // ========== Управление заказами ==========
 
     async getAllOrders() {
-        return this.request('/admin/orders');
+        return this.request('/api/admin/orders');
     }
 
     async createOrder(orderData) {
-        return this.request('/create-order', {
+        return this.request('/api/create-order', {
             method: 'POST',
             body: JSON.stringify(orderData)
         });
     }
 
     async createOrderWithBalance(orderData) {
-        return this.request('/create-order-balance', {
+        return this.request('/api/create-order-balance', {
             method: 'POST',
             body: JSON.stringify(orderData)
         });
@@ -227,25 +227,25 @@ class BHStoreAPI {
     // ========== Управление товарами ==========
 
     async getProducts() {
-        return this.request('/products');
+        return this.request('/api/products');
     }
 
     async createProduct(productData) {
-        return this.request('/admin/products', {
+        return this.request('/api/admin/products', {
             method: 'POST',
             body: JSON.stringify(productData)
         });
     }
 
     async updateProduct(productId, productData) {
-        return this.request(`/admin/products/${productId}`, {
+        return this.request(`/api/admin/products/${productId}`, {
             method: 'PUT',
             body: JSON.stringify(productData)
         });
     }
 
     async deleteProduct(productId) {
-        return this.request(`/admin/products/${productId}`, {
+        return this.request(`/api/admin/products/${productId}`, {
             method: 'DELETE'
         });
     }
@@ -253,48 +253,48 @@ class BHStoreAPI {
     // ========== Новости ==========
 
     async getNews() {
-        return this.request('/news');
+        return this.request('/api/news');
     }
 
     // ========== Статистика ==========
 
     async getStats() {
-        return this.request('/admin/stats');
+        return this.request('/api/admin/stats');
     }
 
     // ========== Промокоды ==========
 
     async getUserPromocodes(userId) {
-        return this.request(`/promocodes/user/${userId}`);
+        return this.request(`/api/promocodes/user/${userId}`);
     }
 
     async getActivePromocodes(userId) {
-        return this.request(`/promocodes/active/${userId}`);
+        return this.request(`/api/promocodes/active/${userId}`);
     }
 
     async checkPromocode(userId, code) {
-        return this.request('/promocodes/check', {
+        return this.request('/api/promocodes/check', {
             method: 'POST',
             body: JSON.stringify({ userId, code })
         });
     }
 
     async activatePromocode(userId, code) {
-        return this.request('/promocodes/activate', {
+        return this.request('/api/promocodes/activate', {
             method: 'POST',
             body: JSON.stringify({ userId, code })
         });
     }
 
     async saveActivePromocodes(userId, activeDiscounts) {
-        return this.request('/promocodes/save-active', {
+        return this.request('/api/promocodes/save-active', {
             method: 'POST',
             body: JSON.stringify({ userId, activeDiscounts })
         });
     }
 
     async removeActivePromocode(userId, code) {
-        return this.request('/promocodes/remove-active', {
+        return this.request('/api/promocodes/remove-active', {
             method: 'POST',
             body: JSON.stringify({ userId, code })
         });
@@ -303,18 +303,18 @@ class BHStoreAPI {
     // ========== Отзывы ==========
 
     async getReviews(page = 1, limit = 10) {
-        return this.request(`/reviews?page=${page}&limit=${limit}`);
+        return this.request(`/api/reviews?page=${page}&limit=${limit}`);
     }
 
     async createReview(reviewData) {
-        return this.request('/reviews', {
+        return this.request('/api/reviews', {
             method: 'POST',
             body: JSON.stringify(reviewData)
         });
     }
 
     async markReviewHelpful(reviewId) {
-        return this.request(`/reviews/${reviewId}/helpful`, {
+        return this.request(`/api/reviews/${reviewId}/helpful`, {
             method: 'POST'
         });
     }
@@ -322,11 +322,11 @@ class BHStoreAPI {
     // ========== Уведомления ==========
 
     async getUserNotifications(userId) {
-        return this.request(`/notifications/user/${userId}`);
+        return this.request(`/api/notifications/user/${userId}`);
     }
 
     async markNotificationRead(notificationId) {
-        return this.request(`/notifications/${notificationId}/read`, {
+        return this.request(`/api/notifications/${notificationId}/read`, {
             method: 'POST'
         });
     }

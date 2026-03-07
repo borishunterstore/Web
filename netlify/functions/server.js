@@ -1,4 +1,3 @@
-// netlify/functions/server.js
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
@@ -10,25 +9,23 @@ require('dotenv').config();
 
 const app = express();
 
-// Конфигурация
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'https://bhstore.netlify.app/auth/discord/callback';
 const BOT_API_URL = process.env.BOT_API_URL || 'https://bhstore.netlify.app';
 
-console.log('🚀 Запуск BHStore Server (Netlify Function)...');
-console.log('✅ Client ID установлен:', !!DISCORD_CLIENT_ID);
-console.log('✅ Client Secret установлен:', !!DISCORD_CLIENT_SECRET);
-console.log('✅ Redirect URI:', DISCORD_REDIRECT_URI);
-console.log('✅ Bot API URL:', BOT_API_URL);
-console.log('✅ DATABASE_URL установлен:', !!process.env.DATABASE_URL);
+// console.log('✅ Запуск...');
+// console.log('✅ Client ID:', !!DISCORD_CLIENT_ID);
+// console.log('✅ Client Secret:', !!DISCORD_CLIENT_SECRET);
+// console.log('✅ Redirect URI:', DISCORD_REDIRECT_URI);
+// console.log('✅ Bot API URL:', BOT_API_URL);
+// console.log('✅ DATABASE_URL:', !!process.env.DATABASE_URL);
 
-// Инициализация подключения к PostgreSQL (Neon)
 let sql;
 try {
   if (process.env.DATABASE_URL) {
     sql = neon(process.env.DATABASE_URL);
-    console.log('✅ Подключение к Neon создано');
+    console.log('✅ Подключение к Neon');
   } else {
     console.log('⚠️ DATABASE_URL не установлен, работаем без БД');
   }
@@ -36,14 +33,9 @@ try {
   console.error('❌ Ошибка подключения к Neon:', error.message);
 }
 
-// Middleware
 app.use(cors());
 app.use(express.json());
-
-// Обслуживание статических файлов из корня проекта
 app.use(express.static(path.join(__dirname, '../../')));
-
-// Хранилище в памяти (как запасной вариант)
 let users = {};
 let chatStore = {};
 let reviewsData = { reviews: [], stats: { totalReviews: 0, averageRating: 0 } };
