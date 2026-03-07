@@ -84,6 +84,344 @@ async function checkAuth() {
     }
 }
 
+// ========== МЕНЮ ПОЛЬЗОВАТЕЛЯ ==========
+
+async function showUserMenu(event) {
+    const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+    if (!authData.id) return;
+
+    // Предотвращаем всплытие события
+    if (event) {
+        event.stopPropagation();
+    }
+
+    // Обновляем данные
+    try {
+        const data = await window.api?.getUser(authData.id);
+        if (data?.success && data.user) {
+            authData.balance = data.user.balance;
+            authData.badges = data.user.badges;
+            localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+        }
+    } catch (error) {
+        console.error('❌ Ошибка загрузки для меню:', error);
+    }
+
+    // Удаляем старое меню
+    const existingMenu = document.querySelector('.user-menu');
+    if (existingMenu) {
+        existingMenu.remove();
+    }
+
+    // Получаем кнопку для позиционирования
+    const authBtn = document.getElementById('authBtn');
+    if (!authBtn) return;
+
+    const btnRect = authBtn.getBoundingClientRect();
+    const isMobile = window.innerWidth <= 768;
+
+    // Нормализуем бейджи
+    const badges = normalizeBadges(authData.badges);
+    const mainBadge = getMainBadgeHTML(badges);
+    const allBadges = generateAllBadgesHTML(badges);
+    const isAdminUser = await isAdmin();
+
+    // Создаем меню
+    const menu = document.createElement('div');
+    menu.className = 'user-menu';
+    
+    // Добавляем класс для мобильной версии
+    if (isMobile) {
+        menu.classList.add('user-menu-mobile');
+    }
+
+    // Позиционирование для десктопа
+    if (!isMobile) {
+        menu.style.top = `${btnRect.bottom + window.scrollY + 5}px`;
+        menu.style.left = `${btnRect.left + (btnRect.width / 2)}px`;
+    }
+
+    // Формируем HTML меню с улучшенным дизайном
+    menu.innerHTML = `
+        <div class="user-menu-header">
+            <div class="user-menu-avatar-wrapper">
+                <img src="https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=64" 
+                     class="user-menu-avatar"
+                     onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                ${mainBadge ? `<div class="user-menu-avatar-badge">${mainBadge}</div>` : ''}
+            </div>
+            <div class="user-menu-user-info">
+                <div class="user-menu-username">
+                    ${escapeHtml(authData.username)}
+                    ${mainBadge ? `<span class="user-menu-badge-icon">${mainBadge}</span>` : ''}
+                </div>
+                <div class="user-menu-user-id">ID: ${authData.id}</div>
+                <div class="user-menu-badges-container">
+                    ${allBadges}
+                </div>
+            </div>
+            <button class="user-menu-close" onclick="this.closest('.user-menu').remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="user-menu-balance">
+            <div class="user-menu-balance-label">
+                <i class="fas fa-wallet"></i>
+                Баланс
+            </div>
+            <div class="user-menu-balance-amount">
+                ${authData.balance || 0} ₽
+            </div>
+        </div>
+
+        <div class="user-menu-nav">
+            <a href="/profile.html" class="user-menu-item">
+                <div class="user-menu-item-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-menu-item-content">
+                    <div class="user-menu-item-title">Профиль</div>
+                    <div class="user-menu-item-desc">Ваша личная информация</div>
+                </div>
+                <i class="fas fa-chevron-right user-menu-item-arrow"></i>
+            </a>
+
+            <a href="/profile.html#orders" class="user-menu-item">
+                <div class="user-menu-item-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="user-menu-item-content">
+                    <div class="user-menu-item-title">Мои заказы</div>
+                    <div class="user-menu-item-desc">История покупок</div>
+                </div>
+                <i class="fas fa-chevron-right user-menu-item-arrow"></i>
+            </a>
+
+            <a href="/profile.html#balance" class="user-menu-item">
+                <div class="user-menu-item-icon">
+                    <i class="fas fa-coins"></i>
+                </div>
+                <div class="user-menu-item-content">
+                    <div class="user-menu-item-title">Баланс</div>
+                    <div class="user-menu-item-desc">Пополнение и история</div>
+                </div>
+                <i class="fas fa-chevron-right user-menu-item-arrow"></i>
+            </a>
+
+            ${isAdminUser ? `
+                <a href="/admin.html" class="user-menu-item user-menu-item-admin">
+                    <div class="user-menu-item-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <div class="user-menu-item-content">
+                        <div class="user-menu-item-title">Админ панель</div>
+                        <div class="user-menu-item-desc">Управление магазином</div>
+                    </div>
+                    <span class="user-menu-item-badge">Admin</span>
+                </a>
+            ` : ''}
+        </div>
+
+        <div class="user-menu-footer">
+            <button onclick="logout()" class="user-menu-logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                Выйти из аккаунта
+            </button>
+        </div>
+    `;
+
+    // Добавляем меню в DOM
+    document.body.appendChild(menu);
+
+    // Анимация появления
+    setTimeout(() => {
+        menu.classList.add('user-menu-visible');
+    }, 10);
+
+    // Закрытие по клику вне меню
+    const closeMenu = (e) => {
+        if (!menu.contains(e.target) && e.target !== authBtn && !authBtn.contains(e.target)) {
+            menu.classList.remove('user-menu-visible');
+            setTimeout(() => {
+                menu.remove();
+            }, 300);
+            document.removeEventListener('click', closeMenu);
+        }
+    };
+
+    // Добавляем задержку, чтобы не закрылось сразу
+    setTimeout(() => {
+        document.addEventListener('click', closeMenu);
+    }, 100);
+
+    // Закрытие по ESC
+    const escHandler = (e) => {
+        if (e.key === 'Escape') {
+            menu.classList.remove('user-menu-visible');
+            setTimeout(() => {
+                menu.remove();
+            }, 300);
+            document.removeEventListener('keydown', escHandler);
+        }
+    };
+    document.addEventListener('keydown', escHandler);
+}
+
+// ========== ФУНКЦИИ ДЛЯ БЕЙДЖЕЙ ==========
+
+const BADGE_CONFIG = {
+    admin: {
+        name: 'Администратор',
+        icon: 'fas fa-crown',
+        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75',
+        color: '#FFD700',
+        bgColor: 'rgba(255, 215, 0, 0.15)',
+        priority: 1
+    },
+    verified: {
+        name: 'Верифицированный',
+        icon: 'fas fa-check-circle',
+        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75',
+        color: '#57F287',
+        bgColor: 'rgba(87, 242, 135, 0.15)',
+        priority: 2
+    },
+    partner: {
+        name: 'Партнёр',
+        icon: 'fas fa-handshake',
+        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75',
+        color: '#FF73FA',
+        bgColor: 'rgba(255, 115, 250, 0.15)',
+        priority: 3
+    },
+    buyer: {
+        name: 'Покупатель',
+        icon: 'fas fa-shopping-bag',
+        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75',
+        color: '#FEE75C',
+        bgColor: 'rgba(254, 231, 92, 0.15)',
+        priority: 4
+    },
+    early: {
+        name: 'Ранний сторонник',
+        icon: 'fas fa-star',
+        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1085815477030092860.png%3Fv%3D1&w=64&q=75',
+        color: '#5865F2',
+        bgColor: 'rgba(88, 101, 242, 0.15)',
+        priority: 5
+    },
+    vip: {
+        name: 'VIP',
+        icon: 'fas fa-gem',
+        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1074074255389896764.png%3Fv%3D1&w=64&q=75',
+        color: '#9B59B6',
+        bgColor: 'rgba(155, 89, 182, 0.15)',
+        priority: 6
+    }
+};
+
+function normalizeBadges(badgesData) {
+    if (!badgesData) {
+        return {
+            admin: false,
+            verified: false,
+            partner: false,
+            buyer: false,
+            early: false,
+            vip: false
+        };
+    }
+    
+    if (typeof badgesData === 'string') {
+        return {
+            admin: badgesData === 'admin',
+            verified: badgesData === 'verified',
+            partner: false,
+            buyer: false,
+            early: false,
+            vip: false
+        };
+    }
+    
+    if (typeof badgesData === 'object') {
+        return {
+            admin: !!badgesData.admin,
+            verified: !!badgesData.verified,
+            partner: !!badgesData.partner,
+            buyer: !!badgesData.buyer,
+            early: !!badgesData.early,
+            vip: !!badgesData.vip
+        };
+    }
+    
+    return {
+        admin: false,
+        verified: false,
+        partner: false,
+        buyer: false,
+        early: false,
+        vip: false
+    };
+}
+
+function getMainBadgeHTML(badges) {
+    // Сортируем по приоритету и берем первый активный
+    const sortedBadges = Object.entries(badges)
+        .filter(([key, value]) => value && BADGE_CONFIG[key])
+        .sort((a, b) => BADGE_CONFIG[a[0]].priority - BADGE_CONFIG[b[0]].priority);
+    
+    if (sortedBadges.length === 0) return '';
+    
+    const [badgeKey] = sortedBadges[0];
+    const config = BADGE_CONFIG[badgeKey];
+    
+    return `<img src="${config.image}" alt="${config.name}" style="width: 16px; height: 16px; border-radius: 50%;">`;
+}
+
+function generateAllBadgesHTML(badges) {
+    let html = '';
+    
+    // Сортируем по приоритету
+    const sortedBadges = Object.entries(badges)
+        .filter(([key, value]) => value && BADGE_CONFIG[key])
+        .sort((a, b) => BADGE_CONFIG[a[0]].priority - BADGE_CONFIG[b[0]].priority);
+    
+    sortedBadges.forEach(([badgeKey]) => {
+        const config = BADGE_CONFIG[badgeKey];
+        html += `
+            <div class="user-menu-badge" style="background: ${config.bgColor}; color: ${config.color};">
+                <img src="${config.image}" alt="${config.name}" style="width: 14px; height: 14px;">
+                <span>${config.name}</span>
+            </div>
+        `;
+    });
+    
+    return html;
+}
+
+function getUserBadges(authData) {
+    const badges = normalizeBadges(authData.badges);
+    const mainBadge = getMainBadgeHTML(badges);
+    
+    if (mainBadge) {
+        return `<span class="user-badge-icon">${mainBadge}</span>`;
+    }
+    
+    return '';
+}
+
+// Вспомогательная функция для экранирования HTML
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return String(unsafe)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 // ========== ПРОВЕРКА АДМИНА ==========
 
 async function isAdmin() {
@@ -99,78 +437,6 @@ async function isAdmin() {
     
     // Fallback для разработки
     return authData.id === '992442453833547886' || authData.discordId === '830087428214751284';
-}
-
-// ========== БЕЙДЖИ ==========
-
-function getUserBadges(authData) {
-    const badges = normalizeBadges(authData.badges);
-    return badges.verified 
-        ? '<img src="https://cdn3.emoji.gg/emojis/32765-verifiedtwitter.gif" style="width: 18px; height: 18px; margin-left: 6px;" title="Верифицированный аккаунт">'
-        : '';
-}
-
-function normalizeBadges(badgesData) {
-    if (!badgesData) return { verified: false, partner: false, buyer: false };
-    if (typeof badgesData === 'string') return { verified: badgesData === 'verified', partner: false, buyer: false };
-    if (typeof badgesData === 'object') {
-        return {
-            verified: !!badgesData.verified,
-            partner: !!badgesData.partner,
-            buyer: !!badgesData.buyer
-        };
-    }
-    return { verified: false, partner: false, buyer: false };
-}
-
-// ========== ЗАГРУЗКА ТОВАРОВ ==========
-
-async function loadPopularProducts() {
-    try {
-        const data = await window.api.getProducts();
-        if (!data?.success) return;
-
-        const popular = data.products.filter(p => p.popular).slice(0, 3);
-        const container = document.getElementById('popularProducts');
-        if (!container) return;
-
-        container.innerHTML = popular.map(product => {
-            let finalPrice = product.price;
-            let discountHtml = '';
-
-            if (window.paymentSystem) {
-                finalPrice = window.paymentSystem.calculateDiscountedPrice(product.price, product.id);
-                const discountInfo = window.paymentSystem.getDiscountInfo(product.price, product.id);
-                if (discountInfo.discount > 0) {
-                    discountHtml = `
-                        <div style="margin-bottom: 0.5rem;">
-                            <span style="text-decoration: line-through; color: #b9bbbe;">${product.price} ₽</span>
-                            <span style="color: #57F287; font-weight: 600; margin-left: 10px;">${finalPrice} ₽</span>
-                            <span style="background: #57F287; color: #1e1f29; padding: 2px 8px; border-radius: 12px; margin-left: 10px;">-${discountInfo.discount}%</span>
-                        </div>
-                    `;
-                }
-            }
-
-            return `
-                <div class="product-card">
-                    <div class="product-image" style="background: linear-gradient(135deg, #5865F2, #4752c4);">
-                        <i class="${product.icon || 'fas fa-box'}"></i>
-                    </div>
-                    <div class="product-info">
-                        <h3 class="product-title">${product.name}</h3>
-                        <p style="color: #b9bbbe; margin-bottom: 1rem;">${product.description}</p>
-                        ${discountHtml || `<div class="product-price">${finalPrice} ₽</div>`}
-                        <button class="btn-buy" onclick="buyProduct('${product.id}', '${product.name}', ${product.price})">
-                            Купить сейчас
-                        </button>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    } catch (error) {
-        console.error('❌ Ошибка загрузки товаров:', error);
-    }
 }
 
 // ========== ЗАГРУЗКА НОВОСТЕЙ ==========
