@@ -127,7 +127,7 @@ class DiscordAuth {
         
         if (badges.admin) {
             badgesHtml += `
-                <img src="https://cdn3.emoji.gg/emojis/9428-admin.png" 
+                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75" 
                      style="width: 18px; height: 18px; margin-left: 2px; border-radius: 50%;" 
                      title="Администратор">
             `;
@@ -135,7 +135,7 @@ class DiscordAuth {
         
         if (badges.verified) {
             badgesHtml += `
-                <img src="https://cdn3.emoji.gg/emojis/32765-verifiedtwitter.gif" 
+                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75" 
                      style="width: 18px; height: 18px; margin-left: 2px; border-radius: 50%;" 
                      title="✓ Верифицированный аккаунт">
             `;
@@ -143,7 +143,7 @@ class DiscordAuth {
         
         if (badges.partner) {
             badgesHtml += `
-                <img src="https://cdn3.emoji.gg/emojis/747328-serverpartner.png" 
+                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75" 
                      style="width: 18px; height: 18px; margin-left: 2px;" 
                      title="Партнёр">
             `;
@@ -151,7 +151,7 @@ class DiscordAuth {
         
         if (badges.buyer) {
             badgesHtml += `
-                <img src="https://cdn3.emoji.gg/emojis/6133-buy.png" 
+                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75" 
                      style="width: 18px; height: 18px; margin-left: 2px;" 
                      title="Покупатель">
             `;
