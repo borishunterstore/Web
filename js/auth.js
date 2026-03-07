@@ -460,90 +460,181 @@ getUserBadgesHTML(authData) {
         
         const menu = document.createElement('div');
         menu.className = 'user-menu';
-        menu.style.cssText = `
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: #2a2b36;
-            border-radius: 8px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-            padding: 1rem;
-            min-width: 300px;
-            z-index: 1000;
-            margin-top: 10px;
-        `;
         
-        // Генерируем HTML для бейджей
-        const badgesHtml = this.generateBadgesHTML(authData.badges || {});
+        // Генерируем HTML для бейджей (все бейджи)
+        const allBadgesHtml = this.generateAllBadgesHTML(authData.badges || {});
+        
+        // Получаем главный бейдж для аватарки (только один по приоритету)
+        const mainBadge = this.getMainBadge(authData.badges || {});
+        
+        // Проверяем админа
+        const isAdmin = await this.isAdmin();
         
         menu.innerHTML = `
-            <div style="padding: 0.5rem; color: #b9bbbe; border-bottom: 1px solid #40444b; margin-bottom: 0.5rem;">
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
-                    <img src="https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=64" 
-                         style="width: 40px; height: 40px; border-radius: 50%;"
-                         onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                    <div>
-                        <div style="color: white; font-weight: 600; display: flex; align-items: center;">
-                            ${authData.username}
-                            ${authData.badges?.verified ? `
-                                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75" 
-                                     style="width: 16px; height: 16px; margin-left: 5px; border-radius: 50%;" 
-                                     title="Верифицированный аккаунт">
-                            ` : ''}
+            <div class="user-menu-header">
+                <div class="user-menu-user">
+                    <div class="user-menu-avatar-wrapper">
+                        <img src="https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=64" 
+                             class="user-menu-avatar"
+                             onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                        ${mainBadge}
+                    </div>
+                    <div class="user-menu-info">
+                        <div class="user-menu-username">
+                            ${this.escapeHtml(authData.username)}
                         </div>
-                        <div style="font-size: 0.8rem; margin-top: 5px; display: flex; gap: 5px; flex-wrap: wrap;">
-                            ${badgesHtml}
+                        <div class="user-menu-badges">
+                            ${allBadgesHtml}
                         </div>
-                        <div style="font-size: 0.8rem; margin-top: 5px;">ID: ${authData.id}</div>
+                        <div class="user-menu-id">
+                            <i class="fas fa-hashtag"></i> ${authData.id}
+                        </div>
                     </div>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
-                    <small>Баланс:</small>
-                    <div style="color: #57F287; font-weight: 600; font-size: 1.2rem;">
-                        ${authData.balance || 0} ₽
-                    </div>
+                <div class="user-menu-balance">
+                    <span>Баланс</span>
+                    <span class="user-menu-balance-amount">${authData.balance || 0} ₽</span>
                 </div>
             </div>
-            <a href="/profile.html" style="display: flex; align-items: center; gap: 10px; padding: 0.75rem; color: white; text-decoration: none; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='#40444b'" onmouseout="this.style.background='transparent'">
-                <i class="fas fa-user" style="width: 20px;"></i>
-                <span>Профиль</span>
-            </a>
-            <a href="/profile.html#orders" style="display: flex; align-items: center; gap: 10px; padding: 0.75rem; color: white; text-decoration: none; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='#40444b'" onmouseout="this.style.background='transparent'">
-                <i class="fas fa-shopping-bag" style="width: 20px;"></i>
-                <span>Мои заказы</span>
-            </a>
-            <a href="/profile.html#balance" style="display: flex; align-items: center; gap: 10px; padding: 0.75rem; color: white; text-decoration: none; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='#40444b'" onmouseout="this.style.background='transparent'">
-                <i class="fas fa-coins" style="width: 20px;"></i>
-                <span>Баланс</span>
-            </a>
-            ${this.isAdmin() ? `
-                <a href="/admin.html" style="display: flex; align-items: center; gap: 10px; padding: 0.75rem; color: #5865F2; text-decoration: none; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='#40444b'" onmouseout="this.style.background='transparent'">
-                    <i class="fas fa-crown" style="width: 20px;"></i>
-                    <span>Админ панель</span>
+            
+            <div class="user-menu-items">
+                <a href="/profile.html" class="user-menu-item">
+                    <i class="fas fa-user"></i>
+                    <span>Профиль</span>
                 </a>
-            ` : ''}
-            <hr style="border-color: #40444b; margin: 0.5rem 0;">
-            <button onclick="DiscordAuth.instance.logout()" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 0.75rem; background: none; border: none; color: #ED4245; text-align: left; cursor: pointer; border-radius: 4px; transition: background 0.3s;" onmouseover="this.style.background='#40444b'" onmouseout="this.style.background='transparent'">
-                <i class="fas fa-sign-out-alt" style="width: 20px;"></i>
-                <span>Выйти</span>
-            </button>
+                <a href="/profile.html#orders" class="user-menu-item">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span>Мои заказы</span>
+                </a>
+                <a href="/profile.html#balance" class="user-menu-item">
+                    <i class="fas fa-coins"></i>
+                    <span>Баланс</span>
+                </a>
+                ${isAdmin ? `
+                    <a href="/admin.html" class="user-menu-item admin-item">
+                        <i class="fas fa-crown"></i>
+                        <span>Админ панель</span>
+                        <span class="user-menu-badge">NEW</span>
+                    </a>
+                ` : ''}
+                
+                <div class="user-menu-divider"></div>
+                
+                <a href="/support.html" class="user-menu-item">
+                    <i class="fas fa-headset"></i>
+                    <span>Поддержка</span>
+                </a>
+                <a href="/faq.html" class="user-menu-item">
+                    <i class="fas fa-question-circle"></i>
+                    <span>FAQ</span>
+                </a>
+                
+                <div class="user-menu-divider"></div>
+                
+                <button onclick="DiscordAuth.instance.logout()" class="user-menu-item logout-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Выйти</span>
+                    <span class="user-menu-shortcut">Ctrl+Q</span>
+                </button>
+            </div>
         `;
         
-        const navAuth = document.querySelector('.nav-auth');
-        if (navAuth) {
-            navAuth.appendChild(menu);
+        // Добавляем меню после кнопки авторизации
+        const authBtn = document.getElementById('authBtn');
+        if (authBtn) {
+            authBtn.parentNode.style.position = 'relative';
+            authBtn.parentNode.appendChild(menu);
+            
+            // Анимация появления
+            setTimeout(() => menu.classList.add('active'), 10);
             
             // Закрытие меню при клике вне его
+            const closeMenu = (e) => {
+                if (!menu.contains(e.target) && e.target !== authBtn && !authBtn.contains(e.target)) {
+                    menu.classList.remove('active');
+                    setTimeout(() => menu.remove(), 300);
+                    document.removeEventListener('click', closeMenu);
+                }
+            };
+            
             setTimeout(() => {
-                const closeMenu = (e) => {
-                    if (!menu.contains(e.target) && e.target !== document.getElementById('authBtn')) {
-                        menu.remove();
-                        document.removeEventListener('click', closeMenu);
-                    }
-                };
                 document.addEventListener('click', closeMenu);
             }, 0);
         }
+    }
+    
+    // Функция для получения главного бейджа (только один по приоритету)
+    getMainBadge(badges) {
+        // Приоритет: Админ > Подтвержденный > Партнер > Покупатель
+        if (badges.admin) {
+            return `
+                <div class="avatar-badge" title="Администратор">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75" 
+                         alt="Admin">
+                </div>
+            `;
+        } else if (badges.verified) {
+            return `
+                <div class="avatar-badge" title="Верифицированный">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75" 
+                         alt="Verified">
+                </div>
+            `;
+        } else if (badges.partner) {
+            return `
+                <div class="avatar-badge" title="Партнёр">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75" 
+                         alt="Partner">
+                </div>
+            `;
+        } else if (badges.buyer) {
+            return `
+                <div class="avatar-badge" title="Покупатель">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75" 
+                         alt="Buyer">
+                </div>
+            `;
+        }
+        return '';
+    }
+    
+    // Функция для генерации всех бейджей (для отображения в списке)
+    generateAllBadgesHTML(badges) {
+        let badgesHtml = '';
+        
+        // Словарь бейджей с приоритетами
+        const badgeConfigs = [
+            { condition: badges.admin, class: 'admin', image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75', text: 'Админ', priority: 1 },
+            { condition: badges.verified, class: 'verified', image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75', text: 'Verified', priority: 2 },
+            { condition: badges.partner, class: 'partner', image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75', text: 'Partner', priority: 3 },
+            { condition: badges.buyer, class: 'buyer', image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75', text: 'Buyer', priority: 4 }
+        ];
+        
+        // Сортируем по приоритету
+        const sortedConfigs = badgeConfigs.sort((a, b) => a.priority - b.priority);
+        
+        sortedConfigs.forEach(config => {
+            if (config.condition) {
+                badgesHtml += `
+                    <div class="badge-icon" title="${config.text}">
+                        <img src="${config.image}" alt="${config.text}">
+                    </div>
+                `;
+            }
+        });
+        
+        return badgesHtml;
+    }
+    
+    // Вспомогательная функция для экранирования HTML
+    escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return String(unsafe)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
     // Генерация HTML для бейджей в меню
