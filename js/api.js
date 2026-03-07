@@ -18,7 +18,6 @@ class BHStoreAPI {
     // ✅ Универсальный метод для запросов
     async request(endpoint, options = {}) {
         const authData = this.getAuthData();
-        const cleanEndpoint = endpoint.startsWith('/api/') ? endpoint.substring(4) : endpoint;
         const url = `${this.baseUrl}${cleanEndpoint}`;
         
         const defaultHeaders = {
