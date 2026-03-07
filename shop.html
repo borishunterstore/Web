@@ -1,19 +1,5 @@
 <!DOCTYPE html>
 <html lang="ru">
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/promocode.js"></script>
-    <script src="js/payment.js"></script>
-    <script src="js/chat.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/cursor.js"></script>
-    <div class="custom-cursor"></div>
-    <canvas id="webCanvas"></canvas>
-    <div class="scroll-indicator">
-    <span class="scroll-value">0%</span>
-    </div>
-    <script src="js/pkm.js"></script>
-    <script src="js/mobile-nav.js"></script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,6 +10,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="/image/logo.png">
+    
+    <!-- СКРИПТЫ -->
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/promocode.js"></script>
+    <script src="js/payment.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/cursor.js"></script>
+    <script src="js/pkm.js"></script>
+    <script src="js/mobile-nav.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -76,6 +73,10 @@
         </div>
         
         <div id="productsContainer" class="products-grid">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Загрузка товаров...</p>
+            </div>
         </div>
     </div>
     
@@ -94,8 +95,189 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</a></p>
+            <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</p>
         </div>
     </footer>
+
+    <script>
+        // Прямая загрузка товаров для магазина (как в index.html)
+        document.addEventListener('DOMContentLoaded', async function() {
+            console.log('🛍️ Загрузка товаров для магазина...');
+            
+            try {
+                // Загружаем все товары через API
+                const response = await fetch('/api/products');
+                const data = await response.json();
+                
+                console.log('📦 Получены товары:', data);
+                
+                const container = document.getElementById('productsContainer');
+                
+                if (data.success && data.products && data.products.length > 0) {
+                    renderProducts(data.products);
+                    
+                    // Инициализируем фильтрацию по категориям
+                    initCategoryFilters(data.products);
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-box-open"></i>
+                            <h3>Товары не найдены</h3>
+                            <p>В магазине пока нет товаров. Попробуйте зайти позже.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('❌ Ошибка загрузки товаров:', error);
+                document.getElementById('productsContainer').innerHTML = `
+                    <div class="error-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Не удалось загрузить товары</p>
+                        <button class="btn-primary" onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i> Попробовать снова
+                        </button>
+                    </div>
+                `;
+            }
+        });
+        
+        // Функция для отображения товаров
+        function renderProducts(products) {
+            const container = document.getElementById('productsContainer');
+            
+            container.innerHTML = products.map(product => {
+                // Получаем информацию о скидке если есть промокоды
+                let finalPrice = product.price;
+                let discountHtml = '';
+                
+                if (window.paymentSystem) {
+                    finalPrice = window.paymentSystem.calculateDiscountedPrice(product.price, product.id);
+                    const discountInfo = window.paymentSystem.getDiscountInfo(product.price, product.id);
+                    
+                    if (discountInfo.discount > 0) {
+                        discountHtml = `
+                            <div class="product-discount-badge">
+                                <i class="fas fa-tag"></i> -${discountInfo.discount}%
+                            </div>
+                        `;
+                    }
+                }
+                
+                return `
+                    <div class="product-card">
+                        ${discountHtml}
+                        <div class="product-image">
+                            <img src="${product.image || product.icon || '/image/default-product.png'}" 
+                                 alt="${escapeHtml(product.name)}"
+                                 onerror="this.src='/image/default-product.png'">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-title">${escapeHtml(product.name)}</h3>
+                            <p class="product-description">${escapeHtml(product.description || '')}</p>
+                            
+                            ${product.features ? `
+                                <div class="product-features">
+                                    ${Array.isArray(product.features) ? product.features.slice(0, 3).map(f => `
+                                        <div class="feature-item">
+                                            <i class="fas fa-check"></i>
+                                            <span>${escapeHtml(f)}</span>
+                                        </div>
+                                    `).join('') : ''}
+                                </div>
+                            ` : ''}
+                            
+                            <div class="price-section">
+                                ${discountHtml ? `
+                                    <div class="original-price">
+                                        <span><i class="fas fa-clock"></i> Обычная цена</span>
+                                        <span>${product.price} ₽</span>
+                                    </div>
+                                    <div class="final-price">
+                                        <span><i class="fas fa-tag"></i> Цена со скидкой</span>
+                                        <span>${finalPrice} ₽</span>
+                                    </div>
+                                ` : `
+                                    <div class="final-price" style="justify-content: center;">
+                                        <span>${finalPrice} ₽</span>
+                                    </div>
+                                `}
+                            </div>
+                            
+                            <button class="btn-buy" 
+                                    onclick="buyProduct('${escapeHtml(product.id)}', '${escapeHtml(product.name)}', ${product.price})"
+                                    data-product-id="${escapeHtml(product.id)}">
+                                <i class="fas fa-shopping-cart"></i>
+                                Купить сейчас
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Функция для фильтрации по категориям
+        function initCategoryFilters(allProducts) {
+            const categoryButtons = document.querySelectorAll('.category-btn');
+            
+            categoryButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Убираем активный класс у всех кнопок
+                    categoryButtons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const category = this.dataset.category;
+                    
+                    if (category === 'all') {
+                        renderProducts(allProducts);
+                    } else {
+                        const filtered = allProducts.filter(p => 
+                            p.category?.toLowerCase() === category.toLowerCase()
+                        );
+                        
+                        if (filtered.length > 0) {
+                            renderProducts(filtered);
+                        } else {
+                            document.getElementById('productsContainer').innerHTML = `
+                                <div class="empty-state">
+                                    <i class="fas fa-box-open"></i>
+                                    <h3>Нет товаров в этой категории</h3>
+                                    <button class="btn-primary" onclick="document.querySelector('[data-category=\"all\"]').click()">
+                                        <i class="fas fa-store"></i> Показать все
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Вспомогательная функция для экранирования HTML
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return String(unsafe)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+        
+        // Функция покупки (использует глобальную функцию из main.js)
+        window.buyProduct = function(productId, productName, price) {
+            if (typeof window.buyProductFromMain === 'function') {
+                window.buyProductFromMain(productId, productName, price);
+            } else {
+                console.log('Покупка товара:', productId, productName, price);
+                alert('Функция покупки временно недоступна');
+            }
+        };
+    </script>
+    
+    <div class="custom-cursor"></div>
+    <canvas id="webCanvas"></canvas>
+    <div class="scroll-indicator">
+        <span class="scroll-value">0%</span>
+    </div>
 </body>
 </html>
