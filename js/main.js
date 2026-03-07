@@ -398,9 +398,9 @@ function logout() {
     }
 }
 
-// Функция-мост для вызова из shop.html
+// Функция-мост для вызова из shop.js
 window.buyProductFromMain = function(productId, productName, price) {
-    console.log('🛒 buyProductFromMain вызван:', { productId, productName, price });
+    console.log('🛒 buyProductFromMain вызван из main.js:', { productId, productName, price });
     
     // Проверяем авторизацию
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
@@ -455,6 +455,11 @@ window.buyProductFromMain = function(productId, productName, price) {
             alert('Ошибка: ' + error.message);
         });
 };
+
+// Убедимся, что оригинальная функция тоже доступна
+if (typeof window.buyProduct !== 'function') {
+    window.buyProduct = buyProduct;
+}
 
 // Также убедитесь, что оригинальная функция buyProduct тоже доступна глобально
 // (она уже должна быть, но на всякий случай)

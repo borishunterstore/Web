@@ -203,68 +203,68 @@
         });
     }
 
-// Загрузка товаров через API
+    // Загрузка товаров через API
     async function loadProducts(category) {
         const container = document.getElementById('productsContainer');
-    if (!container) {
-        console.error('❌ Products container not found');
-        return;
+        if (!container) {
+            console.error('❌ Products container not found');
+            return;
+        }
+
+        currentCategory = category;
+        showLoading(container);
+        console.log(`📡 Loading products for category: ${category}`);
+
+        try {
+            if (!window.api) {
+                console.error('❌ API not available');
+                throw new Error('API not available');
+            }
+
+            console.log('📡 Fetching products via api.getProducts()...');
+            const data = await window.api.getProducts();
+            console.log('📦 API Response:', data);
+
+            if (!data) {
+                console.error('❌ No data received from API');
+                renderNoProducts(category, true);
+                return;
+            }
+
+            if (!data.success) {
+                console.error('❌ API returned success: false', data);
+                renderNoProducts(category, true);
+                return;
+            }
+
+            if (!data.products || !Array.isArray(data.products)) {
+                console.error('❌ Products is not an array:', data.products);
+                renderNoProducts(category, true);
+                return;
+            }
+
+            console.log(`✅ Received ${data.products.length} products from API`);
+            products = data.products;
+
+            const filtered = category === 'all'
+                ? products
+                : products.filter(p => p.category?.toLowerCase() === category.toLowerCase());
+
+            console.log(`🔄 Filtered products: ${filtered.length} for category "${category}"`);
+
+            if (filtered.length === 0) {
+                console.log('ℹ️ No products found for this category');
+                renderNoProducts(category, false);
+            } else {
+                console.log('🎨 Rendering products...');
+                renderProducts(filtered);
+            }
+
+        } catch (error) {
+            console.error('❌ Error in loadProducts:', error);
+            showError('Не удалось загрузить товары. Пожалуйста, проверьте консоль для деталей.');
+        }
     }
-
-    currentCategory = category;
-    showLoading(container);
-    console.log(`📡 Loading products for category: ${category}`);
-
-    try {
-        if (!window.api) {
-            console.error('❌ API not available');
-            throw new Error('API not available');
-        }
-
-        console.log('📡 Fetching products via api.getProducts()...');
-        const data = await window.api.getProducts();
-        console.log('📦 API Response:', data);
-
-        if (!data) {
-            console.error('❌ No data received from API');
-            renderNoProducts(category, true);
-            return;
-        }
-
-        if (!data.success) {
-            console.error('❌ API returned success: false', data);
-            renderNoProducts(category, true);
-            return;
-        }
-
-        if (!data.products || !Array.isArray(data.products)) {
-            console.error('❌ Products is not an array:', data.products);
-            renderNoProducts(category, true);
-            return;
-        }
-
-        console.log(`✅ Received ${data.products.length} products from API`);
-        products = data.products;
-
-        const filtered = category === 'all'
-            ? products
-            : products.filter(p => p.category?.toLowerCase() === category.toLowerCase());
-
-        console.log(`🔄 Filtered products: ${filtered.length} for category "${category}"`);
-
-        if (filtered.length === 0) {
-            console.log('ℹ️ No products found for this category');
-            renderNoProducts(category, false);
-        } else {
-            console.log('🎨 Rendering products...');
-            renderProducts(filtered);
-        }
-
-    } catch (error) {
-        console.error('❌ Error in loadProducts:', error);
-        showError('Не удалось загрузить товары. Пожалуйста, проверьте консоль для деталей.');
-    }
-}
 
     // Показать загрузку
     function showLoading(container) {
@@ -306,7 +306,7 @@
         `;
     }
 
-    // Отображение товаров
+    // Отображение товаров (ИСПРАВЛЕННАЯ ВЕРСИЯ)
     function renderProducts(productsToRender) {
         const container = document.getElementById('productsContainer');
         if (!container) return;
@@ -315,6 +315,11 @@
             const discountInfo = getDiscountInfo(product.price, product.id);
             const finalPrice = discountInfo.finalPrice;
             const hasDiscount = discountInfo.discount > 0;
+            
+            // Экранируем данные для onclick
+            const safeProductId = escapeHtml(product.id);
+            const safeProductName = escapeHtml(product.name);
+            const safePrice = product.price;
 
             return `
                 <div class="product-card" style="animation-delay: ${index * 0.1}s">
@@ -379,8 +384,8 @@
                         ` : ''}
 
                         <button class="btn-buy"
-                                onclick="buyProduct('${escapeHtml(product.id)}', '${escapeHtml(product.name)}', ${product.price})"
-                                data-product-id="${escapeHtml(product.id)}">
+                                onclick="window.buyProduct('${safeProductId}', '${safeProductName}', ${safePrice})"
+                                data-product-id="${safeProductId}">
                             <i class="fas fa-shopping-cart"></i>
                             Купить сейчас
                         </button>
@@ -429,9 +434,16 @@
         }
     }
 
-    // Покупка товара (использует API)
+    // Покупка товара (ИСПРАВЛЕННАЯ ВЕРСИЯ)
     window.buyProduct = async function(productId, productName, originalPrice) {
-        console.log('Buying product:', { productId, productName, originalPrice });
+        console.log('🛒 buyProduct вызван из shop.js с параметрами:', { productId, productName, originalPrice });
+        
+        // Проверка параметров
+        if (!productId || !productName || originalPrice === undefined || originalPrice === null) {
+            console.error('❌ Ошибка: отсутствуют параметры', { productId, productName, originalPrice });
+            showNotification('Ошибка: не удалось получить данные товара', 'error');
+            return;
+        }
 
         const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
 
@@ -1037,4 +1049,9 @@
     // Экспорт функций в глобальную область
     window.loadProducts = loadProducts;
     window.getDiscountInfo = getDiscountInfo;
+    window.buyProduct = window.buyProduct; // Уже объявлена выше
+    window.closePurchaseModal = closePurchaseModal;
+    window.confirmPurchase = confirmPurchase;
+    window.removeShopPromocode = removeShopPromocode;
+    window.updateAuthButton = updateAuthButton;
 })();
