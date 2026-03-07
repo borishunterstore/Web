@@ -203,41 +203,68 @@
         });
     }
 
-    // Загрузка товаров через API
+// Загрузка товаров через API
     async function loadProducts(category) {
         const container = document.getElementById('productsContainer');
-        if (!container) return;
-
-        currentCategory = category;
-        showLoading(container);
-
-        try {
-            if (!window.api) throw new Error('API not available');
-
-            const data = await window.api.getProducts();
-
-            if (!data?.success || !data.products?.length) {
-                renderNoProducts(category, true);
-                return;
-            }
-
-            products = data.products;
-
-            const filtered = category === 'all'
-                ? products
-                : products.filter(p => p.category?.toLowerCase() === category.toLowerCase());
-
-            if (filtered.length === 0) {
-                renderNoProducts(category, false);
-            } else {
-                renderProducts(filtered);
-            }
-
-        } catch (error) {
-            console.error('Error loading products:', error);
-            showError('Не удалось загрузить товары');
-        }
+    if (!container) {
+        console.error('❌ Products container not found');
+        return;
     }
+
+    currentCategory = category;
+    showLoading(container);
+    console.log(`📡 Loading products for category: ${category}`);
+
+    try {
+        if (!window.api) {
+            console.error('❌ API not available');
+            throw new Error('API not available');
+        }
+
+        console.log('📡 Fetching products via api.getProducts()...');
+        const data = await window.api.getProducts();
+        console.log('📦 API Response:', data);
+
+        if (!data) {
+            console.error('❌ No data received from API');
+            renderNoProducts(category, true);
+            return;
+        }
+
+        if (!data.success) {
+            console.error('❌ API returned success: false', data);
+            renderNoProducts(category, true);
+            return;
+        }
+
+        if (!data.products || !Array.isArray(data.products)) {
+            console.error('❌ Products is not an array:', data.products);
+            renderNoProducts(category, true);
+            return;
+        }
+
+        console.log(`✅ Received ${data.products.length} products from API`);
+        products = data.products;
+
+        const filtered = category === 'all'
+            ? products
+            : products.filter(p => p.category?.toLowerCase() === category.toLowerCase());
+
+        console.log(`🔄 Filtered products: ${filtered.length} for category "${category}"`);
+
+        if (filtered.length === 0) {
+            console.log('ℹ️ No products found for this category');
+            renderNoProducts(category, false);
+        } else {
+            console.log('🎨 Rendering products...');
+            renderProducts(filtered);
+        }
+
+    } catch (error) {
+        console.error('❌ Error in loadProducts:', error);
+        showError('Не удалось загрузить товары. Пожалуйста, проверьте консоль для деталей.');
+    }
+}
 
     // Показать загрузку
     function showLoading(container) {
