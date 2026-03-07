@@ -137,7 +137,7 @@ class DiscordAuth {
             badgesHtml += `
                 <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75" 
                      style="width: 18px; height: 18px; margin-left: 2px; border-radius: 50%;" 
-                     title="✓ Верифицированный аккаунт">
+                     title="Верифицированный">
             `;
         }
         
@@ -490,7 +490,7 @@ class DiscordAuth {
                         <div style="color: white; font-weight: 600; display: flex; align-items: center;">
                             ${authData.username}
                             ${authData.badges?.verified ? `
-                                <img src="https://cdn3.emoji.gg/emojis/32765-verifiedtwitter.gif" 
+                                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75" 
                                      style="width: 16px; height: 16px; margin-left: 5px; border-radius: 50%;" 
                                      title="Верифицированный аккаунт">
                             ` : ''}
@@ -566,7 +566,7 @@ class DiscordAuth {
         if (badges.verified) {
             badgesArray.push(`
                 <span style="background: #5865F2; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 3px;">
-                    <img src="https://cdn3.emoji.gg/emojis/32765-verifiedtwitter.gif" style="width: 12px; height: 12px; border-radius: 50%;">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75" style="width: 12px; height: 12px; border-radius: 50%;">
                     <span>Верифицирован</span>
                 </span>
             `);
@@ -575,7 +575,7 @@ class DiscordAuth {
         if (badges.partner) {
             badgesArray.push(`
                 <span style="background: #FEE75C; color: #1e1f29; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 3px;">
-                    <img src="https://cdn3.emoji.gg/emojis/747328-serverpartner.png" style="width: 12px; height: 12px;">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75" style="width: 12px; height: 12px;">
                     <span>Партнёр</span>
                 </span>
             `);
@@ -584,7 +584,7 @@ class DiscordAuth {
         if (badges.buyer) {
             badgesArray.push(`
                 <span style="background: #57F287; color: #1e1f29; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 3px;">
-                    <img src="https://cdn3.emoji.gg/emojis/6133-buy.png" style="width: 12px; height: 12px;">
+                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75" style="width: 12px; height: 12px;">
                     <span>Покупатель</span>
                 </span>
             `);
