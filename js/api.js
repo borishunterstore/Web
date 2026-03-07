@@ -3,7 +3,6 @@ class BHStoreAPI {
     constructor() {
         this.baseUrl = 'https://bhstore.netlify.app';
         this.authData = this.getAuthData();
-        // console.log('✅ BHStoreAPI initialized with baseUrl:', this.baseUrl);
     }
 
     getAuthData() {
@@ -18,7 +17,7 @@ class BHStoreAPI {
     // ✅ Универсальный метод для запросов
     async request(endpoint, options = {}) {
         const authData = this.getAuthData();
-        const url = `${this.baseUrl}${cleanEndpoint}`;
+        const url = `${this.baseUrl}${endpoint}`;
         
         const defaultHeaders = {
             'Content-Type': 'application/json',
@@ -26,7 +25,7 @@ class BHStoreAPI {
         };
 
         try {
-            console.log(`${options.method || 'GET'} ${url}`);
+            console.log(`📡 ${options.method || 'GET'} ${url}`);
             
             const response = await fetch(url, {
                 ...options,
@@ -71,7 +70,7 @@ class BHStoreAPI {
             if (!authData.token) return isAdminLocal;
             
             try {
-                const data = await this.request('/admin/check');
+                const data = await this.request('/api/admin/check');
                 return data.isAdmin === true || isAdminLocal;
             } catch {
                 return isAdminLocal;
@@ -96,7 +95,7 @@ class BHStoreAPI {
                                 authData.global_name === 'borisonchik_yt';
             
             try {
-                const data = await this.request('/user/me');
+                const data = await this.request('/api/user/me');
                 return {
                     isAdmin: data.user?.badges?.admin === true || data.user?.badges?.partner === true || isAdminLocal,
                     isLoggedIn: true,
@@ -175,6 +174,10 @@ class BHStoreAPI {
 
     async getUserBalance(userId) {
         return this.request(`/api/user/${userId}/balance`);
+    }
+
+    async getUserOrders(userId) {
+        return this.request(`/api/user/${userId}/orders`);
     }
 
     async addUserBalance(userId, amount, reason) {
@@ -357,10 +360,7 @@ class BHStoreAPI {
 
     // Форматирование ошибок
     formatError(error) {
-        if (error.message) {
-            return error.message;
-        }
-        return 'Неизвестная ошибка';
+        return error.message || 'Неизвестная ошибка';
     }
 }
 
@@ -368,5 +368,3 @@ class BHStoreAPI {
 const api = new BHStoreAPI();
 window.BHStoreAPI = api;
 window.api = api;
-
-console.log('✅ BHStoreAPI готов к работе (исправленная версия без /api в путях)');
