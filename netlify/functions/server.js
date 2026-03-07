@@ -107,7 +107,7 @@ const initTestData = () => {
 initTestData();
 
 // ============================================
-// Инициализация базы данных
+// Инициализация БД
 // ============================================
 async function initDatabase() {
   if (!sql) {
@@ -116,7 +116,7 @@ async function initDatabase() {
   }
   
   try {
-    // Таблица пользователей
+    // БД Users
     await sql`
       CREATE TABLE IF NOT EXISTS users (
         discord_id TEXT PRIMARY KEY,
@@ -132,7 +132,7 @@ async function initDatabase() {
       )
     `;
     
-    // Таблица сообщений чата
+    // БД Chats
     await sql`
       CREATE TABLE IF NOT EXISTS messages (
         id TEXT PRIMARY KEY,
@@ -144,7 +144,7 @@ async function initDatabase() {
       )
     `;
     
-    // Таблица отзывов
+    // БД Reviews
     await sql`
       CREATE TABLE IF NOT EXISTS reviews (
         id TEXT PRIMARY KEY,
@@ -165,7 +165,7 @@ async function initDatabase() {
       )
     `;
     
-    // Таблица промокодов
+    // БД PromoCodes
     await sql`
       CREATE TABLE IF NOT EXISTS promocodes (
         code TEXT PRIMARY KEY,
@@ -192,7 +192,7 @@ async function initDatabase() {
       )
     `;
 
-    // Таблица ошибок
+    // БД Errors
     await sql`
       CREATE TABLE IF NOT EXISTS errors (
         id TEXT PRIMARY KEY,
@@ -205,7 +205,7 @@ async function initDatabase() {
       )
     `;
 
-    // Таблица статистики
+    // БД Stats
     await sql`
       CREATE TABLE IF NOT EXISTS stats (
         id SERIAL PRIMARY KEY,
@@ -214,7 +214,7 @@ async function initDatabase() {
       )
     `;
 
-    // Таблица товаров
+    // БД Products
     await sql`
       CREATE TABLE IF NOT EXISTS products (
         id TEXT PRIMARY KEY,
@@ -231,7 +231,7 @@ async function initDatabase() {
       )
     `;
     
-    console.log('✅ База данных инициализирована');
+    console.log('✅ БД инициализирована');
     
     // Проверяем, есть ли товары
     await checkAndInsertProducts();

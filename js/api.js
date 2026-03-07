@@ -3,7 +3,7 @@ class BHStoreAPI {
     constructor() {
         this.baseUrl = 'https://bhstore.netlify.app';
         this.authData = this.getAuthData();
-        console.log('✅ BHStoreAPI initialized with baseUrl:', this.baseUrl);
+        // console.log('✅ BHStoreAPI initialized with baseUrl:', this.baseUrl);
     }
 
     getAuthData() {
@@ -18,7 +18,6 @@ class BHStoreAPI {
     // ✅ Универсальный метод для запросов
     async request(endpoint, options = {}) {
         const authData = this.getAuthData();
-        // Убираем лишний /api если он есть в начале endpoint
         const cleanEndpoint = endpoint.startsWith('/api/') ? endpoint.substring(4) : endpoint;
         const url = `${this.baseUrl}${cleanEndpoint}`;
         
@@ -28,7 +27,7 @@ class BHStoreAPI {
         };
 
         try {
-            console.log(`📡 ${options.method || 'GET'} ${url}`);
+            console.log(`${options.method || 'GET'} ${url}`);
             
             const response = await fetch(url, {
                 ...options,
