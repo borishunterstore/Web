@@ -195,7 +195,9 @@
             verified: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75',
             partner: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75',
             buyer: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75',
-            admin: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75'
+            admin: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75',
+            vip: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1074074255389896764.png%3Fv%3D1&w=64&q=75',
+            early: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1085815477030092860.png%3Fv%3D1&w=64&q=75'
         };
     
         function showAddBalanceModal() {
@@ -370,7 +372,7 @@
     
         function normalizeBadges(badgesData) {
             if (!badgesData) {
-                return { verified: false, partner: false, buyer: false, early: false, vip: false };
+                return { verified: false, partner: false, buyer: false, early: false, vip: false, admin: false };
             }
             
             if (typeof badgesData === 'string') {
@@ -379,12 +381,14 @@
                     partner: false,
                     buyer: false,
                     early: false,
-                    vip: false
+                    vip: false,
+                    admin: false
                 };
             }
             
             if (typeof badgesData === 'object') {
                 return {
+                    admin: !!badgesData.admin,
                     verified: !!badgesData.verified,
                     partner: !!badgesData.partner,
                     buyer: !!badgesData.buyer,
@@ -393,21 +397,71 @@
                 };
             }
             
-            return { verified: false, partner: false, buyer: false, early: false, vip: false };
+            return { verified: false, partner: false, buyer: false, early: false, vip: false, admin: false };
         }
     
+        // Функция для получения главного бейджа (только один по приоритету)
+        function getMainBadge(badges) {
+            // Приоритет: Админ > Подтвержденный > Партнер > Покупатель > VIP > Ранний
+            if (badges.admin) {
+                return `
+                    <div class="avatar-badge" title="Администратор">
+                        <img src="${BADGE_IMAGES.admin}" alt="Admin">
+                    </div>
+                `;
+            } else if (badges.verified) {
+                return `
+                    <div class="avatar-badge" title="Верифицированный аккаунт">
+                        <img src="${BADGE_IMAGES.verified}" alt="Verified">
+                    </div>
+                `;
+            } else if (badges.partner) {
+                return `
+                    <div class="avatar-badge" title="Партнёр">
+                        <img src="${BADGE_IMAGES.partner}" alt="Partner">
+                    </div>
+                `;
+            } else if (badges.buyer) {
+                return `
+                    <div class="avatar-badge" title="Покупатель">
+                        <img src="${BADGE_IMAGES.buyer}" alt="Buyer">
+                    </div>
+                `;
+            } else if (badges.vip) {
+                return `
+                    <div class="avatar-badge" title="VIP пользователь">
+                        <img src="${BADGE_IMAGES.vip}" alt="VIP">
+                    </div>
+                `;
+            } else if (badges.early) {
+                return `
+                    <div class="avatar-badge" title="Ранний сторонник">
+                        <img src="${BADGE_IMAGES.early}" alt="Early Supporter">
+                    </div>
+                `;
+            }
+            
+            return '';
+        }
+    
+        // Функция для генерации всех бейджей (для отображения в списке)
         function generateBadgesHTML(badges) {
             let badgesHtml = '';
             
+            // Словарь бейджей с приоритетами
             const badgeConfigs = [
-                { condition: badges.verified, class: 'verified', image: BADGE_IMAGES.verified, text: 'Верифицирован' },
-                { condition: badges.partner, class: 'partner', image: BADGE_IMAGES.partner, text: 'Партнёр' },
-                { condition: badges.buyer, class: 'buyer', image: BADGE_IMAGES.buyer, text: 'Покупатель' },
-                { condition: badges.early, class: 'early', image: BADGE_IMAGES.early, text: 'Ранний сторонник' },
-                { condition: badges.vip, class: 'vip', image: BADGE_IMAGES.vip, text: 'VIP' }
+                { condition: badges.admin, class: 'admin', image: BADGE_IMAGES.admin, text: 'Администратор', priority: 1 },
+                { condition: badges.verified, class: 'verified', image: BADGE_IMAGES.verified, text: 'Верифицирован', priority: 2 },
+                { condition: badges.partner, class: 'partner', image: BADGE_IMAGES.partner, text: 'Партнёр', priority: 3 },
+                { condition: badges.buyer, class: 'buyer', image: BADGE_IMAGES.buyer, text: 'Покупатель', priority: 4 },
+                { condition: badges.vip, class: 'vip', image: BADGE_IMAGES.vip, text: 'VIP', priority: 5 },
+                { condition: badges.early, class: 'early', image: BADGE_IMAGES.early, text: 'Ранний сторонник', priority: 6 }
             ];
             
-            badgeConfigs.forEach(config => {
+            // Сортируем по приоритету (сначала самые важные)
+            const sortedConfigs = badgeConfigs.sort((a, b) => a.priority - b.priority);
+            
+            sortedConfigs.forEach(config => {
                 if (config.condition) {
                     badgesHtml += `
                         <div class="badge badge-${config.class}" title="${config.text}">
@@ -421,29 +475,49 @@
             return badgesHtml;
         }
     
-        function getMainBadge(badges) {
-            if (badges.verified) {
+        // Альтернативная функция для генерации бейджей (если нужно показывать только один)
+        function generateSingleBadgeHTML(badges) {
+            // Приоритет: Админ > Подтвержденный > Партнер > Покупатель > VIP > Ранний
+            if (badges.admin) {
                 return `
-                    <div class="avatar-badge" title="Верифицированный аккаунт">
-                        <img src="${BADGE_IMAGES.verified}" alt="Verified">
+                    <div class="badge badge-admin" title="Администратор">
+                        <img src="${BADGE_IMAGES.admin}" alt="Администратор">
+                        <span>Администратор</span>
                     </div>
                 `;
-            } else if (badges.vip) {
+            } else if (badges.verified) {
                 return `
-                    <div class="avatar-badge" title="VIP пользователь">
-                        <img src="${BADGE_IMAGES.vip}" alt="VIP">
+                    <div class="badge badge-verified" title="Верифицирован">
+                        <img src="${BADGE_IMAGES.verified}" alt="Верифицирован">
+                        <span>Верифицирован</span>
                     </div>
                 `;
             } else if (badges.partner) {
                 return `
-                    <div class="avatar-badge" title="Партнёр">
-                        <img src="${BADGE_IMAGES.partner}" alt="Partner">
+                    <div class="badge badge-partner" title="Партнёр">
+                        <img src="${BADGE_IMAGES.partner}" alt="Партнёр">
+                        <span>Партнёр</span>
                     </div>
                 `;
             } else if (badges.buyer) {
                 return `
-                    <div class="avatar-badge" title="Покупатель">
-                        <img src="${BADGE_IMAGES.buyer}" alt="Buyer">
+                    <div class="badge badge-buyer" title="Покупатель">
+                        <img src="${BADGE_IMAGES.buyer}" alt="Покупатель">
+                        <span>Покупатель</span>
+                    </div>
+                `;
+            } else if (badges.vip) {
+                return `
+                    <div class="badge badge-vip" title="VIP">
+                        <img src="${BADGE_IMAGES.vip}" alt="VIP">
+                        <span>VIP</span>
+                    </div>
+                `;
+            } else if (badges.early) {
+                return `
+                    <div class="badge badge-early" title="Ранний сторонник">
+                        <img src="${BADGE_IMAGES.early}" alt="Ранний сторонник">
+                        <span>Ранний сторонник</span>
                     </div>
                 `;
             }
@@ -530,12 +604,14 @@
             const applyBtn = document.getElementById('applyPromocodeBtn');
             const input = document.getElementById('promocodeInput');
             
-            applyBtn.addEventListener('click', applyPromocode);
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    applyPromocode();
-                }
-            });
+            if (applyBtn && input) {
+                applyBtn.addEventListener('click', applyPromocode);
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        applyPromocode();
+                    }
+                });
+            }
             
             await loadUserPromocodes();
         }
@@ -587,6 +663,8 @@
     
         function showPromocodeMessage(message, type) {
             const messageDiv = document.getElementById('promocodeMessage');
+            if (!messageDiv) return;
+            
             messageDiv.innerHTML = `
                 <div class="promocode-message ${type}">
                     <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
@@ -602,6 +680,8 @@
         function showPromocodeInfo(data) {
             const modal = document.getElementById('promocodeInfoModal');
             const content = document.getElementById('promocodeInfoContent');
+            
+            if (!modal || !content) return;
             
             let message = '';
             if (data.message) {
@@ -631,12 +711,13 @@
     
         async function loadUserPromocodes() {
             // Здесь можно загрузить список использованных промокодов пользователя
-            //但目前 оставим пустым, так как промокоды одноразовые
+            // Пока оставим пустым
         }
     
         // Чат с поддержкой
         function initChatSystem() {
             const chatContainer = document.getElementById('supportChat');
+            if (!chatContainer) return;
             
             chatContainer.innerHTML = `
                 <div style="display: flex; flex-direction: column; height: 500px;">
@@ -664,6 +745,7 @@
                 const data = await response.json();
                 
                 const messagesContainer = document.getElementById('chatMessages');
+                if (!messagesContainer) return;
                 
                 if (data.success) {
                     const messages = data.messages || [];
@@ -713,8 +795,9 @@
     
         window.sendMessage = async function() {
             const input = document.getElementById('chatMessageInput');
-            const message = input.value.trim();
+            if (!input) return;
             
+            const message = input.value.trim();
             if (!message) return;
             
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
@@ -774,6 +857,7 @@
         let pollingInterval;
     
         function startPolling() {
+            if (pollingInterval) clearInterval(pollingInterval);
             pollingInterval = setInterval(async () => {
                 await checkNewMessages();
             }, 3000);
@@ -787,6 +871,8 @@
                 
                 if (data.success) {
                     const messagesContainer = document.getElementById('chatMessages');
+                    if (!messagesContainer) return;
+                    
                     const currentMessages = messagesContainer.querySelectorAll('.message-bubble').length;
                     
                     if (data.messages.length > currentMessages) {
@@ -807,6 +893,7 @@
         // Логаут
         window.logout = function() {
             localStorage.removeItem('bhstore_auth');
+            localStorage.removeItem('bhstore_active_promocodes');
             window.location.href = '/';
         };
     </script>
