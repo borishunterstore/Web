@@ -46,7 +46,7 @@ async function checkAuth() {
             console.error('❌ Ошибка обновления пользователя:', error);
         }
     }
-
+    
     // Обновляем интерфейс
     if (authData.username && !authData.verificationCode) {
         // Авторизован
