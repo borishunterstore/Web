@@ -120,45 +120,41 @@ class DiscordAuth {
         }
     }
 
-    // Получение HTML для бейджей
-    getUserBadgesHTML(authData) {
-        const badges = authData.badges || {};
-        let badgesHtml = '';
-        
-        if (badges.admin) {
-            badgesHtml += `
-                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75" 
-                     style="width: 18px; height: 18px; margin-left: 2px; border-radius: 50%;" 
-                     title="Администратор">
-            `;
-        }
-        
-        if (badges.verified) {
-            badgesHtml += `
-                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75" 
-                     style="width: 18px; height: 18px; margin-left: 2px; border-radius: 50%;" 
-                     title="Верифицированный">
-            `;
-        }
-        
-        if (badges.partner) {
-            badgesHtml += `
-                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75" 
-                     style="width: 18px; height: 18px; margin-left: 2px;" 
-                     title="Партнёр">
-            `;
-        }
-        
-        if (badges.buyer) {
-            badgesHtml += `
-                <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75" 
-                     style="width: 18px; height: 18px; margin-left: 2px;" 
-                     title="Покупатель">
-            `;
-        }
-        
-        return badgesHtml;
+getUserBadgesHTML(authData) {
+    const badges = authData.badges || {};
+    let badgeHtml = '';
+    
+    if (badges.admin) {
+        badgeHtml = `
+            <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75" 
+                 style="width: 18px; height: 18px; margin-left: 6px; border-radius: 50%;" 
+                 title="Администратор">
+        `;
+    } 
+    else if (badges.verified) {
+        badgeHtml = `
+            <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75" 
+                 style="width: 18px; height: 18px; margin-left: 6px; border-radius: 50%;" 
+                 title="Верифицированный">
+        `;
+    } 
+    else if (badges.partner) {
+        badgeHtml = `
+            <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75" 
+                 style="width: 18px; height: 18px; margin-left: 6px;" 
+                 title="Партнёр">
+        `;
+    } 
+    else if (badges.buyer) {
+        badgeHtml = `
+            <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75" 
+                 style="width: 18px; height: 18px; margin-left: 6px;" 
+                 title="Покупатель">
+        `;
     }
+    
+    return badgeHtml;
+}
 
     // Получение данных пользователя с сервера
     async fetchUserData(userId) {
