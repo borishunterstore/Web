@@ -1,24 +1,27 @@
-// api.js - Исправленная версия
+// api.js - ИСПРАВЛЕННАЯ ВЕРСИЯ (все пути через /api)
 class BHStoreAPI {
     constructor() {
         this.baseUrl = 'https://bhstore.netlify.app';
         this.authData = this.getAuthData();
+        console.log('✅ BHStoreAPI инициализирован с baseUrl:', this.baseUrl);
     }
 
     getAuthData() {
         try {
             return JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
         } catch (error) {
-            console.error('❌ Error parsing auth data:', error);
+            console.error('❌ Ошибка парсинга auth данных:', error);
             return {};
         }
     }
 
-    // ✅ Универсальный метод для запросов
     async request(endpoint, options = {}) {
-        const authData = this.getAuthData();
-        const url = `${this.baseUrl}${endpoint}`;
+        const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+        const url = cleanEndpoint.startsWith('/api/') 
+            ? `${this.baseUrl}${cleanEndpoint}` 
+            : `${this.baseUrl}/api${cleanEndpoint}`;
         
+        const authData = this.getAuthData();
         const defaultHeaders = {
             'Content-Type': 'application/json',
             ...(authData.token && { 'Authorization': `Bearer ${authData.token}` })
@@ -35,10 +38,9 @@ class BHStoreAPI {
                 }
             });
 
-            // Проверяем на HTML ответ (ошибка)
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('text/html')) {
-                console.error('❌ Server returned HTML instead of JSON:', url);
+                console.error('❌ Сервер вернул HTML вместо JSON:', url);
                 const html = await response.text();
                 console.error('HTML preview:', html.substring(0, 200));
                 throw new Error('Сервер вернул HTML. Проверьте настройки Netlify Functions');
@@ -52,319 +54,136 @@ class BHStoreAPI {
 
             return data;
         } catch (error) {
-            console.error(`❌ API Error (${url}):`, error);
+            console.error(`❌ Ошибка API (${url}):`, error);
             throw error;
         }
     }
 
-    // ✅ Проверка админа через сервер
+    // ========== МЕТОДЫ ДЛЯ РАЗНЫХ ЧАСТЕЙ API ==========
+
+    // Админ
     async isAdmin() {
         try {
-            const authData = this.getAuthData();
-            
-            // Локальная проверка для обратной совместимости
-            const isAdminLocal = authData.username === 'borisonchik_yt' || 
-                                authData.username === 'borisonchik' ||
-                                authData.global_name === 'borisonchik_yt';
-            
-            if (!authData.token) return isAdminLocal;
-            
-            try {
-                const data = await this.request('/api/admin/check');
-                return data.isAdmin === true || isAdminLocal;
-            } catch {
-                return isAdminLocal;
-            }
-        } catch (error) {
-            console.error('❌ Error checking admin status:', error);
+            const data = await this.request('/admin/check');
+            return data.isAdmin === true;
+        } catch {
             return false;
         }
     }
 
-    // ✅ Проверка статуса пользователя
-    async checkAdminStatus() {
-        try {
-            const authData = this.getAuthData();
-            
-            if (!authData.token && !authData.username) {
-                return { isAdmin: false, isLoggedIn: false };
-            }
-            
-            const isAdminLocal = authData.username === 'borisonchik_yt' || 
-                                authData.username === 'borisonchik' ||
-                                authData.global_name === 'borisonchik_yt';
-            
-            try {
-                const data = await this.request('/api/user/me');
-                return {
-                    isAdmin: data.user?.badges?.admin === true || data.user?.badges?.partner === true || isAdminLocal,
-                    isLoggedIn: true,
-                    user: data.user
-                };
-            } catch {
-                return {
-                    isAdmin: isAdminLocal,
-                    isLoggedIn: !!authData.username,
-                    user: authData
-                };
-            }
-        } catch (error) {
-            console.error('❌ Error checking status:', error);
-            return { isAdmin: false, isLoggedIn: false };
-        }
+    // Пользователи
+    async getUser(userId) {
+        return this.request(`/user/${userId}`);
+    }
+    async getUserBalance(userId) {
+        return this.request(`/user/${userId}/balance`);
+    }
+    async getUserOrders(userId) {
+        return this.request(`/user/${userId}/orders`);
     }
 
-    // ========== Чат поддержки ==========
-    
-    async getChatUsers() {
-        return this.request('/api/admin/chat/users');
+    // Чат
+    async getChatMessages(userId) {
+        return this.request(`/chat/messages/${userId}`);
     }
-
-    async checkAdminMessages() {
-        return this.request('/api/chat/admin/check', {
-            method: 'POST',
-            body: JSON.stringify({ lastChecked: Date.now() })
-        });
-    }
-
-    async markMessagesAsRead(userId) {
-        return this.request(`/api/chat/admin/mark-read/${userId}`, {
-            method: 'POST'
-        });
-    }
-
     async sendChatMessage(userId, message, fromAdmin = false) {
-        return this.request('/api/chat/send', {
+        return this.request('/chat/send', {
             method: 'POST',
             body: JSON.stringify({ userId, message, fromAdmin })
         });
     }
-
-    async getChatMessages(userId) {
-        return this.request(`/api/chat/messages/${userId}`);
-    }
-
     async checkNewMessages(userId, lastChecked) {
-        return this.request('/api/chat/check', {
+        return this.request('/chat/check', {
             method: 'POST',
             body: JSON.stringify({ userId, lastChecked })
         });
     }
 
-    async getUserChat(userId) {
-        return this.request(`/api/admin/chat/${userId}`);
-    }
-
-    async sendMessageToUser(userId, message) {
-        return this.request('/api/admin/send-message', {
-            method: 'POST',
-            body: JSON.stringify({ userId, message })
-        });
-    }
-
-    // ========== Управление пользователями ==========
-
-    async getAllUsers() {
-        return this.request('/api/admin/users');
-    }
-
-    async getUser(userId) {
-        return this.request(`/api/user/${userId}`);
-    }
-
-    async getUserBalance(userId) {
-        return this.request(`/api/user/${userId}/balance`);
-    }
-
-    async getUserOrders(userId) {
-        return this.request(`/api/user/${userId}/orders`);
-    }
-
-    async addUserBalance(userId, amount, reason) {
-        return this.request('/api/admin/balance/add', {
-            method: 'POST',
-            body: JSON.stringify({ userId, amount, reason })
-        });
-    }
-
-    async removeUserBalance(userId, amount, reason) {
-        return this.request('/api/admin/balance/remove', {
-            method: 'POST',
-            body: JSON.stringify({ userId, amount, reason })
-        });
-    }
-
-    async setUserBalance(userId, newBalance, reason) {
-        return this.request('/api/admin/balance/set', {
-            method: 'POST',
-            body: JSON.stringify({ userId, newBalance, reason })
-        });
-    }
-
-    async getUserBalanceHistory(userId) {
-        return this.request(`/api/admin/balance/history/${userId}`);
-    }
-
-    // ========== Управление заказами ==========
-
-    async getAllOrders() {
-        return this.request('/api/admin/orders');
-    }
-
-    async createOrder(orderData) {
-        return this.request('/api/create-order', {
-            method: 'POST',
-            body: JSON.stringify(orderData)
-        });
-    }
-
-    async createOrderWithBalance(orderData) {
-        return this.request('/api/create-order-balance', {
-            method: 'POST',
-            body: JSON.stringify(orderData)
-        });
-    }
-
-    // ========== Управление товарами ==========
-
-    async getProducts() {
-        return this.request('/api/products');
-    }
-
-    async createProduct(productData) {
-        return this.request('/api/admin/products', {
-            method: 'POST',
-            body: JSON.stringify(productData)
-        });
-    }
-
-    async updateProduct(productId, productData) {
-        return this.request(`/api/admin/products/${productId}`, {
-            method: 'PUT',
-            body: JSON.stringify(productData)
-        });
-    }
-
-    async deleteProduct(productId) {
-        return this.request(`/api/admin/products/${productId}`, {
-            method: 'DELETE'
-        });
-    }
-
-    // ========== Новости ==========
-
-    async getNews() {
-        return this.request('/api/news');
-    }
-
-    // ========== Статистика ==========
-
-    async getStats() {
-        return this.request('/api/admin/stats');
-    }
-
-    // ========== Промокоды ==========
-
+    // Промокоды
     async getUserPromocodes(userId) {
-        return this.request(`/api/promocodes/user/${userId}`);
+        return this.request(`/promocodes/user/${userId}`);
     }
-
     async getActivePromocodes(userId) {
-        return this.request(`/api/promocodes/active/${userId}`);
+        return this.request(`/promocodes/active/${userId}`);
     }
-
     async checkPromocode(userId, code) {
-        return this.request('/api/promocodes/check', {
+        return this.request('/promocodes/check', {
             method: 'POST',
             body: JSON.stringify({ userId, code })
         });
     }
-
     async activatePromocode(userId, code) {
-        return this.request('/api/promocodes/activate', {
+        return this.request('/promocodes/activate', {
             method: 'POST',
             body: JSON.stringify({ userId, code })
         });
     }
-
     async saveActivePromocodes(userId, activeDiscounts) {
-        return this.request('/api/promocodes/save-active', {
+        return this.request('/promocodes/save-active', {
             method: 'POST',
             body: JSON.stringify({ userId, activeDiscounts })
         });
     }
-
     async removeActivePromocode(userId, code) {
-        return this.request('/api/promocodes/remove-active', {
+        return this.request('/promocodes/remove-active', {
             method: 'POST',
             body: JSON.stringify({ userId, code })
         });
     }
 
-    // ========== Отзывы ==========
-
-    async getReviews(page = 1, limit = 10) {
-        return this.request(`/api/reviews?page=${page}&limit=${limit}`);
+    // Товары
+    async getProducts() {
+        return this.request('/products');
     }
 
+    // Новости
+    async getNews() {
+        return this.request('/news');
+    }
+
+    // Отзывы
+    async getReviews(page = 1, limit = 10) {
+        return this.request(`/reviews?page=${page}&limit=${limit}`);
+    }
     async createReview(reviewData) {
-        return this.request('/api/reviews', {
+        return this.request('/reviews', {
             method: 'POST',
             body: JSON.stringify(reviewData)
         });
     }
-
     async markReviewHelpful(reviewId) {
-        return this.request(`/api/reviews/${reviewId}/helpful`, {
+        return this.request(`/reviews/${reviewId}/helpful`, {
             method: 'POST'
         });
     }
 
-    // ========== Уведомления ==========
-
-    async getUserNotifications(userId) {
-        return this.request(`/api/notifications/user/${userId}`);
-    }
-
-    async markNotificationRead(notificationId) {
-        return this.request(`/api/notifications/${notificationId}/read`, {
-            method: 'POST'
-        });
-    }
-
-    // ========== Утилиты ==========
-
-    // Сохранение токена после авторизации
+    // Утилиты
     setAuthToken(token) {
         const authData = this.getAuthData();
         authData.token = token;
         localStorage.setItem('bhstore_auth', JSON.stringify(authData));
         this.authData = authData;
     }
-
-    // Обновление данных пользователя
     setUserData(userData) {
         const authData = this.getAuthData();
         const updatedData = { ...authData, ...userData };
         localStorage.setItem('bhstore_auth', JSON.stringify(updatedData));
         this.authData = updatedData;
     }
-
-    // Выход из системы
     logout() {
         localStorage.removeItem('bhstore_auth');
         localStorage.removeItem('bhstore_orders');
         localStorage.removeItem('bhstore_active_promocodes');
         window.location.href = '/';
     }
-
-    // Форматирование ошибок
     formatError(error) {
         return error.message || 'Неизвестная ошибка';
     }
 }
 
-// Создаем и экспортируем экземпляр
+// Создаём и делаем глобальным
 const api = new BHStoreAPI();
 window.BHStoreAPI = api;
 window.api = api;
+
+console.log('✅ BHStoreAPI готов к работе (все пути теперь с /api)');
