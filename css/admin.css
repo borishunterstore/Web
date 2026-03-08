@@ -1,44 +1,12 @@
+/* admin.css - Основные стили админ-панели */
+@import url('general.css');
 
-:root {
-    --primary: #5865F2;
-    --primary-dark: #4752c4;
-    --secondary: #9b5de5;
-    --success: #57F287;
-    --danger: #ED4245;
-    --warning: #FEE75C;
-    --text-primary: #ffffff;
-    --text-secondary: #b9bbbe;
-    --text-tertiary: #72767d;
-    --bg-dark: #1e1f29;
-    --bg-darker: #14151a;
-    --bg-card: #2a2b36;
-    --border: #40444b;
-    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.2);
-    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.3);
-    --transition: all 0.3s ease;
-}
-
-/* Базовые стили */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Montserrat', sans-serif;
-    background: linear-gradient(135deg, #0a0a0f 0%, #14151a 100%);
-    color: var(--text-primary);
-    min-height: 100vh;
-}
-
-/* Админ контейнер */
 .admin-container {
     max-width: 1600px;
     margin: 0 auto;
-    padding: 100px 20px 40px;
-    position: relative;
+    padding: calc(var(--header-height) + 30px) 20px 40px;
+    min-height: 100vh;
+    animation: fadeIn 0.5s ease;
 }
 
 /* Заголовок */
@@ -46,25 +14,26 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20px 30px;
+    padding: 25px 30px;
     background: var(--bg-card);
-    border-radius: 16px;
+    border-radius: 20px;
     border: 1px solid var(--border);
     margin-bottom: 30px;
     box-shadow: var(--shadow-lg);
+    animation: slideInDown 0.5s ease;
 }
 
 .admin-header h1 {
     color: var(--primary);
-    font-size: 2rem;
+    font-size: 2.2rem;
     font-weight: 700;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
 }
 
 .admin-header h1 i {
-    font-size: 1.8rem;
+    font-size: 2rem;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -73,43 +42,50 @@ body {
 .admin-user-info {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 16px;
+    gap: 12px;
+    padding: 10px 20px;
     background: var(--bg-dark);
     border-radius: 40px;
     border: 1px solid var(--primary);
-    color: var(--text-secondary);
+}
+
+.admin-user-info i {
+    color: var(--primary);
+    font-size: 1.2rem;
 }
 
 /* Навигация */
 .admin-nav {
     display: flex;
     gap: 12px;
-    margin-bottom: 25px;
+    margin-bottom: 30px;
     flex-wrap: wrap;
-    padding: 5px;
+    padding: 8px;
     background: var(--bg-card);
-    border-radius: 50px;
+    border-radius: 60px;
     border: 1px solid var(--border);
+    animation: slideInUp 0.5s ease;
 }
 
 .admin-nav-btn {
-    padding: 12px 24px;
+    padding: 14px 28px;
     background: transparent;
     border: none;
     border-radius: 40px;
     color: var(--text-secondary);
     font-weight: 600;
+    font-size: 1rem;
     cursor: pointer;
     transition: var(--transition);
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .admin-nav-btn i {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     color: var(--text-tertiary);
+    transition: var(--transition);
 }
 
 .admin-nav-btn:hover {
@@ -124,6 +100,7 @@ body {
 .admin-nav-btn.active {
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     color: white;
+    box-shadow: 0 5px 15px rgba(88, 101, 242, 0.3);
 }
 
 .admin-nav-btn.active i {
@@ -134,11 +111,11 @@ body {
 .admin-section {
     display: none;
     background: var(--bg-card);
-    border-radius: 20px;
+    border-radius: 24px;
     padding: 30px;
     border: 1px solid var(--border);
-    box-shadow: var(--shadow-lg);
-    animation: fadeIn 0.4s ease;
+    box-shadow: var(--shadow-xl);
+    animation: fadeIn 0.5s ease;
 }
 
 .admin-section.active {
@@ -147,13 +124,17 @@ body {
 
 .admin-section h2 {
     color: var(--primary);
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     margin-bottom: 25px;
     padding-bottom: 15px;
-    border-bottom: 2px solid var(--border);
+    border-bottom: 2px solid rgba(88, 101, 242, 0.3);
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+.admin-section h2 i {
+    font-size: 2rem;
 }
 
 /* Статистика */
@@ -161,55 +142,61 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 25px;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
 }
 
 .stat-card {
-    background: var(--bg-dark);
-    padding: 25px;
-    border-radius: 16px;
-    border: 1px solid var(--border);
+    background: linear-gradient(135deg, var(--bg-dark), rgba(30, 31, 41, 0.8));
+    padding: 30px 25px;
+    border-radius: 20px;
+    border: 1px solid rgba(88, 101, 242, 0.2);
     transition: var(--transition);
     position: relative;
     overflow: hidden;
+    animation: slideInUp 0.5s ease;
+    animation-fill-mode: both;
 }
+
+.stat-card:nth-child(1) { animation-delay: 0.1s; }
+.stat-card:nth-child(2) { animation-delay: 0.2s; }
+.stat-card:nth-child(3) { animation-delay: 0.3s; }
+.stat-card:nth-child(4) { animation-delay: 0.4s; }
 
 .stat-card::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, transparent, rgba(88, 101, 242, 0.1));
-    opacity: 0;
-    transition: var(--transition);
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(88, 101, 242, 0.1), transparent);
+    animation: rotate 20s linear infinite;
 }
 
 .stat-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-8px);
     border-color: var(--primary);
-    box-shadow: 0 10px 25px rgba(88, 101, 242, 0.2);
-}
-
-.stat-card:hover::before {
-    opacity: 1;
+    box-shadow: 0 15px 35px rgba(88, 101, 242, 0.2);
 }
 
 .stat-icon {
-    font-size: 2.2rem;
+    font-size: 2.8rem;
     color: var(--primary);
     margin-bottom: 15px;
+    position: relative;
+    z-index: 2;
 }
 
 .stat-value {
-    font-size: 2.8rem;
+    font-size: 3.2rem;
     font-weight: 800;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    line-height: 1.2;
-    margin-bottom: 5px;
+    line-height: 1;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 2;
 }
 
 .stat-label {
@@ -217,14 +204,17 @@ body {
     font-size: 1rem;
     text-transform: uppercase;
     letter-spacing: 1px;
+    position: relative;
+    z-index: 2;
 }
 
 /* Таблицы */
 .table-container {
     background: var(--bg-dark);
-    border-radius: 12px;
+    border-radius: 16px;
     overflow-x: auto;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
+    border: 1px solid var(--border);
 }
 
 table {
@@ -233,19 +223,22 @@ table {
     min-width: 800px;
 }
 
-th {
+thead {
     background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: white;
-    padding: 15px 20px;
+}
+
+th {
+    padding: 16px 20px;
     text-align: left;
     font-weight: 600;
-    font-size: 0.9rem;
+    color: white;
+    font-size: 0.95rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 td {
-    padding: 12px 20px;
+    padding: 14px 20px;
     border-bottom: 1px solid var(--border);
     color: var(--text-secondary);
 }
@@ -258,143 +251,72 @@ tr:hover {
     background: rgba(88, 101, 242, 0.1);
 }
 
-/* Кнопки */
-.btn-admin {
-    padding: 10px 20px;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
+/* Кнопки действий */
+.table-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
     cursor: pointer;
     transition: var(--transition);
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    font-size: 0.9rem;
-}
-
-.btn-admin:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(88, 101, 242, 0.4);
-}
-
-.btn-admin.small {
-    padding: 6px 12px;
-    font-size: 0.8rem;
-}
-
-.btn-admin.danger {
-    background: linear-gradient(135deg, var(--danger), #c73b3e);
-}
-
-.btn-admin.success {
-    background: linear-gradient(135deg, var(--success), #0d9488);
-    color: var(--bg-dark);
-}
-
-.btn-admin.warning {
-    background: linear-gradient(135deg, var(--warning), #e6d048);
-    color: var(--bg-dark);
-}
-
-/* Модальные окна */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    z-index: 10000;
-    align-items: center;
     justify-content: center;
-    backdrop-filter: blur(5px);
 }
 
-.modal-content {
-    background: var(--bg-card);
-    border-radius: 20px;
-    padding: 30px;
-    max-width: 500px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-    border: 1px solid var(--primary);
-    box-shadow: var(--shadow-xl);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.modal-header h2 {
-    color: var(--primary);
-    font-size: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-bottom: none;
-    margin: 0;
-    padding: 0;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    color: var(--text-secondary);
-    font-size: 2rem;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.modal-close:hover {
-    color: var(--danger);
-    transform: rotate(90deg);
-}
-
-/* Формы */
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-
-.form-group input,
-.form-group textarea,
-.form-group select {
-    width: 100%;
-    padding: 12px 15px;
-    background: var(--bg-dark);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+.btn-icon:hover {
+    background: var(--primary);
     color: white;
+    transform: translateY(-2px);
+    border-color: var(--primary);
+}
+
+.btn-icon.success:hover {
+    background: var(--success);
+    color: var(--bg-dark);
+}
+
+.btn-icon.warning:hover {
+    background: var(--warning);
+    color: var(--bg-dark);
+}
+
+.btn-icon.danger:hover {
+    background: var(--danger);
+}
+
+/* Поиск */
+.search-bar {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 300px;
+    padding: 14px 20px;
+    background: var(--bg-dark);
+    border: 2px solid var(--border);
+    border-radius: 40px;
+    color: var(--text-primary);
     font-size: 1rem;
     transition: var(--transition);
 }
 
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
+.search-input:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.2);
-}
-
-.form-actions {
-    display: flex;
-    gap: 15px;
-    justify-content: flex-end;
-    margin-top: 30px;
+    box-shadow: 0 0 0 4px rgba(88, 101, 242, 0.1);
 }
 
 /* Загрузка */
@@ -407,7 +329,7 @@ tr:hover {
 .loading i {
     font-size: 3rem;
     color: var(--primary);
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     animation: spin 1s linear infinite;
 }
 
@@ -417,48 +339,125 @@ tr:hover {
     padding: 80px 20px;
     background: var(--bg-card);
     border-radius: 20px;
+    animation: fadeIn 0.5s ease;
 }
 
 .access-denied i {
     font-size: 5rem;
     color: var(--danger);
     margin-bottom: 20px;
+    animation: pulse 2s infinite;
 }
 
 .access-denied h2 {
     color: var(--danger);
-    font-size: 2rem;
-    margin-bottom: 10px;
+    font-size: 2.5rem;
+    margin-bottom: 15px;
 }
 
 .access-denied p {
     color: var(--text-secondary);
+    font-size: 1.2rem;
     margin-bottom: 30px;
 }
 
-/* Анимации */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Пагинация */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 30px;
 }
 
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
+.pagination-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.pagination-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.pagination-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+/* Бейджи */
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-admin {
+    background: rgba(237, 66, 69, 0.2);
+    color: #ff6b6b;
+    border: 1px solid rgba(237, 66, 69, 0.3);
+}
+
+.badge-verified {
+    background: rgba(87, 242, 135, 0.2);
+    color: #7bff9c;
+    border: 1px solid rgba(87, 242, 135, 0.3);
+}
+
+.badge-partner {
+    background: rgba(254, 231, 92, 0.2);
+    color: #fff2b5;
+    border: 1px solid rgba(254, 231, 92, 0.3);
 }
 
 /* Адаптивность */
+@media (max-width: 1200px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .admin-header h1 {
+        font-size: 1.8rem;
+    }
+}
+
+@media (max-width: 992px) {
+    .admin-nav {
+        border-radius: 30px;
+    }
+    
+    .admin-nav-btn {
+        padding: 12px 20px;
+        font-size: 0.9rem;
+    }
+    
+    .admin-section {
+        padding: 20px;
+    }
+}
+
 @media (max-width: 768px) {
     .admin-header {
         flex-direction: column;
-        gap: 15px;
+        gap: 20px;
         text-align: center;
     }
     
@@ -468,27 +467,28 @@ tr:hover {
     
     .admin-nav-btn {
         padding: 10px 16px;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
     
     .stats-grid {
         grid-template-columns: 1fr;
     }
     
-    .admin-section {
-        padding: 20px;
-    }
-    
-    .modal-content {
-        padding: 20px;
-    }
-    
-    .form-actions {
+    .search-bar {
         flex-direction: column;
     }
     
-    .btn-admin {
-        width: 100%;
-        justify-content: center;
+    .search-input {
+        min-width: auto;
     }
+    
+    .pagination-btn {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }

@@ -8,7 +8,22 @@
     --primary-light: #60a5fa;
     --secondary: #7c3aed;
     --accent: #10b981;
-    
+    --success: #57F287;
+    --danger: #ED4245;
+    --warning: #FEE75C;
+    --text-primary: #ffffff;
+    --text-secondary: #b9bbbe;
+    --text-tertiary: #72767d;
+    --bg-dark: #1e1f29;
+    --bg-darker: #14151a;
+    --bg-card: #2a2b36;
+    --border: #40444b;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.2);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.3);
+    --transition: all 0.3s ease;
+    --header-height: 70px;
+
     /* Серые оттенки */
     --gray-50: #525252;
     --gray-100: #dddddd;
