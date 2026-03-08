@@ -13,8 +13,8 @@ class DiscordAuth {
             this.initVerifyPage();
         }
         
-        // Инициализируем кнопку авторизации на всех страницах
-        this.initAuthButton();
+        // НЕ инициализируем кнопку здесь - это делает main.js
+        // this.initAuthButton(); - УБИРАЕМ!
         
         // Обработка callback от Discord
         window.addEventListener('message', (event) => {
@@ -37,124 +37,16 @@ class DiscordAuth {
                 if (balance !== null) {
                     authData.balance = balance;
                     this.saveAuthData(authData);
-                    this.updateAuthButton();
+                    // Вызываем функцию из main.js для обновления интерфейса
+                    if (window.checkAuth) {
+                        window.checkAuth();
+                    }
                 }
             } catch (error) {
                 console.error('❌ Error refreshing balance:', error);
             }
         }
     }
-
-    initAuthButton() {
-        const authBtn = document.getElementById('authBtn');
-        if (authBtn) {
-            // Проверяем текущий статус авторизации
-            this.updateAuthButton();
-            
-            // Если кнопка еще не имеет обработчика, добавляем его
-            if (!authBtn.hasAttribute('data-auth-initialized')) {
-                authBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const authData = this.getAuthData();
-                    
-                    if (authData?.username && !authData.requiresVerification) {
-                        // Пользователь уже авторизован - показываем меню
-                        this.showUserMenu();
-                    } else {
-                        // Перенаправляем на страницу авторизации
-                        window.location.href = '/auth.html';
-                    }
-                });
-                
-                authBtn.setAttribute('data-auth-initialized', 'true');
-            }
-        }
-    }
-
-    async updateAuthButton() {
-        const authBtn = document.getElementById('authBtn');
-        if (!authBtn) return;
-        
-        const authData = this.getAuthData();
-        
-        if (authData?.username && !authData.requiresVerification) {
-            // Получаем актуальные данные с сервера
-            try {
-                const userData = await this.fetchUserData(authData.id);
-                if (userData) {
-                    authData.balance = userData.balance;
-                    authData.badges = userData.badges;
-                    this.saveAuthData(authData);
-                }
-            } catch (error) {
-                console.error('❌ Error fetching user data:', error);
-            }
-            
-            // Получаем бейджи пользователя
-            const badges = this.getUserBadgesHTML(authData);
-            
-            // Пользователь авторизован и верифицирован
-            authBtn.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <img src="https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=32" 
-                         style="width: 32px; height: 32px; border-radius: 50%;"
-                         onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                    <span style="vertical-align: middle;">${authData.username}</span>
-                    ${badges}
-                    <span style="color: #57F287; font-weight: 600; margin-left: 5px;">${authData.balance || 0} ₽</span>
-                    <i class="fas fa-chevron-down" style="margin-left: 5px; vertical-align: middle;"></i>
-                </div>
-            `;
-        } else if (authData?.username && authData.requiresVerification) {
-            // Пользователь авторизован, но не верифицирован
-            authBtn.innerHTML = `
-                <i class="fas fa-hourglass-half" style="color: #FEE75C;"></i>
-                <span>Завершить регистрацию</span>
-            `;
-            authBtn.onclick = () => {
-                window.location.href = '/verify.html';
-            };
-        } else {
-            // Не авторизован
-            authBtn.innerHTML = '<i class="fab fa-discord"></i> Войти через Discord';
-        }
-    }
-
-getUserBadgesHTML(authData) {
-    const badges = authData.badges || {};
-    let badgeHtml = '';
-    
-    if (badges.admin) {
-        badgeHtml = `
-            <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75" 
-                 style="width: 18px; height: 18px; margin-left: 6px; border-radius: 50%;" 
-                 title="Администратор">
-        `;
-    } 
-    else if (badges.verified) {
-        badgeHtml = `
-            <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75" 
-                 style="width: 18px; height: 18px; margin-left: 6px; border-radius: 50%;" 
-                 title="Верифицированный">
-        `;
-    } 
-    else if (badges.partner) {
-        badgeHtml = `
-            <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75" 
-                 style="width: 18px; height: 18px; margin-left: 6px;" 
-                 title="Партнёр">
-        `;
-    } 
-    else if (badges.buyer) {
-        badgeHtml = `
-            <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75" 
-                 style="width: 18px; height: 18px; margin-left: 6px;" 
-                 title="Покупатель">
-        `;
-    }
-    
-    return badgeHtml;
-}
 
     // Получение данных пользователя с сервера
     async fetchUserData(userId) {
@@ -241,9 +133,6 @@ getUserBadgesHTML(authData) {
                     
                     this.saveAuthData(authData);
                     
-                    // Обновляем кнопку авторизации
-                    this.updateAuthButton();
-                    
                     // Перенаправление на верификацию
                     window.location.href = '/verify.html';
                 } else {
@@ -289,8 +178,10 @@ getUserBadgesHTML(authData) {
                     const success = await this.verifyCode(code);
                     
                     if (success) {
-                        // Обновляем кнопку авторизации
-                        await this.updateAuthButton();
+                        // Вызываем checkAuth из main.js для обновления кнопки
+                        if (window.checkAuth) {
+                            await window.checkAuth();
+                        }
                         
                         // Показываем успешное сообщение
                         this.showVerificationSuccess();
@@ -441,134 +332,8 @@ getUserBadgesHTML(authData) {
             `;
         }
     }
-    
-    // Функция для получения главного бейджа (только один по приоритету)
-    getMainBadge(badges) {
-        // Приоритет: Админ > Подтвержденный > Партнер > Покупатель
-        if (badges.admin) {
-            return `
-                <div class="avatar-badge" title="Администратор">
-                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75" 
-                         alt="Admin">
-                </div>
-            `;
-        } else if (badges.verified) {
-            return `
-                <div class="avatar-badge" title="Верифицированный">
-                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75" 
-                         alt="Verified">
-                </div>
-            `;
-        } else if (badges.partner) {
-            return `
-                <div class="avatar-badge" title="Партнёр">
-                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75" 
-                         alt="Partner">
-                </div>
-            `;
-        } else if (badges.buyer) {
-            return `
-                <div class="avatar-badge" title="Покупатель">
-                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75" 
-                         alt="Buyer">
-                </div>
-            `;
-        }
-        return '';
-    }
-    
-    // Функция для генерации всех бейджей (для отображения в списке)
-    generateAllBadgesHTML(badges) {
-        let badgesHtml = '';
-        
-        // Словарь бейджей с приоритетами
-        const badgeConfigs = [
-            { condition: badges.admin, class: 'admin', image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75', text: 'Админ', priority: 1 },
-            { condition: badges.verified, class: 'verified', image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75', text: 'Verified', priority: 2 },
-            { condition: badges.partner, class: 'partner', image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75', text: 'Partner', priority: 3 },
-            { condition: badges.buyer, class: 'buyer', image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75', text: 'Buyer', priority: 4 }
-        ];
-        
-        // Сортируем по приоритету
-        const sortedConfigs = badgeConfigs.sort((a, b) => a.priority - b.priority);
-        
-        sortedConfigs.forEach(config => {
-            if (config.condition) {
-                badgesHtml += `
-                    <div class="badge-icon" title="${config.text}">
-                        <img src="${config.image}" alt="${config.text}">
-                    </div>
-                `;
-            }
-        });
-        
-        return badgesHtml;
-    }
-    
-    // Вспомогательная функция для экранирования HTML
-    escapeHtml(unsafe) {
-        if (!unsafe) return '';
-        return String(unsafe)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
 
-    // Генерация HTML для бейджей в меню
-    generateBadgesHTML(badges) {
-        let badgesArray = [];
-        
-        if (badges.admin) {
-            badgesArray.push(`
-                <span style="background: #ED4245; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 3px;">
-                    <i class="fas fa-crown" style="font-size: 10px;"></i>
-                    <span>Админ</span>
-                </span>
-            `);
-        }
-        
-        if (badges.verified) {
-            badgesArray.push(`
-                <span style="background: #5865F2; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 3px;">
-                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75" style="width: 12px; height: 12px; border-radius: 50%;">
-                    <span>Верифицирован</span>
-                </span>
-            `);
-        }
-        
-        if (badges.partner) {
-            badgesArray.push(`
-                <span style="background: #FEE75C; color: #1e1f29; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 3px;">
-                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75" style="width: 12px; height: 12px;">
-                    <span>Партнёр</span>
-                </span>
-            `);
-        }
-        
-        if (badges.buyer) {
-            badgesArray.push(`
-                <span style="background: #57F287; color: #1e1f29; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 3px;">
-                    <img src="https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75" style="width: 12px; height: 12px;">
-                    <span>Покупатель</span>
-                </span>
-            `);
-        }
-        
-        return badgesArray.join(' ');
-    }
-
-    isAdmin() {
-        const authData = this.getAuthData();
-        return authData?.badges?.admin === true;
-    }
-
-    logout() {
-        localStorage.removeItem('bhstore_auth');
-        localStorage.removeItem('discord_oauth_state');
-        window.location.reload();
-    }
+    // Вспомогательные функции для работы с данными
 
     generateVerificationCode() {
         return Math.floor(100000 + Math.random() * 900000).toString();
@@ -618,7 +383,10 @@ getUserBadgesHTML(authData) {
             if (authData) {
                 authData.balance = newBalance;
                 instance.saveAuthData(authData);
-                instance.updateAuthButton();
+                // Вызываем функцию из main.js
+                if (window.checkAuth) {
+                    window.checkAuth();
+                }
             }
         }
     }
@@ -629,21 +397,20 @@ const auth = new DiscordAuth();
 window.DiscordAuth = DiscordAuth;
 DiscordAuth.instance = auth;
 
-// Автоматическое обновление кнопки при загрузке страницы
+// Только обновление баланса, НЕ обновляем кнопку
 document.addEventListener('DOMContentLoaded', () => {
-    auth.updateAuthButton();
+    // Просто обновляем баланс в фоне
+    auth.refreshUserBalance();
     
     // Также обновляем каждые 30 секунд на случай изменений
     setInterval(async () => {
         await auth.refreshUserBalance();
-        auth.updateAuthButton();
+        // Не вызываем updateAuthButton, только обновляем данные
     }, 30000);
 });
 
-// Глобальная функция logout для вызова из кнопок
-window.logout = function() {
-    auth.logout();
-};
+// НЕ переопределяем logout - оставляем только в main.js
+// window.logout = function() { ... } - УБИРАЕМ!
 
 // Глобальная функция для обновления баланса
 window.updateUserBalance = function(newBalance) {

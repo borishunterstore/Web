@@ -1,3 +1,4 @@
+// shop.js (исправленная версия)
 (function() {
     'use strict';
 
@@ -22,7 +23,7 @@
             ]);
 
             initCategories();
-            updateAuthButton();
+            // Убираем вызов updateAuthButton() - он будет вызван из main.js
             addAnimationStyles();
             initMobileMenu();
 
@@ -306,7 +307,7 @@
         `;
     }
 
-    // Отображение товаров (ИСПРАВЛЕННАЯ ВЕРСИЯ)
+    // Отображение товаров
     function renderProducts(productsToRender) {
         const container = document.getElementById('productsContainer');
         if (!container) return;
@@ -434,55 +435,56 @@
         }
     }
 
-window.buyProduct = async function(productId, productName, originalPrice) {
-    console.log('🛒 buyProduct вызван из shop.js с параметрами:', { productId, productName, originalPrice });
-    
-    // Проверка параметров
-    if (!productId || !productName || originalPrice === undefined || originalPrice === null) {
-        console.error('❌ Ошибка: отсутствуют параметры', { productId, productName, originalPrice });
-        showNotification('Ошибка: не удалось получить данные товара', 'error');
-        return;
-    }
-
-    const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-
-    if (!authData.id) {
-        showNotification('Пожалуйста, авторизуйтесь для покупки', 'warning');
-        setTimeout(() => window.location.href = '/auth.html', 2000);
-        return;
-    }
-
-    if (authData.verificationCode) {
-        showNotification('Завершите регистрацию', 'warning');
-        setTimeout(() => window.location.href = '/verify.html', 2000);
-        return;
-    }
-
-    try {
-        if (!window.api) throw new Error('API not available');
-
-        // Получаем актуальные данные пользователя
-        const userData = await window.api.getUser(authData.id);
-        if (!userData?.success || !userData.user) {
-            throw new Error('Не удалось получить данные пользователя');
-        }
-
-        const userBalance = userData.user.balance || 0;
-        const discountInfo = getDiscountInfo(originalPrice, productId);
-        const finalPrice = discountInfo.finalPrice;
-
-        if (userBalance < finalPrice) {
-            showInsufficientFundsModal(finalPrice, userBalance, productName, productId);
+    // Покупка товара
+    window.buyProduct = async function(productId, productName, originalPrice) {
+        console.log('🛒 buyProduct вызван из shop.js с параметрами:', { productId, productName, originalPrice });
+        
+        // Проверка параметров
+        if (!productId || !productName || originalPrice === undefined || originalPrice === null) {
+            console.error('❌ Ошибка: отсутствуют параметры', { productId, productName, originalPrice });
+            showNotification('Ошибка: не удалось получить данные товара', 'error');
             return;
         }
 
-        showPurchaseConfirmation(productName, finalPrice, productId, userBalance, discountInfo);
+        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
 
-    } catch (error) {
-        console.error('Error buying product:', error);
-        showNotification('Ошибка: ' + error.message, 'error');
-    }
-};
+        if (!authData.id) {
+            showNotification('Пожалуйста, авторизуйтесь для покупки', 'warning');
+            setTimeout(() => window.location.href = '/auth.html', 2000);
+            return;
+        }
+
+        if (authData.verificationCode) {
+            showNotification('Завершите регистрацию', 'warning');
+            setTimeout(() => window.location.href = '/verify.html', 2000);
+            return;
+        }
+
+        try {
+            if (!window.api) throw new Error('API not available');
+
+            // Получаем актуальные данные пользователя
+            const userData = await window.api.getUser(authData.id);
+            if (!userData?.success || !userData.user) {
+                throw new Error('Не удалось получить данные пользователя');
+            }
+
+            const userBalance = userData.user.balance || 0;
+            const discountInfo = getDiscountInfo(originalPrice, productId);
+            const finalPrice = discountInfo.finalPrice;
+
+            if (userBalance < finalPrice) {
+                showInsufficientFundsModal(finalPrice, userBalance, productName, productId);
+                return;
+            }
+
+            showPurchaseConfirmation(productName, finalPrice, productId, userBalance, discountInfo);
+
+        } catch (error) {
+            console.error('Error buying product:', error);
+            showNotification('Ошибка: ' + error.message, 'error');
+        }
+    };
 
     // Показать подтверждение покупки
     function showPurchaseConfirmation(productName, finalPrice, productId, userBalance, discountInfo) {
@@ -616,7 +618,11 @@ window.buyProduct = async function(productId, productName, originalPrice) {
                 closePurchaseModal();
                 showSuccessMessage(result.orderId || orderId, productName, result.newBalance);
 
-                updateAuthButton();
+                // Вызываем checkAuth из main.js для обновления кнопки
+                if (window.checkAuth) {
+                    window.checkAuth();
+                }
+
                 window.promocodeSystem?.renderUI?.();
 
             } else {
@@ -996,44 +1002,6 @@ window.buyProduct = async function(productId, productName, originalPrice) {
         });
     }
 
-    // Обновление кнопки авторизации
-    window.updateAuthButton = function() {
-        const authBtn = document.getElementById('authBtn');
-        if (!authBtn) return;
-
-        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-
-        if (authData.id && !authData.verificationCode) {
-            const avatarUrl = authData.avatar
-                ? `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=32`
-                : 'https://cdn.discordapp.com/embed/avatars/0.png';
-
-            authBtn.innerHTML = `
-                <img src="${avatarUrl}"
-                     class="auth-avatar"
-                     alt="Avatar"
-                     onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                <span>${escapeHtml(authData.username)}</span>
-                <i class="fas fa-chevron-down"></i>
-            `;
-            authBtn.onclick = (e) => {
-                e.stopPropagation();
-                if (window.showUserMenu) {
-                    window.showUserMenu(e);
-                }
-            };
-        } else if (authData.id && authData.verificationCode) {
-            authBtn.innerHTML = `
-                <i class="fas fa-hourglass-half"></i>
-                <span>Завершить регистрацию</span>
-            `;
-            authBtn.onclick = () => window.location.href = '/verify.html';
-        } else {
-            authBtn.innerHTML = '<i class="fab fa-discord"></i> Войти';
-            authBtn.onclick = () => window.location.href = '/auth.html';
-        }
-    };
-
     // Вспомогательная функция экранирования HTML
     function escapeHtml(unsafe) {
         if (!unsafe) return '';
@@ -1052,5 +1020,5 @@ window.buyProduct = async function(productId, productName, originalPrice) {
     window.closePurchaseModal = closePurchaseModal;
     window.confirmPurchase = confirmPurchase;
     window.removeShopPromocode = removeShopPromocode;
-    window.updateAuthButton = updateAuthButton;
+    // Убираем экспорт updateAuthButton, чтобы не конфликтовать с main.js
 })();
