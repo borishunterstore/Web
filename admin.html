@@ -1,31 +1,29 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <!-- Yandex.Metrika counter -->
-<script type="text/javascript">
-    (function(m,e,t,r,i,k,a){
-        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-        m[i].l=1*new Date();
-        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097', 'ym');
-
-    ym(107215097, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-</script>
-<noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-<!-- /Yandex.Metrika counter -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Админ | BHStore</title>
     
-    <!-- Стили -->
+    <!-- Стили - ТОЛЬКО general.css И admin.css -->
     <link rel="stylesheet" href="css/general.css">
     <link rel="stylesheet" href="css/admin.css">
-    <link rel="stylesheet" href="css/admin-chat.css">
-    <link rel="stylesheet" href="css/admin-modal.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="/image/logo.png">
+    
+    <!-- Yandex.Metrika counter -->
+    <script type="text/javascript">
+        (function(m,e,t,r,i,k,a){
+            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+            m[i].l=1*new Date();
+            for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}
+            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+        })(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097','ym');
+        
+        ym(107215097,'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",referrer:document.referrer,url:location.href,accurateTrackBounce:true,trackLinks:true});
+    </script>
+    <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
     
     <!-- Скрипты (в правильном порядке) -->
     <script src="js/api.js"></script>
@@ -52,8 +50,8 @@
     <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo">
-                <i class="fab fa-discord"></i>
-                <span>BHStore</span>
+                <img src="image/logo.png" alt="BHStore" style="width: 50px;">
+                <span class="logo-text">BHStore</span>
             </a>
             <div class="nav-menu">
                 <a href="/" class="nav-link"><i class="fas fa-home"></i> Главная</a>
@@ -62,8 +60,8 @@
                 <a href="/profile.html" class="nav-link"><i class="fas fa-user"></i> Профиль</a>
             </div>
             <div class="nav-auth">
-                <button class="nav-auth-btn" onclick="window.location.href='/profile.html'">
-                    <i class="fab fa-discord"></i> Профиль
+                <button id="authBtn" class="btn-discord">
+                    <i class="fab fa-discord"></i> Войти
                 </button>
             </div>
             <button class="mobile-menu-btn">
