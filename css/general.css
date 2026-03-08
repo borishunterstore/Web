@@ -1456,3 +1456,343 @@ body {
         background: rgba(20, 20, 30, 0.98);
     }
 }
+
+/* ========== УЛУЧШЕННАЯ КНОПКА АВТОРИЗАЦИИ ========== */
+
+.btn-discord {
+    background: linear-gradient(135deg, #5865f2 0%, #4752c4 100%);
+    color: white;
+    border: none;
+    padding: 0;
+    border-radius: 40px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+    box-shadow: 0 4px 15px rgba(88, 101, 242, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-discord::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+    z-index: 0;
+}
+
+.btn-discord:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-discord:active {
+    transform: scale(0.95);
+}
+
+.btn-discord:disabled {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Авторизованное состояние */
+.btn-discord.auth-authenticated {
+    background: rgba(30, 30, 40, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    padding: 4px 6px 4px 4px;
+}
+
+/* Состояние верификации */
+.btn-discord.auth-verification {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+    padding: 8px 20px;
+}
+
+/* Контент кнопки */
+.auth-button-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+}
+
+/* Обертка аватара */
+.auth-avatar-wrapper {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: visible;
+}
+
+.auth-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(88, 101, 242, 0.5);
+    transition: all 0.3s ease;
+}
+
+.btn-discord:hover .auth-avatar-img {
+    border-color: #5865f2;
+    transform: scale(1.05);
+}
+
+/* Бейдж на аватаре */
+.auth-badge-icon {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 18px;
+    height: 18px;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    z-index: 2;
+}
+
+.auth-badge-icon img {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+}
+
+/* Имя пользователя */
+.auth-username {
+    font-weight: 600;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: white;
+}
+
+/* Контейнер бейджей */
+.auth-badges {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 2px;
+}
+
+.badge-icon-img-small {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    animation: badgePulse 2s infinite;
+}
+
+/* Индикатор баланса */
+.auth-balance-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(87, 242, 135, 0.15);
+    padding: 4px 8px;
+    border-radius: 30px;
+    border: 1px solid rgba(87, 242, 135, 0.3);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #57F287;
+    transition: all 0.3s ease;
+}
+
+.btn-discord:hover .auth-balance-indicator {
+    background: rgba(87, 242, 135, 0.25);
+    border-color: #57F287;
+    transform: translateY(-2px);
+}
+
+.auth-balance-indicator i {
+    font-size: 0.8rem;
+    color: #FEE75C;
+}
+
+/* Шеврон */
+.auth-chevron {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+    margin-left: 4px;
+}
+
+.btn-discord:hover .auth-chevron {
+    color: white;
+    transform: rotate(180deg);
+}
+
+/* Состояние верификации */
+.auth-verification-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    animation: pulse 2s infinite;
+}
+
+.auth-verification-text {
+    font-weight: 500;
+}
+
+.auth-verification-badge {
+    background: white;
+    color: #f59e0b;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-left: auto;
+}
+
+/* Неавторизованное состояние */
+.auth-discord-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.auth-login-text {
+    font-weight: 600;
+}
+
+.auth-login-hint {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 30px;
+    margin-left: 4px;
+}
+
+/* Анимации */
+@keyframes badgePulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+    .btn-discord {
+        padding: 6px 12px;
+    }
+    
+    .auth-username {
+        max-width: 80px;
+        font-size: 0.85rem;
+    }
+    
+    .auth-balance-indicator {
+        padding: 2px 6px;
+        font-size: 0.75rem;
+    }
+    
+    .auth-balance-indicator i {
+        font-size: 0.7rem;
+    }
+    
+    .auth-verification-text {
+        font-size: 0.85rem;
+    }
+    
+    .auth-login-text {
+        font-size: 0.85rem;
+    }
+    
+    .auth-login-hint {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn-discord {
+        padding: 4px 10px;
+    }
+    
+    .auth-avatar-wrapper {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .auth-username {
+        max-width: 60px;
+    }
+    
+    .auth-balance-indicator {
+        display: none;
+    }
+    
+    .auth-badges {
+        display: none;
+    }
+}
+
+/* Темная тема */
+@media (prefers-color-scheme: dark) {
+    .btn-discord.auth-authenticated {
+        background: rgba(20, 20, 30, 0.95);
+    }
+}
+
+/* Анимация загрузки */
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+.btn-discord.loading {
+    background: linear-gradient(90deg, #2a2b36 25%, #3a3b46 50%, #2a2b36 75%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+    pointer-events: none;
+    opacity: 0.7;
+}
