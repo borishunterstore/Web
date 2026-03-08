@@ -1,4 +1,3 @@
-// chat.js - Исправленная версия для пользователей
 class ChatSystem {
     constructor() {
         this.api = window.api;
@@ -13,8 +12,16 @@ class ChatSystem {
     
     async init() {
         try {
+            // Проверяем, что API доступен
             if (!this.api) {
-                console.error('❌ BHStoreAPI не найден');
+                console.error('❌ window.api не найден');
+                return;
+            }
+
+            // Проверяем, что метод getAuthData существует
+            if (typeof this.api.getAuthData !== 'function') {
+                console.error('❌ Метод getAuthData отсутствует в API');
+                console.log('Доступные методы:', Object.keys(this.api));
                 return;
             }
 
@@ -639,7 +646,14 @@ class ChatSystem {
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', () => {
+    // Даем время на загрузку API
     setTimeout(() => {
+        // Проверяем, что window.api существует
+        if (!window.api) {
+            console.error('❌ window.api не найден! Проверьте подключение api.js');
+            return;
+        }
+        
         window.chatSystem = new ChatSystem();
         window.chatSystem.init();
     }, 500);
