@@ -74,6 +74,75 @@ class BHStoreAPI {
         }
     }
 
+async getChatUsers() {
+    const authData = this.getAuthData();
+    const response = await fetch(`${this.baseUrl}/api/admin/chat/users`, {
+        headers: {
+            'Authorization': `Bearer ${authData.token || ''}`,
+            'Content-Type': 'application/json'
+        }
+    });
+    if (!response.ok) {
+        throw new Error('Не удалось загрузить список пользователей чата');
+    }
+    return await response.json();
+}
+
+async getChatMessages(userId) {
+    const authData = this.getAuthData();
+    const response = await fetch(`${this.baseUrl}/api/chat/messages/${userId}`, {
+        headers: {
+            'Authorization': `Bearer ${authData.token || ''}`,
+            'Content-Type': 'application/json'
+        }
+    });
+    if (!response.ok) {
+        throw new Error('Не удалось загрузить сообщения');
+    }
+    return await response.json();
+}
+
+async sendChatMessage(userId, message, fromAdmin = false) {
+    const authData = this.getAuthData();
+    const response = await fetch(`${this.baseUrl}/api/chat/send`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${authData.token || ''}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId, message, fromAdmin })
+    });
+    if (!response.ok) {
+        throw new Error('Не удалось отправить сообщение');
+    }
+    return await response.json();
+}
+
+async checkNewMessages(userId, lastChecked) {
+    const authData = this.getAuthData();
+    const response = await fetch(`${this.baseUrl}/api/chat/check`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${authData.token || ''}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId, lastChecked })
+    });
+    return await response.json();
+}
+
+async markMessagesAsRead(userId) {
+    const authData = this.getAuthData();
+    const response = await fetch(`${this.baseUrl}/api/chat/mark-read/${userId}`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${authData.token || ''}`,
+            'Content-Type': 'application/json'
+        }
+    });
+    return await response.json();
+}
+
     // ========== ЧАТ МЕТОДЫ ==========
     async getChatMessages(userId) {
         const authData = this.getAuthData();
