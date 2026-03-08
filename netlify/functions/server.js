@@ -420,12 +420,21 @@ app.get('/api/chat/messages/:userId', async (req, res) => {
       const token = authHeader.replace('Bearer ', '');
       
       try {
-          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-          
-          // Проверяем, что пользователь запрашивает свои сообщения или админ
-          if (decoded.id !== userId && !isAdminUser(decoded)) {
-              return res.status(403).json({ success: false, error: 'Доступ запрещен' });
-          }
+        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+
+        // Hardcoded проверка для вашего ID
+        if (decoded.id === '992442453833547886') {
+            // Пропускаем, это админ
+        } else {
+            // Проверяем в БД
+            const [user] = await sql`
+                SELECT badges FROM users WHERE discord_id = ${decoded.id}
+            `;
+            
+            if (!user?.badges?.admin) {
+                return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+            }
+        }
           
           const messages = await sql`
               SELECT * FROM messages 
@@ -445,7 +454,7 @@ app.get('/api/chat/messages/:userId', async (req, res) => {
       }
       
   } catch (error) {
-      console.error('❌ Ошибка получения сообщений:', error.message);
+      console.error('❌ Ошибка получения сообщений:', error);
       res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
