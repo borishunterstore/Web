@@ -388,7 +388,8 @@ app.get('/api/admin/chat/users', async (req, res) => {
               balance: user.balance || 0,
               orderCount: (user.orders || []).length,
               badges: user.badges || {},
-              unreadMessages: unreadMap[user.discord_id] || 0
+              unreadMessages: unreadMap[user.discord_id] || 0,
+              online: false // Заглушка
           }));
           
           res.json({
@@ -422,9 +423,9 @@ app.get('/api/chat/messages/:userId', async (req, res) => {
       try {
           const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
           
-          // РАЗРЕШАЕМ пользователю смотреть свои сообщения
+          // Разрешаем пользователю смотреть свои сообщения ИЛИ админу
           if (decoded.id !== userId) {
-              // Если это не тот пользователь, проверяем админа
+              // Проверяем, админ ли это
               const [user] = await sql`
                   SELECT badges FROM users WHERE discord_id = ${decoded.id}
               `;
@@ -436,6 +437,7 @@ app.get('/api/chat/messages/:userId', async (req, res) => {
               }
           }
           
+          // Получаем сообщения из БД
           const messages = await sql`
               SELECT * FROM messages 
               WHERE user_id = ${userId} 
@@ -450,6 +452,7 @@ app.get('/api/chat/messages/:userId', async (req, res) => {
           });
           
       } catch (decodeError) {
+          console.error('❌ Ошибка декодирования токена:', decodeError);
           return res.status(401).json({ success: false, error: 'Неверный токен' });
       }
       
@@ -458,6 +461,7 @@ app.get('/api/chat/messages/:userId', async (req, res) => {
       res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
+
 
 // Отправка сообщения
 app.post('/api/chat/send', async (req, res) => {
@@ -479,11 +483,8 @@ app.post('/api/chat/send', async (req, res) => {
               return res.status(400).json({ success: false, error: 'Не указаны данные' });
           }
           
-          // РАЗРЕШАЕМ:
-          // 1. Пользователю отправлять сообщения от своего имени
-          // 2. Админу отправлять сообщения от имени системы
+          // Проверяем права
           if (decoded.id !== userId && !fromAdmin) {
-              // Проверяем, может это админ?
               const [user] = await sql`
                   SELECT badges FROM users WHERE discord_id = ${decoded.id}
               `;
@@ -511,23 +512,21 @@ app.post('/api/chat/send', async (req, res) => {
               )
           `;
           
-          // Получаем информацию о пользователе
+          // Получаем информацию о пользователе для вебхука
           const [user] = await sql`
               SELECT username FROM users WHERE discord_id = ${userId}
           `;
           
-          // Отправляем уведомление в Discord
-          const webhookUrl = fromAdmin 
-              ? process.env.DISCORD_WEBHOOK_CHAT
-              : process.env.DISCORD_WEBHOOK_SUPPORT;
-          
-          if (webhookUrl) {
+          // Отправляем уведомление в Discord (только для сообщений от пользователей)
+          if (!fromAdmin) {
               try {
+                  const webhookUrl = process.env.DISCORD_WEBHOOK_CHAT || 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG';
+                  
                   await axios.post(webhookUrl, {
                       embeds: [{
-                          title: fromAdmin ? '💬 Ответ от администратора' : '💬 Новое сообщение от пользователя',
+                          title: '💬 Новое сообщение от пользователя',
                           description: message,
-                          color: fromAdmin ? 0x5865F2 : 0x43b581,
+                          color: 0x5865F2,
                           fields: [
                               { name: '👤 Пользователь', value: `<@${userId}>`, inline: true },
                               { name: '📝 Имя', value: user?.username || 'Неизвестно', inline: true }
@@ -535,6 +534,8 @@ app.post('/api/chat/send', async (req, res) => {
                           timestamp: now
                       }]
                   });
+                  
+                  console.log('✅ Вебхук отправлен в Discord');
               } catch (webhookError) {
                   console.error('❌ Ошибка отправки вебхука:', webhookError.message);
               }
@@ -605,6 +606,7 @@ app.post('/api/chat/check', async (req, res) => {
           });
           
       } catch (decodeError) {
+          console.error('❌ Ошибка декодирования токена:', decodeError);
           return res.status(401).json({ success: false, error: 'Неверный токен' });
       }
       
@@ -754,21 +756,30 @@ app.get('/api/chat/admin/check', async (req, res) => {
 // Статус печатания
 app.post('/api/chat/typing', async (req, res) => {
   try {
-    const { userId, isTyping, isAdmin } = req.body;
-    
-    // Здесь можно сохранять статус в Redis или памяти
-    // Пока просто возвращаем успех
-    
-    res.json({
-      success: true
-    });
-    
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          const { userId, isTyping, isAdmin } = req.body;
+          
+          // Здесь можно сохранять статус в Redis или памяти
+          // Пока просто возвращаем успех
+          
+          res.json({ success: true });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
   } catch (error) {
-    console.error('❌ Ошибка обновления статуса печатания:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Ошибка сервера' 
-    });
+      console.error('❌ Ошибка обновления статуса печатания:', error);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
 
