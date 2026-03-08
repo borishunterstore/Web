@@ -1601,6 +1601,578 @@ function isAdminUser(decodedToken) {
   return adminIds.includes(decodedToken.id);
 }
 
+// ============================================
+// Админ маршруты для управления пользователями
+// ============================================
+
+// Добавление баланса пользователя
+app.post('/api/admin/balance/add', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          if (!isAdminUser(decoded)) {
+              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          }
+          
+          const { userId, amount, reason } = req.body;
+          
+          if (!userId || !amount) {
+              return res.status(400).json({ success: false, error: 'Не указаны userId или amount' });
+          }
+          
+          // Получаем пользователя из БД
+          const [user] = await sql`
+              SELECT * FROM users WHERE discord_id = ${userId}
+          `;
+          
+          if (!user) {
+              return res.status(404).json({ success: false, error: 'Пользователь не найден' });
+          }
+          
+          const newBalance = (user.balance || 0) + parseInt(amount);
+          
+          // Обновляем баланс
+          await sql`
+              UPDATE users 
+              SET balance = ${newBalance}
+              WHERE discord_id = ${userId}
+          `;
+          
+          console.log(`💰 Админ ${decoded.username} пополнил баланс ${userId} на ${amount}₽. Причина: ${reason || 'Не указана'}`);
+          
+          res.json({
+              success: true,
+              message: `Баланс пополнен на ${amount} ₽`,
+              newBalance: newBalance
+          });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка пополнения баланса:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Списание баланса пользователя
+app.post('/api/admin/balance/remove', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          if (!isAdminUser(decoded)) {
+              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          }
+          
+          const { userId, amount, reason } = req.body;
+          
+          if (!userId || !amount) {
+              return res.status(400).json({ success: false, error: 'Не указаны userId или amount' });
+          }
+          
+          // Получаем пользователя из БД
+          const [user] = await sql`
+              SELECT * FROM users WHERE discord_id = ${userId}
+          `;
+          
+          if (!user) {
+              return res.status(404).json({ success: false, error: 'Пользователь не найден' });
+          }
+          
+          const currentBalance = user.balance || 0;
+          const removeAmount = parseInt(amount);
+          
+          if (currentBalance < removeAmount) {
+              return res.status(400).json({ success: false, error: 'Недостаточно средств на балансе' });
+          }
+          
+          const newBalance = currentBalance - removeAmount;
+          
+          // Обновляем баланс
+          await sql`
+              UPDATE users 
+              SET balance = ${newBalance}
+              WHERE discord_id = ${userId}
+          `;
+          
+          console.log(`💰 Админ ${decoded.username} списал с баланса ${userId} ${removeAmount}₽. Причина: ${reason || 'Не указана'}`);
+          
+          res.json({
+              success: true,
+              message: `Списано ${removeAmount} ₽ с баланса`,
+              newBalance: newBalance
+          });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка списания баланса:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Установка баланса пользователя
+app.post('/api/admin/balance/set', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          if (!isAdminUser(decoded)) {
+              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          }
+          
+          const { userId, newBalance, reason } = req.body;
+          
+          if (!userId || newBalance === undefined) {
+              return res.status(400).json({ success: false, error: 'Не указаны userId или newBalance' });
+          }
+          
+          // Получаем пользователя из БД
+          const [user] = await sql`
+              SELECT * FROM users WHERE discord_id = ${userId}
+          `;
+          
+          if (!user) {
+              return res.status(404).json({ success: false, error: 'Пользователь не найден' });
+          }
+          
+          const newBalanceValue = parseInt(newBalance);
+          
+          if (newBalanceValue < 0) {
+              return res.status(400).json({ success: false, error: 'Баланс не может быть отрицательным' });
+          }
+          
+          // Обновляем баланс
+          await sql`
+              UPDATE users 
+              SET balance = ${newBalanceValue}
+              WHERE discord_id = ${userId}
+          `;
+          
+          console.log(`💰 Админ ${decoded.username} установил баланс ${userId} = ${newBalanceValue}₽. Причина: ${reason || 'Не указана'}`);
+          
+          res.json({
+              success: true,
+              message: `Баланс установлен на ${newBalanceValue} ₽`,
+              newBalance: newBalanceValue
+          });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка установки баланса:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Получение истории баланса пользователя
+app.get('/api/admin/balance-history/:userId', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          if (!isAdminUser(decoded)) {
+              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          }
+          
+          const userId = req.params.userId;
+          
+          // Получаем пользователя из БД
+          const [user] = await sql`
+              SELECT * FROM users WHERE discord_id = ${userId}
+          `;
+          
+          if (!user) {
+              return res.status(404).json({ success: false, error: 'Пользователь не найден' });
+          }
+          
+          // В реальном проекте здесь должна быть таблица с историей транзакций
+          // Пока возвращаем заглушку
+          res.json({
+              success: true,
+              transactions: [],
+              totalDeposits: 0,
+              totalWithdrawals: 0
+          });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка получения истории баланса:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// ============================================
+// Админ маршруты для заказов
+// ============================================
+
+// Получение всех заказов
+app.get('/api/admin/orders', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          if (!isAdminUser(decoded)) {
+              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          }
+          
+          // Получаем всех пользователей с заказами
+          const users = await sql`SELECT * FROM users`;
+          
+          const allOrders = [];
+          
+          users.forEach(user => {
+              const orders = user.orders || [];
+              orders.forEach(order => {
+                  allOrders.push({
+                      id: order.id,
+                      userId: user.discord_id,
+                      username: user.username,
+                      userDiscordId: user.discord_id,
+                      userAvatar: user.avatar ? `https://cdn.discordapp.com/avatars/${user.discord_id}/${user.avatar}.png` : null,
+                      productName: order.productName,
+                      productId: order.productId,
+                      amount: order.price,
+                      finalPrice: order.price,
+                      originalPrice: order.originalPrice || order.price,
+                      discount: order.discount,
+                      discountAmount: order.discountAmount,
+                      promocodes: order.promocodes || [],
+                      date: order.date,
+                      status: order.status || 'completed',
+                      createdAt: order.date
+                  });
+              });
+          });
+          
+          // Сортируем по дате (новые сверху)
+          allOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
+          
+          res.json({
+              success: true,
+              orders: allOrders,
+              total: allOrders.length
+          });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка получения заказов:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Обновление статуса заказа
+app.post('/api/admin-update-order', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          if (!isAdminUser(decoded)) {
+              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          }
+          
+          const { orderId, status } = req.body;
+          
+          if (!orderId || !status) {
+              return res.status(400).json({ success: false, error: 'Не указаны orderId или status' });
+          }
+          
+          // В реальном проекте здесь обновление статуса заказа в БД
+          // Пока возвращаем успех
+          
+          console.log(`📦 Админ ${decoded.username} обновил статус заказа ${orderId} на ${status}`);
+          
+          res.json({
+              success: true,
+              message: 'Статус заказа обновлен'
+          });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка обновления заказа:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// ============================================
+// Админ маршруты для товаров
+// ============================================
+
+// Создание товара
+app.post('/api/admin/products', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          if (!isAdminUser(decoded)) {
+              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          }
+          
+          const productData = req.body;
+          
+          if (!productData.name || !productData.price) {
+              return res.status(400).json({ success: false, error: 'Не указаны обязательные поля' });
+          }
+          
+          // Генерируем ID, если не указан
+          if (!productData.id) {
+              productData.id = 'prod_' + Date.now();
+          }
+          
+          // Сохраняем в БД
+          await sql`
+              INSERT INTO products (
+                  id, name, description, price, category, icon, image, features, popular, discount
+              ) VALUES (
+                  ${productData.id},
+                  ${productData.name},
+                  ${productData.description || ''},
+                  ${productData.price},
+                  ${productData.category || 'other'},
+                  ${productData.icon || 'fas fa-box'},
+                  ${productData.image || ''},
+                  ${JSON.stringify(productData.features || [])},
+                  ${productData.popular || false},
+                  ${productData.discount || 0}
+              )
+              ON CONFLICT (id) DO UPDATE SET
+                  name = EXCLUDED.name,
+                  description = EXCLUDED.description,
+                  price = EXCLUDED.price,
+                  category = EXCLUDED.category,
+                  icon = EXCLUDED.icon,
+                  image = EXCLUDED.image,
+                  features = EXCLUDED.features,
+                  popular = EXCLUDED.popular,
+                  discount = EXCLUDED.discount
+          `;
+          
+          console.log(`📦 Админ ${decoded.username} создал товар: ${productData.name}`);
+          
+          res.json({
+              success: true,
+              message: 'Товар создан',
+              product: productData
+          });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка создания товара:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Получение товара по ID
+app.get('/api/admin/products/:id', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          if (!isAdminUser(decoded)) {
+              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          }
+          
+          const productId = req.params.id;
+          
+          const [product] = await sql`
+              SELECT * FROM products WHERE id = ${productId}
+          `;
+          
+          if (!product) {
+              return res.status(404).json({ success: false, error: 'Товар не найден' });
+          }
+          
+          res.json({
+              success: true,
+              product: product
+          });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка получения товара:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Обновление товара
+app.put('/api/admin/products/:id', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          if (!isAdminUser(decoded)) {
+              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          }
+          
+          const productId = req.params.id;
+          const productData = req.body;
+          
+          await sql`
+              UPDATE products 
+              SET name = ${productData.name},
+                  description = ${productData.description || ''},
+                  price = ${productData.price},
+                  category = ${productData.category || 'other'},
+                  icon = ${productData.icon || 'fas fa-box'},
+                  image = ${productData.image || ''},
+                  features = ${JSON.stringify(productData.features || [])},
+                  popular = ${productData.popular || false},
+                  discount = ${productData.discount || 0}
+              WHERE id = ${productId}
+          `;
+          
+          console.log(`📦 Админ ${decoded.username} обновил товар: ${productId}`);
+          
+          res.json({
+              success: true,
+              message: 'Товар обновлен'
+          });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка обновления товара:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Удаление товара
+app.delete('/api/admin/products/:id', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          if (!isAdminUser(decoded)) {
+              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          }
+          
+          const productId = req.params.id;
+          
+          await sql`
+              DELETE FROM products WHERE id = ${productId}
+          `;
+          
+          console.log(`📦 Админ ${decoded.username} удалил товар: ${productId}`);
+          
+          res.json({
+              success: true,
+              message: 'Товар удален'
+          });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка удаления товара:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
 app.get('/api/admin/users', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;

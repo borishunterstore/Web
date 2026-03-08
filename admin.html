@@ -5,7 +5,7 @@
     <div class="custom-cursor"></div>
     <canvas id="webCanvas"></canvas>
     <div class="scroll-indicator">
-    <span class="scroll-value">0%</span>
+        <span class="scroll-value">0%</span>
     </div>
     <script src="js/pkm.js"></script>
     <script src="js/mobile-nav.js"></script>
@@ -261,6 +261,34 @@
             justify-content: flex-end;
             margin-top: 30px;
         }
+
+        .user-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 5px;
+            font-size: 0.8rem;
+        }
+
+        .user-badge.admin {
+            background: #ED4245;
+            color: white;
+        }
+
+        .user-badge.verified {
+            background: #57F287;
+            color: #1e1f29;
+        }
+
+        .user-badge.partner {
+            background: #FEE75C;
+            color: #1e1f29;
+        }
+
+        .user-badge.buyer {
+            background: #5865F2;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -277,8 +305,8 @@
                 <a href="/profile.html" class="nav-link"><i class="fas fa-user"></i> Профиль</a>
             </div>
             <div class="nav-auth">
-                <div class="nav-auth">
-                    <i class="fab fa-discord"></i> Войти через Discord
+                <button class="nav-auth-btn" onclick="window.location.href='/profile.html'">
+                    <i class="fab fa-discord"></i> Профиль
                 </button>
             </div>
             <button class="mobile-menu-btn">
@@ -299,101 +327,26 @@
         <div id="adminContent"></div>
     </div>
 
-    <div id="addProductModal" class="modal">
-        <div class="modal-content">
-            <h2 style="color: #5865F2; margin-bottom: 20px;">Добавить товар</h2>
-            <form id="addProductForm">
-                <div class="form-group">
-                    <label for="productName">Название товара</label>
-                    <input type="text" id="productName" required>
-                </div>
-                <div class="form-group">
-                    <label for="productDescription">Описание</label>
-                    <textarea id="productDescription" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="productPrice">Цена (₽)</label>
-                    <input type="number" id="productPrice" min="0" step="1" required>
-                </div>
-                <div class="form-group">
-                    <label for="productCategory">Категория</label>
-                    <select id="productCategory" required>
-                        <option value="premium">Премиум</option>
-                        <option value="services">Услуги</option>
-                        <option value="events">Ивенты</option>
-                        <option value="other">Другое</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="productIcon">Иконка (FontAwesome класс)</label>
-                    <input type="text" id="productIcon" value="fas fa-box" required>
-                </div>
-                <div class="form-group">
-                    <label for="productFeatures">Особенности (через запятую)</label>
-                    <textarea id="productFeatures" placeholder="Особенность 1, Особенность 2, ..."></textarea>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn-admin" onclick="closeModal('addProductModal')">Отмена</button>
-                    <button type="submit" class="btn-admin success">Добавить товар</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="editProductModal" class="modal">
-        <div class="modal-content">
-            <h2 style="color: #5865F2; margin-bottom: 20px;">Редактировать товар</h2>
-            <form id="editProductForm">
-                <input type="hidden" id="editProductId">
-                <div class="form-group">
-                    <label for="editProductName">Название товара</label>
-                    <input type="text" id="editProductName" required>
-                </div>
-                <div class="form-group">
-                    <label for="editProductDescription">Описание</label>
-                    <textarea id="editProductDescription" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="editProductPrice">Цена (₽)</label>
-                    <input type="number" id="editProductPrice" min="0" step="1" required>
-                </div>
-                <div class="form-group">
-                    <label for="editProductCategory">Категория</label>
-                    <select id="editProductCategory" required>
-                        <option value="premium">Премиум</option>
-                        <option value="services">Услуги</option>
-                        <option value="events">Ивенты</option>
-                        <option value="other">Другое</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="editProductIcon">Иконка</label>
-                    <input type="text" id="editProductIcon" required>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn-admin" onclick="closeModal('editProductModal')">Отмена</button>
-                    <button type="submit" class="btn-admin success">Сохранить изменения</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <div id="addBalanceModal" class="modal">
         <div class="modal-content">
-            <h2 style="color: #5865F2; margin-bottom: 20px;">Пополнение баланса</h2>
+            <h2 style="color: #5865F2; margin-bottom: 20px;">
+                <i class="fas fa-plus-circle"></i> Пополнить баланс
+            </h2>
             <form id="addBalanceForm">
                 <input type="hidden" id="balanceUserId">
+                
                 <div style="background: #1e1f29; padding: 1rem; border-radius: 8px; margin-bottom: 20px;">
                     <div style="color: #b9bbbe; margin-bottom: 5px;">Пользователь:</div>
                     <div style="color: white; font-weight: 600; font-size: 1.1rem;" id="balanceUserName">Загрузка...</div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="balanceAmount">Сумма (₽)</label>
+                    <label for="balanceAmount">Сумма пополнения (₽)</label>
                     <input type="number" id="balanceAmount" min="1" step="1" required placeholder="Введите сумму">
                 </div>
+                
                 <div class="form-group">
-                    <label for="balanceReason">Причина пополнения</label>
+                    <label for="balanceReason">Причина</label>
                     <select id="balanceReason">
                         <option value="Пополнение администратором">Пополнение администратором</option>
                         <option value="Бонус за активность">Бонус за активность</option>
@@ -403,69 +356,159 @@
                         <option value="Другое">Другое</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="balanceCustomReason">Или другая причина</label>
+                
+                <div class="form-group" id="balanceCustomReasonGroup" style="display: none;">
+                    <label for="balanceCustomReason">Укажите причину</label>
                     <input type="text" id="balanceCustomReason" placeholder="Введите свою причину">
                 </div>
                 
-                <div style="background: #1e1f29; padding: 1rem; border-radius: 8px; margin-bottom: 20px; display: none;" id="quickAmounts">
+                <div style="background: #1e1f29; padding: 1rem; border-radius: 8px; margin-bottom: 20px;" id="quickAmounts">
                     <div style="color: #b9bbbe; margin-bottom: 10px;">Быстрое пополнение:</div>
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <button type="button" class="btn-admin small" onclick="document.getElementById('balanceAmount').value = 100">100 ₽</button>
                         <button type="button" class="btn-admin small" onclick="document.getElementById('balanceAmount').value = 500">500 ₽</button>
                         <button type="button" class="btn-admin small" onclick="document.getElementById('balanceAmount').value = 1000">1000 ₽</button>
-                        <button type="button" class="btn-admin small" onclick="document.getElementById('balanceAmount').value = 2000">2000 ₽</button>
                         <button type="button" class="btn-admin small" onclick="document.getElementById('balanceAmount').value = 5000">5000 ₽</button>
+                        <button type="button" class="btn-admin small" onclick="document.getElementById('balanceAmount').value = 10000">10000 ₽</button>
                     </div>
                 </div>
                 
                 <div class="form-actions">
                     <button type="button" class="btn-admin" onclick="closeModal('addBalanceModal')">Отмена</button>
                     <button type="submit" class="btn-admin success">
-                        <i class="fas fa-plus"></i> Пополнить баланс
+                        <i class="fas fa-plus"></i> Пополнить
                     </button>
                 </div>
             </form>
         </div>
     </div>
 
-    <script src="js/main.js"></script>
+    <div id="removeBalanceModal" class="modal">
+        <div class="modal-content">
+            <h2 style="color: #FEE75C; margin-bottom: 20px;">
+                <i class="fas fa-minus-circle"></i> Списать баланс
+            </h2>
+            <form id="removeBalanceForm">
+                <input type="hidden" id="removeBalanceUserId">
+                
+                <div style="background: #1e1f29; padding: 1rem; border-radius: 8px; margin-bottom: 20px;">
+                    <div style="color: #b9bbbe; margin-bottom: 5px;">Пользователь:</div>
+                    <div style="color: white; font-weight: 600; font-size: 1.1rem;" id="removeBalanceUserName">Загрузка...</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="removeBalanceAmount">Сумма списания (₽)</label>
+                    <input type="number" id="removeBalanceAmount" min="1" step="1" required placeholder="Введите сумму">
+                </div>
+                
+                <div class="form-group">
+                    <label for="removeBalanceReason">Причина</label>
+                    <input type="text" id="removeBalanceReason" placeholder="Например: Штраф, возврат" value="Списание администратором">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-admin" onclick="closeModal('removeBalanceModal')">Отмена</button>
+                    <button type="submit" class="btn-admin" style="background: #FEE75C; color: #1e1f29;">
+                        <i class="fas fa-minus"></i> Списать
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="balanceHistoryModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="color: #5865F2; margin: 0;">
+                    <i class="fas fa-history"></i> История баланса
+                </h2>
+                <button onclick="closeModal('balanceHistoryModal')" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
+            </div>
+            <div id="balanceHistoryContent" class="loading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Загрузка истории...</p>
+            </div>
+        </div>
+    </div>
+
     <script src="js/api.js"></script>
     <script src="js/admin-stats.js"></script>
     <script src="js/admin-users.js"></script>
     <script src="js/admin-orders.js"></script>
     <script src="js/admin-chat.js"></script>
     <script src="js/admin-products.js"></script>
+    <script src="js/main.js"></script>
     
     <script>
-        window.adminState = {
-            currentSection: 'stats'
+        // Глобальные функции для модальных окон
+        window.showModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'flex';
+            }
         };
 
+        window.closeModal = function(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        };
+
+        // Инициализация при загрузке страницы
         document.addEventListener('DOMContentLoaded', async function() {
-            const api = new BHStoreAPI();
-            const authData = api.getAuthData();
-            const isAdmin = await api.isAdmin();
+            console.log('🚀 Админ панель загружается...');
             
-        if (!isAdmin) {
-            document.getElementById('adminContent').innerHTML = `
-            <div class="access-denied">
-                <i class="fas fa-ban"></i>
-                <h2>Доступ запрещен</h2>
-                <p>Требуются права администратора.</p>
-                <a href="/" class="btn-admin" style="margin-top: 20px;">
-                    <i class="fas fa-home"></i> Вернуться на главную
-                </a>
-            </div>
-            `;
-            return;
-        }
-    
-    document.getElementById('adminUsername').textContent = authData.username || 'Администратор';
-    
-    loadAdminPanel();
-});
-        
+            try {
+                const api = new BHStoreAPI();
+                
+                // Проверяем авторизацию
+                const authData = api.getAuthData();
+                
+                if (!authData.token) {
+                    window.location.href = '/profile.html';
+                    return;
+                }
+                
+                // Проверяем права администратора
+                const isAdmin = await api.isAdmin();
+                
+                if (!isAdmin) {
+                    document.getElementById('adminContent').innerHTML = `
+                        <div class="access-denied">
+                            <i class="fas fa-ban"></i>
+                            <h2>Доступ запрещен</h2>
+                            <p>Требуются права администратора для доступа к этой странице.</p>
+                            <a href="/" class="btn-admin" style="margin-top: 20px;">
+                                <i class="fas fa-home"></i> Вернуться на главную
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Отображаем имя администратора
+                document.getElementById('adminUsername').textContent = authData.username || 'Администратор';
+                
+                // Загружаем админ панель
+                loadAdminPanel();
+                
+            } catch (error) {
+                console.error('❌ Ошибка инициализации:', error);
+                document.getElementById('adminContent').innerHTML = `
+                    <div class="access-denied">
+                        <i class="fas fa-exclamation-triangle" style="color: #ED4245;"></i>
+                        <h2 style="color: #ED4245;">Ошибка загрузки</h2>
+                        <p>${error.message || 'Не удалось загрузить админ панель'}</p>
+                        <button onclick="location.reload()" class="btn-admin" style="margin-top: 20px;">
+                            <i class="fas fa-sync-alt"></i> Обновить страницу
+                        </button>
+                    </div>
+                `;
+            }
+        });
+
+        // Загрузка админ панели
         function loadAdminPanel() {
             document.getElementById('adminContent').innerHTML = `
                 <div class="admin-nav">
@@ -482,7 +525,7 @@
                         <i class="fas fa-comments"></i> Чат поддержки
                     </button>
                     <button class="admin-nav-btn" data-section="products">
-                        <i class="fas fa-box"></i> Управление товарами
+                        <i class="fas fa-box"></i> Товары
                     </button>
                 </div>
                 
@@ -527,6 +570,7 @@
                 </div>
             `;
             
+            // Навешиваем обработчики на кнопки навигации
             document.querySelectorAll('.admin-nav-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('.admin-nav-btn').forEach(b => {
@@ -542,122 +586,79 @@
                     const sectionId = this.dataset.section;
                     document.getElementById(`section-${sectionId}`).classList.add('active');
                     
-                    window.adminState.currentSection = sectionId;
-                    
+                    // Загружаем данные секции
                     loadSectionData(sectionId);
                 });
             });
             
+            // Загружаем статистику по умолчанию
             loadSectionData('stats');
             
+            // Инициализируем обработчики форм
             initFormHandlers();
         }
-        
+
+        // Загрузка данных секции
         async function loadSectionData(section) {
             try {
                 switch(section) {
                     case 'stats':
-                        await loadStats();
+                        if (window.adminStats) {
+                            await window.adminStats.loadStats();
+                        } else {
+                            console.error('adminStats не инициализирован');
+                        }
                         break;
                     case 'users':
-                        await loadUsers();
+                        if (window.adminUsers) {
+                            await window.adminUsers.loadUsers();
+                        } else {
+                            console.error('adminUsers не инициализирован');
+                        }
                         break;
                     case 'orders':
-                        await loadOrders();
+                        if (window.adminOrders) {
+                            await window.adminOrders.loadOrders();
+                        } else {
+                            console.error('adminOrders не инициализирован');
+                        }
                         break;
                     case 'chat':
                         if (window.adminChat) {
                             await window.adminChat.init();
+                        } else {
+                            console.error('adminChat не инициализирован');
                         }
                         break;
                     case 'products':
-                        await loadProducts();
+                        if (window.adminProducts) {
+                            await window.adminProducts.loadProducts();
+                        } else {
+                            console.error('adminProducts не инициализирован');
+                        }
                         break;
                 }
             } catch (error) {
                 console.error(`Ошибка загрузки секции ${section}:`, error);
+                
                 const contentElement = document.getElementById(`${section}Content`);
                 if (contentElement) {
                     contentElement.innerHTML = `
                         <div style="color: #ED4245; padding: 20px; text-align: center;">
-                            <i class="fas fa-exclamation-triangle"></i>
+                            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
                             <p>Ошибка загрузки: ${error.message}</p>
+                            <button onclick="loadSectionData('${section}')" class="btn-admin" style="margin-top: 10px;">
+                                <i class="fas fa-sync-alt"></i> Повторить
+                            </button>
                         </div>
                     `;
                 }
             }
         }
-        
-        function showModal(modalId) {
-            document.getElementById(modalId).style.display = 'flex';
-        }
-        
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-            const form = document.getElementById(modalId.replace('Modal', 'Form'));
-            if (form) {
-                form.reset();
-            }
-        }
-        
+
+        // Инициализация обработчиков форм
         function initFormHandlers() {
-            const addProductForm = document.getElementById('addProductForm');
-            if (addProductForm) {
-                addProductForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const productData = {
-                        name: document.getElementById('productName').value,
-                        description: document.getElementById('productDescription').value,
-                        price: parseInt(document.getElementById('productPrice').value),
-                        category: document.getElementById('productCategory').value,
-                        icon: document.getElementById('productIcon').value,
-                        features: document.getElementById('productFeatures').value
-                            .split(',')
-                            .map(f => f.trim())
-                            .filter(f => f)
-                    };
-                    
-                    try {
-                        const api = new BHStoreAPI();
-                        await api.createProduct(productData);
-                        closeModal('addProductModal');
-                        if (window.adminState.currentSection === 'products') {
-                            await loadProducts();
-                        }
-                    } catch (error) {
-                        alert('Ошибка добавления товара: ' + error.message);
-                    }
-                });
-            }
-            
-            const editProductForm = document.getElementById('editProductForm');
-            if (editProductForm) {
-                editProductForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const productData = {
-                        id: document.getElementById('editProductId').value,
-                        name: document.getElementById('editProductName').value,
-                        description: document.getElementById('editProductDescription').value,
-                        price: parseInt(document.getElementById('editProductPrice').value),
-                        category: document.getElementById('editProductCategory').value,
-                        icon: document.getElementById('editProductIcon').value
-                    };
-                    
-                    try {
-                        const api = new BHStoreAPI();
-                        await api.updateProduct(productData.id, productData);
-                        closeModal('editProductModal');
-                        if (window.adminState.currentSection === 'products') {
-                            await loadProducts();
-                        }
-                    } catch (error) {
-                        alert('Ошибка редактирования товара: ' + error.message);
-                    }
-                });
-            }
-            
+            // Форма пополнения баланса
             const addBalanceForm = document.getElementById('addBalanceForm');
             if (addBalanceForm) {
                 addBalanceForm.addEventListener('submit', async function(e) {
@@ -680,144 +681,172 @@
                     try {
                         const api = new BHStoreAPI();
                         await api.addUserBalance(userId, amount, reason);
+                        
                         closeModal('addBalanceModal');
-                        if (window.adminState.currentSection === 'users') {
-                            await loadUsers();
+                        
+                        // Показываем уведомление об успехе
+                        showNotification(`Баланс пополнен на ${amount} ₽`, 'success');
+                        
+                        // Обновляем список пользователей
+                        if (window.adminUsers) {
+                            await window.adminUsers.loadUsers();
                         }
+                        
                     } catch (error) {
                         console.error('Ошибка пополнения баланса:', error);
-                        alert('Ошибка пополнения баланса: ' + error.message);
+                        alert('Ошибка пополнения баланса: ' + (error.message || 'Неизвестная ошибка'));
                     }
                 });
-                
-                const balanceReason = document.getElementById('balanceReason');
-                if (balanceReason) {
-                    balanceReason.addEventListener('change', function() {
-                        const customReasonField = document.getElementById('balanceCustomReason');
-                        const quickAmounts = document.getElementById('quickAmounts');
+            }
+            
+            // Обработчик выбора причины пополнения
+            const balanceReason = document.getElementById('balanceReason');
+            if (balanceReason) {
+                balanceReason.addEventListener('change', function() {
+                    const customGroup = document.getElementById('balanceCustomReasonGroup');
+                    if (this.value === 'Другое') {
+                        customGroup.style.display = 'block';
+                    } else {
+                        customGroup.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Форма списания баланса
+            const removeBalanceForm = document.getElementById('removeBalanceForm');
+            if (removeBalanceForm) {
+                removeBalanceForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const userId = document.getElementById('removeBalanceUserId').value;
+                    const amount = parseInt(document.getElementById('removeBalanceAmount').value);
+                    const reason = document.getElementById('removeBalanceReason').value || 'Списание администратором';
+                    
+                    if (!amount || amount <= 0) {
+                        alert('Введите корректную сумму');
+                        return;
+                    }
+                    
+                    try {
+                        const api = new BHStoreAPI();
+                        await api.removeUserBalance(userId, amount, reason);
                         
-                        if (this.value === 'Другое') {
-                            customReasonField.style.display = 'block';
-                        } else {
-                            customReasonField.style.display = 'none';
+                        closeModal('removeBalanceModal');
+                        
+                        showNotification(`Списано ${amount} ₽ с баланса`, 'success');
+                        
+                        if (window.adminUsers) {
+                            await window.adminUsers.loadUsers();
                         }
                         
-                        if (this.value === 'Пополнение администратором' || this.value === 'Бонус за активность') {
-                            quickAmounts.style.display = 'block';
-                        } else {
-                            quickAmounts.style.display = 'none';
-                        }
-                    });
-                }
+                    } catch (error) {
+                        console.error('Ошибка списания баланса:', error);
+                        alert('Ошибка списания баланса: ' + (error.message || 'Неизвестная ошибка'));
+                    }
+                });
             }
         }
-        
-        window.openUserChat = function(userId) {
-            document.querySelector('.admin-nav-btn[data-section="chat"]').click();
+
+        // Утилита для показа уведомлений
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 25px;
+                border-radius: 8px;
+                color: white;
+                background: ${type === 'success' ? '#57F287' : type === 'error' ? '#ED4245' : '#5865F2'};
+                z-index: 10001;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                animation: slideIn 0.3s ease;
+                max-width: 300px;
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
             
             setTimeout(() => {
-                if (window.adminChat) {
-                    window.adminChat.selectUser(userId);
-                }
-            }, 100);
-        };
-        
-        window.addBalance = function(userId, username) {
-            document.getElementById('balanceUserId').value = userId;
-            document.getElementById('balanceUserName').textContent = username;
-            showModal('addBalanceModal');
-        };
-        
-        window.removeBalance = function(userId, username) {
-            const amount = prompt(`Введите сумму для списания (₽) от пользователя ${username}:`);
-            if (amount && !isNaN(amount) && amount > 0) {
-                const reason = prompt('Причина списания (необязательно):');
-                if (reason !== null) {
-                    const api = new BHStoreAPI();
-                    api.removeUserBalance(userId, parseInt(amount), reason || 'Списание администратором')
-                        .then(() => {
-                            if (window.adminState.currentSection === 'users') {
-                                loadUsers();
-                            }
-                        })
-                        .catch(error => {
-                            alert('Ошибка списания: ' + error.message);
-                        });
-                }
-            }
-        };
-        
-        window.setBalance = function(userId, username, currentBalance) {
-            const newBalance = prompt(`Установить баланс для ${username} (текущий: ${currentBalance} ₽):`, currentBalance);
-            if (newBalance !== null && !isNaN(newBalance) && newBalance >= 0) {
-                const reason = prompt('Причина изменения баланса (необязательно):');
-                if (reason !== null) {
-                    const api = new BHStoreAPI();
-                    api.setUserBalance(userId, parseInt(newBalance), reason || 'Изменение администратором')
-                        .then(() => {
-                            if (window.adminState.currentSection === 'users') {
-                                loadUsers();
-                            }
-                        })
-                        .catch(error => {
-                            alert('Ошибка установки баланса: ' + error.message);
-                        });
-                }
-            }
-        };
-        
-        window.viewBalanceHistory = function(userId, username) {
-            const api = new BHStoreAPI();
-            api.getUserBalanceHistory(userId)
-                .then(data => {
-                    if (window.AdminUsers) {
-                        const adminUsers = new AdminUsers();
-                        adminUsers.showBalanceHistoryModal(userId, username, data);
-                    }
-                })
-                .catch(error => {
-                    alert('Ошибка получения истории: ' + error.message);
-                });
-        };
-        
-        window.showAddProductForm = function() {
-            showModal('addProductModal');
-        };
-        
-        window.editProduct = function(productId) {
-            alert('Редактирование товара: ' + productId);
-            showModal('editProductModal');
-        };
-        
-        window.deleteProduct = function(productId) {
-            if (confirm(`Вы уверены, что хотите удалить товар ${productId}?`)) {
-                const api = new BHStoreAPI();
-                api.deleteProduct(productId)
-                    .then(() => {
-                        if (window.adminState.currentSection === 'products') {
-                            loadProducts();
-                        }
-                    })
-                    .catch(error => {
-                        alert('Ошибка удаления товара: ' + error.message);
-                    });
-            }
-        };
-        
-        window.exportUsers = function() {
-            alert('Экспорт пользователей в CSV файл');
-        };
-        
-        window.exportOrders = function() {
-            alert('Экспорт заказов в CSV файл');
-        };
-        
+                notification.remove();
+            }, 3000);
+        }
+
+        // Закрытие модальных окон по клику на фон
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('modal')) {
                 e.target.style.display = 'none';
             }
         });
-    </script>
 
+        // Глобальные функции для использования в админ-классах
+        window.openUserChat = function(userId) {
+            // Переключаемся на вкладку чата
+            const chatBtn = document.querySelector('.admin-nav-btn[data-section="chat"]');
+            if (chatBtn) {
+                chatBtn.click();
+                
+                // Выбираем пользователя после загрузки чата
+                setTimeout(() => {
+                    if (window.adminChat) {
+                        window.adminChat.selectUser(userId);
+                    }
+                }, 500);
+            }
+        };
+
+        window.addBalance = function(userId, username) {
+            document.getElementById('balanceUserId').value = userId;
+            document.getElementById('balanceUserName').textContent = username;
+            document.getElementById('balanceAmount').value = '';
+            document.getElementById('balanceReason').value = 'Пополнение администратором';
+            document.getElementById('balanceCustomReasonGroup').style.display = 'none';
+            showModal('addBalanceModal');
+        };
+
+        window.removeBalance = function(userId, username) {
+            document.getElementById('removeBalanceUserId').value = userId;
+            document.getElementById('removeBalanceUserName').textContent = username;
+            document.getElementById('removeBalanceAmount').value = '';
+            document.getElementById('removeBalanceReason').value = 'Списание администратором';
+            showModal('removeBalanceModal');
+        };
+
+        window.viewBalanceHistory = function(userId, username) {
+            if (window.adminUsers) {
+                window.adminUsers.viewBalanceHistory(userId, username);
+            }
+        };
+
+        window.exportUsers = function() {
+            if (window.adminUsers) {
+                window.adminUsers.exportUsers();
+            }
+        };
+
+        window.exportOrders = function() {
+            if (window.adminOrders) {
+                window.adminOrders.exportOrders();
+            }
+        };
+
+        window.showAddProductForm = function() {
+            if (window.adminProducts) {
+                window.adminProducts.showAddProductForm();
+            }
+        };
+
+        window.editProduct = function(productId) {
+            if (window.adminProducts) {
+                window.adminProducts.editProduct(productId);
+            }
+        };
+
+        window.deleteProduct = function(productId) {
+            if (window.adminProducts) {
+                window.adminProducts.deleteProduct(productId);
+            }
+        };
+    </script>
 </body>
 </html>
