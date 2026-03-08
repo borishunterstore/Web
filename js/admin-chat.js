@@ -281,10 +281,14 @@ class AdminChat {
         
         const message = input.value.trim();
         if (!message) return;
-
+    
         try {
-            // Отправляем сообщение
-            await this.api.sendChatMessage(this.selectedUserId, message, true);
+            console.log('📤 Отправка сообщения от админа...');
+            
+            // Отправляем сообщение с флагом fromAdmin: true
+            const result = await this.api.sendChatMessage(this.selectedUserId, message, true);
+            
+            console.log('✅ Сообщение отправлено:', result);
             
             // Добавляем в список сообщений
             this.messages.push({
@@ -306,7 +310,7 @@ class AdminChat {
             this.scrollToBottom();
             
         } catch (error) {
-            console.error('Ошибка отправки сообщения:', error);
+            console.error('❌ Ошибка отправки сообщения:', error);
             this.showNotification('Не удалось отправить сообщение', 'error');
         }
     }
