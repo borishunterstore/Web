@@ -1,7 +1,7 @@
 // admin-chat.js - Исправлена двойная отправка в Discord
 class AdminChat {
     constructor() {
-        this.api = window.BHStoreAPI || window.api;
+        this.api = window.api; 
         this.selectedUserId = null;
         this.users = [];
         this.messages = [];

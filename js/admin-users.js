@@ -1,7 +1,7 @@
 // admin-users.js - Исправленная версия
 class AdminUsers {
     constructor() {
-        this.api = window.BHStoreAPI || window.api;
+        this.api = window.api; 
         this.baseUrl = 'https://bhstore.netlify.app';
         this.users = [];
     }

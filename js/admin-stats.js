@@ -1,7 +1,7 @@
 // admin-stats.js - Статистика
 class AdminStats {
     constructor() {
-        this.api = new BHStoreAPI();
+        this.api = window.api; 
         this.baseUrl = 'https://bhstore.netlify.app/.netlify/functions';
     }
 

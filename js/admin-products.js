@@ -1,7 +1,7 @@
 // admin-products.js - Исправленная версия
 class AdminProducts {
     constructor() {
-        this.api = window.BHStoreAPI || window.api;
+        this.api = window.api; 
         this.baseUrl = 'https://bhstore.netlify.app';
         this.products = [];
     }

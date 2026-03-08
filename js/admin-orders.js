@@ -1,7 +1,7 @@
 // admin-orders.js - Исправленная версия
 class AdminOrders {
     constructor() {
-        this.api = window.BHStoreAPI || window.api;
+        this.api = window.api; 
         this.baseUrl = 'https://bhstore.netlify.app';
         this.orders = [];
         this.filteredOrders = [];
