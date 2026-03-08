@@ -1,8 +1,8 @@
-// admin-users.js - Управление пользователями
+// admin-users.js - Исправленная версия
 class AdminUsers {
     constructor() {
-        this.api = new BHStoreAPI();
-        this.baseUrl = 'https://bhstore.netlify.app/.netlify/functions';
+        this.api = window.BHStoreAPI || window.api;
+        this.baseUrl = 'https://bhstore.netlify.app';
         this.users = [];
     }
 
@@ -13,7 +13,7 @@ class AdminUsers {
             this.renderUsers();
         } catch (error) {
             console.error('❌ Ошибка загрузки пользователей:', error);
-            this.showNotification(this.api.formatError(error), 'error');
+            this.showNotification('Ошибка загрузки пользователей', 'error');
         }
     }
 
@@ -71,14 +71,7 @@ class AdminUsers {
                     : 'https://cdn.discordapp.com/embed/avatars/0.png';
                 
                 const verifiedBadge = user.badges?.verified ? 
-                    '<span title="Верифицирован" style="color: #57F287;"><i class="fas fa-check-circle"></i></span>' : 
-                    '';
-                
-                const partnerBadge = user.badges?.partner ? 
-                    '<span title="Партнер" style="color: #FEE75C;"><i class="fas fa-crown"></i></span>' : '';
-                
-                const buyerBadge = user.badges?.buyer ? 
-                    '<span title="Покупатель" style="color: #5865F2;"><i class="fas fa-shopping-bag"></i></span>' : '';
+                    '<span title="Верифицирован" style="color: #57F287;"><i class="fas fa-check-circle"></i></span>' : '';
                 
                 const adminBadge = user.badges?.admin ? 
                     '<span title="Админ" style="color: #ED4245;"><i class="fas fa-shield-alt"></i></span>' : '';
@@ -94,8 +87,6 @@ class AdminUsers {
                                     <div style="display: flex; align-items: center; gap: 5px; color: white; font-weight: 500;">
                                         ${this.escapeHtml(user.username || 'Без имени')}
                                         ${verifiedBadge}
-                                        ${partnerBadge}
-                                        ${buyerBadge}
                                         ${adminBadge}
                                     </div>
                                     <div style="color: #b9bbbe; font-size: 0.85rem;">${user.email || 'Нет email'}</div>
@@ -122,16 +113,16 @@ class AdminUsers {
                         </td>
                         <td style="padding: 12px;">
                             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                                <button class="btn-admin small" onclick="openUserChat('${user.discordId}')" title="Открыть чат">
+                                <button class="btn-admin small" onclick="window.openUserChat('${user.discordId}')" title="Открыть чат">
                                     <i class="fas fa-comment"></i>
                                 </button>
-                                <button class="btn-admin success small" onclick="addBalance('${user.discordId}', '${this.escapeHtml(user.username)}')" title="Пополнить баланс">
+                                <button class="btn-admin success small" onclick="window.addBalance('${user.discordId}', '${this.escapeHtml(user.username)}')" title="Пополнить баланс">
                                     <i class="fas fa-plus"></i>
                                 </button>
-                                <button class="btn-admin small" onclick="removeBalance('${user.discordId}', '${this.escapeHtml(user.username)}')" title="Списать баланс" style="background: #FEE75C; color: #1e1f29;">
+                                <button class="btn-admin small" onclick="window.removeBalance('${user.discordId}', '${this.escapeHtml(user.username)}')" title="Списать баланс" style="background: #FEE75C; color: #1e1f29;">
                                     <i class="fas fa-minus"></i>
                                 </button>
-                                <button class="btn-admin small" onclick="viewBalanceHistory('${user.discordId}', '${this.escapeHtml(user.username)}')" title="История баланса" style="background: #3498db; color: white;">
+                                <button class="btn-admin small" onclick="window.adminUsers.viewBalanceHistory('${user.discordId}', '${this.escapeHtml(user.username)}')" title="История баланса" style="background: #3498db; color: white;">
                                     <i class="fas fa-history"></i>
                                 </button>
                             </div>
@@ -149,7 +140,6 @@ class AdminUsers {
         
         usersContent.innerHTML = html;
         
-        // Добавляем поиск
         setTimeout(() => {
             document.getElementById('searchUsers')?.addEventListener('input', (e) => {
                 this.filterUsers(e.target.value);
@@ -163,33 +153,14 @@ class AdminUsers {
         
         rows.forEach(row => {
             const text = row.textContent?.toLowerCase() || '';
-            if (text.includes(searchTerm)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
         });
     }
 
     async viewBalanceHistory(userId, username) {
         try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            const response = await fetch(`${this.baseUrl}/admin-balance-history/${userId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                this.showBalanceHistoryModal(userId, username, data);
-            } else {
-                throw new Error(data.error || 'Ошибка загрузки истории');
-            }
+            const data = await this.api.getUserBalanceHistory(userId);
+            this.showBalanceHistoryModal(userId, username, data);
         } catch (error) {
             console.error('Ошибка загрузки истории:', error);
             this.showNotification('Ошибка загрузки истории баланса', 'error');
@@ -197,10 +168,26 @@ class AdminUsers {
     }
 
     showBalanceHistoryModal(userId, username, data) {
-        const modal = document.getElementById('balanceHistoryModal');
-        if (!modal) return;
-        
-        const content = document.getElementById('balanceHistoryContent');
+        // Удаляем старую модалку если есть
+        const oldModal = document.getElementById('balanceHistoryModal');
+        if (oldModal) oldModal.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'balanceHistoryModal';
+        modal.className = 'modal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        `;
         
         const transactions = data.transactions || [];
         let historyHtml = '';
@@ -213,14 +200,14 @@ class AdminUsers {
                             ${t.amount > 0 ? '+' : ''}${t.amount} ₽
                         </div>
                         <div style="color: #b9bbbe; font-size: 0.85rem;">
-                            ${t.date ? new Date(t.date).toLocaleString('ru-RU') : 'Нет даты'}
+                            ${t.created_at ? new Date(t.created_at).toLocaleString('ru-RU') : 'Нет даты'}
                         </div>
                     </div>
                     <div style="color: #b9bbbe; margin-bottom: 5px;">
                         ${t.reason || 'Без причины'}
                     </div>
                     <div style="color: #72767d; font-size: 0.75rem;">
-                        ID: ${t.id || 'N/A'}
+                        Тип: ${t.type === 'deposit' ? 'Пополнение' : t.type === 'withdrawal' ? 'Списание' : 'Покупка'}
                     </div>
                 </div>
             `).join('');
@@ -230,81 +217,79 @@ class AdminUsers {
         
         const totalDeposits = data.totalDeposits || 0;
         const totalWithdrawals = data.totalWithdrawals || 0;
-        const netBalance = totalDeposits - totalWithdrawals;
         
-        content.innerHTML = `
-            <div style="background: #1e1f29; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <img src="https://cdn.discordapp.com/embed/avatars/0.png" style="width: 40px; height: 40px; border-radius: 50%;">
+        modal.innerHTML = `
+            <div style="background: #2a2b36; border-radius: 16px; padding: 30px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="color: #5865F2; margin: 0;">
+                        <i class="fas fa-history"></i> История баланса
+                    </h2>
+                    <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
+                </div>
+                
+                <div style="background: #1e1f29; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                         <div>
                             <div style="color: white; font-weight: 600;">${this.escapeHtml(username)}</div>
                             <div style="color: #5865F2; font-size: 0.85rem;">${userId}</div>
                         </div>
                     </div>
-                    <div style="text-align: right;">
-                        <div style="color: #b9bbbe; font-size: 0.85rem;">Текущий баланс</div>
-                        <div style="color: #57F287; font-weight: 700; font-size: 1.5rem;">${netBalance} ₽</div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div style="background: rgba(87, 242, 135, 0.1); padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="color: #57F287; font-size: 1.3rem; font-weight: 700;">+${totalDeposits} ₽</div>
+                            <div style="color: #b9bbbe; font-size: 0.85rem;">Пополнений</div>
+                        </div>
+                        <div style="background: rgba(237, 66, 69, 0.1); padding: 12px; border-radius: 8px; text-align: center;">
+                            <div style="color: #ED4245; font-size: 1.3rem; font-weight: 700;">-${totalWithdrawals} ₽</div>
+                            <div style="color: #b9bbbe; font-size: 0.85rem;">Списаний</div>
+                        </div>
                     </div>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
-                    <div style="background: rgba(87, 242, 135, 0.1); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="color: #57F287; font-size: 1.3rem; font-weight: 700;">+${totalDeposits} ₽</div>
-                        <div style="color: #b9bbbe; font-size: 0.85rem;">Пополнений</div>
-                    </div>
-                    <div style="background: rgba(237, 66, 69, 0.1); padding: 12px; border-radius: 8px; text-align: center;">
-                        <div style="color: #ED4245; font-size: 1.3rem; font-weight: 700;">-${totalWithdrawals} ₽</div>
-                        <div style="color: #b9bbbe; font-size: 0.85rem;">Списаний</div>
-                    </div>
+                <h3 style="color: #b9bbbe; margin-bottom: 15px; font-size: 1.1rem;">
+                    Транзакции (${transactions.length}):
+                </h3>
+                
+                <div style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
+                    ${historyHtml}
                 </div>
-            </div>
-            
-            <h3 style="color: #b9bbbe; margin-bottom: 15px; font-size: 1.1rem;">
-                Транзакции (${transactions.length}):
-            </h3>
-            
-            <div style="max-height: 300px; overflow-y: auto; padding-right: 5px;">
-                ${historyHtml}
+                
+                <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+                    <button class="btn-primary" onclick="this.closest('.modal').remove()">Закрыть</button>
+                </div>
             </div>
         `;
         
-        showModal('balanceHistoryModal');
+        document.body.appendChild(modal);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.remove();
+        });
     }
 
     exportUsers() {
         const users = this.users || [];
+        const csv = [
+            ['ID', 'Имя пользователя', 'Email', 'Баланс', 'Заказов', 'Верифицирован', 'Админ', 'Дата регистрации'],
+            ...users.map(u => [
+                u.discordId,
+                u.username || '',
+                u.email || '',
+                u.balance || 0,
+                u.orderCount || 0,
+                u.badges?.verified ? 'Да' : 'Нет',
+                u.badges?.admin ? 'Да' : 'Нет',
+                u.registeredAt ? new Date(u.registeredAt).toLocaleDateString('ru-RU') : ''
+            ])
+        ].map(row => row.join(';')).join('\n');
         
-        // Создаем CSV с правильными разделителями
-        const headers = ['ID', 'Имя пользователя', 'Email', 'Баланс', 'Заказов', 'Верифицирован', 'Админ', 'Дата регистрации'];
-        
-        const rows = users.map(u => [
-            u.discordId,
-            u.username || '',
-            u.email || '',
-            u.balance || 0,
-            u.orderCount || 0,
-            u.badges?.verified ? 'Да' : 'Нет',
-            u.badges?.admin ? 'Да' : 'Нет',
-            u.registeredAt ? new Date(u.registeredAt).toLocaleDateString('ru-RU') : ''
-        ]);
-        
-        // Создаем CSV с разделителем ;
-        const csvContent = [
-            headers.join(';'),
-            ...rows.map(row => row.map(cell => 
-                typeof cell === 'string' && cell.includes(';') ? `"${cell}"` : cell
-            ).join(';'))
-        ].join('\n');
-        
-        // Добавляем BOM для правильного отображения кириллицы
-        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `users-${new Date().toISOString().split('T')[0]}.csv`;
         a.click();
-        
         setTimeout(() => URL.revokeObjectURL(url), 100);
     }
 
@@ -320,7 +305,6 @@ class AdminUsers {
 
     showNotification(message, type) {
         const notification = document.createElement('div');
-        notification.className = 'admin-notification';
         notification.style.cssText = `
             position: fixed;
             top: 20px;
@@ -330,27 +314,14 @@ class AdminUsers {
             padding: 15px 25px;
             border-radius: 8px;
             z-index: 10001;
-            min-width: 300px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            gap: 10px;
             animation: slideIn 0.3s ease;
         `;
-        
-        notification.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-            <span>${this.escapeHtml(message)}</span>
-        `;
-        
+        notification.textContent = message;
         document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
+        setTimeout(() => notification.remove(), 3000);
     }
 }
 
-// Инициализация
 window.AdminUsers = AdminUsers;
 window.adminUsers = new AdminUsers();

@@ -1,7 +1,7 @@
-// admin-products.js - Управление товарами с БД
+// admin-products.js - Исправленная версия
 class AdminProducts {
     constructor() {
-        this.api = new BHStoreAPI();
+        this.api = window.BHStoreAPI || window.api;
         this.baseUrl = 'https://bhstore.netlify.app';
         this.products = [];
     }
@@ -13,7 +13,7 @@ class AdminProducts {
             this.renderProducts();
         } catch (error) {
             console.error('❌ Ошибка загрузки товаров:', error);
-            this.showNotification(this.api.formatError(error), 'error');
+            this.showNotification('Ошибка загрузки товаров', 'error');
         }
     }
 
@@ -88,17 +88,12 @@ class AdminProducts {
                         <td style="padding: 12px;">
                             <div>
                                 <span style="color: #57F287; font-weight: 600; font-size: 1.2rem;">${product.price} ₽</span>
-                                ${product.oldPrice ? `
-                                    <div style="color: #b9bbbe; font-size: 0.8rem; text-decoration: line-through;">${product.oldPrice} ₽</div>
-                                ` : ''}
                             </div>
                         </td>
                         <td style="padding: 12px;">
-                            ${product.popular ? `
-                                <span style="color: #FEE75C;"><i class="fas fa-star"></i> Популярный</span>
-                            ` : `
-                                <span style="color: #72767d;">Обычный</span>
-                            `}
+                            ${product.popular ? 
+                                '<span style="color: #FEE75C;"><i class="fas fa-star"></i> Популярный</span>' : 
+                                '<span style="color: #72767d;">Обычный</span>'}
                         </td>
                         <td style="padding: 12px;">
                             <div style="display: flex; gap: 8px;">
@@ -130,7 +125,6 @@ class AdminProducts {
     showAddProductForm() {
         const modal = document.createElement('div');
         modal.className = 'modal';
-        modal.id = 'addProductModal';
         modal.style.cssText = `
             position: fixed;
             top: 0;
@@ -154,7 +148,7 @@ class AdminProducts {
                     <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
                 </div>
                 
-                <form id="addProductForm">
+                <form id="addProductForm" onsubmit="event.preventDefault(); window.adminProducts.saveProduct()">
                     <div class="form-group">
                         <label style="color: #b9bbbe; display: block; margin-bottom: 5px;">Название товара</label>
                         <input type="text" id="productName" required 
@@ -213,11 +207,6 @@ class AdminProducts {
         `;
         
         document.body.appendChild(modal);
-        
-        document.getElementById('addProductForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.saveProduct();
-        });
     }
 
     async saveProduct() {
@@ -246,7 +235,7 @@ class AdminProducts {
             
         } catch (error) {
             console.error('Ошибка сохранения товара:', error);
-            this.showNotification('Ошибка при сохранении товара', 'error');
+            this.showNotification('Ошибка при сохранении товара: ' + error.message, 'error');
         }
     }
 
@@ -259,24 +248,17 @@ class AdminProducts {
             await this.loadProducts();
         } catch (error) {
             console.error('Ошибка удаления товара:', error);
-            this.showNotification('Ошибка при удалении товара', 'error');
+            this.showNotification('Ошибка при удалении товара: ' + error.message, 'error');
         }
     }
 
     async editProduct(productId) {
-        try {
-            const product = this.products.find(p => p.id === productId);
-            
-            if (!product) {
-                this.showNotification('Товар не найден', 'error');
-                return;
-            }
-            
-            this.showEditProductForm(product);
-        } catch (error) {
-            console.error('Ошибка загрузки товара:', error);
-            this.showNotification('Ошибка загрузки данных товара', 'error');
+        const product = this.products.find(p => p.id === productId);
+        if (!product) {
+            this.showNotification('Товар не найден', 'error');
+            return;
         }
+        this.showEditProductForm(product);
     }
 
     showEditProductForm(product) {
@@ -307,7 +289,7 @@ class AdminProducts {
                     <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
                 </div>
                 
-                <form id="editProductForm">
+                <form id="editProductForm" onsubmit="event.preventDefault(); window.adminProducts.updateProduct('${product.id}')">
                     <div class="form-group">
                         <label style="color: #b9bbbe; display: block; margin-bottom: 5px;">Название товара</label>
                         <input type="text" id="editProductName" value="${this.escapeHtml(product.name)}" required 
@@ -357,8 +339,6 @@ class AdminProducts {
                         </label>
                     </div>
                     
-                    <input type="hidden" id="editProductId" value="${product.id}">
-                    
                     <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
                         <button type="button" class="btn-admin" onclick="this.closest('.modal').remove()">Отмена</button>
                         <button type="submit" class="btn-admin success">Сохранить изменения</button>
@@ -368,11 +348,6 @@ class AdminProducts {
         `;
         
         document.body.appendChild(modal);
-        
-        document.getElementById('editProductForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.updateProduct(product.id);
-        });
     }
 
     async updateProduct(productId) {
@@ -401,7 +376,7 @@ class AdminProducts {
             
         } catch (error) {
             console.error('Ошибка обновления товара:', error);
-            this.showNotification('Ошибка при обновлении товара', 'error');
+            this.showNotification('Ошибка при обновлении товара: ' + error.message, 'error');
         }
     }
 
@@ -421,7 +396,6 @@ class AdminProducts {
 
     showNotification(message, type) {
         const notification = document.createElement('div');
-        notification.className = 'admin-notification';
         notification.style.cssText = `
             position: fixed;
             top: 20px;
@@ -431,27 +405,14 @@ class AdminProducts {
             padding: 15px 25px;
             border-radius: 8px;
             z-index: 10001;
-            min-width: 300px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            gap: 10px;
             animation: slideIn 0.3s ease;
         `;
-        
-        notification.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-            <span>${this.escapeHtml(message)}</span>
-        `;
-        
+        notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
         document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
+        setTimeout(() => notification.remove(), 3000);
     }
 }
 
-// Инициализация
 window.AdminProducts = AdminProducts;
 window.adminProducts = new AdminProducts();

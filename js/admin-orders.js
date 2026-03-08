@@ -1,8 +1,8 @@
-// admin-orders.js - Адаптирован для Netlify Functions
+// admin-orders.js - Исправленная версия
 class AdminOrders {
     constructor() {
-        this.api = new BHStoreAPI();
-        this.baseUrl = 'https://bhstore.netlify.app/.netlify/functions';
+        this.api = window.BHStoreAPI || window.api;
+        this.baseUrl = 'https://bhstore.netlify.app';
         this.orders = [];
         this.filteredOrders = [];
         this.currentPage = 1;
@@ -12,10 +12,12 @@ class AdminOrders {
     async loadOrders() {
         try {
             const data = await this.api.getAllOrders();
-            this.renderOrders(data);
+            this.orders = data.orders || [];
+            this.filteredOrders = [...this.orders];
+            this.renderOrders();
         } catch (error) {
             console.error('❌ Ошибка загрузки заказов:', error);
-            this.showNotification(this.api.formatError(error), 'error');
+            this.showNotification('Ошибка загрузки заказов', 'error');
         }
     }
 
@@ -105,22 +107,9 @@ class AdminOrders {
                         </td>
                         <td style="padding: 12px; color: white;">
                             <strong>${order.productName}</strong>
-                            ${order.promocodes ? `
-                                <div style="color: #FEE75C; font-size: 0.8rem; margin-top: 4px;">
-                                    <i class="fas fa-ticket-alt"></i> ${order.promocodes.join(', ')}
-                                </div>
-                            ` : ''}
                         </td>
                         <td style="padding: 12px;">
-                            <div>
-                                <span style="color: #57F287; font-weight: 600; font-size: 1.1rem;">${order.finalPrice || order.amount} ₽</span>
-                                ${order.discount ? `
-                                    <div style="color: #b9bbbe; font-size: 0.8rem;">
-                                        <span style="text-decoration: line-through;">${order.originalPrice} ₽</span>
-                                        <span style="color: #57F287;"> -${order.discount}%</span>
-                                    </div>
-                                ` : ''}
-                            </div>
+                            <span style="color: #57F287; font-weight: 600; font-size: 1.1rem;">${order.finalPrice || order.amount} ₽</span>
                         </td>
                         <td style="padding: 12px; color: #b9bbbe;">
                             <i class="fas fa-calendar-alt" style="margin-right: 5px;"></i>
@@ -134,9 +123,6 @@ class AdminOrders {
                         <td style="padding: 12px;">
                             <button class="btn-admin small" onclick="event.stopPropagation(); window.adminOrders.viewOrderDetails('${order.id}')">
                                 <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn-admin small" onclick="event.stopPropagation(); window.adminOrders.exportOrder('${order.id}')" style="margin-left: 5px;">
-                                <i class="fas fa-download"></i>
                             </button>
                         </td>
                     </tr>
@@ -165,7 +151,6 @@ class AdminOrders {
             <div style="display: flex; justify-content: center; gap: 8px; margin-top: 30px;">
         `;
         
-        // Кнопка "Назад"
         paginationHtml += `
             <button class="btn-admin small" ${this.currentPage === 1 ? 'disabled' : ''} 
                     onclick="window.adminOrders.changePage(${this.currentPage - 1})">
@@ -173,7 +158,6 @@ class AdminOrders {
             </button>
         `;
         
-        // Номера страниц
         for (let i = 1; i <= totalPages; i++) {
             if (i === 1 || i === totalPages || (i >= this.currentPage - 2 && i <= this.currentPage + 2)) {
                 paginationHtml += `
@@ -188,7 +172,6 @@ class AdminOrders {
             }
         }
         
-        // Кнопка "Вперед"
         paginationHtml += `
             <button class="btn-admin small" ${this.currentPage === totalPages ? 'disabled' : ''} 
                     onclick="window.adminOrders.changePage(${this.currentPage + 1})">
@@ -229,8 +212,7 @@ class AdminOrders {
                 order.id?.toLowerCase().includes(searchTerm) ||
                 order.username?.toLowerCase().includes(searchTerm) ||
                 order.productName?.toLowerCase().includes(searchTerm) ||
-                order.userDiscordId?.includes(searchTerm) ||
-                (order.promocodes && order.promocodes.some(p => p.toLowerCase().includes(searchTerm)))
+                order.userDiscordId?.includes(searchTerm)
             );
         }
         
@@ -290,25 +272,9 @@ class AdminOrders {
                         <h3 style="color: white; margin-bottom: 15px;">Детали оплаты</h3>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                             <div>
-                                <div style="color: #b9bbbe;">Оригинальная цена</div>
-                                <div style="color: #b9bbbe; text-decoration: line-through;">${order.originalPrice || order.amount} ₽</div>
-                            </div>
-                            <div>
-                                <div style="color: #b9bbbe;">Итоговая цена</div>
+                                <div style="color: #b9bbbe;">Цена</div>
                                 <div style="color: #57F287; font-weight: 600; font-size: 1.2rem;">${order.finalPrice || order.amount} ₽</div>
                             </div>
-                            ${order.discount ? `
-                                <div>
-                                    <div style="color: #b9bbbe;">Скидка</div>
-                                    <div style="color: #57F287;">${order.discount}% (-${order.discountAmount} ₽)</div>
-                                </div>
-                            ` : ''}
-                            ${order.promocodes ? `
-                                <div>
-                                    <div style="color: #b9bbbe;">Промокоды</div>
-                                    <div style="color: #FEE75C;">${order.promocodes.join(', ')}</div>
-                                </div>
-                            ` : ''}
                         </div>
                     </div>
                     
@@ -325,69 +291,11 @@ class AdminOrders {
                     <button class="btn-primary" onclick="this.closest('.modal').remove()">
                         Закрыть
                     </button>
-                    ${order.status !== 'completed' ? `
-                        <button class="btn-primary" onclick="window.adminOrders.markAsCompleted('${order.id}')">
-                            <i class="fas fa-check"></i> Отметить как выполненный
-                        </button>
-                    ` : ''}
                 </div>
             </div>
         `;
         
         document.body.appendChild(modal);
-    }
-
-    async markAsCompleted(orderId) {
-        try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            const response = await fetch(`${this.baseUrl}/admin-update-order`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    orderId: orderId,
-                    status: 'completed'
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                await this.loadOrders();
-                this.showNotification('Статус заказа обновлен', 'success');
-            } else {
-                throw new Error(data.error || 'Ошибка обновления заказа');
-            }
-        } catch (error) {
-            console.error('Ошибка обновления заказа:', error);
-            this.showNotification('Ошибка обновления заказа', 'error');
-        }
-    }
-
-    exportOrder(orderId) {
-        const order = this.orders.find(o => o.id === orderId);
-        if (!order) return;
-        
-        const data = JSON.stringify(order, null, 2);
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `order-${orderId}.json`;
-        a.click();
-    }
-
-    exportOrders() {
-        const data = JSON.stringify(this.orders, null, 2);
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `orders-${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
     }
 
     showNotification(message, type) {
@@ -400,26 +308,14 @@ class AdminOrders {
             color: ${type === 'success' ? '#1e1f29' : 'white'};
             padding: 15px 25px;
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             z-index: 10001;
             animation: slideIn 0.3s ease;
         `;
         notification.textContent = message;
         document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
+        setTimeout(() => notification.remove(), 3000);
     }
 }
 
 window.AdminOrders = AdminOrders;
 window.adminOrders = new AdminOrders();
-
-window.loadOrders = async function() {
-    await window.adminOrders.loadOrders();
-};
-
-window.viewOrderDetails = function(orderId) {
-    window.adminOrders.viewOrderDetails(orderId);
-};

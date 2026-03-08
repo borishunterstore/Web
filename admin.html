@@ -1,14 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/admin-stats.js"></script>
-    <script src="js/admin-users.js"></script>
-    <script src="js/admin-orders.js"></script>
-    <script src="js/admin-chat.js"></script>
-    <script src="js/admin-products.js"></script>
-    <script src="js/main.js"></script>
     <script src="js/cursor.js"></script>
     <div class="custom-cursor"></div>
     <canvas id="webCanvas"></canvas>
@@ -26,12 +18,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="/image/logo.png">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #1e1f29 0%, #14151a 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
         .admin-container {
             padding: 100px 20px 40px;
             max-width: 1400px;
             margin: 0 auto;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #1e1f29 0%, #14151a 100%);
         }
 
         .admin-header {
@@ -46,6 +49,13 @@
         .admin-header h1 {
             color: #5865F2;
             font-size: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .admin-header h1 i {
+            font-size: 2rem;
         }
 
         .admin-nav {
@@ -67,10 +77,12 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            font-size: 1rem;
         }
 
         .admin-nav-btn:hover {
             background: #3a3b46;
+            transform: translateY(-2px);
         }
 
         .admin-nav-btn.active {
@@ -94,6 +106,9 @@
             margin-bottom: 20px;
             padding-bottom: 10px;
             border-bottom: 1px solid #40444b;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .stats-grid {
@@ -105,9 +120,14 @@
 
         .stat-card {
             background: #1e1f29;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 25px;
+            border-radius: 12px;
             text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
         }
 
         .stat-card .stat-value {
@@ -160,11 +180,16 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
-            transition: background 0.3s;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
         }
 
         .btn-admin:hover {
             background: #4752c4;
+            transform: translateY(-2px);
         }
 
         .btn-admin.danger {
@@ -184,21 +209,33 @@
             background: #4ad477;
         }
 
+        .btn-admin.small {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .btn-admin:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 60px;
             color: #b9bbbe;
         }
 
         .loading i {
-            font-size: 2rem;
-            margin-bottom: 10px;
+            font-size: 3rem;
+            margin-bottom: 15px;
             color: #5865F2;
         }
 
         .access-denied {
             text-align: center;
             padding: 100px 20px;
+            background: #2a2b36;
+            border-radius: 12px;
         }
 
         .access-denied i {
@@ -220,16 +257,17 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
+            z-index: 10000;
             align-items: center;
             justify-content: center;
+            backdrop-filter: blur(5px);
         }
 
         .modal-content {
             background: #2a2b36;
-            border-radius: 12px;
+            border-radius: 16px;
             padding: 30px;
-            max-width: 500px;
+            max-width: 600px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
@@ -255,7 +293,15 @@
             border: 1px solid #40444b;
             border-radius: 8px;
             color: white;
-            font-size: 16px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #5865F2;
         }
 
         .form-group textarea {
@@ -268,6 +314,13 @@
             gap: 10px;
             justify-content: flex-end;
             margin-top: 30px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
         }
 
         .user-badge {
@@ -288,14 +341,19 @@
             color: #1e1f29;
         }
 
-        .user-badge.partner {
-            background: #FEE75C;
-            color: #1e1f29;
+        .chat-container {
+            height: 600px;
         }
 
-        .user-badge.buyer {
-            background: #5865F2;
-            color: white;
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
     </style>
 </head>
@@ -325,9 +383,12 @@
 
     <div class="admin-container">
         <div class="admin-header">
-            <h1><i class="fas fa-crown"></i> Админ панель</h1>
-            <div style="color: #b9bbbe;">
-                <i class="fas fa-user-shield"></i>
+            <h1>
+                <i class="fas fa-crown"></i>
+                Админ панель
+            </h1>
+            <div style="color: #b9bbbe; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-user-shield" style="color: #5865F2;"></i>
                 <span id="adminUsername">Загрузка...</span>
             </div>
         </div>
@@ -335,6 +396,7 @@
         <div id="adminContent"></div>
     </div>
 
+    <!-- Модальное окно пополнения баланса -->
     <div id="addBalanceModal" class="modal">
         <div class="modal-content">
             <h2 style="color: #5865F2; margin-bottom: 20px;">
@@ -360,7 +422,6 @@
                         <option value="Бонус за активность">Бонус за активность</option>
                         <option value="Возврат средств">Возврат средств</option>
                         <option value="Конкурс/Розыгрыш">Конкурс/Розыгрыш</option>
-                        <option value="Оплата товара">Оплата товара</option>
                         <option value="Другое">Другое</option>
                     </select>
                 </div>
@@ -368,17 +429,6 @@
                 <div class="form-group" id="balanceCustomReasonGroup" style="display: none;">
                     <label for="balanceCustomReason">Укажите причину</label>
                     <input type="text" id="balanceCustomReason" placeholder="Введите свою причину">
-                </div>
-                
-                <div style="background: #1e1f29; padding: 1rem; border-radius: 8px; margin-bottom: 20px;" id="quickAmounts">
-                    <div style="color: #b9bbbe; margin-bottom: 10px;">Быстрое пополнение:</div>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button type="button" class="btn-admin small" onclick="document.getElementById('balanceAmount').value = 100">100 ₽</button>
-                        <button type="button" class="btn-admin small" onclick="document.getElementById('balanceAmount').value = 500">500 ₽</button>
-                        <button type="button" class="btn-admin small" onclick="document.getElementById('balanceAmount').value = 1000">1000 ₽</button>
-                        <button type="button" class="btn-admin small" onclick="document.getElementById('balanceAmount').value = 5000">5000 ₽</button>
-                        <button type="button" class="btn-admin small" onclick="document.getElementById('balanceAmount').value = 10000">10000 ₽</button>
-                    </div>
                 </div>
                 
                 <div class="form-actions">
@@ -391,6 +441,7 @@
         </div>
     </div>
 
+    <!-- Модальное окно списания баланса -->
     <div id="removeBalanceModal" class="modal">
         <div class="modal-content">
             <h2 style="color: #FEE75C; margin-bottom: 20px;">
@@ -424,6 +475,7 @@
         </div>
     </div>
 
+    <!-- Модальное окно истории баланса -->
     <div id="balanceHistoryModal" class="modal">
         <div class="modal-content" style="max-width: 600px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -438,31 +490,34 @@
             </div>
         </div>
     </div>
+
+    <!-- Подключаем скрипты в правильном порядке -->
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin-stats.js"></script>
+    <script src="js/admin-users.js"></script>
+    <script src="js/admin-orders.js"></script>
+    <script src="js/admin-chat.js"></script>
+    <script src="js/admin-products.js"></script>
+    <script src="js/main.js"></script>
     
     <script>
         // Глобальные функции для модальных окон
         window.showModal = function(modalId) {
             const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.style.display = 'flex';
-            }
+            if (modal) modal.style.display = 'flex';
         };
 
         window.closeModal = function(modalId) {
             const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.style.display = 'none';
-            }
+            if (modal) modal.style.display = 'none';
         };
 
-        // Инициализация при загрузке страницы
+        // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🚀 Админ панель загружается...');
             
             try {
-                const api = new BHStoreAPI();
-                
-                // Проверяем авторизацию
                 const authData = api.getAuthData();
                 
                 if (!authData.token) {
@@ -470,7 +525,6 @@
                     return;
                 }
                 
-                // Проверяем права администратора
                 const isAdmin = await api.isAdmin();
                 
                 if (!isAdmin) {
@@ -487,10 +541,7 @@
                     return;
                 }
                 
-                // Отображаем имя администратора
                 document.getElementById('adminUsername').textContent = authData.username || 'Администратор';
-                
-                // Загружаем админ панель
                 loadAdminPanel();
                 
             } catch (error) {
@@ -508,7 +559,6 @@
             }
         });
 
-        // Загрузка админ панели
         function loadAdminPanel() {
             document.getElementById('adminContent').innerHTML = `
                 <div class="admin-nav">
@@ -570,77 +620,45 @@
                 </div>
             `;
             
-            // Навешиваем обработчики на кнопки навигации
             document.querySelectorAll('.admin-nav-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    document.querySelectorAll('.admin-nav-btn').forEach(b => {
-                        b.classList.remove('active');
-                    });
-                    
+                    document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
                     
-                    document.querySelectorAll('.admin-section').forEach(section => {
-                        section.classList.remove('active');
-                    });
+                    document.querySelectorAll('.admin-section').forEach(section => section.classList.remove('active'));
                     
                     const sectionId = this.dataset.section;
                     document.getElementById(`section-${sectionId}`).classList.add('active');
                     
-                    // Загружаем данные секции
                     loadSectionData(sectionId);
                 });
             });
             
-            // Загружаем статистику по умолчанию
             loadSectionData('stats');
-            
-            // Инициализируем обработчики форм
             initFormHandlers();
         }
 
-        // Загрузка данных секции
         async function loadSectionData(section) {
             try {
                 switch(section) {
                     case 'stats':
-                        if (window.adminStats) {
-                            await window.adminStats.loadStats();
-                        } else {
-                            console.error('adminStats не инициализирован');
-                        }
+                        if (window.adminStats) await window.adminStats.loadStats();
                         break;
                     case 'users':
-                        if (window.adminUsers) {
-                            await window.adminUsers.loadUsers();
-                        } else {
-                            console.error('adminUsers не инициализирован');
-                        }
+                        if (window.adminUsers) await window.adminUsers.loadUsers();
                         break;
                     case 'orders':
-                        if (window.adminOrders) {
-                            await window.adminOrders.loadOrders();
-                        } else {
-                            console.error('adminOrders не инициализирован');
-                        }
+                        if (window.adminOrders) await window.adminOrders.loadOrders();
                         break;
                     case 'chat':
-                        if (window.adminChat) {
-                            await window.adminChat.init();
-                        } else {
-                            console.error('adminChat не инициализирован');
-                        }
+                        if (window.adminChat) await window.adminChat.init();
                         break;
                     case 'products':
-                        if (window.adminProducts) {
-                            await window.adminProducts.loadProducts();
-                        } else {
-                            console.error('adminProducts не инициализирован');
-                        }
+                        if (window.adminProducts) await window.adminProducts.loadProducts();
                         break;
                 }
             } catch (error) {
                 console.error(`Ошибка загрузки секции ${section}:`, error);
-                
                 const contentElement = document.getElementById(`${section}Content`);
                 if (contentElement) {
                     contentElement.innerHTML = `
@@ -656,7 +674,6 @@
             }
         }
 
-        // Инициализация обработчиков форм
         function initFormHandlers() {
             // Форма пополнения баланса
             const addBalanceForm = document.getElementById('addBalanceForm');
@@ -669,8 +686,7 @@
                     let reason = document.getElementById('balanceReason').value;
                     
                     if (reason === 'Другое') {
-                        const customReason = document.getElementById('balanceCustomReason').value;
-                        reason = customReason || 'Пополнение администратором';
+                        reason = document.getElementById('balanceCustomReason').value || 'Пополнение администратором';
                     }
                     
                     if (!amount || amount <= 0) {
@@ -679,36 +695,22 @@
                     }
                     
                     try {
-                        const api = new BHStoreAPI();
                         await api.addUserBalance(userId, amount, reason);
-                        
                         closeModal('addBalanceModal');
-                        
-                        // Показываем уведомление об успехе
                         showNotification(`Баланс пополнен на ${amount} ₽`, 'success');
-                        
-                        // Обновляем список пользователей
-                        if (window.adminUsers) {
-                            await window.adminUsers.loadUsers();
-                        }
-                        
+                        if (window.adminUsers) await window.adminUsers.loadUsers();
                     } catch (error) {
-                        console.error('Ошибка пополнения баланса:', error);
-                        alert('Ошибка пополнения баланса: ' + (error.message || 'Неизвестная ошибка'));
+                        alert('Ошибка пополнения баланса: ' + error.message);
                     }
                 });
             }
             
-            // Обработчик выбора причины пополнения
+            // Обработчик выбора причины
             const balanceReason = document.getElementById('balanceReason');
             if (balanceReason) {
                 balanceReason.addEventListener('change', function() {
                     const customGroup = document.getElementById('balanceCustomReasonGroup');
-                    if (this.value === 'Другое') {
-                        customGroup.style.display = 'block';
-                    } else {
-                        customGroup.style.display = 'none';
-                    }
+                    customGroup.style.display = this.value === 'Другое' ? 'block' : 'none';
                 });
             }
             
@@ -728,27 +730,18 @@
                     }
                     
                     try {
-                        const api = new BHStoreAPI();
                         await api.removeUserBalance(userId, amount, reason);
-                        
                         closeModal('removeBalanceModal');
-                        
                         showNotification(`Списано ${amount} ₽ с баланса`, 'success');
-                        
-                        if (window.adminUsers) {
-                            await window.adminUsers.loadUsers();
-                        }
-                        
+                        if (window.adminUsers) await window.adminUsers.loadUsers();
                     } catch (error) {
-                        console.error('Ошибка списания баланса:', error);
-                        alert('Ошибка списания баланса: ' + (error.message || 'Неизвестная ошибка'));
+                        alert('Ошибка списания баланса: ' + error.message);
                     }
                 });
             }
         }
 
-        // Утилита для показа уведомлений
-        function showNotification(message, type = 'info') {
+        function showNotification(message, type) {
             const notification = document.createElement('div');
             notification.style.cssText = `
                 position: fixed;
@@ -757,19 +750,14 @@
                 padding: 15px 25px;
                 border-radius: 8px;
                 color: white;
-                background: ${type === 'success' ? '#57F287' : type === 'error' ? '#ED4245' : '#5865F2'};
+                background: ${type === 'success' ? '#57F287' : '#ED4245'};
                 z-index: 10001;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.3);
                 animation: slideIn 0.3s ease;
-                max-width: 300px;
             `;
-            notification.textContent = message;
-            
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
             document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
+            setTimeout(() => notification.remove(), 3000);
         }
 
         // Закрытие модальных окон по клику на фон
@@ -779,18 +767,13 @@
             }
         });
 
-        // Глобальные функции для использования в админ-классах
+        // Глобальные функции для админ-классов
         window.openUserChat = function(userId) {
-            // Переключаемся на вкладку чата
             const chatBtn = document.querySelector('.admin-nav-btn[data-section="chat"]');
             if (chatBtn) {
                 chatBtn.click();
-                
-                // Выбираем пользователя после загрузки чата
                 setTimeout(() => {
-                    if (window.adminChat) {
-                        window.adminChat.selectUser(userId);
-                    }
+                    if (window.adminChat) window.adminChat.selectUser(userId);
                 }, 500);
             }
         };
@@ -813,39 +796,23 @@
         };
 
         window.viewBalanceHistory = function(userId, username) {
-            if (window.adminUsers) {
-                window.adminUsers.viewBalanceHistory(userId, username);
-            }
+            if (window.adminUsers) window.adminUsers.viewBalanceHistory(userId, username);
         };
 
         window.exportUsers = function() {
-            if (window.adminUsers) {
-                window.adminUsers.exportUsers();
-            }
-        };
-
-        window.exportOrders = function() {
-            if (window.adminOrders) {
-                window.adminOrders.exportOrders();
-            }
+            if (window.adminUsers) window.adminUsers.exportUsers();
         };
 
         window.showAddProductForm = function() {
-            if (window.adminProducts) {
-                window.adminProducts.showAddProductForm();
-            }
+            if (window.adminProducts) window.adminProducts.showAddProductForm();
         };
 
         window.editProduct = function(productId) {
-            if (window.adminProducts) {
-                window.adminProducts.editProduct(productId);
-            }
+            if (window.adminProducts) window.adminProducts.editProduct(productId);
         };
 
         window.deleteProduct = function(productId) {
-            if (window.adminProducts) {
-                window.adminProducts.deleteProduct(productId);
-            }
+            if (window.adminProducts) window.adminProducts.deleteProduct(productId);
         };
     </script>
 </body>
