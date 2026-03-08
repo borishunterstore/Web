@@ -1,4 +1,4 @@
-// api.js - ПОЛНАЯ ВЕРСИЯ С МЕТОДАМИ ЧАТА
+// api.js - ПОЛНАЯ ВЕРСИЯ С МЕТОДАМИ ЧАТА И АДМИНКИ
 class BHStoreAPI {
     constructor() {
         this.baseUrl = 'https://bhstore.netlify.app';
@@ -47,6 +47,30 @@ class BHStoreAPI {
         } catch (error) {
             console.error(`❌ Ошибка API (${url}):`, error);
             throw error;
+        }
+    }
+
+    // ========== АДМИН МЕТОДЫ ==========
+    async isAdmin() {
+        try {
+            const data = await this.request('/admin/check');
+            return data.isAdmin === true;
+        } catch (error) {
+            console.error('❌ Ошибка проверки админа:', error);
+            return false;
+        }
+    }
+
+    async checkAdminStatus() {
+        try {
+            const data = await this.request('/user/me');
+            return { 
+                isAdmin: data.user?.badges?.admin === true, 
+                isLoggedIn: true, 
+                user: data.user 
+            };
+        } catch (error) {
+            return { isAdmin: false, isLoggedIn: false };
         }
     }
 
@@ -147,6 +171,13 @@ class BHStoreAPI {
         });
     }
 
+    async setUserBalance(userId, newBalance, reason) {
+        return this.request('/admin/balance/set', {
+            method: 'POST',
+            body: JSON.stringify({ userId, newBalance, reason })
+        });
+    }
+
     // ========== ПРОМОКОДЫ ==========
     async getUserPromocodes(userId) { 
         return this.request(`/promocodes/user/${userId}`); 
@@ -174,10 +205,23 @@ class BHStoreAPI {
     async getProducts() { 
         return this.request('/products'); 
     }
-
-    // ========== СТАТИСТИКА ==========
-    async getStats() { 
-        return this.request('/admin/stats'); 
+    
+    async createProduct(productData) {
+        return this.request('/admin/products', {
+            method: 'POST',
+            body: JSON.stringify(productData)
+        });
+    }
+    
+    async updateProduct(productId, productData) {
+        return this.request(`/admin/products/${productId}`, {
+            method: 'PUT',
+            body: JSON.stringify(productData)
+        });
+    }
+    
+    async deleteProduct(productId) {
+        return this.request(`/admin/products/${productId}`, { method: 'DELETE' });
     }
 
     // ========== ЗАКАЗЫ ==========
@@ -190,6 +234,11 @@ class BHStoreAPI {
             method: 'POST',
             body: JSON.stringify(orderData)
         });
+    }
+
+    // ========== СТАТИСТИКА ==========
+    async getStats() { 
+        return this.request('/admin/stats'); 
     }
 
     // ========== УТИЛИТЫ ==========

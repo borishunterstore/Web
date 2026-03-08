@@ -538,6 +538,83 @@ class ChatSystem {
         }
     }
 
+    async sendMessage() {
+        const input = document.getElementById('messageInput');
+        if (!input) return;
+        
+        const text = input.value.trim();
+        if (!text) return;
+    
+        // Оптимистичное добавление
+        const tempMsg = {
+            message: text,
+            from_admin: false,
+            timestamp: new Date().toISOString()
+        };
+        
+        this.messages.push(tempMsg);
+        this.appendMessage(tempMsg);
+        
+        // Очищаем поле
+        input.value = '';
+        input.style.height = 'auto';
+    
+        try {
+            console.log('📤 Отправка сообщения...');
+            
+            const result = await this.api.sendChatMessage(this.userId, text, false);
+            console.log('✅ Сообщение отправлено:', result);
+            
+            // Отправляем уведомление в Discord
+            await this.sendToDiscord(text);
+            
+            // Обновляем сообщения
+            await this.loadMessages();
+            
+        } catch (error) {
+            console.error('❌ Ошибка отправки:', error);
+            
+            // Показываем ошибку
+            const container = document.getElementById('chatMessages');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i>
+                <span>Не удалось отправить сообщение</span>
+            `;
+            container.appendChild(errorDiv);
+            
+            setTimeout(() => errorDiv.remove(), 3000);
+            
+            // Удаляем оптимистичное сообщение
+            this.messages = this.messages.filter(m => m !== tempMsg);
+            this.renderMessages();
+        }
+    }
+    
+    // Добавьте этот метод в класс ChatSystem
+    async sendToDiscord(message) {
+        try {
+            const authData = this.api.getAuthData();
+            
+            await fetch('/api/webhook/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: '💬 Новое сообщение от пользователя',
+                    description: message,
+                    color: 0x5865F2,
+                    fields: [
+                        { name: '👤 Пользователь', value: `<@${this.userId}>`, inline: true },
+                        { name: '📝 Имя', value: authData.username || 'Неизвестно', inline: true }
+                    ]
+                })
+            });
+        } catch (error) {
+            console.error('❌ Ошибка отправки в Discord:', error);
+        }
+    }
+    
     appendMessage(msg) {
         const container = document.getElementById('chatMessages');
         if (!container) return;

@@ -3007,22 +3007,22 @@ app.post('/api/webhook/send', async (req, res) => {
   try {
       const { title, description, color, fields } = req.body;
       
-      // Вебхук теперь хранится только на сервере, в переменных окружения
-      const webhookUrl = process.env.DISCORD_WEBHOOK_URL || 'https://discord.com/api/webhooks/1459512369960194260/mtTCwjsSXA2_I7H-zmVbsYd5erD3UZCD9fZ2EiZkVg2KLt-IENQutfE4y393vXY5ryzH';
+      // Вебхук для чата поддержки
+      const webhookUrl = process.env.DISCORD_WEBHOOK_CHAT || 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG';
       
       const response = await axios.post(webhookUrl, {
           embeds: [{
-              title,
-              description,
-              color,
-              fields,
+              title: title || '💬 Новое сообщение',
+              description: description || '',
+              color: color || 0x5865F2,
+              fields: fields || [],
               timestamp: new Date().toISOString()
           }]
       });
       
       res.json({ success: true });
   } catch (error) {
-      console.error('❌ Ошибка отправки вебхука:', error);
+      console.error('❌ Ошибка отправки вебхука:', error.message);
       res.status(500).json({ success: false, error: 'Ошибка отправки' });
   }
 });
