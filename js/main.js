@@ -67,7 +67,7 @@ async function checkAuth() {
             <img src="https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=32" 
                  style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px;"
                  onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-            <span>${authData.username}</span>
+            <span>${authData.username} окак</span>
             ${badges}
             <i class="fas fa-chevron-down" style="margin-left: 5px;"></i>
         `;
