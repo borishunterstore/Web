@@ -1,7 +1,7 @@
 // chat.js - Исправленная версия для пользователей
 class ChatSystem {
     constructor() {
-        this.api = window.BHStoreAPI || window.api;
+        this.api = window.api;
         this.userId = null;
         this.messages = [];
         this.pollingInterval = null;
