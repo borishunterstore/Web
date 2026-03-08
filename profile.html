@@ -2,18 +2,32 @@
 <html lang="ru">
 <head>
     <!-- Yandex.Metrika counter -->
-<script type="text/javascript">
-    (function(m,e,t,r,i,k,a){
-        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-        m[i].l=1*new Date();
-        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097', 'ym');
-
-    ym(107215097, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-</script>
-<noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-<!-- /Yandex.Metrika counter -->
+    <script type="text/javascript">
+        (function(m,e,t,r,i,k,a){
+            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+            m[i].l=1*new Date();
+            for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}
+            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+        })(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097','ym');
+        
+        ym(107215097,'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",referrer:document.referrer,url:location.href,accurateTrackBounce:true,trackLinks:true});
+    </script>
+    <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль | BHStore</title>
+    <meta name="description" content="Управляйте своим профилем, балансом и заказами в BHStore">
+    <meta name="keywords" content="профиль, баланс, заказы, промокоды, discord">
+    
+    <!-- Стили -->
+    <link rel="stylesheet" href="css/general.css">
+    <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/image/logo.png">
+    
+    <!-- Скрипты в правильном порядке -->
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/chat.js"></script>
@@ -21,23 +35,15 @@
     <script src="js/payment.js"></script>
     <script src="js/main.js"></script>
     <script src="js/cursor.js"></script>
+    <script src="js/pkm.js"></script>
+    <script src="js/mobile-nav.js"></script>
+    
+    <!-- Эффекты -->
     <div class="custom-cursor"></div>
     <canvas id="webCanvas"></canvas>
     <div class="scroll-indicator">
-    <span class="scroll-value">0%</span>
+        <span class="scroll-value">0%</span>
     </div>
-    <script src="js/pkm.js"></script>
-    <script src="js/mobile-nav.js"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Профиль | BHStore</title>
-    <meta name="description" content="Управляйте своим профилем, балансом и заказами в BHStore">
-    <meta name="keywords" content="профиль, баланс, заказы, промокоды, discord">
-    <link rel="stylesheet" href="css/general.css">
-    <link rel="stylesheet" href="css/profile.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="/image/logo.png">
 </head>
 <body>
     <nav class="navbar">
@@ -150,6 +156,7 @@
         </div>
     </div>
 
+    <!-- Модальное окно пополнения баланса -->
     <div id="addBalanceModal" class="modal" style="display: none;">
         <div class="modal-content">
             <h2>
@@ -168,7 +175,7 @@
         </div>
     </div>
 
-    
+    <!-- Модальное окно информации о промокоде -->
     <div id="promocodeInfoModal" class="modal" style="display: none;">
         <div class="modal-content">
             <h2>
@@ -203,7 +210,7 @@
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</a></p>
+            <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</p>
         </div>
     </footer>
 
@@ -242,8 +249,8 @@
             
             await loadProfile();
             initPromocodeSystem();
-            setTimeout(() => {
-            }, 500);
+            
+            // Чат инициализируется автоматически через chat.js
         });
     
         async function loadProfile() {
@@ -416,9 +423,7 @@
             return { verified: false, partner: false, buyer: false, early: false, vip: false, admin: false };
         }
     
-        // Функция для получения главного бейджа (только один по приоритету)
         function getMainBadge(badges) {
-            // Приоритет: Админ > Подтвержденный > Партнер > Покупатель > VIP > Ранний
             if (badges.admin) {
                 return `
                     <div class="avatar-badge" title="Администратор">
@@ -460,11 +465,9 @@
             return '';
         }
     
-        // Функция для генерации всех бейджей (для отображения в списке)
         function generateBadgesHTML(badges) {
             let badgesHtml = '';
             
-            // Словарь бейджей с приоритетами
             const badgeConfigs = [
                 { condition: badges.admin, class: 'admin', image: BADGE_IMAGES.admin, text: 'Администратор', priority: 1 },
                 { condition: badges.verified, class: 'verified', image: BADGE_IMAGES.verified, text: 'Верифицирован', priority: 2 },
@@ -474,7 +477,6 @@
                 { condition: badges.early, class: 'early', image: BADGE_IMAGES.early, text: 'Ранний сторонник', priority: 6 }
             ];
             
-            // Сортируем по приоритету (сначала самые важные)
             const sortedConfigs = badgeConfigs.sort((a, b) => a.priority - b.priority);
             
             sortedConfigs.forEach(config => {
@@ -489,56 +491,6 @@
             });
             
             return badgesHtml;
-        }
-    
-        // Альтернативная функция для генерации бейджей (если нужно показывать только один)
-        function generateSingleBadgeHTML(badges) {
-            // Приоритет: Админ > Подтвержденный > Партнер > Покупатель > VIP > Ранний
-            if (badges.admin) {
-                return `
-                    <div class="badge badge-admin" title="Администратор">
-                        <img src="${BADGE_IMAGES.admin}" alt="Администратор">
-                        <span>Администратор</span>
-                    </div>
-                `;
-            } else if (badges.verified) {
-                return `
-                    <div class="badge badge-verified" title="Верифицирован">
-                        <img src="${BADGE_IMAGES.verified}" alt="Верифицирован">
-                        <span>Верифицирован</span>
-                    </div>
-                `;
-            } else if (badges.partner) {
-                return `
-                    <div class="badge badge-partner" title="Партнёр">
-                        <img src="${BADGE_IMAGES.partner}" alt="Партнёр">
-                        <span>Партнёр</span>
-                    </div>
-                `;
-            } else if (badges.buyer) {
-                return `
-                    <div class="badge badge-buyer" title="Покупатель">
-                        <img src="${BADGE_IMAGES.buyer}" alt="Покупатель">
-                        <span>Покупатель</span>
-                    </div>
-                `;
-            } else if (badges.vip) {
-                return `
-                    <div class="badge badge-vip" title="VIP">
-                        <img src="${BADGE_IMAGES.vip}" alt="VIP">
-                        <span>VIP</span>
-                    </div>
-                `;
-            } else if (badges.early) {
-                return `
-                    <div class="badge badge-early" title="Ранний сторонник">
-                        <img src="${BADGE_IMAGES.early}" alt="Ранний сторонник">
-                        <span>Ранний сторонник</span>
-                    </div>
-                `;
-            }
-            
-            return '';
         }
     
         function renderBalance(balance) {
@@ -660,9 +612,8 @@
                     showPromocodeMessage(`Промокод ${code} успешно активирован!`, 'success');
                     input.value = '';
                     
-                    // Обновляем баланс если это промокод на пополнение
                     if (data.newBalance !== undefined) {
-                        await loadProfile(); // Перезагружаем профиль для обновления баланса
+                        await loadProfile();
                     }
                     
                     await loadUserPromocodes();
@@ -726,185 +677,15 @@
         }
     
         async function loadUserPromocodes() {
-            // Здесь можно загрузить список использованных промокодов пользователя
-            // Пока оставим пустым
+            // Здесь можно загрузить список использованных промокодов
         }
     
-        // Чат с поддержкой
-        function initChatSystem() {
-            const chatContainer = document.getElementById('supportChat');
-            if (!chatContainer) return;
-            
-            chatContainer.innerHTML = `
-                <div style="display: flex; flex-direction: column; height: 500px;">
-                    <div id="chatMessages" class="chat-messages"></div>
-                    
-                    <div class="chat-input-container">
-                        <input type="text" id="chatMessageInput" 
-                               placeholder="Введите сообщение..." 
-                               autocomplete="off">
-                        <button class="btn-send" onclick="sendMessage()">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            loadMessages();
-            startPolling();
-        }
-    
-        async function loadMessages() {
-            try {
-                const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-                const response = await fetch(`/api/chat/messages/${authData.id}`);
-                const data = await response.json();
-                
-                const messagesContainer = document.getElementById('chatMessages');
-                if (!messagesContainer) return;
-                
-                if (data.success) {
-                    const messages = data.messages || [];
-                    
-                    if (messages.length === 0) {
-                        messagesContainer.innerHTML = `
-                            <div class="empty-state" style="height: 100%; display: flex; flex-direction: column; justify-content: center;">
-                                <i class="fas fa-comments"></i>
-                                <p>Начните общение с поддержкой</p>
-                                <small style="color: #72767d;">Обычно отвечаем в течение 15 минут</small>
-                            </div>
-                        `;
-                    } else {
-                        messagesContainer.innerHTML = messages.map(msg => {
-                            const time = new Date(msg.timestamp).toLocaleTimeString('ru-RU', { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
-                            });
-                            
-                            const isAdmin = msg.from_admin || msg.fromAdmin;
-                            const senderName = isAdmin ? 'Поддержка' : 'Вы';
-                            
-                            return `
-                                <div class="message-wrapper ${isAdmin ? 'admin' : 'user'}">
-                                    <div class="message-sender ${isAdmin ? 'admin' : 'user'}">
-                                        <i class="fas fa-${isAdmin ? 'headset' : 'user'}"></i>
-                                        ${senderName}
-                                    </div>
-                                    <div class="message-bubble ${isAdmin ? 'admin' : 'user'}">
-                                        ${escapeHtml(msg.message)}
-                                    </div>
-                                    <div class="message-time ${isAdmin ? 'admin' : 'user'}">
-                                        <i class="fas fa-clock"></i>
-                                        ${time}
-                                    </div>
-                                </div>
-                            `;
-                        }).join('');
-                        
-                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading messages:', error);
-            }
-        }
-    
-        window.sendMessage = async function() {
-            const input = document.getElementById('chatMessageInput');
-            if (!input) return;
-            
-            const message = input.value.trim();
-            if (!message) return;
-            
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            try {
-                const messagesContainer = document.getElementById('chatMessages');
-                const time = new Date().toLocaleTimeString('ru-RU', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-                
-                // Оптимистично добавляем сообщение в чат
-                const messageHTML = `
-                    <div class="message-wrapper user">
-                        <div class="message-sender user">
-                            <i class="fas fa-user"></i>
-                            Вы
-                        </div>
-                        <div class="message-bubble user">
-                            ${escapeHtml(message)}
-                        </div>
-                        <div class="message-time user">
-                            <i class="fas fa-clock"></i>
-                            ${time}
-                        </div>
-                    </div>
-                `;
-                
-                messagesContainer.insertAdjacentHTML('beforeend', messageHTML);
-                input.value = '';
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                
-                const response = await fetch('/api/chat/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: authData.id,
-                        message: message,
-                        fromAdmin: false
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (!data.success) {
-                    console.error('Error sending message:', data.error);
-                    showPromocodeMessage('Ошибка отправки сообщения', 'error');
-                }
-                
-            } catch (error) {
-                console.error('Error sending message:', error);
-                showPromocodeMessage('Ошибка отправки сообщения', 'error');
-            }
+        // Логаут
+        window.logout = function() {
+            localStorage.removeItem('bhstore_auth');
+            localStorage.removeItem('bhstore_active_promocodes');
+            window.location.href = '/';
         };
-    
-        // Polling для новых сообщений
-        let pollingInterval;
-    
-        function startPolling() {
-            if (pollingInterval) clearInterval(pollingInterval);
-            pollingInterval = setInterval(async () => {
-                await checkNewMessages();
-            }, 3000);
-        }
-    
-        async function checkNewMessages() {
-            try {
-                const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-                const response = await fetch(`/api/chat/messages/${authData.id}`);
-                const data = await response.json();
-                
-                if (data.success) {
-                    const messagesContainer = document.getElementById('chatMessages');
-                    if (!messagesContainer) return;
-                    
-                    const currentMessages = messagesContainer.querySelectorAll('.message-bubble').length;
-                    
-                    if (data.messages.length > currentMessages) {
-                        await loadMessages();
-                    }
-                }
-            } catch (error) {
-                console.error('Error checking messages:', error);
-            }
-        }
-    
-        window.addEventListener('beforeunload', function() {
-            if (pollingInterval) {
-                clearInterval(pollingInterval);
-            }
-        });
     </script>
 </body>
 </html>
