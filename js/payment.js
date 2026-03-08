@@ -1,17 +1,14 @@
-// payment.js - Система оплаты через баланс с поддержкой промокодов
 class PaymentSystem {
     constructor() {
         this.api = new BHStoreAPI();
-        this.isProcessing = false; // Флаг для предотвращения двойных покупок
+        this.isProcessing = false;
         console.log('✅ PaymentSystem инициализирован');
     }
 
-    // Генерация уникального номера заказа
     generateOrderId() {
         return 'BH-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9).toUpperCase();
     }
 
-    // Получение данных пользователя с сервера
     async getUserData(userId) {
         try {
             const response = await fetch(`/api/user/${userId}`);
@@ -27,7 +24,6 @@ class PaymentSystem {
         }
     }
 
-    // Получение баланса пользователя
     async getUserBalance(userId) {
         try {
             const user = await this.getUserData(userId);
@@ -38,13 +34,11 @@ class PaymentSystem {
         }
     }
 
-    // Расчет итоговой цены с учетом всех активных промокодов
     calculateDiscountedPrice(originalPrice, productId = null) {
         if (!window.promocodeSystem || !window.promocodeSystem.activeDiscounts) {
             return originalPrice;
         }
         
-        // Получаем все промокоды, которые применяются к этому товару
         const applicableDiscounts = window.promocodeSystem.activeDiscounts.filter(promocode => 
             !promocode.productId || promocode.productId === productId
         );
@@ -53,23 +47,18 @@ class PaymentSystem {
             return originalPrice;
         }
         
-        // Суммируем скидки (максимум 90%)
         let totalDiscount = 0;
         applicableDiscounts.forEach(promocode => {
             totalDiscount += promocode.value;
         });
         
-        // Ограничиваем максимальную скидку 90%
         totalDiscount = Math.min(totalDiscount, 90);
         
-        // Рассчитываем итоговую цену
         const discountedPrice = Math.round(originalPrice * (1 - totalDiscount / 100));
         
         return discountedPrice;
     }
 
-    // Получение информации о примененных скидках
-// Получение информации о примененных скидках
 getDiscountInfo(originalPrice, productId = null) {
     if (!window.promocodeSystem || !window.promocodeSystem.activeDiscounts) {
         return {
@@ -95,16 +84,12 @@ getDiscountInfo(originalPrice, productId = null) {
         };
     }
     
-    // Рассчитываем скидку
     let totalDiscount = 0;
     applicableDiscounts.forEach(promocode => {
         totalDiscount += promocode.value;
     });
     
-    // Ограничиваем максимальную скидку 90%
     totalDiscount = Math.min(totalDiscount, 90);
-    
-    // Правильный расчет скидки: 100% - скидка%
     const discountMultiplier = (100 - totalDiscount) / 100;
     const finalPrice = Math.round(originalPrice * discountMultiplier);
     const discountAmount = originalPrice - finalPrice;
@@ -120,11 +105,9 @@ getDiscountInfo(originalPrice, productId = null) {
     };
 }
 
-    // Показ модального окна оплаты через баланс с учетом промокодов
     async showPaymentModal(productName, originalPrice, productId) {
         console.log(`🔄 showPaymentModal вызван: productName=${productName}, originalPrice=${originalPrice}, productId=${productId}`);
         
-        // Предотвращаем двойное открытие
         if (document.getElementById('paymentModal')) {
             return;
         }
@@ -137,18 +120,15 @@ getDiscountInfo(originalPrice, productId = null) {
             return;
         }
 
-        // Получаем актуальный баланс с сервера
         const userBalance = await this.getUserBalance(authData.id);
         console.log(`💰 Баланс пользователя: ${userBalance} ₽`);
         
-        // Рассчитываем итоговую цену с учетом промокодов
         const discountInfo = this.getDiscountInfo(originalPrice, productId);
         const finalPrice = discountInfo.finalPrice;
         
         console.log(`📊 Информация о скидках:`, discountInfo);
         console.log(`💳 Итоговая цена: ${finalPrice} ₽`);
         
-        // Проверяем достаточно ли средств
         if (userBalance < finalPrice) {
             this.showInsufficientFundsModal(finalPrice, userBalance, productName);
             return;
@@ -172,10 +152,8 @@ getDiscountInfo(originalPrice, productId = null) {
 
         const orderId = this.generateOrderId();
         
-        // Проверяем что цены правильные
         console.log(`✅ Отображение модального окна: оригинальная=${originalPrice}, итоговая=${finalPrice}`);
         
-        // Генерируем HTML для информации о промокодах
         let promocodeHTML = '';
         if (discountInfo.appliedPromocodes.length > 0) {
             promocodeHTML = `
@@ -272,19 +250,16 @@ getDiscountInfo(originalPrice, productId = null) {
 
         document.body.appendChild(modal);
 
-        // Добавляем обработчик кнопки подтверждения
         document.getElementById('confirmPurchaseBtn').addEventListener('click', () => {
             this.confirmPurchase(orderId, productId, productName, finalPrice, originalPrice, authData.id);
         });
 
-        // Добавляем метод для удаления модального окна
         window.removePaymentModal = () => {
             const modal = document.getElementById('paymentModal');
             if (modal) modal.remove();
         };
     }
 
-    // Показ окна при недостаточных средствах
     showInsufficientFundsModal(price, balance, productName) {
         const modal = document.createElement('div');
         modal.id = 'insufficientFundsModal';
@@ -348,18 +323,15 @@ getDiscountInfo(originalPrice, productId = null) {
 
         document.body.appendChild(modal);
 
-        // Добавляем метод для удаления модального окна
         window.removeInsufficientFundsModal = () => {
             const modal = document.getElementById('insufficientFundsModal');
             if (modal) modal.remove();
         };
     }
 
-    // Подтверждение покупки (с защитой от двойных покупок)
     async confirmPurchase(orderId, productId, productName, finalPrice, originalPrice, userId) {
         console.log(`✅ Подтверждение покупки: orderId=${orderId}, finalPrice=${finalPrice}, originalPrice=${originalPrice}`);
         
-        // Защита от двойных покупок
         if (this.isProcessing) {
             console.log('⚠️ Покупка уже обрабатывается, пропускаем...');
             return;
@@ -368,7 +340,6 @@ getDiscountInfo(originalPrice, productId = null) {
         this.isProcessing = true;
     
         try {
-            // Блокируем кнопку
             const confirmBtn = document.getElementById('confirmPurchaseBtn');
             if (confirmBtn) {
                 confirmBtn.disabled = true;
@@ -377,38 +348,32 @@ getDiscountInfo(originalPrice, productId = null) {
                 confirmBtn.style.cursor = 'not-allowed';
             }
     
-            // Показываем статус обработки
             this.showPaymentStatus('Обработка покупки...');
     
-            // Получаем актуальные данные пользователя
             const userData = await this.getUserData(userId);
             if (!userData) {
                 throw new Error('Не удалось получить данные пользователя');
             }
     
-            // Проверяем баланс еще раз
             if (userData.balance < finalPrice) {
                 throw new Error('Недостаточно средств на балансе');
             }
     
-            // Получаем информацию о примененных промокодах
             const discountInfo = this.getDiscountInfo(originalPrice, productId);
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
     
-            // Отправляем запрос на создание заказа
             const orderData = {
                 orderId: orderId,
                 userId: userId,
                 productId: productId,
                 productName: productName,
-                originalPrice: originalPrice, // Оригинальная цена
-                finalPrice: finalPrice,       // Цена со скидкой
+                originalPrice: originalPrice,
+                finalPrice: finalPrice,
                 username: authData.username,
                 type: 'balance',
                 status: 'completed'
             };
     
-            // Добавляем информацию о промокодах если они были применены
             if (discountInfo.appliedPromocodes.length > 0) {
                 orderData.promocodes = discountInfo.appliedPromocodes.map(p => p.code);
                 orderData.discount = discountInfo.discount;
@@ -432,31 +397,25 @@ getDiscountInfo(originalPrice, productId = null) {
             console.log('📥 Ответ от сервера:', result);
     
             if (result.success) {
-                // Обновляем локальные данные пользователя ИЗ ОТВЕТА СЕРВЕРА
                 authData.balance = result.newBalance || (authData.balance - finalPrice);
                 
-                // Обновляем бейдж "Покупатель"
                 if (!authData.badges) authData.badges = {};
                 authData.badges.buyer = true;
                 
                 localStorage.setItem('bhstore_auth', JSON.stringify(authData));
                 
-                // Удаляем использованные промокоды (если они были применены)
                 if (discountInfo.appliedPromocodes.length > 0 && window.promocodeSystem) {
                     discountInfo.appliedPromocodes.forEach(promocode => {
                         window.promocodeSystem.removeDiscountPromocode(promocode.code);
                     });
                 }
                 
-                // Показываем успешное сообщение
                 this.showSuccessMessage(orderId, productName, authData.balance, discountInfo);
                 
-                // Обновляем интерфейс
                 if (typeof updateAuthButton === 'function') {
                     updateAuthButton();
                 }
                 
-                // Обновляем кнопки на странице магазина
                 if (typeof updateProductButtons === 'function') {
                     updateProductButtons();
                 }
@@ -467,7 +426,6 @@ getDiscountInfo(originalPrice, productId = null) {
             console.error('❌ Ошибка покупки:', error);
             this.showPaymentStatus('Ошибка покупки: ' + error.message, true);
             
-            // Разблокируем кнопку при ошибке
             const confirmBtn = document.getElementById('confirmPurchaseBtn');
             if (confirmBtn) {
                 confirmBtn.disabled = false;
@@ -476,14 +434,12 @@ getDiscountInfo(originalPrice, productId = null) {
                 confirmBtn.style.cursor = 'pointer';
             }
         } finally {
-            // Снимаем блокировку через 3 секунды
             setTimeout(() => {
                 this.isProcessing = false;
             }, 3000);
         }
     }
 
-    // Показ статуса оплаты
     showPaymentStatus(message, isError = false) {
         let statusDiv = document.getElementById('paymentStatus');
         
@@ -521,15 +477,12 @@ getDiscountInfo(originalPrice, productId = null) {
             </style>
         `;
 
-        // Автоматическое скрытие
         setTimeout(() => {
             if (statusDiv) statusDiv.remove();
         }, isError ? 5000 : 3000);
     }
 
-    // Успешная покупка с информацией о скидках
     showSuccessMessage(orderId, productName, newBalance, discountInfo) {
-        // Удаляем модальное окно оплаты
         if (typeof window.removePaymentModal === 'function') {
             window.removePaymentModal();
         }
@@ -548,7 +501,6 @@ getDiscountInfo(originalPrice, productId = null) {
             z-index: 10000;
         `;
 
-        // Генерируем информацию о скидках
         let discountHTML = '';
         if (discountInfo && discountInfo.discount > 0) {
             discountHTML = `
@@ -606,7 +558,6 @@ getDiscountInfo(originalPrice, productId = null) {
 
         document.body.appendChild(successDiv);
 
-        // Автоматическое закрытие через 5 секунд
         setTimeout(() => {
             if (successDiv) {
                 successDiv.remove();
@@ -616,29 +567,24 @@ getDiscountInfo(originalPrice, productId = null) {
     }
 }
 
-// Инициализация системы оплаты
 const paymentSystem = new PaymentSystem();
 
-// Функция для покупки товара с учетом промокодов
 async function buyProduct(productId, productName, originalPrice) {
     try {
         const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
         
-        // Проверка авторизации
         if (!authData.username) {
             alert('Пожалуйста, авторизуйтесь для покупки товаров');
             window.location.href = '/auth.html';
             return;
         }
 
-        // Если есть verificationCode, пользователь не завершил регистрацию
         if (authData.verificationCode) {
             alert('Пожалуйста, завершите регистрацию, введя код верификации');
             window.location.href = '/verify.html';
             return;
         }
 
-        // Проверяем баланс через API
         const response = await fetch(`/api/user/${authData.id}`);
         const data = await response.json();
         
@@ -648,13 +594,11 @@ async function buyProduct(productId, productName, originalPrice) {
 
         const userBalance = data.user.balance || 0;
 
-        // Рассчитываем итоговую цену с учетом промокодов
         let finalPrice = originalPrice;
         if (window.paymentSystem) {
             finalPrice = window.paymentSystem.calculateDiscountedPrice(originalPrice, productId);
         }
 
-        // Если баланса недостаточно, показываем окно пополнения
         if (userBalance < finalPrice) {
             if (window.paymentSystem) {
                 window.paymentSystem.showInsufficientFundsModal(finalPrice, userBalance, productName);
@@ -664,7 +608,6 @@ async function buyProduct(productId, productName, originalPrice) {
             return;
         }
 
-        // Используем новую систему оплаты
         if (window.paymentSystem) {
             await window.paymentSystem.showPaymentModal(productName, originalPrice, productId);
         } else {
@@ -677,20 +620,17 @@ async function buyProduct(productId, productName, originalPrice) {
     }
 }
 
-// Обновление кнопок товаров с учетом промокодов
 function updateProductButtons() {
     document.querySelectorAll('.btn-buy').forEach(button => {
         const productId = button.dataset.productId;
         const productName = button.dataset.productName;
         const originalPrice = parseFloat(button.dataset.price);
         
-        // Рассчитываем актуальную цену с учетом промокодов
         let displayPrice = originalPrice;
         if (window.paymentSystem) {
             displayPrice = window.paymentSystem.calculateDiscountedPrice(originalPrice, productId);
         }
         
-        // Обновляем цену на кнопке если она отображается
         const priceElement = button.querySelector('.price') || button;
         if (priceElement.textContent.includes('₽')) {
             priceElement.textContent = priceElement.textContent.replace(/\d+ ₽/, `${displayPrice} ₽`);
@@ -704,9 +644,7 @@ function updateProductButtons() {
     });
 }
 
-// Функция для обновления цен на странице в реальном времени
 function updatePagePrices() {
-    // Обновляем цены на всех товарах
     document.querySelectorAll('.product-card').forEach(card => {
         const productId = card.querySelector('.btn-buy')?.dataset.productId;
         const originalPrice = parseFloat(card.querySelector('.btn-buy')?.dataset.price);
@@ -715,7 +653,6 @@ function updatePagePrices() {
             const finalPrice = window.paymentSystem.calculateDiscountedPrice(originalPrice, productId);
             const discountInfo = window.paymentSystem.getDiscountInfo(originalPrice, productId);
             
-            // Обновляем отображение цены
             const priceElement = card.querySelector('.product-price');
             if (priceElement) {
                 if (discountInfo.discount > 0) {
@@ -740,43 +677,35 @@ function updatePagePrices() {
     });
 }
 
-// Глобальные функции
 window.buyProduct = buyProduct;
 window.updateProductButtons = updateProductButtons;
 window.updatePagePrices = updatePagePrices;
 window.paymentSystem = paymentSystem;
 
-// Добавляем обработчик для кнопок при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof updateProductButtons === 'function') {
         setTimeout(updateProductButtons, 1000);
     }
     
-    // Обновляем цены при изменении активных промокодов
     if (window.promocodeSystem) {
-        // Создаем наблюдатель для отслеживания изменений в activeDiscounts
         const observer = new MutationObserver(() => {
             if (typeof updatePagePrices === 'function') {
                 updatePagePrices();
             }
         });
         
-        // Начинаем наблюдение за изменениями в promocodeSystem
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof updateProductButtons === 'function') {
                 setTimeout(updateProductButtons, 1000);
             }
             
-            // Обновляем цены при изменении активных промокодов
             if (window.promocodeSystem) {
-                // Используем событие вместо MutationObserver
                 document.addEventListener('promocodeChanged', function() {
                     if (typeof updatePagePrices === 'function') {
                         updatePagePrices();
                     }
                 });
                 
-                // Триггерим событие при изменении промокодов
                 const originalAddDiscount = window.promocodeSystem.addDiscountPromocode;
                 if (originalAddDiscount) {
                     window.promocodeSystem.addDiscountPromocode = function(code, value, productId) {

@@ -47,7 +47,6 @@ exports.handler = async (event) => {
   } catch (error) {
     console.error('❌ Error in products function:', error);
     
-    // Демо-данные
     return {
       statusCode: 200,
       headers,

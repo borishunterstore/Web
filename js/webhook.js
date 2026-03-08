@@ -1,9 +1,6 @@
-﻿// js/webhook.js - Обработка вебхуков и уведомлений
-class WebhookManager {
+﻿class WebhookManager {
     constructor() {
-        // Вебхуки теперь хранятся ТОЛЬКО на сервере в переменных окружения!
-        // Клиентский код НЕ должен содержать вебхуки
-        this.apiUrl = '/api'; // Используем относительный путь (работает и локально, и на Netlify)
+        this.apiUrl = '/api';
         this.notifications = [];
         this.init();
     }
@@ -12,13 +9,11 @@ class WebhookManager {
         console.log('Webhook Manager инициализирован');
         this.loadNotificationsFromServer();
         
-        // Запрашиваем разрешение на уведомления при инициализации
         if ("Notification" in window && Notification.permission === "default") {
             Notification.requestPermission();
         }
     }
 
-    // Загрузка уведомлений с сервера
     async loadNotificationsFromServer() {
         try {
             const token = localStorage.getItem('bhstore_token');
@@ -40,7 +35,6 @@ class WebhookManager {
         }
     }
 
-    // Отображение уведомлений в интерфейсе
     displayNotifications() {
         const notificationBadge = document.querySelector('.notification-badge');
         const notificationList = document.querySelector('.notification-list');
@@ -60,7 +54,6 @@ class WebhookManager {
         }
     }
 
-    // Рендер списка уведомлений
     renderNotificationList(container) {
         if (this.notifications.length === 0) {
             container.innerHTML = '<div class="notification-empty">Нет уведомлений</div>';
@@ -81,13 +74,11 @@ class WebhookManager {
         
         container.innerHTML = html;
         
-        // Добавляем обработчики клика
         container.querySelectorAll('.notification-item').forEach(item => {
             item.addEventListener('click', () => this.markAsRead(item.dataset.id));
         });
     }
 
-    // Получение иконки для уведомления
     getNotificationIcon(type) {
         const icons = {
             'purchase': '💰',
@@ -101,7 +92,6 @@ class WebhookManager {
         return icons[type] || '📌';
     }
 
-    // Форматирование времени
     formatTime(timestamp) {
         const date = new Date(timestamp);
         const now = new Date();
@@ -119,7 +109,6 @@ class WebhookManager {
         });
     }
 
-    // Отправка уведомления в Discord через сервер (безопасно!)
     async sendDiscordNotification(title, description, color = 0x5865F2, fields = []) {
         try {
             const token = localStorage.getItem('bhstore_token');
@@ -152,10 +141,8 @@ class WebhookManager {
         }
     }
 
-    // Отправка уведомления о покупке
     async sendPurchaseNotification(userId, productName, amount, orderId, username = '') {
         try {
-            // Сохраняем в БД через API
             const token = localStorage.getItem('bhstore_token');
             
             await fetch(`${this.apiUrl}/notifications/purchase`, {
@@ -172,7 +159,6 @@ class WebhookManager {
                 })
             });
 
-            // Добавляем локальное уведомление
             this.addLocalNotification({
                 id: `local_${Date.now()}`,
                 type: 'purchase',
@@ -181,7 +167,6 @@ class WebhookManager {
                 created_at: new Date().toISOString()
             });
 
-            // Отправляем в Discord
             return await this.sendDiscordNotification(
                 '<:Price:1474932616523415583> Новая покупка!',
                 `<:User:1474931634804359433> **${username || userId}** совершил покупку`,
@@ -198,10 +183,8 @@ class WebhookManager {
         }
     }
 
-    // Отправка уведомления о регистрации
     async sendRegistrationNotification(userId, username) {
         try {
-            // Сохраняем в БД через API
             const token = localStorage.getItem('bhstore_token');
             
             await fetch(`${this.apiUrl}/notifications/registration`, {
@@ -216,7 +199,6 @@ class WebhookManager {
                 })
             });
 
-            // Добавляем локальное уведомление
             this.addLocalNotification({
                 id: `local_${Date.now()}`,
                 type: 'registration',
@@ -225,7 +207,6 @@ class WebhookManager {
                 created_at: new Date().toISOString()
             });
 
-            // Отправляем в Discord
             return await this.sendDiscordNotification(
                 '<:Yes:1474931426951430225> Новый пользователь!',
                 `<:User:1474931634804359433> **${username}** зарегистрировался на сайте`,
@@ -241,10 +222,8 @@ class WebhookManager {
         }
     }
 
-    // Отправка уведомления об ошибке
     async sendErrorNotification(errorType, errorMessage, userId = null) {
         try {
-            // Сохраняем ошибку в БД
             const token = localStorage.getItem('bhstore_token');
             
             await fetch(`${this.apiUrl}/notifications/error`, {
@@ -272,7 +251,6 @@ class WebhookManager {
                 fields.push({ name: '👤 Пользователь', value: `<@${userId}>`, inline: true });
             }
 
-            // Отправляем в Discord
             return await this.sendDiscordNotification(
                 '<:No:1474931420127756288> Ошибка на сайте',
                 'Произошла ошибка в работе сайта',
@@ -285,7 +263,6 @@ class WebhookManager {
         }
     }
 
-    // Отправка уведомления об активации промокода
     async sendPromocodeNotification(userId, code, type, value) {
         try {
             return await this.sendDiscordNotification(
@@ -304,7 +281,6 @@ class WebhookManager {
         }
     }
 
-    // Отправка уведомления для админа
     async sendAdminNotification(title, message, userId = null) {
         try {
             const fields = [
@@ -328,10 +304,8 @@ class WebhookManager {
         }
     }
 
-    // Отправка статистики
     async sendStats(stats) {
         try {
-            // Сохраняем статистику в БД
             const token = localStorage.getItem('bhstore_token');
             
             await fetch(`${this.apiUrl}/stats/save`, {
@@ -365,7 +339,6 @@ class WebhookManager {
         }
     }
 
-    // Получение уведомлений текущего пользователя
     async getUserNotifications() {
         try {
             const token = localStorage.getItem('bhstore_token');
@@ -389,16 +362,13 @@ class WebhookManager {
         return [];
     }
 
-    // Добавление локального уведомления
     addLocalNotification(notification) {
         this.notifications.unshift(notification);
         this.displayNotifications();
         
-        // Показываем браузерное уведомление
         this.showBrowserNotification(notification);
     }
 
-    // Отметить уведомление как прочитанное
     async markAsRead(notificationId) {
         try {
             const token = localStorage.getItem('bhstore_token');
@@ -410,7 +380,6 @@ class WebhookManager {
                 }
             });
             
-            // Обновляем локально
             const notification = this.notifications.find(n => n.id === notificationId);
             if (notification) {
                 notification.read = true;
@@ -421,7 +390,6 @@ class WebhookManager {
         }
     }
 
-    // Отметить все уведомления как прочитанные
     async markAllAsRead() {
         try {
             const token = localStorage.getItem('bhstore_token');
@@ -433,7 +401,6 @@ class WebhookManager {
                 }
             });
             
-            // Обновляем локально
             this.notifications.forEach(n => n.read = true);
             this.displayNotifications();
         } catch (error) {
@@ -441,14 +408,11 @@ class WebhookManager {
         }
     }
 
-    // Показать уведомление в браузере
     showBrowserNotification(notification) {
-        // Проверяем разрешение на уведомления
         if (!("Notification" in window)) {
             return;
         }
 
-        // Показываем уведомление если разрешено
         if (Notification.permission === "granted") {
             const title = notification.fromAdmin ? '💬 Сообщение от администратора' : '🔔 BHStore';
             new Notification(title, {
@@ -461,7 +425,6 @@ class WebhookManager {
         }
     }
 
-    // Проверка новых сообщений в чате
     async checkNewMessages() {
         try {
             const token = localStorage.getItem('bhstore_token');
@@ -476,7 +439,6 @@ class WebhookManager {
             if (response.ok) {
                 const data = await response.json();
                 
-                // Обновляем бейдж в админ панели
                 const adminChatBadge = document.querySelector('.admin-chat-badge');
                 if (adminChatBadge) {
                     const totalUnread = data.totalUnread || 0;
@@ -493,15 +455,13 @@ class WebhookManager {
         }
     }
 
-    // Запуск периодической проверки уведомлений
-    startPolling(interval = 30000) { // 30 секунд
+    startPolling(interval = 30000) {
         this.pollingInterval = setInterval(() => {
             this.getUserNotifications();
             this.checkNewMessages();
         }, interval);
     }
 
-    // Остановка проверки
     stopPolling() {
         if (this.pollingInterval) {
             clearInterval(this.pollingInterval);
@@ -509,15 +469,11 @@ class WebhookManager {
     }
 }
 
-// Создаем глобальный экземпляр при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     window.webhookManager = new WebhookManager();
-    
-    // Запускаем проверку новых уведомлений каждые 30 секунд
     window.webhookManager.startPolling(30000);
 });
 
-// Экспорт для использования в других модулях
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = WebhookManager;
 }

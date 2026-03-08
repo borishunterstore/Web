@@ -1,8 +1,6 @@
-// Оптимизированное кастомное контекстное меню (ПКМ)
 (function() {
     'use strict';
     
-    // Конфигурации меню для разных страниц
     const MENU_CONFIGS = {
         'index.html': {
             items: ['back', 'forward', 'reload', 'divider', 'telegram', 'discord', 'divider', 'copy', 'divider', 'selectAll']
@@ -15,7 +13,6 @@
         }
     };
     
-    // Шаблоны пунктов меню
     const MENU_ITEMS = {
         back: { icon: 'fa-arrow-left', label: 'Назад', shortcut: 'Alt+←', action: 'back' },
         forward: { icon: 'fa-arrow-right', label: 'Вперед', shortcut: 'Alt+→', action: 'forward' },
@@ -37,7 +34,6 @@
             this.toastTimeout = null;
             this.menuItems = [];
             
-            // Определяем текущую страницу
             this.currentPage = this.getCurrentPage();
             
             this.init();
@@ -50,25 +46,18 @@
         }
         
         init() {
-            // Принудительно отключаем стандартное ПКМ меню
             this.disableDefaultContextMenu();
-            
-            // Создаем структуру меню
             this.createMenuStructure();
-            
-            // Инициализируем события
             this.initEvents();
         }
         
         disableDefaultContextMenu() {
-            // Блокируем стандартное меню на всех уровнях
             document.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
-            }, true); // Используем capturing phase для гарантированного перехвата
+            }, true);
             
-            // Дополнительная защита для всех элементов
             const style = document.createElement('style');
             style.textContent = `
                 * {
@@ -92,15 +81,12 @@
         }
         
         createMenuStructure() {
-            // Получаем конфигурацию для текущей страницы
             const config = MENU_CONFIGS[this.currentPage] || MENU_CONFIGS.default;
             
-            // Создаем основное меню
             this.menu = document.createElement('div');
             this.menu.className = 'custom-context-menu';
             this.menu.id = 'customContextMenu';
             
-            // Создаем заголовок
             const header = document.createElement('div');
             header.className = 'context-menu-header';
             header.innerHTML = `
@@ -109,11 +95,9 @@
             `;
             this.menu.appendChild(header);
             
-            // Создаем список пунктов
             const itemsContainer = document.createElement('div');
             itemsContainer.className = 'context-menu-items';
             
-            // Генерируем пункты меню согласно конфигурации
             config.items.forEach(itemKey => {
                 if (itemKey === 'divider') {
                     const divider = document.createElement('div');
@@ -130,7 +114,6 @@
             this.menu.appendChild(itemsContainer);
             document.body.appendChild(this.menu);
             
-            // Создаем уведомление
             this.createToast();
         }
         
@@ -139,17 +122,14 @@
             div.className = `context-menu-item ${item.class || ''}`;
             div.setAttribute('data-action', item.action);
             
-            // Иконка
             const icon = document.createElement('i');
             icon.className = `fas ${item.icon}`;
             div.appendChild(icon);
             
-            // Текст
             const span = document.createElement('span');
             span.textContent = item.label;
             div.appendChild(span);
             
-            // Бейдж или шорткат
             if (item.badge) {
                 const badge = document.createElement('span');
                 badge.className = 'context-badge';
@@ -183,42 +163,36 @@
         }
         
         initEvents() {
-            // Используем делегирование событий для производительности
             document.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 this.showMenu(e);
             }, { capture: true, passive: false });
             
-            // Закрытие по клику вне меню
             document.addEventListener('click', (e) => {
                 if (this.menu && !this.menu.contains(e.target) && this.isVisible) {
                     this.hideMenu();
                 }
             });
             
-            // Закрытие по ESC
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && this.isVisible) {
                     this.hideMenu();
                 }
             });
             
-            // Закрытие при скролле
             window.addEventListener('scroll', () => {
                 if (this.isVisible) {
                     this.hideMenu();
                 }
             }, { passive: true });
             
-            // Закрытие при ресайзе
             window.addEventListener('resize', () => {
                 if (this.isVisible) {
                     this.hideMenu();
                 }
             });
             
-            // Обработка кликов по пунктам меню (делегирование)
             this.menu.addEventListener('click', (e) => {
                 const item = e.target.closest('.context-menu-item');
                 if (item) {
@@ -229,7 +203,6 @@
                 }
             });
             
-            // Закрытие по клику на крестик
             this.menu.querySelector('.context-menu-close').addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.hideMenu();
@@ -242,16 +215,13 @@
             const x = Math.min(e.clientX, window.innerWidth - this.menu.offsetWidth - 10);
             const y = Math.min(e.clientY, window.innerHeight - this.menu.offsetHeight - 10);
             
-            // Оптимизированное позиционирование с использованием transform
             this.menu.style.left = '0';
             this.menu.style.top = '0';
             this.menu.style.transform = `translate(${x}px, ${y}px)`;
             
-            // Показываем меню
             this.menu.classList.add('active');
             this.isVisible = true;
             
-            // Добавляем эффект свечения (с задержкой для производительности)
             requestAnimationFrame(() => {
                 this.addGlowEffect(e);
             });
@@ -271,7 +241,7 @@
                     this.showToast('Открываем Telegram...');
                 },
                 discord: () => {
-                    window.open('https://discord.gg/your_server', '_blank', 'noopener,noreferrer');
+                    window.open('https://discord.gg/YfZxXXeW6D', '_blank', 'noopener,noreferrer');
                     this.showToast('Открываем Discord...');
                 },
                 copy: () => this.copyToClipboard(),
@@ -359,7 +329,6 @@
             
             this.toastMessage.textContent = message;
             
-            // Цвета для разных типов уведомлений
             const colors = {
                 success: 'rgba(16, 185, 129, 0.9)',
                 error: 'rgba(239, 68, 68, 0.9)',
@@ -400,7 +369,6 @@
         }
     }
     
-    // Добавляем стили для анимации свечения (один раз)
     if (!document.getElementById('glow-styles')) {
         const style = document.createElement('style');
         style.id = 'glow-styles';
@@ -419,7 +387,6 @@
         document.head.appendChild(style);
     }
     
-    // Инициализация с оптимизацией
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             new CustomContextMenu();

@@ -1,22 +1,16 @@
-// Авторизация через Discord с поддержкой PostgreSQL
 class DiscordAuth {
     constructor() {
         this.init();
-        this.apiBase = '/api'; // Базовый URL для API
+        this.apiBase = '/api';
     }
 
     init() {
         console.log('🚀 Auth module initialized with PostgreSQL');
         
-        // Проверяем, если мы на странице верификации
         if (window.location.pathname === '/verify.html') {
             this.initVerifyPage();
         }
         
-        // НЕ инициализируем кнопку здесь - это делает main.js
-        // this.initAuthButton(); - УБИРАЕМ!
-        
-        // Обработка callback от Discord
         window.addEventListener('message', (event) => {
             if (event.data.type === 'DISCORD_AUTH_CALLBACK') {
                 console.log('📨 Received Discord callback');
@@ -24,11 +18,9 @@ class DiscordAuth {
             }
         });
 
-        // Автоматически обновляем баланс при загрузке
         this.refreshUserBalance();
     }
 
-    // Обновление баланса пользователя с сервера
     async refreshUserBalance() {
         const authData = this.getAuthData();
         if (authData?.id) {
@@ -37,7 +29,6 @@ class DiscordAuth {
                 if (balance !== null) {
                     authData.balance = balance;
                     this.saveAuthData(authData);
-                    // Вызываем функцию из main.js для обновления интерфейса
                     if (window.checkAuth) {
                         window.checkAuth();
                     }
@@ -48,7 +39,6 @@ class DiscordAuth {
         }
     }
 
-    // Получение данных пользователя с сервера
     async fetchUserData(userId) {
         try {
             const response = await fetch(`${this.apiBase}/user/${userId}`);
@@ -66,7 +56,6 @@ class DiscordAuth {
         try {
             console.log('🔄 Processing Discord callback...');
             
-            // Проверяем state
             const savedState = localStorage.getItem('discord_oauth_state');
             if (savedState && savedState !== state) {
                 throw new Error('Security: State mismatch');
@@ -77,7 +66,6 @@ class DiscordAuth {
                 throw new Error('No authorization code received');
             }
             
-            // Отправляем код на сервер
             const response = await fetch(`${this.apiBase}/auth/discord`, {
                 method: 'POST',
                 headers: {
@@ -95,14 +83,9 @@ class DiscordAuth {
             if (data.success && data.user) {
                 console.log('✅ User authenticated:', data.user.username);
                 
-                // Получаем полные данные пользователя с сервера
                 const userData = await this.fetchUserData(data.user.id);
-                
-                // Генерация верификационного кода
                 const verificationCode = this.generateVerificationCode();
                 console.log('🔐 Generated verification code:', verificationCode);
-                
-                // Отправка кода пользователю через вебхук
                 const sendCodeResponse = await fetch(`${this.apiBase}/send-verification`, {
                     method: 'POST',
                     headers: {
@@ -117,7 +100,6 @@ class DiscordAuth {
                 const sendCodeResult = await sendCodeResponse.json();
                 
                 if (sendCodeResult.success) {
-                    // Сохранение данных
                     const authData = {
                         id: data.user.id,
                         username: data.user.username,
@@ -133,7 +115,6 @@ class DiscordAuth {
                     
                     this.saveAuthData(authData);
                     
-                    // Перенаправление на верификацию
                     window.location.href = '/verify.html';
                 } else {
                     throw new Error(sendCodeResult.error || 'Failed to send verification code');
@@ -145,7 +126,6 @@ class DiscordAuth {
             console.error('❌ Auth error:', error);
             alert('Ошибка авторизации: ' + error.message);
             
-            // Возвращаемся на страницу авторизации
             setTimeout(() => {
                 window.location.href = '/auth.html';
             }, 2000);
@@ -158,7 +138,6 @@ class DiscordAuth {
         const resendBtn = document.getElementById('resendBtn');
         
         if (verifyBtn && codeInput) {
-            // Автоматически форматируем код (только цифры)
             codeInput.addEventListener('input', (e) => {
                 e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
             });
@@ -178,15 +157,11 @@ class DiscordAuth {
                     const success = await this.verifyCode(code);
                     
                     if (success) {
-                        // Вызываем checkAuth из main.js для обновления кнопки
                         if (window.checkAuth) {
                             await window.checkAuth();
                         }
                         
-                        // Показываем успешное сообщение
                         this.showVerificationSuccess();
-                        
-                        // Перенаправляем на главную через 2 секунды
                         setTimeout(() => {
                             window.location.href = '/';
                         }, 2000);
@@ -276,21 +251,18 @@ class DiscordAuth {
             const result = await response.json();
 
             if (result.success) {
-                // Получаем обновленные данные пользователя
                 const userData = await this.fetchUserData(authData.id);
                 
-                // Обновляем данные пользователя
                 const updatedAuth = {
                     ...authData,
                     balance: userData?.balance || 0,
                     badges: userData?.badges || {},
-                    verificationCode: undefined, // Удаляем код верификации
+                    verificationCode: undefined,
                     requiresVerification: false
                 };
                 
                 this.saveAuthData(updatedAuth);
                 
-                // Отправляем приветственное сообщение
                 try {
                     await fetch(`${this.apiBase}/welcome-message`, {
                         method: 'POST',
@@ -333,13 +305,10 @@ class DiscordAuth {
         }
     }
 
-    // Вспомогательные функции для работы с данными
-
     generateVerificationCode() {
         return Math.floor(100000 + Math.random() * 900000).toString();
     }
 
-    // Получение данных авторизации из localStorage
     getAuthData() {
         try {
             return JSON.parse(localStorage.getItem('bhstore_auth') || 'null');
@@ -348,12 +317,10 @@ class DiscordAuth {
         }
     }
 
-    // Сохранение данных авторизации
     saveAuthData(data) {
         localStorage.setItem('bhstore_auth', JSON.stringify(data));
     }
 
-    // Статический метод для получения баланса
     static async getUserBalance(userId) {
         try {
             const response = await fetch(`/api/user/${userId}/balance`);
@@ -367,7 +334,6 @@ class DiscordAuth {
         return null;
     }
 
-    // Метод для обновления баланса
     static async refreshBalance() {
         const instance = DiscordAuth.instance;
         if (instance) {
@@ -375,7 +341,6 @@ class DiscordAuth {
         }
     }
 
-    // Метод для обновления баланса после покупки
     static async updateBalanceAfterPurchase(newBalance) {
         const instance = DiscordAuth.instance;
         if (instance) {
@@ -383,7 +348,6 @@ class DiscordAuth {
             if (authData) {
                 authData.balance = newBalance;
                 instance.saveAuthData(authData);
-                // Вызываем функцию из main.js
                 if (window.checkAuth) {
                     window.checkAuth();
                 }
@@ -392,43 +356,31 @@ class DiscordAuth {
     }
 }
 
-// Создаем экземпляр и делаем его доступным глобально
 const auth = new DiscordAuth();
 window.DiscordAuth = DiscordAuth;
 DiscordAuth.instance = auth;
 
-// Только обновление баланса, НЕ обновляем кнопку
 document.addEventListener('DOMContentLoaded', () => {
-    // Просто обновляем баланс в фоне
     auth.refreshUserBalance();
     
-    // Также обновляем каждые 30 секунд на случай изменений
     setInterval(async () => {
         await auth.refreshUserBalance();
-        // Не вызываем updateAuthButton, только обновляем данные
     }, 30000);
 });
 
-// НЕ переопределяем logout - оставляем только в main.js
-// window.logout = function() { ... } - УБИРАЕМ!
-
-// Глобальная функция для обновления баланса
 window.updateUserBalance = function(newBalance) {
     DiscordAuth.updateBalanceAfterPurchase(newBalance);
 };
 
-// Глобальная функция для принудительного обновления данных
 window.refreshAuthData = async function() {
     await DiscordAuth.refreshBalance();
 };
 
-// Отладочная функция
 window.debugAuth = function() {
     const authData = auth.getAuthData();
     console.log('📊 Auth Data:', authData);
     console.log('📊 Badges:', authData?.badges);
     
-    // Проверяем API
     fetch('/api/test')
         .then(r => r.json())
         .then(data => console.log('📊 API Test:', data))

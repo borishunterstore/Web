@@ -48,7 +48,6 @@ exports.handler = async (event) => {
   } catch (error) {
     console.error('❌ Error in news function:', error);
     
-    // Если таблицы нет, возвращаем демо-данные
     return {
       statusCode: 200,
       headers,

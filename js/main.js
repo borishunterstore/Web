@@ -1,18 +1,15 @@
 document.addEventListener('DOMContentLoaded', function() {
     
-    // Проверка авторизации и загрузка данных
     checkAuth().then(() => {
         if (document.getElementById('popularProducts')) loadPopularProducts();
         if (document.getElementById('latestNews')) loadLatestNews();
     });
     
-    // Мобильное меню
     const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
     if (mobileMenuBtn) {
         mobileMenuBtn.addEventListener('click', toggleMobileMenu);
     }
     
-    // Инициализация промокодов
     setTimeout(() => {
         if (window.promocodeSystem?.updateActivePromocodesUI) {
             window.promocodeSystem.updateActivePromocodesUI();
@@ -22,14 +19,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ========== АВТОРИЗАЦИЯ ==========
 
-// ========== УЛУЧШЕННАЯ ПРОВЕРКА АВТОРИЗАЦИИ ==========
-
 async function checkAuth() {
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
     const authBtn = document.getElementById('authBtn');
     if (!authBtn) return;
 
-    // Если есть токен, обновляем данные через API
     if (authData.token && authData.id && window.api) {
         try {
             const data = await window.api.getUser(authData.id);
@@ -49,13 +43,10 @@ async function checkAuth() {
         }
     }
 
-    // Обновляем интерфейс
     if (authData.username && !authData.verificationCode) {
-        // Авторизован
         const badges = getUserBadges(authData);
         const mainBadge = getMainBadgeForButton(authData.badges);
         
-        // Получаем актуальный баланс
         try {
             const balanceData = await window.api?.getUserBalance(authData.id);
             if (balanceData?.success) {
@@ -66,7 +57,6 @@ async function checkAuth() {
             console.error('❌ Ошибка загрузки баланса:', error);
         }
 
-        // Формируем URL аватара с учетом анимированных аватарок
         let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
         if (authData.avatar) {
             if (authData.avatar.startsWith('a_')) {
@@ -103,7 +93,6 @@ async function checkAuth() {
         };
         
     } else if (authData.username && authData.verificationCode) {
-        // Требуется верификация
         authBtn.innerHTML = `
             <div class="auth-button-content">
                 <div class="auth-verification-icon">
@@ -116,7 +105,6 @@ async function checkAuth() {
         authBtn.classList.add('auth-verification');
         authBtn.onclick = () => window.location.href = '/verify.html';
     } else {
-        // Не авторизован
         authBtn.innerHTML = `
             <div class="auth-button-content">
                 <div class="auth-discord-icon">
@@ -180,7 +168,6 @@ function normalizeBadges(badgesData) {
 function getMainBadgeForButton(badgesData) {
     const badges = normalizeBadges(badgesData);
     
-    // Приоритет: Админ > Подтвержденный > Партнер > Покупатель > VIP > Ранний
     if (badges.admin) {
         return `<img src="${BADGE_CONFIG.admin.image}" alt="Admin" class="badge-icon-img" title="Администратор">`;
     } else if (badges.verified) {
@@ -202,7 +189,6 @@ function getUserBadges(authData) {
     const badges = normalizeBadges(authData.badges);
     let badgesHtml = '';
     
-    // Сортируем по приоритету
     const sortedBadges = Object.entries(badges)
         .filter(([key, value]) => value && BADGE_CONFIG[key])
         .sort((a, b) => BADGE_CONFIG[a[0]].priority - BADGE_CONFIG[b[0]].priority);
@@ -230,13 +216,10 @@ function escapeHtml(unsafe) {
 async function showUserMenu(event) {
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
     if (!authData.id) return;
-
-    // Предотвращаем всплытие события
     if (event) {
         event.stopPropagation();
     }
 
-    // Обновляем данные
     try {
         const data = await window.api?.getUser(authData.id);
         if (data?.success && data.user) {
@@ -248,41 +231,34 @@ async function showUserMenu(event) {
         console.error('❌ Ошибка загрузки для меню:', error);
     }
 
-    // Удаляем старое меню
     const existingMenu = document.querySelector('.user-menu');
     if (existingMenu) {
         existingMenu.remove();
     }
 
-    // Получаем кнопку для позиционирования
     const authBtn = document.getElementById('authBtn');
     if (!authBtn) return;
 
     const btnRect = authBtn.getBoundingClientRect();
     const isMobile = window.innerWidth <= 768;
 
-    // Нормализуем бейджи
     const badges = normalizeBadges(authData.badges);
     const mainBadge = getMainBadgeHTML(badges);
     const allBadges = generateAllBadgesHTML(badges);
     const isAdminUser = await isAdmin();
 
-    // Создаем меню
     const menu = document.createElement('div');
     menu.className = 'user-menu';
     
-    // Добавляем класс для мобильной версии
     if (isMobile) {
         menu.classList.add('user-menu-mobile');
     }
 
-    // Позиционирование для десктопа
     if (!isMobile) {
         menu.style.top = `${btnRect.bottom + window.scrollY + 5}px`;
         menu.style.left = `${btnRect.left + (btnRect.width / 2)}px`;
     }
 
-    // Формируем HTML меню с улучшенным дизайном
     menu.innerHTML = `
         <div class="user-menu-header">
             <div class="user-menu-avatar-wrapper">
@@ -372,15 +348,11 @@ async function showUserMenu(event) {
         </div>
     `;
 
-    // Добавляем меню в DOM
     document.body.appendChild(menu);
-
-    // Анимация появления
     setTimeout(() => {
         menu.classList.add('user-menu-visible');
     }, 10);
 
-    // Закрытие по клику вне меню
     const closeMenu = (e) => {
         if (!menu.contains(e.target) && e.target !== authBtn && !authBtn.contains(e.target)) {
             menu.classList.remove('user-menu-visible');
@@ -391,12 +363,10 @@ async function showUserMenu(event) {
         }
     };
 
-    // Добавляем задержку, чтобы не закрылось сразу
     setTimeout(() => {
         document.addEventListener('click', closeMenu);
     }, 100);
 
-    // Закрытие по ESC
     const escHandler = (e) => {
         if (e.key === 'Escape') {
             menu.classList.remove('user-menu-visible');
@@ -507,7 +477,6 @@ function normalizeBadges(badgesData) {
 }
 
 function getMainBadgeHTML(badges) {
-    // Сортируем по приоритету и берем первый активный
     const sortedBadges = Object.entries(badges)
         .filter(([key, value]) => value && BADGE_CONFIG[key])
         .sort((a, b) => BADGE_CONFIG[a[0]].priority - BADGE_CONFIG[b[0]].priority);
@@ -523,7 +492,6 @@ function getMainBadgeHTML(badges) {
 function generateAllBadgesHTML(badges) {
     let html = '';
     
-    // Сортируем по приоритету
     const sortedBadges = Object.entries(badges)
         .filter(([key, value]) => value && BADGE_CONFIG[key])
         .sort((a, b) => BADGE_CONFIG[a[0]].priority - BADGE_CONFIG[b[0]].priority);
@@ -552,7 +520,6 @@ function getUserBadges(authData) {
     return '';
 }
 
-// Вспомогательная функция для экранирования HTML
 function escapeHtml(unsafe) {
     if (!unsafe) return '';
     return String(unsafe)
@@ -576,8 +543,7 @@ async function isAdmin() {
         }
     }
     
-    // Fallback для разработки
-    return authData.id === '992442453833547886' || authData.discordId === '830087428214751284';
+    return authData.id === '992442453833547886' || authData.discordId === '1460708954907869412';
 }
 
 // ========== ЗАГРУЗКА НОВОСТЕЙ ==========
@@ -625,7 +591,6 @@ function buyProduct(productId, productName, originalPrice) {
         return;
     }
 
-    // Проверяем баланс через API
     window.api.getUser(authData.id)
         .then(data => {
             if (!data?.success || !data.user) throw new Error('Нет данных пользователя');
@@ -645,7 +610,6 @@ function buyProduct(productId, productName, originalPrice) {
             if (window.paymentSystem) {
                 window.paymentSystem.showPaymentModal(productName, originalPrice, productId);
             } else {
-                // Динамическая загрузка payment.js
                 const script = document.createElement('script');
                 script.src = '/js/payment.js';
                 script.onload = () => window.paymentSystem?.showPaymentModal(productName, originalPrice, productId);
@@ -673,7 +637,6 @@ async function createOrder(productId, productName, price) {
         });
 
         if (data?.success) {
-            // Обновляем баланс
             const balanceData = await window.api.getUserBalance(authData.id);
             if (balanceData?.success) {
                 authData.balance = balanceData.balance;
@@ -729,11 +692,9 @@ function logout() {
     }
 }
 
-// Функция-мост для вызова из shop.js
 window.buyProductFromMain = function(productId, productName, price) {
     console.log('🛒 buyProductFromMain вызван из main.js:', { productId, productName, price });
     
-    // Проверяем авторизацию
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
     
     if (!authData.username) {
@@ -748,7 +709,6 @@ window.buyProductFromMain = function(productId, productName, price) {
         return;
     }
 
-    // Проверяем баланс через API
     window.api.getUser(authData.id)
         .then(data => {
             if (!data?.success || !data.user) throw new Error('Нет данных пользователя');
@@ -768,7 +728,6 @@ window.buyProductFromMain = function(productId, productName, price) {
             if (window.paymentSystem && window.paymentSystem.showPaymentModal) {
                 window.paymentSystem.showPaymentModal(productName, price, productId);
             } else {
-                // Динамическая загрузка payment.js
                 const script = document.createElement('script');
                 script.src = '/js/payment.js';
                 script.onload = () => {
@@ -787,25 +746,20 @@ window.buyProductFromMain = function(productId, productName, price) {
         });
 };
 
-// Убедимся, что оригинальная функция тоже доступна
 if (typeof window.buyProduct !== 'function') {
     window.buyProduct = buyProduct;
 }
 
-// Также убедитесь, что оригинальная функция buyProduct тоже доступна глобально
-// (она уже должна быть, но на всякий случай)
 if (typeof window.buyProduct !== 'function') {
     window.buyProductFromMain = buyProduct;
-    window.buyProduct = buyProduct; // оставьте и старую для совместимости
+    window.buyProduct = buyProduct;
 }
 
-// Глобальные функции
 window.showUserMenu = showUserMenu;
 window.logout = logout;
 window.buyProduct = buyProduct;
 window.isAdmin = isAdmin;
 
-// Стили для меню
 const style = document.createElement('style');
 style.textContent = `
     .menu-item {

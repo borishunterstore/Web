@@ -1,19 +1,14 @@
-// js/cursor.js
 document.addEventListener('DOMContentLoaded', function() {
-    // Инициализация элементов
     const cursor = document.querySelector('.custom-cursor');
     
-    // Переменные для курсора
     let mouseX = 0, mouseY = 0;
     let targetX = 0, targetY = 0;
     let isOverUserMenu = false;
     
-    // Обновление позиции курсора
     document.addEventListener('mousemove', function(e) {
         targetX = e.clientX;
         targetY = e.clientY;
         
-        // Проверяем, находится ли курсор над user-menu или его элементами
         const userMenu = document.querySelector('.user-menu');
         if (userMenu) {
             const menuRect = userMenu.getBoundingClientRect();
@@ -34,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Обработка нажатия ЛКМ
     document.addEventListener('mousedown', function() {
         cursor.classList.add('active');
     });
@@ -43,7 +37,6 @@ document.addEventListener('DOMContentLoaded', function() {
         cursor.classList.remove('active');
     });
     
-    // Эффекты для интерактивных элементов
     const interactiveElements = [
         'a', 'button', 'input', 'textarea', 'select',
         '[role="button"]', '.btn', '.nav-link', '.btn-discord',
@@ -52,7 +45,6 @@ document.addEventListener('DOMContentLoaded', function() {
         '.menu-item', '[onclick]'
     ];
     
-    // Функция добавления обработчиков
     function addCursorEffects(element) {
         if (!element || element._cursorEffectsAdded) return;
         
@@ -69,16 +61,13 @@ document.addEventListener('DOMContentLoaded', function() {
         element._cursorEffectsAdded = true;
     }
     
-    // Добавляем обработчики для существующих элементов
     interactiveElements.forEach(selector => {
         document.querySelectorAll(selector).forEach(element => {
             addCursorEffects(element);
         });
     });
     
-    // Плавное движение курсора
     function updateCursor() {
-        // Плавное движение к целевой позиции
         mouseX += (targetX - mouseX) * 0.15;
         mouseY += (targetY - mouseY) * 0.15;
         
@@ -88,10 +77,8 @@ document.addEventListener('DOMContentLoaded', function() {
         requestAnimationFrame(updateCursor);
     }
     
-    // Запуск анимации курсора
     updateCursor();
     
-    // MutationObserver для новых элементов
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.addedNodes.length) {
@@ -117,10 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
         subtree: true
     });
     
-    // Скрываем стандартный курсор
     document.body.style.cursor = 'none';
-    
-    // Добавляем стили с правильным z-index
     const style = document.createElement('style');
     style.textContent = `
         * {
@@ -259,9 +243,7 @@ document.addEventListener('DOMContentLoaded', function() {
     `;
     document.head.appendChild(style);
     
-    // Дополнительная защита - обновляем стили при появлении новых элементов
     setInterval(() => {
-        // Проверяем, не появились ли элементы с большим z-index
         const highZIndexElements = document.querySelectorAll('[style*="z-index: 2147483647"]');
         highZIndexElements.forEach(el => {
             if (el !== cursor && !el.classList.contains('custom-cursor')) {

@@ -1,18 +1,14 @@
-// shop.js (исправленная версия)
 (function() {
     'use strict';
 
-    // Глобальные переменные
     let products = [];
     let currentCategory = 'all';
     let currentUser = null;
     let isApiReady = false;
 
-    // Инициализация при загрузке страницы
     document.addEventListener('DOMContentLoaded', async function() {
         console.log('🛍️ Shop page initializing...');
 
-        // Ждем загрузки API
         await waitForApi();
 
         try {
@@ -23,7 +19,6 @@
             ]);
 
             initCategories();
-            // Убираем вызов updateAuthButton() - он будет вызван из main.js
             addAnimationStyles();
             initMobileMenu();
 
@@ -34,7 +29,6 @@
         }
     });
 
-    // Ожидание загрузки API
     async function waitForApi(timeout = 5000) {
         const startTime = Date.now();
         while (!window.api && Date.now() - startTime < timeout) {
@@ -50,7 +44,6 @@
         return true;
     }
 
-    // Загрузка данных пользователя через API
     async function loadUserData() {
         const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
 
@@ -60,7 +53,6 @@
                 if (data?.success && data.user) {
                     currentUser = data.user;
 
-                    // Обновляем localStorage
                     authData.balance = data.user.balance;
                     authData.badges = data.user.badges;
                     localStorage.setItem('bhstore_auth', JSON.stringify(authData));
@@ -73,7 +65,6 @@
         }
     }
 
-    // Инициализация системы промокодов
     async function initPromocodeSystem() {
         for (let i = 0; i < 10; i++) {
             if (window.promocodeSystem) {
@@ -95,7 +86,6 @@
         createPromocodeFallback();
     }
 
-    // Улучшение системы промокодов
     function enhancePromocodeSystem() {
         const ps = window.promocodeSystem;
 
@@ -152,7 +142,6 @@
         ps.loadFromStorage?.();
     }
 
-    // Fallback для промокодов
     function createPromocodeFallback() {
         window.promocodeSystem = {
             activeDiscounts: [],
@@ -185,7 +174,6 @@
         console.log('✅ Promocode fallback created');
     }
 
-    // Инициализация категорий
     function initCategories() {
         const categoryButtons = document.querySelectorAll('.category-btn');
 
@@ -204,7 +192,6 @@
         });
     }
 
-    // Загрузка товаров через API
     async function loadProducts(category) {
         const container = document.getElementById('productsContainer');
         if (!container) {
@@ -267,7 +254,6 @@
         }
     }
 
-    // Показать загрузку
     function showLoading(container) {
         container.innerHTML = `
             <div class="loading-spinner">
@@ -277,7 +263,6 @@
         `;
     }
 
-    // Показать "нет товаров"
     function renderNoProducts(category, isApiEmpty = false) {
         const container = document.getElementById('productsContainer');
         if (!container) return;
@@ -307,7 +292,6 @@
         `;
     }
 
-    // Отображение товаров
     function renderProducts(productsToRender) {
         const container = document.getElementById('productsContainer');
         if (!container) return;
@@ -317,7 +301,6 @@
             const finalPrice = discountInfo.finalPrice;
             const hasDiscount = discountInfo.discount > 0;
             
-            // Экранируем данные для onclick
             const safeProductId = escapeHtml(product.id);
             const safeProductName = escapeHtml(product.name);
             const safePrice = product.price;
@@ -396,7 +379,6 @@
         }).join('');
     }
 
-    // Получение информации о скидке
     function getDiscountInfo(originalPrice, productId = null) {
         if (!window.promocodeSystem) {
             return {
@@ -435,11 +417,9 @@
         }
     }
 
-    // Покупка товара
     window.buyProduct = async function(productId, productName, originalPrice) {
         console.log('🛒 buyProduct вызван из shop.js с параметрами:', { productId, productName, originalPrice });
         
-        // Проверка параметров
         if (!productId || !productName || originalPrice === undefined || originalPrice === null) {
             console.error('❌ Ошибка: отсутствуют параметры', { productId, productName, originalPrice });
             showNotification('Ошибка: не удалось получить данные товара', 'error');
@@ -463,7 +443,6 @@
         try {
             if (!window.api) throw new Error('API not available');
 
-            // Получаем актуальные данные пользователя
             const userData = await window.api.getUser(authData.id);
             if (!userData?.success || !userData.user) {
                 throw new Error('Не удалось получить данные пользователя');
@@ -486,7 +465,6 @@
         }
     };
 
-    // Показать подтверждение покупки
     function showPurchaseConfirmation(productName, finalPrice, productId, userBalance, discountInfo) {
         const modal = document.createElement('div');
         modal.className = 'modal';
@@ -558,7 +536,6 @@
         document.body.appendChild(modal);
     }
 
-    // Закрытие модального окна
     window.closePurchaseModal = function() {
         const modal = document.getElementById('purchaseConfirmationModal');
         if (modal) {
@@ -567,7 +544,6 @@
         }
     };
 
-    // Подтверждение покупки
     window.confirmPurchase = async function(orderId, productId, productName, finalPrice, originalPrice) {
         try {
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
@@ -596,11 +572,9 @@
                 orderData.discountAmount = discountInfo.discountAmount;
             }
 
-            // Используем API для создания заказа
             const result = await window.api.createOrder(orderData);
 
             if (result?.success) {
-                // Обновляем данные пользователя
                 authData.balance = result.newBalance;
                 if (!authData.badges) authData.badges = {};
                 authData.badges.buyer = true;
@@ -608,7 +582,6 @@
 
                 currentUser = authData;
 
-                // Удаляем использованные промокоды
                 if (discountInfo.appliedPromocodes.length > 0 && window.promocodeSystem) {
                     discountInfo.appliedPromocodes.forEach(p => {
                         window.promocodeSystem.removeDiscount?.(p.code);
@@ -618,7 +591,6 @@
                 closePurchaseModal();
                 showSuccessMessage(result.orderId || orderId, productName, result.newBalance);
 
-                // Вызываем checkAuth из main.js для обновления кнопки
                 if (window.checkAuth) {
                     window.checkAuth();
                 }
@@ -641,7 +613,6 @@
         }
     };
 
-    // Показать успешное сообщение
     function showSuccessMessage(orderId, productName, newBalance) {
         const modal = document.createElement('div');
         modal.className = 'success-message';
@@ -671,7 +642,6 @@
         document.body.appendChild(modal);
     }
 
-    // Показать окно недостаточно средств
     function showInsufficientFundsModal(price, balance, productName) {
         const modal = document.createElement('div');
         modal.className = 'modal';
@@ -710,7 +680,6 @@
         document.body.appendChild(modal);
     }
 
-    // Показать ошибку
     function showError(message) {
         const container = document.getElementById('productsContainer');
         if (!container) return;
@@ -726,7 +695,6 @@
         `;
     }
 
-    // Показать уведомление
     function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
@@ -743,7 +711,6 @@
         }, 3000);
     }
 
-    // Обновление активных промокодов в магазине
     function updateShopActivePromocodes() {
         const container = document.getElementById('shopActivePromocodes');
         const countEl = document.getElementById('promocodeCount');
@@ -800,12 +767,10 @@
         }
     }
 
-    // Удаление промокода
     window.removeShopPromocode = function(code) {
         window.promocodeSystem?.removeDiscount?.(code);
     };
 
-    // Добавление стилей для анимаций
     function addAnimationStyles() {
         if (document.getElementById('shop-animation-styles')) return;
 
@@ -945,7 +910,6 @@
         document.head.appendChild(styles);
     }
 
-    // Инициализация мобильного меню
     function initMobileMenu() {
         const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
         const navMenu = document.querySelector('.nav-menu');
@@ -1002,7 +966,6 @@
         });
     }
 
-    // Вспомогательная функция экранирования HTML
     function escapeHtml(unsafe) {
         if (!unsafe) return '';
         return String(unsafe)
@@ -1013,12 +976,10 @@
             .replace(/'/g, "&#039;");
     }
 
-    // Экспорт функций в глобальную область
     window.loadProducts = loadProducts;
     window.getDiscountInfo = getDiscountInfo;
-    window.buyProduct = window.buyProduct; // Уже объявлена выше
+    window.buyProduct = window.buyProduct;
     window.closePurchaseModal = closePurchaseModal;
     window.confirmPurchase = confirmPurchase;
     window.removeShopPromocode = removeShopPromocode;
-    // Убираем экспорт updateAuthButton, чтобы не конфликтовать с main.js
 })();

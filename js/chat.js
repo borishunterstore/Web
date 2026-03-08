@@ -1,7 +1,5 @@
-// js/chat.js - Клиентская часть чата
 class ChatSystem {
     constructor() {
-        // Используем глобальный API
         this.api = window.BHStoreAPI || window.api;
         if (!this.api) {
             console.error('❌ BHStoreAPI not found');
@@ -192,7 +190,6 @@ class ChatSystem {
         const text = input.value.trim();
         if (!text) return;
 
-        // Оптимистичное добавление в UI
         const tempMsg = { 
             message: text, 
             from_admin: false, 
@@ -219,7 +216,6 @@ class ChatSystem {
         const container = document.getElementById('chatMessages');
         if (!container) return;
         
-        // Убираем приветствие если оно есть
         const welcome = container.querySelector('.chat-welcome');
         if (welcome) welcome.remove();
         
@@ -230,21 +226,17 @@ class ChatSystem {
     async checkUpdates() {
         try {
             if (!this.userId) return;
-            
-            // Используем метод API
             const data = await this.api.checkNewMessages(this.userId, this.lastChecked);
     
             if (data && data.hasNew) {
                 await this.loadMessages();
             }
             
-            // Показываем/скрываем статус "Админ печатает"
             const indicator = document.getElementById('adminTypingIndicator');
             if (indicator) {
                 indicator.style.display = data?.adminTyping ? 'flex' : 'none';
             }
         } catch (e) { 
-            // Игнорируем ошибки поллинга
         }
     }
 
@@ -333,7 +325,6 @@ class ChatSystem {
     }
 }
 
-// Запуск
 document.addEventListener('DOMContentLoaded', () => {
     window.chatSystem = new ChatSystem();
     window.chatSystem.init();

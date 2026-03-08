@@ -1,4 +1,3 @@
-// js/promocode.js
 class PromocodeSystem {
     constructor() {
         this.activeDiscounts = []; 
@@ -26,21 +25,17 @@ class PromocodeSystem {
         if (!auth.id) return;
 
         try {
-            // Используем глобальный API объект
             if (window.api) {
-                // Загружаем историю промокодов пользователя
                 const historyData = await window.api.request(`/promocodes/user/${auth.id}`);
                 if (historyData.success) {
                     this.userPromocodes = historyData.promocodes || [];
                 }
 
-                // Загружаем активные промокоды
                 const activeData = await window.api.request(`/promocodes/active/${auth.id}`);
                 if (activeData.success) {
                     this.activeDiscounts = activeData.promocodes || [];
                 }
             } else {
-                // Fallback на прямые fetch запросы (БЕЗ /api)
                 const historyRes = await fetch(`/.netlify/functions/server/promocodes/user/${auth.id}`);
                 const historyData = await historyRes.json();
                 if (historyData.success) {
@@ -132,7 +127,6 @@ class PromocodeSystem {
             let activateData;
 
             if (window.api) {
-                // Сначала проверяем промокод
                 checkData = await window.api.request('/promocodes/check', {
                     method: 'POST',
                     body: JSON.stringify({ userId: auth.id, code: code })
@@ -142,13 +136,11 @@ class PromocodeSystem {
                     return this.showMessage(checkData.error || 'Промокод недействителен', 'error');
                 }
 
-                // Активируем промокод
                 activateData = await window.api.request('/promocodes/activate', {
                     method: 'POST',
                     body: JSON.stringify({ userId: auth.id, code: code })
                 });
             } else {
-                // Fallback на прямые fetch (БЕЗ /api)
                 const checkRes = await fetch('/.netlify/functions/server/promocodes/check', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -183,12 +175,10 @@ class PromocodeSystem {
                     
                     this.showMessage(`✓ Промокод активирован! Скидка ${promo.value}%`, 'success');
                     
-                    // Обновляем цены в магазине
                     if (window.shopSystem && window.shopSystem.updatePrices) {
                         window.shopSystem.updatePrices(this.activeDiscounts);
                     }
                     
-                    // Обновляем цены на главной странице
                     if (typeof updateHomePagePrices === 'function') {
                         updateHomePagePrices();
                     }
@@ -196,7 +186,6 @@ class PromocodeSystem {
                 } else if (promo.type === 'balance') {
                     this.showMessage(`💰 Баланс пополнен на ${promo.value} ₽`, 'success');
                     
-                    // Обновляем баланс в интерфейсе
                     if (typeof loadProfile === 'function') {
                         await loadProfile();
                     }
@@ -204,7 +193,6 @@ class PromocodeSystem {
                 
                 if (this.elements.input) this.elements.input.value = '';
                 
-                // Обновляем историю
                 await this.loadFromAPI();
                 this.renderUI();
                 
@@ -249,12 +237,10 @@ class PromocodeSystem {
             this.renderUI();
             this.showMessage('Промокод удален', 'info');
             
-            // Обновляем цены в магазине
             if (window.shopSystem && window.shopSystem.updatePrices) {
                 window.shopSystem.updatePrices(this.activeDiscounts);
             }
             
-            // Обновляем цены на главной странице
             if (typeof updateHomePagePrices === 'function') {
                 updateHomePagePrices();
             }
@@ -349,6 +335,5 @@ class PromocodeSystem {
     }
 }
 
-// Создаем глобальный экземпляр
 const promocodeSystem = new PromocodeSystem();
 window.promocodeSystem = promocodeSystem;
