@@ -1,6 +1,7 @@
-/* admin-modal.css - Стили для модальных окон */
+/* admin-modal.css - ПОЛНЫЙ ФАЙЛ СО СТИЛЯМИ МОДАЛЬНЫХ ОКОН */
 @import url('general.css');
 
+/* ========== ОСНОВНЫЕ СТИЛИ МОДАЛЬНЫХ ОКОН ========== */
 .modal {
     display: none;
     position: fixed;
@@ -26,7 +27,7 @@
     overflow-y: auto;
     border: 1px solid rgba(88, 101, 242, 0.3);
     box-shadow: var(--shadow-xl);
-    animation: modalSlideIn 0.4s ease;
+    animation: modalSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     position: relative;
 }
 
@@ -41,6 +42,7 @@
     }
 }
 
+/* ========== ЗАГОЛОВОК МОДАЛЬНОГО ОКНА ========== */
 .modal-header {
     display: flex;
     justify-content: space-between;
@@ -48,6 +50,18 @@
     margin-bottom: 25px;
     padding-bottom: 15px;
     border-bottom: 2px solid rgba(88, 101, 242, 0.3);
+    position: relative;
+}
+
+.modal-header::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    animation: widthPulse 2s infinite;
 }
 
 .modal-header h2 {
@@ -63,6 +77,8 @@
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 5px rgba(88, 101, 242, 0.3));
+    animation: bounce 2s infinite;
 }
 
 .modal-close {
@@ -78,38 +94,79 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-close::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(237, 66, 69, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+}
+
+.modal-close:hover::before {
+    width: 80px;
+    height: 80px;
 }
 
 .modal-close:hover {
     background: var(--danger);
     color: white;
     transform: rotate(90deg);
+    border-color: var(--danger);
+    box-shadow: 0 5px 15px rgba(237, 66, 69, 0.3);
 }
 
-/* Информация о пользователе */
+/* ========== ИНФОРМАЦИЯ О ПОЛЬЗОВАТЕЛЕ ========== */
 .user-info-card {
-    background: var(--bg-dark);
+    background: linear-gradient(135deg, var(--bg-dark), rgba(30, 31, 41, 0.8));
     padding: 20px;
     border-radius: 16px;
     margin-bottom: 25px;
     border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+}
+
+.user-info-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(88, 101, 242, 0.1), transparent);
+    animation: rotate 20s linear infinite;
+    opacity: 0.5;
 }
 
 .user-info-label {
     color: var(--text-secondary);
     font-size: 0.85rem;
     margin-bottom: 5px;
+    position: relative;
+    z-index: 2;
 }
 
 .user-info-value {
     color: white;
     font-size: 1.2rem;
     font-weight: 600;
+    position: relative;
+    z-index: 2;
 }
 
-/* Формы */
+/* ========== ФОРМЫ ========== */
 .form-group {
     margin-bottom: 25px;
+    position: relative;
 }
 
 .form-group label {
@@ -118,6 +175,7 @@
     color: var(--text-secondary);
     font-weight: 500;
     font-size: 0.95rem;
+    transition: var(--transition);
 }
 
 .form-group input,
@@ -131,6 +189,7 @@
     color: white;
     font-size: 1rem;
     transition: var(--transition);
+    font-family: inherit;
 }
 
 .form-group input:focus,
@@ -139,6 +198,12 @@
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 4px rgba(88, 101, 242, 0.1);
+    transform: scale(1.02);
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+    color: var(--text-tertiary);
 }
 
 .form-group textarea {
@@ -146,14 +211,33 @@
     resize: vertical;
 }
 
-/* Быстрые суммы */
+.form-group select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2372767d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 15px;
+    padding-right: 45px;
+}
+
+.form-group select:hover {
+    border-color: var(--primary);
+}
+
+.form-group select option {
+    background: var(--bg-card);
+    color: white;
+}
+
+/* ========== БЫСТРЫЕ СУММЫ ========== */
 .quick-amounts {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
     margin: 15px 0;
     padding: 15px;
-    background: var(--bg-dark);
+    background: linear-gradient(135deg, var(--bg-dark), rgba(30, 31, 41, 0.8));
     border-radius: 16px;
     border: 1px solid var(--border);
 }
@@ -168,6 +252,27 @@
     cursor: pointer;
     transition: var(--transition);
     flex: 1;
+    min-width: 80px;
+    position: relative;
+    overflow: hidden;
+}
+
+.quick-amount-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(88, 101, 242, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.4s, height 0.4s;
+}
+
+.quick-amount-btn:hover::before {
+    width: 150px;
+    height: 150px;
 }
 
 .quick-amount-btn:hover {
@@ -175,9 +280,14 @@
     color: white;
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(88, 101, 242, 0.3);
+    border-color: var(--primary);
 }
 
-/* Действия формы */
+.quick-amount-btn:active {
+    transform: translateY(0);
+}
+
+/* ========== ДЕЙСТВИЯ ФОРМЫ ========== */
 .form-actions {
     display: flex;
     gap: 15px;
@@ -187,18 +297,41 @@
     border-top: 1px solid var(--border);
 }
 
-/* История баланса */
+/* ========== ИСТОРИЯ БАЛАНСА ========== */
 .transaction-item {
-    background: var(--bg-dark);
+    background: linear-gradient(135deg, var(--bg-dark), rgba(30, 31, 41, 0.8));
     padding: 15px;
     border-radius: 12px;
     margin-bottom: 10px;
     border-left: 4px solid transparent;
     transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    animation: slideInLeft 0.3s ease;
+    animation-fill-mode: both;
+}
+
+.transaction-item:nth-child(1) { animation-delay: 0.05s; }
+.transaction-item:nth-child(2) { animation-delay: 0.1s; }
+.transaction-item:nth-child(3) { animation-delay: 0.15s; }
+.transaction-item:nth-child(4) { animation-delay: 0.2s; }
+.transaction-item:nth-child(5) { animation-delay: 0.25s; }
+
+.transaction-item::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(88, 101, 242, 0.05), transparent);
+    animation: rotate 20s linear infinite;
+    pointer-events: none;
 }
 
 .transaction-item:hover {
     transform: translateX(5px);
+    box-shadow: var(--shadow-lg);
 }
 
 .transaction-item.deposit {
@@ -209,16 +342,25 @@
     border-left-color: var(--danger);
 }
 
+.transaction-item.purchase {
+    border-left-color: var(--primary);
+}
+
 .transaction-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
+    position: relative;
+    z-index: 2;
 }
 
 .transaction-amount {
     font-size: 1.2rem;
     font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
 .transaction-amount.deposit {
@@ -229,26 +371,118 @@
     color: var(--danger);
 }
 
+.transaction-amount.purchase {
+    color: var(--primary);
+}
+
+.transaction-amount i {
+    font-size: 1rem;
+}
+
 .transaction-date {
     color: var(--text-tertiary);
     font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.transaction-date i {
+    font-size: 0.7rem;
 }
 
 .transaction-reason {
     color: var(--text-secondary);
     font-size: 0.9rem;
     margin-bottom: 5px;
+    position: relative;
+    z-index: 2;
 }
 
 .transaction-meta {
     color: var(--text-tertiary);
     font-size: 0.75rem;
+    display: flex;
+    gap: 10px;
+    position: relative;
+    z-index: 2;
 }
 
-/* Адаптивность */
+.transaction-meta span {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.transaction-meta i {
+    font-size: 0.7rem;
+}
+
+/* Статистика в истории */
+.transaction-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-mini-card {
+    background: linear-gradient(135deg, var(--bg-dark), rgba(30, 31, 41, 0.8));
+    padding: 15px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid var(--border);
+}
+
+.stat-mini-card .value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--success);
+    margin-bottom: 5px;
+}
+
+.stat-mini-card .label {
+    color: var(--text-tertiary);
+    font-size: 0.8rem;
+}
+
+/* ========== АНИМАЦИИ ========== */
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+@keyframes widthPulse {
+    0%, 100% { width: 100px; opacity: 1; }
+    50% { width: 150px; opacity: 0.7; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ========== АДАПТИВНОСТЬ ========== */
 @media (max-width: 768px) {
     .modal-content {
         padding: 25px 20px;
+        width: 95%;
     }
     
     .modal-header h2 {
@@ -269,5 +503,33 @@
     
     .form-actions .btn-admin {
         width: 100%;
+    }
+    
+    .transaction-stats {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .modal-content {
+        padding: 20px 15px;
+    }
+    
+    .modal-header h2 {
+        font-size: 1.3rem;
+    }
+    
+    .modal-header h2 i {
+        font-size: 1.5rem;
+    }
+    
+    .user-info-value {
+        font-size: 1rem;
+    }
+    
+    .transaction-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
     }
 }
