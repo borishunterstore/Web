@@ -332,63 +332,280 @@ if (sql) {
 // Админ маршруты для чата
 // ============================================
 
+// ============================================
+// Чат маршруты (исправленные)
+// ============================================
+
+// Получение пользователей для чата (админ)
 app.get('/api/admin/chat/users', async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader) {
-      return res.status(401).json({ success: false, error: 'Не авторизован' });
-    }
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
 
-    const token = authHeader.replace('Bearer ', '');
-    
-    try {
-      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      const token = authHeader.replace('Bearer ', '');
       
-      // Получаем всех пользователей из БД
-      const dbUsers = await sql`
-        SELECT * FROM users ORDER BY registered_at DESC
-      `;
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          if (!isAdminUser(decoded)) {
+              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          }
+          
+          // Получаем всех пользователей из БД
+          const dbUsers = await sql`SELECT * FROM users ORDER BY registered_at DESC`;
+          
+          // Получаем непрочитанные сообщения
+          const unreadMessages = await sql`
+              SELECT user_id, COUNT(*) as count 
+              FROM messages 
+              WHERE from_admin = false AND read = false 
+              GROUP BY user_id
+          `;
+          
+          const unreadMap = {};
+          unreadMessages.forEach(row => {
+              unreadMap[row.user_id] = parseInt(row.count);
+          });
+          
+          const users = dbUsers.map(user => ({
+              discordId: user.discord_id,
+              username: user.username,
+              email: user.email,
+              avatar: user.avatar,
+              registeredAt: user.registered_at,
+              balance: user.balance || 0,
+              orderCount: (user.orders || []).length,
+              badges: user.badges || {},
+              unreadMessages: unreadMap[user.discord_id] || 0
+          }));
+          
+          res.json({
+              success: true,
+              users: users,
+              total: users.length
+          });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
       
-      // Получаем непрочитанные сообщения для каждого пользователя
-      const usersWithMessages = await Promise.all(dbUsers.map(async (user) => {
-        const unreadMessages = await sql`
-          SELECT COUNT(*) as count FROM messages 
-          WHERE user_id = ${user.discord_id} 
-          AND from_admin = false 
-          AND read = false
-        `;
-        
-        const orders = user.orders || [];
-        const lastOrder = orders.length > 0 ? orders[orders.length - 1].date : null;
-        
-        return {
-          discordId: user.discord_id,
-          username: user.username,
-          email: user.email,
-          avatar: user.avatar,
-          registeredAt: user.registered_at,
-          balance: user.balance,
-          orderCount: orders.length,
-          lastOrder: lastOrder,
-          badges: user.badges || {},
-          unreadMessages: parseInt(unreadMessages[0].count) || 0
-        };
-      }));
-      
-      res.json({
-        success: true,
-        users: usersWithMessages,
-        total: usersWithMessages.length
-      });
-      
-    } catch (decodeError) {
-      return res.status(401).json({ success: false, error: 'Неверный токен' });
-    }
-    
   } catch (error) {
-    console.error('❌ Ошибка получения пользователей чата:', error.message);
-    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+      console.error('❌ Ошибка получения пользователей чата:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Получение сообщений пользователя (админ)
+app.get('/api/chat/messages/:userId', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          if (!isAdminUser(decoded)) {
+              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          }
+          
+          const userId = req.params.userId;
+          
+          const messages = await sql`
+              SELECT * FROM messages 
+              WHERE user_id = ${userId} 
+              ORDER BY timestamp ASC
+              LIMIT 100
+          `;
+          
+          res.json({
+              success: true,
+              messages: messages,
+              total: messages.length
+          });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка получения сообщений:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Отправка сообщения (админ)
+app.post('/api/chat/send', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          const isAdmin = isAdminUser(decoded);
+          
+          const { userId, message, fromAdmin } = req.body;
+          
+          if (!userId || !message) {
+              return res.status(400).json({ success: false, error: 'Не указаны данные' });
+          }
+          
+          // Если от админа, проверяем права
+          if (fromAdmin && !isAdmin) {
+              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          }
+          
+          const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          const now = new Date().toISOString();
+          
+          // Сохраняем в БД
+          await sql`
+              INSERT INTO messages (id, user_id, message, from_admin, read, timestamp)
+              VALUES (
+                  ${messageId}, 
+                  ${userId}, 
+                  ${message}, 
+                  ${fromAdmin || false}, 
+                  ${!fromAdmin}, 
+                  ${now}
+              )
+          `;
+          
+          // Отправляем уведомление в Discord если от админа
+          if (fromAdmin) {
+              try {
+                  const [user] = await sql`
+                      SELECT username FROM users WHERE discord_id = ${userId}
+                  `;
+                  
+                  const webhookUrl = process.env.DISCORD_WEBHOOK_CHAT || 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG';
+                  
+                  await axios.post(webhookUrl, {
+                      embeds: [{
+                          title: '💬 Новое сообщение от администратора',
+                          description: message,
+                          color: 0x5865F2,
+                          fields: [
+                              { name: '👤 Пользователь', value: `<@${userId}>`, inline: true },
+                              { name: '📝 Имя', value: user?.username || 'Неизвестно', inline: true }
+                          ],
+                          timestamp: now
+                      }]
+                  });
+              } catch (webhookError) {
+                  console.error('❌ Ошибка отправки вебхука:', webhookError.message);
+              }
+          }
+          
+          res.json({
+              success: true,
+              messageId: messageId
+          });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка отправки сообщения:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка отправки' });
+  }
+});
+
+// Проверка новых сообщений (polling)
+app.post('/api/chat/check', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          const { userId, lastChecked } = req.body;
+          
+          if (!userId) {
+              return res.status(400).json({ success: false, error: 'Не указан userId' });
+          }
+          
+          const checkTime = lastChecked ? new Date(parseInt(lastChecked)).toISOString() : new Date(0).toISOString();
+          
+          // Проверяем новые сообщения
+          const newMessages = await sql`
+              SELECT COUNT(*) as count FROM messages 
+              WHERE user_id = ${userId} 
+              AND timestamp > ${checkTime}
+          `;
+          
+          res.json({
+              success: true,
+              hasNew: parseInt(newMessages[0].count) > 0,
+              newCount: parseInt(newMessages[0].count)
+          });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка проверки сообщений:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Отметить сообщения как прочитанные
+app.post('/api/chat/mark-read/:userId', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      
+      try {
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+          
+          if (!isAdminUser(decoded)) {
+              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          }
+          
+          const userId = req.params.userId;
+          
+          await sql`
+              UPDATE messages 
+              SET read = true 
+              WHERE user_id = ${userId} 
+              AND from_admin = false 
+              AND read = false
+          `;
+          
+          res.json({ success: true });
+          
+      } catch (decodeError) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+      }
+      
+  } catch (error) {
+      console.error('❌ Ошибка отметки сообщений:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
 
@@ -480,126 +697,6 @@ app.get('/api/chat/admin/check', async (req, res) => {
 // ============================================
 // Чат маршруты (клиентские)
 // ============================================
-
-// Получение сообщений пользователя
-app.get('/api/chat/messages/:userId', async (req, res) => {
-  try {
-    const userId = req.params.userId;
-    
-    const messages = await sql`
-      SELECT * FROM messages 
-      WHERE user_id = ${userId} 
-      ORDER BY timestamp ASC
-      LIMIT 100
-    `;
-    
-    res.json({
-      success: true,
-      messages: messages,
-      total: messages.length
-    });
-  } catch (error) {
-    console.error('❌ Ошибка получения сообщений:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Ошибка сервера' 
-    });
-  }
-});
-
-// Отправка сообщения
-app.post('/api/chat/send', async (req, res) => {
-  try {
-    const { userId, message, fromAdmin = false } = req.body;
-    
-    if (!userId || !message) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Неверные данные' 
-      });
-    }
-    
-    const messageId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    
-    await sql`
-      INSERT INTO messages (id, user_id, message, from_admin, read, timestamp)
-      VALUES (
-        ${messageId}, 
-        ${userId}, 
-        ${message}, 
-        ${fromAdmin}, 
-        ${!fromAdmin}, 
-        ${new Date().toISOString()}
-      )
-    `;
-    
-    // Отправляем уведомление через вебхук
-    const webhookUrl = 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG';
-    
-    axios.post(webhookUrl, {
-      embeds: [{
-        title: fromAdmin ? '<:CEO:1474931391505367040> Сообщение от АДМИНА' : '<:User:1474931634804359433> Сообщение от ПОЛЬЗОВАТЕЛЯ',
-        description: message,
-        color: fromAdmin ? 0x57F287 : 0x5865F2,
-        fields: [{ name: '<:User:1474931634804359433> Пользователь', value: userId, inline: true }],
-        timestamp: new Date().toISOString()
-      }]
-    }).catch(console.error);
-    
-    res.json({
-      success: true,
-      messageId: messageId
-    });
-    
-  } catch (error) {
-    console.error('❌ Ошибка отправки сообщения:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Ошибка отправки' 
-    });
-  }
-});
-
-// Проверка новых сообщений (polling)
-app.post('/api/chat/check', async (req, res) => {
-  try {
-    const { userId, lastChecked } = req.body;
-    
-    if (!userId) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Не указан userId' 
-      });
-    }
-    
-    const checkTime = lastChecked ? new Date(parseInt(lastChecked)).toISOString() : new Date(0).toISOString();
-    
-    // Проверяем новые сообщения
-    const newMessages = await sql`
-      SELECT * FROM messages 
-      WHERE user_id = ${userId} 
-      AND timestamp > ${checkTime}
-      ORDER BY timestamp ASC
-    `;
-    
-    // Проверяем, печатает ли админ (заглушка)
-    const adminTyping = false;
-    
-    res.json({
-      success: true,
-      hasNew: newMessages.length > 0,
-      newCount: newMessages.length,
-      adminTyping: adminTyping
-    });
-    
-  } catch (error) {
-    console.error('❌ Ошибка проверки сообщений:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Ошибка сервера' 
-    });
-  }
-});
 
 // Статус печатания
 app.post('/api/chat/typing', async (req, res) => {

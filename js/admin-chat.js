@@ -1,25 +1,32 @@
-// admin-chat.js - Адаптирован для Netlify Functions
+// admin-chat.js - Полностью переработан для работы с БД
 class AdminChat {
     constructor() {
         this.api = new BHStoreAPI();
         this.selectedUserId = null;
         this.users = [];
+        this.messages = [];
         this.pollingInterval = null;
         this.typingUsers = new Set();
-        this.baseUrl = 'https://bhstore.netlify.app/.netlify/functions';
+        this.baseUrl = 'https://bhstore.netlify.app';
+        this.isInitialized = false;
     }
 
     async init() {
+        if (this.isInitialized) return;
+        
         await this.loadChatUI();
         await this.loadUsers();
         this.setupEventListeners();
         this.startPolling();
+        
+        this.isInitialized = true;
+        console.log('✅ AdminChat инициализирован');
     }
 
     async loadChatUI() {
         const chatContainer = document.getElementById('chatContent');
         if (!chatContainer) {
-            console.error('Контейнер чата не найден');
+            console.error('❌ Контейнер чата не найден');
             return;
         }
 
@@ -60,7 +67,7 @@ class AdminChat {
         if (document.getElementById(styleId)) return;
 
         const styles = `
-            <style>
+            <style id="${styleId}">
                 .user-item {
                     padding: 12px 15px;
                     border-radius: 8px;
@@ -179,17 +186,6 @@ class AdminChat {
                     color: white;
                     border-bottom-right-radius: 4px;
                 }
-                .message-time {
-                    font-size: 0.75rem;
-                    color: #72767d;
-                    margin-top: 4px;
-                }
-                .message.user .message-time {
-                    text-align: left;
-                }
-                .message.admin .message-time {
-                    text-align: right;
-                }
                 .chat-input {
                     padding: 20px;
                     background: #2a2b36;
@@ -282,9 +278,12 @@ class AdminChat {
             const data = await this.api.getChatUsers();
             this.users = data.users || [];
             this.renderUsersList();
+            
+            // Обновляем общее количество непрочитанных
+            this.updateUnreadCount();
         } catch (error) {
             console.error('❌ Ошибка загрузки пользователей:', error);
-            this.showNotification(this.api.formatError(error), 'error');
+            this.showNotification('Ошибка загрузки пользователей', 'error');
         }
     }
 
@@ -359,27 +358,52 @@ class AdminChat {
 
     async loadUserChat(userId) {
         try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            const response = await fetch(`${this.baseUrl}/admin-chat/${userId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                this.currentUserMessages = data.messages || [];
-            } else {
-                throw new Error(data.error || 'Ошибка загрузки чата');
-            }
+            const data = await this.api.getChatMessages(userId);
+            this.messages = data.messages || [];
+            this.renderMessages();
         } catch (error) {
             console.error('Ошибка загрузки чата:', error);
-            this.currentUserMessages = [];
+            this.messages = [];
+            this.showNotification('Ошибка загрузки сообщений', 'error');
         }
+    }
+
+    renderMessages() {
+        const container = document.getElementById('chatMessages');
+        if (!container) return;
+
+        if (!this.messages || this.messages.length === 0) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #b9bbbe;">
+                    <i class="fas fa-comments"></i>
+                    <p>Начните общение</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = this.messages.map(msg => {
+            const time = new Date(msg.timestamp).toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            const messageClass = msg.from_admin ? 'admin' : 'user';
+            const senderName = msg.from_admin ? 'Вы' : 'Пользователь';
+            
+            return `
+                <div class="message ${messageClass}">
+                    <div class="message-content">
+                        ${this.escapeHtml(msg.message)}
+                    </div>
+                    <div class="message-time">
+                        ${senderName} • ${time}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        this.scrollToBottom();
     }
 
     updateChatPanel() {
@@ -449,38 +473,6 @@ class AdminChat {
         this.setupMessageInput();
     }
 
-    renderMessages() {
-        if (!this.currentUserMessages || this.currentUserMessages.length === 0) {
-            return `
-                <div style="text-align: center; padding: 40px; color: #b9bbbe;">
-                    <i class="fas fa-comments"></i>
-                    <p>Начните общение</p>
-                </div>
-            `;
-        }
-
-        return this.currentUserMessages.map(msg => {
-            const time = new Date(msg.timestamp).toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            
-            const messageClass = msg.fromAdmin ? 'admin' : 'user';
-            const senderName = msg.fromAdmin ? 'Вы' : 'Пользователь';
-            
-            return `
-                <div class="message ${messageClass}">
-                    <div class="message-content">
-                        ${this.escapeHtml(msg.message)}
-                    </div>
-                    <div class="message-time">
-                        ${senderName} • ${time}
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
     escapeHtml(unsafe) {
         if (!unsafe) return '';
         return String(unsafe)
@@ -499,28 +491,44 @@ class AdminChat {
         if (!message) return;
 
         try {
+            // Отправляем сообщение
+            await this.api.sendChatMessage(this.selectedUserId, message, true);
+            
+            // Добавляем в UI
             this.addMessageToUI(message, true);
             
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            await fetch(`${this.baseUrl}/admin-send-message`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: this.selectedUserId,
-                    message: message
-                })
-            });
-            
+            // Очищаем поле
             input.value = '';
             input.focus();
             
+            // Отправляем в Discord через вебхук
+            await this.sendToDiscord(message, this.selectedUserId);
+            
         } catch (error) {
             console.error('Ошибка отправки сообщения:', error);
-            this.showError('Не удалось отправить сообщение');
+            this.showNotification('Не удалось отправить сообщение', 'error');
+        }
+    }
+
+    async sendToDiscord(message, userId) {
+        try {
+            const user = this.users.find(u => u.discordId === userId);
+            
+            await fetch('/api/webhook/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: '💬 Новое сообщение от администратора',
+                    description: message,
+                    color: 0x5865F2,
+                    fields: [
+                        { name: '👤 Пользователь', value: `<@${userId}>`, inline: true },
+                        { name: '📝 Имя', value: user?.username || 'Неизвестно', inline: true }
+                    ]
+                })
+            });
+        } catch (error) {
+            console.error('Ошибка отправки в Discord:', error);
         }
     }
 
@@ -578,28 +586,13 @@ class AdminChat {
         if (!this.selectedUserId) return;
         
         try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            const data = await this.api.checkNewMessages(this.selectedUserId, Date.now());
             
-            const response = await fetch(`${this.baseUrl}/admin-check-messages`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: this.selectedUserId,
-                    lastChecked: Date.now()
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success && data.hasNewMessages) {
+            if (data.hasNew) {
                 await this.loadUserChat(this.selectedUserId);
-                this.updateChatPanel();
             }
         } catch (error) {
-            console.error('Ошибка проверки сообщений:', error);
+            // Игнорируем ошибки при проверке
         }
     }
 
@@ -627,16 +620,7 @@ class AdminChat {
 
     async markAsRead(userId) {
         try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            await fetch(`${this.baseUrl}/admin-mark-read`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ userId })
-            });
+            await this.api.markMessagesAsRead(userId);
         } catch (error) {
             console.error('Ошибка отметки как прочитано:', error);
         }
@@ -652,6 +636,9 @@ class AdminChat {
     }
 
     startPolling() {
+        // Останавливаем предыдущий интервал если был
+        this.stopPolling();
+        
         this.pollingInterval = setInterval(() => {
             this.checkNewMessages();
         }, 3000);
@@ -678,57 +665,41 @@ class AdminChat {
         }
     }
 
-    formatTime(timestamp) {
-        const date = new Date(timestamp);
-        const now = new Date();
-        const diff = now - date;
-        
-        if (diff < 24 * 60 * 60 * 1000) {
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        } else if (diff < 7 * 24 * 60 * 60 * 1000) {
-            return date.toLocaleDateString([], { weekday: 'short' });
-        } else {
-            return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-        }
-    }
-
     showUserInfo(userId) {
         const user = this.users.find(u => u.discordId === userId);
         if (!user) return;
         
         const info = `
-            👤 Информация о пользователе:
-            
-            🆔 Discord ID: ${user.discordId}
-            📝 Имя: ${user.username || 'Без имени'}
-            📧 Email: ${user.email || 'Не указан'}
-            💰 Баланс: ${user.balance || 0} ₽
-            📦 Заказов: ${user.orderCount || 0}
-            💬 Непрочитанных: ${user.unreadMessages || 0}
-            📅 Регистрация: ${user.registeredAt ? new Date(user.registeredAt).toLocaleDateString('ru-RU') : 'Неизвестно'}
+👤 Информация о пользователе:
+
+🆔 Discord ID: ${user.discordId}
+📝 Имя: ${user.username || 'Без имени'}
+📧 Email: ${user.email || 'Не указан'}
+💰 Баланс: ${user.balance || 0} ₽
+📦 Заказов: ${user.orderCount || 0}
+💬 Непрочитанных: ${user.unreadMessages || 0}
+📅 Регистрация: ${user.registeredAt ? new Date(user.registeredAt).toLocaleDateString('ru-RU') : 'Неизвестно'}
         `;
         
         alert(info);
     }
 
-    showError(message) {
+    showNotification(message, type) {
         const notification = document.createElement('div');
-        notification.className = 'notification error';
-        notification.innerHTML = `
-            <i class="fas fa-exclamation-circle"></i>
-            <span>${message}</span>
-        `;
+        notification.className = 'notification';
         notification.style.cssText = `
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: #ED4245;
-            color: white;
+            background: ${type === 'success' ? '#57F287' : '#ED4245'};
+            color: ${type === 'success' ? '#1e1f29' : 'white'};
             padding: 15px 25px;
             border-radius: 8px;
             z-index: 10000;
             animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         `;
+        notification.textContent = message;
         
         document.body.appendChild(notification);
         
@@ -738,23 +709,6 @@ class AdminChat {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    window.adminChat = new AdminChat();
-    
-    const chatContent = document.getElementById('chatContent');
-    if (chatContent) {
-        window.adminChat.init();
-    }
-});
-
-window.initAdminChat = function() {
-    if (window.adminChat) {
-        window.adminChat.init();
-    }
-};
-
-window.destroyAdminChat = function() {
-    if (window.adminChat) {
-        window.adminChat.stopPolling();
-    }
-};
+// Инициализация
+window.AdminChat = AdminChat;
+window.adminChat = new AdminChat();
