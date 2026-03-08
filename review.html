@@ -268,37 +268,36 @@
     </footer>
 
     <script>
-        // ИСПОЛЬЗУЕМ ГЛОБАЛЬНЫЙ ЭКЗЕМПЛЯР API
-        const api = window.api;
+    let currentFilter = 'all';
+    let currentPage = 1;
+    const reviewsPerPage = 6;
+    let allReviews = [];
+    let totalPages = 1;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('📝 Загрузка страницы отзывов...');
+        // Используем глобальный api напрямую
+        loadReviews();
+        loadProducts();
+        checkAuth();
+        initEventListeners();
+    });
+
+    function checkAuth() {
+        // api уже доступен глобально
+        const authData = api.getAuthData();
+        const addReviewSection = document.getElementById('addReviewSection');
+        const loginToReview = document.getElementById('loginToReview');
         
-        let currentFilter = 'all';
-        let currentPage = 1;
-        const reviewsPerPage = 6;
-        let allReviews = [];
-        let totalPages = 1;
-    
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('📝 Загрузка страницы отзывов...');
-            loadReviews();
-            loadProducts();
-            checkAuth();
-            initEventListeners();
-        });
-    
-        function checkAuth() {
-            const authData = api.getAuthData();
-            const addReviewSection = document.getElementById('addReviewSection');
-            const loginToReview = document.getElementById('loginToReview');
-            
-            if (authData?.id && !authData.verificationCode) {
-                addReviewSection.style.display = 'block';
-                loginToReview.style.display = 'none';
-                document.getElementById('reviewerName').value = authData.username || '';
-            } else {
-                addReviewSection.style.display = 'none';
-                loginToReview.style.display = 'block';
-            }
+        if (authData?.id && !authData.verificationCode) {
+            addReviewSection.style.display = 'block';
+            loginToReview.style.display = 'none';
+            document.getElementById('reviewerName').value = authData.username || '';
+        } else {
+            addReviewSection.style.display = 'none';
+            loginToReview.style.display = 'block';
         }
+    }
     
         async function loadReviews() {
             try {
