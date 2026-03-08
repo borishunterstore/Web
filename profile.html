@@ -893,13 +893,6 @@
                 clearInterval(pollingInterval);
             }
         });
-    
-        // Логаут
-        window.logout = function() {
-            localStorage.removeItem('bhstore_auth');
-            localStorage.removeItem('bhstore_active_promocodes');
-            window.location.href = '/';
-        };
     </script>
 </body>
 </html>
