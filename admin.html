@@ -1,363 +1,40 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ | BHStore</title>
+    
+    <!-- Стили -->
+    <link rel="stylesheet" href="css/general.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/adminchat.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/image/logo.png">
+    
+    <!-- Скрипты (в правильном порядке) -->
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin-stats.js"></script>
+    <script src="js/admin-users.js"></script>
+    <script src="js/admin-orders.js"></script>
+    <script src="js/admin-chat.js"></script>
+    <script src="js/admin-products.js"></script>
+    <script src="js/main.js"></script>
     <script src="js/cursor.js"></script>
+    <script src="js/pkm.js"></script>
+    <script src="js/mobile-nav.js"></script>
+    
+    <!-- Эффекты -->
     <div class="custom-cursor"></div>
     <canvas id="webCanvas"></canvas>
     <div class="scroll-indicator">
         <span class="scroll-value">0%</span>
     </div>
-    <script src="js/pkm.js"></script>
-    <script src="js/mobile-nav.js"></script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Админ | BHStore</title>
-    <link rel="stylesheet" href="css/general.css">
-    <link rel="stylesheet" href="css/admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="/image/logo.png">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(135deg, #1e1f29 0%, #14151a 100%);
-            color: #fff;
-            min-height: 100vh;
-        }
-
-        .admin-container {
-            padding: 100px 20px 40px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #5865F2;
-        }
-
-        .admin-header h1 {
-            color: #5865F2;
-            font-size: 2.5rem;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .admin-header h1 i {
-            font-size: 2rem;
-        }
-
-        .admin-nav {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-        }
-
-        .admin-nav-btn {
-            padding: 12px 24px;
-            background: #2a2b36;
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1rem;
-        }
-
-        .admin-nav-btn:hover {
-            background: #3a3b46;
-            transform: translateY(-2px);
-        }
-
-        .admin-nav-btn.active {
-            background: #5865F2;
-        }
-
-        .admin-section {
-            display: none;
-            background: #2a2b36;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .admin-section.active {
-            display: block;
-        }
-
-        .admin-section h2 {
-            color: #5865F2;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #40444b;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: #1e1f29;
-            padding: 25px;
-            border-radius: 12px;
-            text-align: center;
-            transition: transform 0.3s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-card .stat-value {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: #57F287;
-            margin: 10px 0;
-        }
-
-        .stat-card .stat-label {
-            color: #b9bbbe;
-            font-size: 0.9rem;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            background: #1e1f29;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            background: #5865F2;
-            color: white;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-        }
-
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #40444b;
-            color: #b9bbbe;
-        }
-
-        tr:hover {
-            background: #2a2b36;
-        }
-
-        .btn-admin {
-            padding: 8px 16px;
-            background: #5865F2;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-        }
-
-        .btn-admin:hover {
-            background: #4752c4;
-            transform: translateY(-2px);
-        }
-
-        .btn-admin.danger {
-            background: #ED4245;
-        }
-
-        .btn-admin.danger:hover {
-            background: #c03537;
-        }
-
-        .btn-admin.success {
-            background: #57F287;
-            color: #1e1f29;
-        }
-
-        .btn-admin.success:hover {
-            background: #4ad477;
-        }
-
-        .btn-admin.small {
-            padding: 5px 10px;
-            font-size: 0.8rem;
-        }
-
-        .btn-admin:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 60px;
-            color: #b9bbbe;
-        }
-
-        .loading i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            color: #5865F2;
-        }
-
-        .access-denied {
-            text-align: center;
-            padding: 100px 20px;
-            background: #2a2b36;
-            border-radius: 12px;
-        }
-
-        .access-denied i {
-            font-size: 5rem;
-            color: #ED4245;
-            margin-bottom: 20px;
-        }
-
-        .access-denied h2 {
-            color: #ED4245;
-            margin-bottom: 10px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 10000;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-content {
-            background: #2a2b36;
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 600px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #b9bbbe;
-            font-weight: 500;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 12px;
-            background: #1e1f29;
-            border: 1px solid #40444b;
-            border-radius: 8px;
-            color: white;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #5865F2;
-        }
-
-        .form-group textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 30px;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-        }
-
-        .user-badge {
-            display: inline-block;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: 5px;
-            font-size: 0.8rem;
-        }
-
-        .user-badge.admin {
-            background: #ED4245;
-            color: white;
-        }
-
-        .user-badge.verified {
-            background: #57F287;
-            color: #1e1f29;
-        }
-
-        .chat-container {
-            height: 600px;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-    </style>
 </head>
 <body>
+    <!-- Навигация -->
     <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo">
@@ -381,14 +58,15 @@
         </div>
     </nav>
 
+    <!-- Основной контейнер -->
     <div class="admin-container">
         <div class="admin-header">
             <h1>
                 <i class="fas fa-crown"></i>
                 Админ панель
             </h1>
-            <div style="color: #b9bbbe; display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-user-shield" style="color: #5865F2;"></i>
+            <div class="admin-user-info">
+                <i class="fas fa-user-shield"></i>
                 <span id="adminUsername">Загрузка...</span>
             </div>
         </div>
@@ -396,23 +74,28 @@
         <div id="adminContent"></div>
     </div>
 
-    <!-- Модальное окно пополнения баланса -->
+    <!-- Модальные окна -->
     <div id="addBalanceModal" class="modal">
         <div class="modal-content">
-            <h2 style="color: #5865F2; margin-bottom: 20px;">
-                <i class="fas fa-plus-circle"></i> Пополнить баланс
-            </h2>
+            <h2><i class="fas fa-plus-circle"></i> Пополнить баланс</h2>
             <form id="addBalanceForm">
                 <input type="hidden" id="balanceUserId">
                 
-                <div style="background: #1e1f29; padding: 1rem; border-radius: 8px; margin-bottom: 20px;">
-                    <div style="color: #b9bbbe; margin-bottom: 5px;">Пользователь:</div>
-                    <div style="color: white; font-weight: 600; font-size: 1.1rem;" id="balanceUserName">Загрузка...</div>
+                <div class="user-info-card">
+                    <div class="user-info-label">Пользователь:</div>
+                    <div class="user-info-value" id="balanceUserName">Загрузка...</div>
                 </div>
                 
                 <div class="form-group">
                     <label for="balanceAmount">Сумма пополнения (₽)</label>
                     <input type="number" id="balanceAmount" min="1" step="1" required placeholder="Введите сумму">
+                </div>
+                
+                <div class="quick-amounts">
+                    <button type="button" class="quick-amount-btn" onclick="document.getElementById('balanceAmount').value = 100">100 ₽</button>
+                    <button type="button" class="quick-amount-btn" onclick="document.getElementById('balanceAmount').value = 500">500 ₽</button>
+                    <button type="button" class="quick-amount-btn" onclick="document.getElementById('balanceAmount').value = 1000">1000 ₽</button>
+                    <button type="button" class="quick-amount-btn" onclick="document.getElementById('balanceAmount').value = 5000">5000 ₽</button>
                 </div>
                 
                 <div class="form-group">
@@ -441,18 +124,15 @@
         </div>
     </div>
 
-    <!-- Модальное окно списания баланса -->
     <div id="removeBalanceModal" class="modal">
         <div class="modal-content">
-            <h2 style="color: #FEE75C; margin-bottom: 20px;">
-                <i class="fas fa-minus-circle"></i> Списать баланс
-            </h2>
+            <h2><i class="fas fa-minus-circle"></i> Списать баланс</h2>
             <form id="removeBalanceForm">
                 <input type="hidden" id="removeBalanceUserId">
                 
-                <div style="background: #1e1f29; padding: 1rem; border-radius: 8px; margin-bottom: 20px;">
-                    <div style="color: #b9bbbe; margin-bottom: 5px;">Пользователь:</div>
-                    <div style="color: white; font-weight: 600; font-size: 1.1rem;" id="removeBalanceUserName">Загрузка...</div>
+                <div class="user-info-card">
+                    <div class="user-info-label">Пользователь:</div>
+                    <div class="user-info-value" id="removeBalanceUserName">Загрузка...</div>
                 </div>
                 
                 <div class="form-group">
@@ -467,7 +147,7 @@
                 
                 <div class="form-actions">
                     <button type="button" class="btn-admin" onclick="closeModal('removeBalanceModal')">Отмена</button>
-                    <button type="submit" class="btn-admin" style="background: #FEE75C; color: #1e1f29;">
+                    <button type="submit" class="btn-admin warning">
                         <i class="fas fa-minus"></i> Списать
                     </button>
                 </div>
@@ -475,14 +155,11 @@
         </div>
     </div>
 
-    <!-- Модальное окно истории баланса -->
     <div id="balanceHistoryModal" class="modal">
         <div class="modal-content" style="max-width: 600px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="color: #5865F2; margin: 0;">
-                    <i class="fas fa-history"></i> История баланса
-                </h2>
-                <button onclick="closeModal('balanceHistoryModal')" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
+            <div class="modal-header">
+                <h2><i class="fas fa-history"></i> История баланса</h2>
+                <button onclick="closeModal('balanceHistoryModal')" class="modal-close">×</button>
             </div>
             <div id="balanceHistoryContent" class="loading">
                 <i class="fas fa-spinner fa-spin"></i>
@@ -491,18 +168,8 @@
         </div>
     </div>
 
-    <!-- Подключаем скрипты в правильном порядке -->
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/admin-stats.js"></script>
-    <script src="js/admin-users.js"></script>
-    <script src="js/admin-orders.js"></script>
-    <script src="js/admin-chat.js"></script>
-    <script src="js/admin-products.js"></script>
-    <script src="js/main.js"></script>
-    
     <script>
-        // Глобальные функции для модальных окон
+        // Глобальные функции
         window.showModal = function(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) modal.style.display = 'flex';
@@ -513,7 +180,7 @@
             if (modal) modal.style.display = 'none';
         };
 
-        // Инициализация при загрузке
+        // Инициализация
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🚀 Админ панель загружается...');
             
@@ -533,7 +200,7 @@
                             <i class="fas fa-ban"></i>
                             <h2>Доступ запрещен</h2>
                             <p>Требуются права администратора для доступа к этой странице.</p>
-                            <a href="/" class="btn-admin" style="margin-top: 20px;">
+                            <a href="/" class="btn-admin">
                                 <i class="fas fa-home"></i> Вернуться на главную
                             </a>
                         </div>
@@ -551,7 +218,7 @@
                         <i class="fas fa-exclamation-triangle" style="color: #ED4245;"></i>
                         <h2 style="color: #ED4245;">Ошибка загрузки</h2>
                         <p>${error.message || 'Не удалось загрузить админ панель'}</p>
-                        <button onclick="location.reload()" class="btn-admin" style="margin-top: 20px;">
+                        <button onclick="location.reload()" class="btn-admin">
                             <i class="fas fa-sync-alt"></i> Обновить страницу
                         </button>
                     </div>
@@ -620,6 +287,7 @@
                 </div>
             `;
             
+            // Навигация
             document.querySelectorAll('.admin-nav-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
@@ -662,10 +330,10 @@
                 const contentElement = document.getElementById(`${section}Content`);
                 if (contentElement) {
                     contentElement.innerHTML = `
-                        <div style="color: #ED4245; padding: 20px; text-align: center;">
-                            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-triangle"></i>
                             <p>Ошибка загрузки: ${error.message}</p>
-                            <button onclick="loadSectionData('${section}')" class="btn-admin" style="margin-top: 10px;">
+                            <button onclick="loadSectionData('${section}')" class="btn-admin">
                                 <i class="fas fa-sync-alt"></i> Повторить
                             </button>
                         </div>
@@ -675,7 +343,7 @@
         }
 
         function initFormHandlers() {
-            // Форма пополнения баланса
+            // Форма пополнения
             const addBalanceForm = document.getElementById('addBalanceForm');
             if (addBalanceForm) {
                 addBalanceForm.addEventListener('submit', async function(e) {
@@ -705,7 +373,7 @@
                 });
             }
             
-            // Обработчик выбора причины
+            // Причина пополнения
             const balanceReason = document.getElementById('balanceReason');
             if (balanceReason) {
                 balanceReason.addEventListener('change', function() {
@@ -714,7 +382,7 @@
                 });
             }
             
-            // Форма списания баланса
+            // Форма списания
             const removeBalanceForm = document.getElementById('removeBalanceForm');
             if (removeBalanceForm) {
                 removeBalanceForm.addEventListener('submit', async function(e) {
@@ -743,31 +411,27 @@
 
         function showNotification(message, type) {
             const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 25px;
-                border-radius: 8px;
-                color: white;
-                background: ${type === 'success' ? '#57F287' : '#ED4245'};
-                z-index: 10001;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-                animation: slideIn 0.3s ease;
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
             `;
-            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            
             document.body.appendChild(notification);
-            setTimeout(() => notification.remove(), 3000);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
         }
 
-        // Закрытие модальных окон по клику на фон
+        // Закрытие модалок по клику на фон
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('modal')) {
                 e.target.style.display = 'none';
             }
         });
 
-        // Глобальные функции для админ-классов
+        // Глобальные функции
         window.openUserChat = function(userId) {
             const chatBtn = document.querySelector('.admin-nav-btn[data-section="chat"]');
             if (chatBtn) {

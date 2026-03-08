@@ -1,7 +1,7 @@
-// admin-chat.js - Исправлена двойная отправка в Discord
+// admin-chat.js - ИСПРАВЛЕННАЯ ВЕРСИЯ
 class AdminChat {
     constructor() {
-        this.api = window.api; 
+        this.api = window.api;
         this.selectedUserId = null;
         this.users = [];
         this.messages = [];
@@ -31,246 +31,34 @@ class AdminChat {
         }
 
         chatContainer.innerHTML = `
-            <div class="chat-container" style="display: grid; grid-template-columns: 300px 1fr; gap: 20px; height: 600px;">
-                <div class="users-panel" style="background: #1e1f29; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column;">
-                    <div class="users-header" style="padding: 20px; background: #2a2b36; border-bottom: 1px solid #40444b;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <h3 style="margin: 0; color: white;"><i class="fas fa-users"></i> Пользователи</h3>
-                            <span class="badge" id="unreadCount" style="background: #ED4245; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; display: none;">0</span>
-                        </div>
-                        <div style="margin-top: 15px;">
-                            <input type="text" id="searchUsers" placeholder="Поиск пользователей..." style="width: 100%; padding: 10px; background: #202225; border: 1px solid #40444b; border-radius: 8px; color: white;">
+            <div class="chat-container">
+                <!-- Левая панель с пользователями -->
+                <div class="chat-users">
+                    <div class="chat-users-header">
+                        <h3><i class="fas fa-users"></i> Пользователи</h3>
+                        <div class="chat-search">
+                            <input type="text" id="searchUsers" placeholder="Поиск пользователей...">
+                            <i class="fas fa-search"></i>
                         </div>
                     </div>
-                    <div class="users-list" id="usersList" style="flex: 1; overflow-y: auto; padding: 10px;">
-                        <div class="loading" style="text-align: center; padding: 40px; color: #b9bbbe;">
+                    <div class="users-list" id="usersList">
+                        <div class="loading">
                             <i class="fas fa-spinner fa-spin"></i>
                             <p>Загрузка пользователей...</p>
                         </div>
                     </div>
                 </div>
-                <div class="chat-panel" style="background: #1e1f29; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; opacity: 0.5;" id="chatPanel">
-                    <div class="no-user-selected" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #b9bbbe; padding: 40px;">
-                        <i class="fas fa-comments" style="font-size: 4rem; margin-bottom: 20px; color: #40444b;"></i>
-                        <h3 style="color: white; margin-bottom: 10px;">Выберите пользователя</h3>
-                        <p style="text-align: center;">Для начала общения выберите пользователя из списка слева</p>
+                
+                <!-- Правая панель с чатом -->
+                <div class="chat-messages" id="chatPanel">
+                    <div class="chat-empty-state" id="emptyChatState">
+                        <i class="fas fa-comments"></i>
+                        <h3>Выберите пользователя</h3>
+                        <p>Для начала общения выберите пользователя из списка слева</p>
                     </div>
                 </div>
             </div>
         `;
-
-        this.addAdminChatStyles();
-    }
-
-    addAdminChatStyles() {
-        const styleId = 'admin-chat-styles';
-        if (document.getElementById(styleId)) return;
-
-        const styles = `
-            <style id="${styleId}">
-                .user-item {
-                    padding: 12px 15px;
-                    border-radius: 8px;
-                    margin-bottom: 8px;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                    background: #2a2b36;
-                    border: 1px solid transparent;
-                }
-                .user-item:hover {
-                    background: #363842;
-                    transform: translateX(5px);
-                }
-                .user-item.active {
-                    background: #5865F2;
-                    border-color: #4752c4;
-                }
-                .user-item.unread {
-                    border-left: 4px solid #ED4245;
-                }
-                .user-info {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                }
-                .user-avatar {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    object-fit: cover;
-                }
-                .user-details {
-                    flex: 1;
-                    overflow: hidden;
-                }
-                .user-name {
-                    color: white;
-                    font-weight: 600;
-                    margin-bottom: 4px;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-                .user-last-message {
-                    color: #b9bbbe;
-                    font-size: 0.85rem;
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-                .user-meta {
-                    display: flex;
-                    flex-direction: column;
-                    align-items: flex-end;
-                    gap: 4px;
-                }
-                .message-time {
-                    color: #72767d;
-                    font-size: 0.75rem;
-                    white-space: nowrap;
-                }
-                .unread-badge {
-                    background: #ED4245;
-                    color: white;
-                    font-size: 0.7rem;
-                    padding: 2px 6px;
-                    border-radius: 10px;
-                    min-width: 20px;
-                    text-align: center;
-                }
-                .typing-indicator {
-                    color: #5865F2;
-                    font-size: 0.8rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                }
-                .chat-header {
-                    padding: 20px;
-                    background: #2a2b36;
-                    border-bottom: 1px solid #40444b;
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                .chat-messages {
-                    flex: 1;
-                    overflow-y: auto;
-                    padding: 20px;
-                    background: #202225;
-                }
-                .message {
-                    margin-bottom: 15px;
-                    max-width: 70%;
-                    animation: fadeIn 0.3s ease;
-                }
-                .message.user {
-                    margin-right: auto;
-                }
-                .message.admin {
-                    margin-left: auto;
-                }
-                .message-content {
-                    padding: 12px 16px;
-                    border-radius: 18px;
-                    position: relative;
-                    word-wrap: break-word;
-                }
-                .message.user .message-content {
-                    background: #40444b;
-                    color: white;
-                    border-bottom-left-radius: 4px;
-                }
-                .message.admin .message-content {
-                    background: #5865F2;
-                    color: white;
-                    border-bottom-right-radius: 4px;
-                }
-                .chat-input {
-                    padding: 20px;
-                    background: #2a2b36;
-                    border-top: 1px solid #40444b;
-                }
-                .chat-input textarea {
-                    width: 100%;
-                    min-height: 80px;
-                    background: #202225;
-                    border: 1px solid #40444b;
-                    border-radius: 8px;
-                    padding: 12px;
-                    color: white;
-                    resize: vertical;
-                    margin-bottom: 10px;
-                    font-family: inherit;
-                    font-size: 14px;
-                }
-                .chat-input textarea:focus {
-                    outline: none;
-                    border-color: #5865F2;
-                }
-                .chat-actions {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                }
-                .btn-send {
-                    background: #5865F2;
-                    color: white;
-                    border: none;
-                    padding: 10px 24px;
-                    border-radius: 8px;
-                    cursor: pointer;
-                    font-weight: 600;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-                .btn-send:hover {
-                    background: #4752c4;
-                }
-                .btn-send:disabled {
-                    background: #40444b;
-                    cursor: not-allowed;
-                }
-                .admin-typing {
-                    color: #b9bbbe;
-                    font-size: 0.9rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-                .user-typing {
-                    color: #5865F2;
-                    font-size: 0.9rem;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
-                .dot-typing {
-                    display: flex;
-                    gap: 4px;
-                }
-                .dot-typing span {
-                    width: 6px;
-                    height: 6px;
-                    background: currentColor;
-                    border-radius: 50%;
-                    animation: typing 1.4s infinite ease-in-out;
-                }
-                .dot-typing span:nth-child(1) { animation-delay: -0.32s; }
-                .dot-typing span:nth-child(2) { animation-delay: -0.16s; }
-                @keyframes typing {
-                    0%, 80%, 100% { transform: scale(0); }
-                    40% { transform: scale(1); }
-                }
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(10px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-            </style>
-        `;
-
-        document.head.insertAdjacentHTML('beforeend', styles);
     }
 
     async loadUsers() {
@@ -281,6 +69,15 @@ class AdminChat {
             this.updateUnreadCount();
         } catch (error) {
             console.error('❌ Ошибка загрузки пользователей:', error);
+            const usersList = document.getElementById('usersList');
+            if (usersList) {
+                usersList.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #ED4245;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Ошибка загрузки пользователей</p>
+                    </div>
+                `;
+            }
         }
     }
 
@@ -312,33 +109,25 @@ class AdminChat {
             const isSelected = this.selectedUserId === user.discordId;
             const isTyping = this.typingUsers.has(user.discordId);
             const unreadCount = user.unreadMessages || 0;
+            const statusClass = user.online ? 'online' : 'offline';
             
             return `
-                <div class="user-item ${isSelected ? 'active' : ''} ${unreadCount > 0 ? 'unread' : ''}" 
+                <div class="chat-user ${isSelected ? 'active' : ''} ${unreadCount > 0 ? 'unread' : ''}" 
                      data-user-id="${user.discordId}"
                      onclick="window.adminChat.selectUser('${user.discordId}')">
-                    <div class="user-info">
+                    <div class="chat-user-avatar">
                         <img src="${user.avatar ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png?size=64` : 'https://cdn.discordapp.com/embed/avatars/0.png'}" 
-                             class="user-avatar"
                              alt="${user.username}"
                              onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                        <div class="user-details">
-                            <div class="user-name">${user.username || 'Без имени'}</div>
-                            <div class="user-last-message">
-                                ${isTyping ? `
-                                    <div class="typing-indicator">
-                                        <i class="fas fa-pencil-alt"></i>
-                                        Печатает...
-                                    </div>
-                                ` : 'Нажмите для начала чата'}
-                            </div>
-                        </div>
-                        <div class="user-meta">
-                            ${unreadCount > 0 ? `
-                                <div class="unread-badge">${unreadCount}</div>
-                            ` : ''}
+                        <span class="chat-user-online ${statusClass}"></span>
+                    </div>
+                    <div class="chat-user-info">
+                        <div class="chat-user-name">${user.username || 'Без имени'}</div>
+                        <div class="chat-user-status">
+                            ${isTyping ? '<span style="color: #5865F2;">Печатает...</span>' : 'Нажмите для начала чата'}
                         </div>
                     </div>
+                    ${unreadCount > 0 ? `<span class="chat-user-unread">${unreadCount}</span>` : ''}
                 </div>
             `;
         }).join('');
@@ -348,7 +137,6 @@ class AdminChat {
         this.selectedUserId = userId;
         this.renderUsersList();
         await this.loadUserChat(userId);
-        this.updateChatPanel();
         this.updateUnreadCount();
         await this.markAsRead(userId);
     }
@@ -357,116 +145,124 @@ class AdminChat {
         try {
             const data = await this.api.getChatMessages(userId);
             this.messages = data.messages || [];
-            this.renderMessages();
+            this.renderChatPanel();
         } catch (error) {
             console.error('Ошибка загрузки чата:', error);
             this.messages = [];
+            this.renderChatPanel();
         }
     }
 
-    renderMessages() {
-        const container = document.getElementById('chatMessages');
-        if (!container) return;
-
-        if (!this.messages || this.messages.length === 0) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #b9bbbe;">
-                    <i class="fas fa-comments"></i>
-                    <p>Начните общение</p>
-                </div>
-            `;
-            return;
-        }
-
-        container.innerHTML = this.messages.map(msg => {
-            const time = new Date(msg.timestamp).toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            
-            const messageClass = msg.from_admin ? 'admin' : 'user';
-            const senderName = msg.from_admin ? 'Вы' : 'Пользователь';
-            
-            return `
-                <div class="message ${messageClass}">
-                    <div class="message-content">
-                        ${this.escapeHtml(msg.message)}
-                    </div>
-                    <div class="message-time">
-                        ${senderName} • ${time}
-                    </div>
-                </div>
-            `;
-        }).join('');
-        
-        this.scrollToBottom();
-    }
-
-    updateChatPanel() {
+    renderChatPanel() {
         const panel = document.getElementById('chatPanel');
+        const emptyState = document.getElementById('emptyChatState');
         if (!panel) return;
 
         const user = this.users.find(u => u.discordId === this.selectedUserId);
         if (!user) return;
 
-        panel.style.opacity = '1';
+        // Скрываем empty state
+        if (emptyState) emptyState.style.display = 'none';
+
         panel.innerHTML = `
-            <div style="display: flex; flex-direction: column; height: 100%;">
-                <div class="chat-header">
-                    <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <div class="chat-header-avatar">
                         <img src="${user.avatar ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png?size=64` : 'https://cdn.discordapp.com/embed/avatars/0.png'}" 
-                             style="width: 40px; height: 40px; border-radius: 50%;"
                              alt="${user.username}"
                              onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                        <div>
-                            <div style="color: white; font-weight: 600;">${user.username || 'Без имени'}</div>
-                            <div id="userStatus" style="color: #b9bbbe; font-size: 0.9rem;">
-                                ${this.typingUsers.has(user.discordId) ? 'Печатает...' : 'Онлайн'}
-                            </div>
-                        </div>
                     </div>
-                    <div>
-                        <button class="btn-admin small" onclick="window.adminChat.showUserInfo('${user.discordId}')">
-                            <i class="fas fa-info-circle"></i>
-                        </button>
+                    <div class="chat-header-text">
+                        <h3>${user.username || 'Без имени'}</h3>
+                        <p id="userStatus">
+                            ${this.typingUsers.has(user.discordId) ? 'Печатает...' : 'Онлайн'}
+                        </p>
                     </div>
                 </div>
-                
-                <div class="chat-messages" id="chatMessages">
-                    ${this.renderMessages()}
+                <div class="chat-header-actions">
+                    <button onclick="window.adminChat.showUserInfo('${user.discordId}')" title="Информация">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="chat-messages-list" id="chatMessagesList">
+                ${this.renderMessages()}
+            </div>
+            
+            <div class="chat-input">
+                <div id="typingIndicator" class="typing-indicator" style="display: none;">
+                    <span></span><span></span><span></span>
                 </div>
                 
-                <div class="chat-input">
-                    <div id="typingIndicator" class="user-typing" style="display: none; margin-bottom: 10px;">
-                        <i class="fas fa-pencil-alt"></i>
-                        <span>Пользователь печатает</span>
-                        <div class="dot-typing">
-                            <span></span>
-                            <span></span>
-                            <span></span>
-                        </div>
-                    </div>
-                    
-                    <textarea id="adminMessageInput" 
-                              placeholder="Введите сообщение..."
-                              rows="3"></textarea>
-                    
-                    <div class="chat-actions">
-                        <div class="admin-typing">
-                            <i class="fas fa-keyboard"></i>
-                            <span>Ctrl+Enter для отправки</span>
-                        </div>
-                        <button id="sendAdminMessage" class="btn-send">
-                            <i class="fas fa-paper-plane"></i>
-                            Отправить
-                        </button>
-                    </div>
+                <textarea id="adminMessageInput" 
+                          placeholder="Введите сообщение..."
+                          rows="1"></textarea>
+                <button class="chat-send-btn" id="sendAdminMessage">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+                
+                <div class="chat-input-actions">
+                    <span class="chat-input-hint">
+                        <i class="fas fa-keyboard"></i> Ctrl+Enter
+                    </span>
                 </div>
             </div>
         `;
 
-        this.scrollToBottom();
         this.setupMessageInput();
+        this.scrollToBottom();
+    }
+
+    renderMessages() {
+        if (!this.messages || this.messages.length === 0) {
+            return `
+                <div class="chat-empty-state">
+                    <i class="fas fa-comments"></i>
+                    <p>Напишите первое сообщение</p>
+                </div>
+            `;
+        }
+
+        let lastDate = null;
+        let messagesHtml = '';
+
+        this.messages.forEach(msg => {
+            const msgDate = new Date(msg.timestamp).toDateString();
+            
+            // Добавляем разделитель даты если нужно
+            if (lastDate !== msgDate) {
+                messagesHtml += `
+                    <div class="message-date-divider">
+                        <span>${new Date(msg.timestamp).toLocaleDateString('ru-RU', { 
+                            day: 'numeric', 
+                            month: 'long',
+                            year: 'numeric'
+                        })}</span>
+                    </div>
+                `;
+                lastDate = msgDate;
+            }
+
+            const isAdmin = msg.from_admin || msg.fromAdmin;
+            const time = new Date(msg.timestamp).toLocaleTimeString('ru-RU', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            messagesHtml += `
+                <div class="message-item ${isAdmin ? 'admin' : 'user'}">
+                    <div class="message-text">${this.escapeHtml(msg.message)}</div>
+                    <div class="message-time">
+                        <i class="fas fa-clock"></i>
+                        ${time}
+                        ${isAdmin ? '<span class="message-status"><i class="fas fa-check-double"></i></span>' : ''}
+                    </div>
+                </div>
+            `;
+        });
+
+        return messagesHtml;
     }
 
     escapeHtml(unsafe) {
@@ -487,53 +283,40 @@ class AdminChat {
         if (!message) return;
 
         try {
-            // Отправляем сообщение через API (сервер сам отправит в Discord)
+            // Отправляем сообщение
             await this.api.sendChatMessage(this.selectedUserId, message, true);
             
-            // Добавляем в UI
-            this.addMessageToUI(message, true);
+            // Добавляем в список сообщений
+            this.messages.push({
+                message: message,
+                from_admin: true,
+                timestamp: new Date().toISOString()
+            });
+            
+            // Обновляем отображение
+            const messagesList = document.getElementById('chatMessagesList');
+            if (messagesList) {
+                messagesList.innerHTML = this.renderMessages();
+            }
             
             // Очищаем поле
             input.value = '';
             input.focus();
             
+            this.scrollToBottom();
+            
         } catch (error) {
             console.error('Ошибка отправки сообщения:', error);
-            alert('Не удалось отправить сообщение');
+            this.showNotification('Не удалось отправить сообщение', 'error');
         }
     }
 
-    addMessageToUI(message, fromAdmin) {
-        const container = document.getElementById('chatMessages');
-        if (!container) return;
-
-        const time = new Date().toLocaleTimeString([], { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        });
-        
-        const messageClass = fromAdmin ? 'admin' : 'user';
-        const senderName = fromAdmin ? 'Вы' : 'Пользователь';
-        
-        const messageHTML = `
-            <div class="message ${messageClass}">
-                <div class="message-content">
-                    ${this.escapeHtml(message)}
-                </div>
-                <div class="message-time">
-                    ${senderName} • ${time}
-                </div>
-            </div>
-        `;
-
-        container.insertAdjacentHTML('beforeend', messageHTML);
-        this.scrollToBottom();
-    }
-
     scrollToBottom() {
-        const container = document.getElementById('chatMessages');
+        const container = document.getElementById('chatMessagesList');
         if (container) {
-            container.scrollTop = container.scrollHeight;
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 100);
         }
     }
 
@@ -542,6 +325,12 @@ class AdminChat {
         const sendBtn = document.getElementById('sendAdminMessage');
         
         if (!input || !sendBtn) return;
+        
+        // Авто-высота textarea
+        input.addEventListener('input', () => {
+            input.style.height = 'auto';
+            input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+        });
         
         input.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.key === 'Enter') {
@@ -600,16 +389,7 @@ class AdminChat {
 
     updateUnreadCount() {
         const totalUnread = this.users.reduce((sum, user) => sum + (user.unreadMessages || 0), 0);
-        const badge = document.getElementById('unreadCount');
-        
-        if (badge) {
-            if (totalUnread > 0) {
-                badge.textContent = totalUnread;
-                badge.style.display = 'block';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
+        // Можно добавить бейдж в навигацию если нужно
     }
 
     showUserInfo(userId) {
@@ -629,6 +409,21 @@ class AdminChat {
         `;
         
         alert(info);
+    }
+
+    showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            <span>${message}</span>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
     }
 }
 
