@@ -1,7 +1,7 @@
-// admin-chat.js - Полностью переработан для работы с БД
+// admin-chat.js - Исправлена двойная отправка в Discord
 class AdminChat {
     constructor() {
-        this.api = new BHStoreAPI();
+        this.api = window.BHStoreAPI || window.api;
         this.selectedUserId = null;
         this.users = [];
         this.messages = [];
@@ -278,12 +278,9 @@ class AdminChat {
             const data = await this.api.getChatUsers();
             this.users = data.users || [];
             this.renderUsersList();
-            
-            // Обновляем общее количество непрочитанных
             this.updateUnreadCount();
         } catch (error) {
             console.error('❌ Ошибка загрузки пользователей:', error);
-            this.showNotification('Ошибка загрузки пользователей', 'error');
         }
     }
 
@@ -364,7 +361,6 @@ class AdminChat {
         } catch (error) {
             console.error('Ошибка загрузки чата:', error);
             this.messages = [];
-            this.showNotification('Ошибка загрузки сообщений', 'error');
         }
     }
 
@@ -491,7 +487,7 @@ class AdminChat {
         if (!message) return;
 
         try {
-            // Отправляем сообщение
+            // Отправляем сообщение через API (сервер сам отправит в Discord)
             await this.api.sendChatMessage(this.selectedUserId, message, true);
             
             // Добавляем в UI
@@ -501,34 +497,9 @@ class AdminChat {
             input.value = '';
             input.focus();
             
-            // Отправляем в Discord через вебхук
-            await this.sendToDiscord(message, this.selectedUserId);
-            
         } catch (error) {
             console.error('Ошибка отправки сообщения:', error);
-            this.showNotification('Не удалось отправить сообщение', 'error');
-        }
-    }
-
-    async sendToDiscord(message, userId) {
-        try {
-            const user = this.users.find(u => u.discordId === userId);
-            
-            await fetch('/api/webhook/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: '💬 Новое сообщение от администратора',
-                    description: message,
-                    color: 0x5865F2,
-                    fields: [
-                        { name: '👤 Пользователь', value: `<@${userId}>`, inline: true },
-                        { name: '📝 Имя', value: user?.username || 'Неизвестно', inline: true }
-                    ]
-                })
-            });
-        } catch (error) {
-            console.error('Ошибка отправки в Discord:', error);
+            alert('Не удалось отправить сообщение');
         }
     }
 
@@ -596,28 +567,6 @@ class AdminChat {
         }
     }
 
-    updateUnreadCounts(unreadCounts) {
-        this.users = this.users.map(user => ({
-            ...user,
-            unreadMessages: unreadCounts[user.discordId] || 0
-        }));
-        
-        this.renderUsersList();
-        this.updateUnreadCount();
-    }
-
-    updateTypingUsers(typingUsers) {
-        this.typingUsers = new Set(typingUsers);
-        this.renderUsersList();
-        
-        if (this.selectedUserId && typingUsers.includes(this.selectedUserId)) {
-            const statusElement = document.getElementById('userStatus');
-            if (statusElement) {
-                statusElement.textContent = 'Печатает...';
-            }
-        }
-    }
-
     async markAsRead(userId) {
         try {
             await this.api.markMessagesAsRead(userId);
@@ -636,9 +585,7 @@ class AdminChat {
     }
 
     startPolling() {
-        // Останавливаем предыдущий интервал если был
         this.stopPolling();
-        
         this.pollingInterval = setInterval(() => {
             this.checkNewMessages();
         }, 3000);
@@ -682,30 +629,6 @@ class AdminChat {
         `;
         
         alert(info);
-    }
-
-    showNotification(message, type) {
-        const notification = document.createElement('div');
-        notification.className = 'notification';
-        notification.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: ${type === 'success' ? '#57F287' : '#ED4245'};
-            color: ${type === 'success' ? '#1e1f29' : 'white'};
-            padding: 15px 25px;
-            border-radius: 8px;
-            z-index: 10000;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        `;
-        notification.textContent = message;
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
     }
 }
 

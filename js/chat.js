@@ -1,4 +1,4 @@
-// chat.js - Полностью переработан для работы с API
+// chat.js - Исправленная версия для пользователей
 class ChatSystem {
     constructor() {
         this.api = window.BHStoreAPI || window.api;
@@ -9,19 +9,15 @@ class ChatSystem {
         this.typingTimeout = null;
         this.isTyping = false;
         this.initialized = false;
-        
-        console.log('✅ ChatSystem constructor');
     }
     
     async init() {
         try {
-            // Проверяем API
             if (!this.api) {
                 console.error('❌ BHStoreAPI не найден');
                 return;
             }
 
-            // Получаем данные авторизации
             const authData = this.api.getAuthData();
             this.userId = authData?.id;
             
@@ -32,17 +28,12 @@ class ChatSystem {
 
             console.log('📱 Инициализация чата для пользователя:', this.userId);
 
-            // Загружаем UI
             this.loadChatUI();
             this.addChatStyles();
             
-            // Загружаем сообщения
             await this.loadMessages();
             
-            // Настраиваем обработчики
             this.setupEventListeners();
-            
-            // Запускаем polling
             this.startPolling();
             
             this.initialized = true;
@@ -54,10 +45,7 @@ class ChatSystem {
 
     loadChatUI() {
         const container = document.getElementById('supportChat');
-        if (!container) {
-            console.warn('⚠️ Контейнер supportChat не найден');
-            return;
-        }
+        if (!container) return;
 
         container.innerHTML = `
             <div class="chat-main-wrapper">
@@ -105,8 +93,6 @@ class ChatSystem {
                 </div>
             </div>
         `;
-
-        console.log('✅ UI чата загружен');
     }
 
     addChatStyles() {
@@ -190,16 +176,6 @@ class ChatSystem {
                     margin-bottom: 15px;
                     opacity: 0.3;
                     color: #5865F2;
-                }
-                
-                .chat-welcome p {
-                    font-size: 1rem;
-                    margin-bottom: 5px;
-                }
-                
-                .chat-welcome small {
-                    font-size: 0.8rem;
-                    opacity: 0.7;
                 }
                 
                 .message-wrapper {
@@ -359,7 +335,6 @@ class ChatSystem {
                     gap: 4px;
                 }
                 
-                /* Стили для загрузки */
                 .loading-messages {
                     text-align: center;
                     padding: 20px;
@@ -377,7 +352,6 @@ class ChatSystem {
                     100% { transform: rotate(360deg); }
                 }
                 
-                /* Стили для ошибок */
                 .error-message {
                     background: rgba(237, 66, 69, 0.1);
                     border: 1px solid #ED4245;
@@ -410,7 +384,6 @@ class ChatSystem {
             }
 
             const data = await this.api.getChatMessages(this.userId);
-            console.log('📨 Получены сообщения:', data);
             
             if (data.success) {
                 this.messages = data.messages || [];
@@ -511,11 +484,15 @@ class ChatSystem {
         try {
             console.log('📤 Отправка сообщения...');
             
-            const result = await this.api.sendChatMessage(this.userId, text, false);
-            console.log('✅ Сообщение отправлено:', result);
+            // Отправляем через API (сервер сам отправит в Discord)
+            await this.api.sendChatMessage(this.userId, text, false);
             
-            // Обновляем сообщения
-            await this.loadMessages();
+            console.log('✅ Сообщение отправлено');
+            
+            // Обновляем сообщения через секунду
+            setTimeout(() => {
+                this.loadMessages();
+            }, 1000);
             
         } catch (error) {
             console.error('❌ Ошибка отправки:', error);
@@ -538,88 +515,10 @@ class ChatSystem {
         }
     }
 
-    async sendMessage() {
-        const input = document.getElementById('messageInput');
-        if (!input) return;
-        
-        const text = input.value.trim();
-        if (!text) return;
-    
-        // Оптимистичное добавление
-        const tempMsg = {
-            message: text,
-            from_admin: false,
-            timestamp: new Date().toISOString()
-        };
-        
-        this.messages.push(tempMsg);
-        this.appendMessage(tempMsg);
-        
-        // Очищаем поле
-        input.value = '';
-        input.style.height = 'auto';
-    
-        try {
-            console.log('📤 Отправка сообщения...');
-            
-            const result = await this.api.sendChatMessage(this.userId, text, false);
-            console.log('✅ Сообщение отправлено:', result);
-            
-            // Отправляем уведомление в Discord
-            await this.sendToDiscord(text);
-            
-            // Обновляем сообщения
-            await this.loadMessages();
-            
-        } catch (error) {
-            console.error('❌ Ошибка отправки:', error);
-            
-            // Показываем ошибку
-            const container = document.getElementById('chatMessages');
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error-message';
-            errorDiv.innerHTML = `
-                <i class="fas fa-exclamation-circle"></i>
-                <span>Не удалось отправить сообщение</span>
-            `;
-            container.appendChild(errorDiv);
-            
-            setTimeout(() => errorDiv.remove(), 3000);
-            
-            // Удаляем оптимистичное сообщение
-            this.messages = this.messages.filter(m => m !== tempMsg);
-            this.renderMessages();
-        }
-    }
-    
-    // Добавьте этот метод в класс ChatSystem
-    async sendToDiscord(message) {
-        try {
-            const authData = this.api.getAuthData();
-            
-            await fetch('/api/webhook/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: '💬 Новое сообщение от пользователя',
-                    description: message,
-                    color: 0x5865F2,
-                    fields: [
-                        { name: '👤 Пользователь', value: `<@${this.userId}>`, inline: true },
-                        { name: '📝 Имя', value: authData.username || 'Неизвестно', inline: true }
-                    ]
-                })
-            });
-        } catch (error) {
-            console.error('❌ Ошибка отправки в Discord:', error);
-        }
-    }
-    
     appendMessage(msg) {
         const container = document.getElementById('chatMessages');
         if (!container) return;
         
-        // Удаляем welcome если есть
         const welcome = container.querySelector('.chat-welcome');
         if (welcome) welcome.remove();
         
@@ -638,7 +537,6 @@ class ChatSystem {
                 await this.loadMessages();
             }
             
-            // Обновляем индикатор печатания
             const indicator = document.getElementById('adminTypingIndicator');
             if (indicator) {
                 indicator.style.display = data?.adminTyping ? 'flex' : 'none';
@@ -655,7 +553,6 @@ class ChatSystem {
 
         if (!input) return;
 
-        // Отправка по Ctrl+Enter
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && e.ctrlKey) {
                 e.preventDefault();
@@ -664,19 +561,15 @@ class ChatSystem {
             this.handleTyping();
         });
 
-        // Авто-высота textarea
         input.addEventListener('input', () => {
             input.style.height = 'auto';
             input.style.height = Math.min(input.scrollHeight, 120) + 'px';
         });
 
-        // Кнопка отправки
         sendBtn?.addEventListener('click', (e) => {
             e.preventDefault();
             this.sendMessage();
         });
-
-        console.log('✅ Обработчики событий настроены');
     }
 
     handleTyping() {
@@ -694,7 +587,7 @@ class ChatSystem {
 
     async sendTypingStatus(status) {
         try {
-            await fetch(`${this.api.baseUrl}/api/chat/typing`, {
+            await fetch('/api/chat/typing', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -704,7 +597,7 @@ class ChatSystem {
                 })
             });
         } catch (e) {
-            // Игнорируем ошибки статуса печатания
+            // Игнорируем
         }
     }
 
@@ -719,10 +612,7 @@ class ChatSystem {
         const container = document.getElementById('chatMessages');
         if (container) {
             setTimeout(() => {
-                container.scrollTo({
-                    top: container.scrollHeight,
-                    behavior: 'smooth'
-                });
+                container.scrollTop = container.scrollHeight;
             }, 100);
         }
     }
@@ -737,7 +627,6 @@ class ChatSystem {
     startPolling() {
         this.stopPolling();
         this.pollingInterval = setInterval(() => this.checkUpdates(), 3000);
-        console.log('✅ Polling запущен');
     }
 
     stopPolling() {
@@ -748,16 +637,14 @@ class ChatSystem {
     }
 }
 
-// Инициализация при загрузке страницы
+// Инициализация
 document.addEventListener('DOMContentLoaded', () => {
-    // Ждем немного, чтобы API успел инициализироваться
     setTimeout(() => {
         window.chatSystem = new ChatSystem();
         window.chatSystem.init();
     }, 500);
 });
 
-// Очистка при уходе со страницы
 window.addEventListener('beforeunload', () => {
     if (window.chatSystem) {
         window.chatSystem.stopPolling();

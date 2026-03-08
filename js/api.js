@@ -1,4 +1,4 @@
-// api.js - ПОЛНАЯ ВЕРСИЯ С МЕТОДАМИ ЧАТА И АДМИНКИ
+// api.js - ПОЛНАЯ ВЕРСИЯ С ВСЕМИ МЕТОДАМИ
 class BHStoreAPI {
     constructor() {
         this.baseUrl = 'https://bhstore.netlify.app';
@@ -74,76 +74,7 @@ class BHStoreAPI {
         }
     }
 
-async getChatUsers() {
-    const authData = this.getAuthData();
-    const response = await fetch(`${this.baseUrl}/api/admin/chat/users`, {
-        headers: {
-            'Authorization': `Bearer ${authData.token || ''}`,
-            'Content-Type': 'application/json'
-        }
-    });
-    if (!response.ok) {
-        throw new Error('Не удалось загрузить список пользователей чата');
-    }
-    return await response.json();
-}
-
-async getChatMessages(userId) {
-    const authData = this.getAuthData();
-    const response = await fetch(`${this.baseUrl}/api/chat/messages/${userId}`, {
-        headers: {
-            'Authorization': `Bearer ${authData.token || ''}`,
-            'Content-Type': 'application/json'
-        }
-    });
-    if (!response.ok) {
-        throw new Error('Не удалось загрузить сообщения');
-    }
-    return await response.json();
-}
-
-async sendChatMessage(userId, message, fromAdmin = false) {
-    const authData = this.getAuthData();
-    const response = await fetch(`${this.baseUrl}/api/chat/send`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${authData.token || ''}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ userId, message, fromAdmin })
-    });
-    if (!response.ok) {
-        throw new Error('Не удалось отправить сообщение');
-    }
-    return await response.json();
-}
-
-async checkNewMessages(userId, lastChecked) {
-    const authData = this.getAuthData();
-    const response = await fetch(`${this.baseUrl}/api/chat/check`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${authData.token || ''}`,
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ userId, lastChecked })
-    });
-    return await response.json();
-}
-
-async markMessagesAsRead(userId) {
-    const authData = this.getAuthData();
-    const response = await fetch(`${this.baseUrl}/api/chat/mark-read/${userId}`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${authData.token || ''}`,
-            'Content-Type': 'application/json'
-        }
-    });
-    return await response.json();
-}
-
-    // ========== ЧАТ МЕТОДЫ ==========
+    // ========== ЧАТ МЕТОДЫ (ОБЩИЕ) ==========
     async getChatMessages(userId) {
         const authData = this.getAuthData();
         const response = await fetch(`${this.baseUrl}/api/chat/messages/${userId}`, {
@@ -189,10 +120,6 @@ async markMessagesAsRead(userId) {
             body: JSON.stringify({ userId, lastChecked })
         });
         
-        if (!response.ok) {
-            throw new Error('Не удалось проверить сообщения');
-        }
-        
         return await response.json();
     }
 
@@ -204,6 +131,37 @@ async markMessagesAsRead(userId) {
                 'Authorization': `Bearer ${authData.token || ''}`,
                 'Content-Type': 'application/json'
             }
+        });
+        
+        return await response.json();
+    }
+
+    // ========== ЧАТ МЕТОДЫ (АДМИН) ==========
+    async getChatUsers() {
+        const authData = this.getAuthData();
+        const response = await fetch(`${this.baseUrl}/api/admin/chat/users`, {
+            headers: {
+                'Authorization': `Bearer ${authData.token || ''}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Не удалось загрузить список пользователей');
+        }
+        
+        return await response.json();
+    }
+
+    async checkAdminMessages() {
+        const authData = this.getAuthData();
+        const response = await fetch(`${this.baseUrl}/api/chat/admin/check`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authData.token || ''}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ lastChecked: Date.now() })
         });
         
         return await response.json();
@@ -245,6 +203,22 @@ async markMessagesAsRead(userId) {
             method: 'POST',
             body: JSON.stringify({ userId, newBalance, reason })
         });
+    }
+
+    async getUserBalanceHistory(userId) {
+        const authData = this.getAuthData();
+        const response = await fetch(`${this.baseUrl}/api/admin/balance-history/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${authData.token || ''}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Не удалось загрузить историю баланса');
+        }
+        
+        return await response.json();
     }
 
     // ========== ПРОМОКОДЫ ==========
@@ -302,6 +276,13 @@ async markMessagesAsRead(userId) {
         return this.request('/create-order', {
             method: 'POST',
             body: JSON.stringify(orderData)
+        });
+    }
+
+    async updateOrderStatus(orderId, status) {
+        return this.request('/admin-update-order', {
+            method: 'POST',
+            body: JSON.stringify({ orderId, status })
         });
     }
 

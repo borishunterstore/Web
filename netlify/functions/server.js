@@ -346,11 +346,6 @@ if (sql) {
 // Админ маршруты для чата
 // ============================================
 
-// ============================================
-// Чат маршруты (исправленные)
-// ============================================
-
-// Получение пользователей для чата (админ)
 app.get('/api/admin/chat/users', async (req, res) => {
   try {
       const authHeader = req.headers.authorization;
@@ -368,7 +363,7 @@ app.get('/api/admin/chat/users', async (req, res) => {
               return res.status(403).json({ success: false, error: 'Требуются права администратора' });
           }
           
-          // Получаем всех пользователей из БД
+          // Получаем всех пользователей
           const dbUsers = await sql`SELECT * FROM users ORDER BY registered_at DESC`;
           
           // Получаем непрочитанные сообщения
@@ -416,6 +411,7 @@ app.get('/api/admin/chat/users', async (req, res) => {
 app.get('/api/chat/messages/:userId', async (req, res) => {
   try {
       const authHeader = req.headers.authorization;
+      const userId = req.params.userId;
       
       if (!authHeader) {
           return res.status(401).json({ success: false, error: 'Не авторизован' });
@@ -426,11 +422,10 @@ app.get('/api/chat/messages/:userId', async (req, res) => {
       try {
           const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
           
-          if (!isAdminUser(decoded)) {
-              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          // Проверяем, что пользователь запрашивает свои сообщения или админ
+          if (decoded.id !== userId && !isAdminUser(decoded)) {
+              return res.status(403).json({ success: false, error: 'Доступ запрещен' });
           }
-          
-          const userId = req.params.userId;
           
           const messages = await sql`
               SELECT * FROM messages 
@@ -476,9 +471,9 @@ app.post('/api/chat/send', async (req, res) => {
               return res.status(400).json({ success: false, error: 'Не указаны данные' });
           }
           
-          // Если от админа, проверяем права
-          if (fromAdmin && !isAdmin) {
-              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+          // Проверяем права
+          if (decoded.id !== userId && !isAdmin) {
+              return res.status(403).json({ success: false, error: 'Доступ запрещен' });
           }
           
           const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -497,30 +492,31 @@ app.post('/api/chat/send', async (req, res) => {
               )
           `;
           
-          // Отправляем уведомление в Discord если от админа
-          if (fromAdmin) {
-              try {
-                  const [user] = await sql`
-                      SELECT username FROM users WHERE discord_id = ${userId}
-                  `;
-                  
-                  const webhookUrl = process.env.DISCORD_WEBHOOK_CHAT || 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG';
-                  
-                  await axios.post(webhookUrl, {
-                      embeds: [{
-                          title: '💬 Новое сообщение от администратора',
-                          description: message,
-                          color: 0x5865F2,
-                          fields: [
-                              { name: '👤 Пользователь', value: `<@${userId}>`, inline: true },
-                              { name: '📝 Имя', value: user?.username || 'Неизвестно', inline: true }
-                          ],
-                          timestamp: now
-                      }]
-                  });
-              } catch (webhookError) {
-                  console.error('❌ Ошибка отправки вебхука:', webhookError.message);
-              }
+          // Получаем информацию о пользователе для вебхука
+          const [user] = await sql`
+              SELECT username FROM users WHERE discord_id = ${userId}
+          `;
+          
+          // Отправляем уведомление в Discord
+          const webhookUrl = fromAdmin 
+              ? process.env.DISCORD_WEBHOOK_CHAT || 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG'
+              : process.env.DISCORD_WEBHOOK_SUPPORT || 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG';
+          
+          try {
+              await axios.post(webhookUrl, {
+                  embeds: [{
+                      title: fromAdmin ? '💬 Ответ от администратора' : '💬 Новое сообщение от пользователя',
+                      description: message,
+                      color: fromAdmin ? 0x5865F2 : 0x43b581,
+                      fields: [
+                          { name: '👤 Пользователь', value: `<@${userId}>`, inline: true },
+                          { name: '📝 Имя', value: user?.username || 'Неизвестно', inline: true }
+                      ],
+                      timestamp: now
+                  }]
+              });
+          } catch (webhookError) {
+              console.error('❌ Ошибка отправки вебхука:', webhookError.message);
           }
           
           res.json({
@@ -558,10 +554,14 @@ app.post('/api/chat/check', async (req, res) => {
               return res.status(400).json({ success: false, error: 'Не указан userId' });
           }
           
+          // Проверяем права
+          if (decoded.id !== userId && !isAdminUser(decoded)) {
+              return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+          }
+          
           const checkTime = lastChecked ? new Date(parseInt(lastChecked)).toISOString() : new Date(0).toISOString();
           
-          // Проверяем новые сообщения
-          const newMessages = await sql`
+          const [result] = await sql`
               SELECT COUNT(*) as count FROM messages 
               WHERE user_id = ${userId} 
               AND timestamp > ${checkTime}
@@ -569,8 +569,8 @@ app.post('/api/chat/check', async (req, res) => {
           
           res.json({
               success: true,
-              hasNew: parseInt(newMessages[0].count) > 0,
-              newCount: parseInt(newMessages[0].count)
+              hasNew: parseInt(result.count) > 0,
+              newCount: parseInt(result.count)
           });
           
       } catch (decodeError) {
@@ -1927,7 +1927,7 @@ app.get('/api/admin/balance-history/:userId', async (req, res) => {
           
           const userId = req.params.userId;
           
-          // Получаем транзакции из БД
+          // Получаем транзакции
           const transactions = await sql`
               SELECT * FROM transactions 
               WHERE user_id = ${userId} 
@@ -1935,7 +1935,6 @@ app.get('/api/admin/balance-history/:userId', async (req, res) => {
               LIMIT 100
           `;
           
-          // Подсчитываем суммы
           let totalDeposits = 0;
           let totalWithdrawals = 0;
           
