@@ -78,7 +78,10 @@
     <!-- Модальные окна -->
     <div id="addBalanceModal" class="modal">
         <div class="modal-content">
-            <h2><i class="fas fa-plus-circle"></i> Пополнить баланс</h2>
+            <div class="modal-header">
+                <h2><i class="fas fa-plus-circle"></i> Пополнить баланс</h2>
+                <button class="modal-close" onclick="closeModal('addBalanceModal')">×</button>
+            </div>
             <form id="addBalanceForm">
                 <input type="hidden" id="balanceUserId">
                 
@@ -127,7 +130,10 @@
 
     <div id="removeBalanceModal" class="modal">
         <div class="modal-content">
-            <h2><i class="fas fa-minus-circle"></i> Списать баланс</h2>
+            <div class="modal-header">
+                <h2><i class="fas fa-minus-circle"></i> Списать баланс</h2>
+                <button class="modal-close" onclick="closeModal('removeBalanceModal')">×</button>
+            </div>
             <form id="removeBalanceForm">
                 <input type="hidden" id="removeBalanceUserId">
                 
@@ -160,7 +166,7 @@
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
                 <h2><i class="fas fa-history"></i> История баланса</h2>
-                <button onclick="closeModal('balanceHistoryModal')" class="modal-close">×</button>
+                <button class="modal-close" onclick="closeModal('balanceHistoryModal')">×</button>
             </div>
             <div id="balanceHistoryContent" class="loading">
                 <i class="fas fa-spinner fa-spin"></i>
@@ -331,10 +337,10 @@
                 const contentElement = document.getElementById(`${section}Content`);
                 if (contentElement) {
                     contentElement.innerHTML = `
-                        <div class="error-message">
-                            <i class="fas fa-exclamation-triangle"></i>
+                        <div style="text-align: center; padding: 40px; color: #ED4245;">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 15px;"></i>
                             <p>Ошибка загрузки: ${error.message}</p>
-                            <button onclick="loadSectionData('${section}')" class="btn-admin">
+                            <button onclick="loadSectionData('${section}')" class="btn-admin" style="margin-top: 15px;">
                                 <i class="fas fa-sync-alt"></i> Повторить
                             </button>
                         </div>
