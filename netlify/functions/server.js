@@ -213,6 +213,20 @@ async function initDatabase() {
         created_at TIMESTAMP
       )
     `;
+    
+    // БД Transactions
+    await sql`
+      CREATE TABLE IF NOT EXISTS transactions (
+        id TEXT PRIMARY KEY,
+        user_id TEXT REFERENCES users(discord_id) ON DELETE CASCADE,
+        amount INTEGER NOT NULL,
+        type TEXT CHECK (type IN ('deposit', 'withdrawal', 'purchase')),
+        reason TEXT,
+        admin_id TEXT,
+        admin_name TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
 
     // БД Products
     await sql`
@@ -1913,22 +1927,28 @@ app.get('/api/admin/balance-history/:userId', async (req, res) => {
           
           const userId = req.params.userId;
           
-          // Получаем пользователя из БД
-          const [user] = await sql`
-              SELECT * FROM users WHERE discord_id = ${userId}
+          // Получаем транзакции из БД
+          const transactions = await sql`
+              SELECT * FROM transactions 
+              WHERE user_id = ${userId} 
+              ORDER BY created_at DESC 
+              LIMIT 100
           `;
           
-          if (!user) {
-              return res.status(404).json({ success: false, error: 'Пользователь не найден' });
-          }
+          // Подсчитываем суммы
+          let totalDeposits = 0;
+          let totalWithdrawals = 0;
           
-          // В реальном проекте здесь должна быть таблица с историей транзакций
-          // Пока возвращаем заглушку
+          transactions.forEach(t => {
+              if (t.type === 'deposit') totalDeposits += t.amount;
+              if (t.type === 'withdrawal') totalWithdrawals += t.amount;
+          });
+          
           res.json({
               success: true,
-              transactions: [],
-              totalDeposits: 0,
-              totalWithdrawals: 0
+              transactions: transactions,
+              totalDeposits: totalDeposits,
+              totalWithdrawals: totalWithdrawals
           });
           
       } catch (decodeError) {

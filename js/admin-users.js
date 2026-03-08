@@ -274,26 +274,38 @@ class AdminUsers {
 
     exportUsers() {
         const users = this.users || [];
-        const csv = [
-            ['ID', 'Имя пользователя', 'Email', 'Баланс', 'Заказов', 'Верифицирован', 'Админ', 'Дата регистрации'],
-            ...users.map(u => [
-                u.discordId,
-                u.username,
-                u.email || '',
-                u.balance || 0,
-                u.orderCount || 0,
-                u.badges?.verified ? 'Да' : 'Нет',
-                u.badges?.admin ? 'Да' : 'Нет',
-                u.registeredAt ? new Date(u.registeredAt).toLocaleDateString('ru-RU') : ''
-            ])
-        ].map(row => row.join(',')).join('\n');
         
-        const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+        // Создаем CSV с правильными разделителями
+        const headers = ['ID', 'Имя пользователя', 'Email', 'Баланс', 'Заказов', 'Верифицирован', 'Админ', 'Дата регистрации'];
+        
+        const rows = users.map(u => [
+            u.discordId,
+            u.username || '',
+            u.email || '',
+            u.balance || 0,
+            u.orderCount || 0,
+            u.badges?.verified ? 'Да' : 'Нет',
+            u.badges?.admin ? 'Да' : 'Нет',
+            u.registeredAt ? new Date(u.registeredAt).toLocaleDateString('ru-RU') : ''
+        ]);
+        
+        // Создаем CSV с разделителем ;
+        const csvContent = [
+            headers.join(';'),
+            ...rows.map(row => row.map(cell => 
+                typeof cell === 'string' && cell.includes(';') ? `"${cell}"` : cell
+            ).join(';'))
+        ].join('\n');
+        
+        // Добавляем BOM для правильного отображения кириллицы
+        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `users-${new Date().toISOString().split('T')[0]}.csv`;
         a.click();
+        
+        setTimeout(() => URL.revokeObjectURL(url), 100);
     }
 
     escapeHtml(unsafe) {

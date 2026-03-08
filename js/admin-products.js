@@ -1,25 +1,27 @@
-// admin-products.js - Управление товарами
+// admin-products.js - Управление товарами с БД
 class AdminProducts {
     constructor() {
         this.api = new BHStoreAPI();
-        this.baseUrl = 'https://bhstore.netlify.app/.netlify/functions';
+        this.baseUrl = 'https://bhstore.netlify.app';
+        this.products = [];
     }
 
     async loadProducts() {
         try {
             const data = await this.api.getProducts();
-            this.renderProducts(data);
+            this.products = data.products || [];
+            this.renderProducts();
         } catch (error) {
             console.error('❌ Ошибка загрузки товаров:', error);
             this.showNotification(this.api.formatError(error), 'error');
         }
     }
 
-    renderProducts(data) {
+    renderProducts() {
         const productsContent = document.getElementById('productsContent');
         if (!productsContent) return;
 
-        const products = data.products || [];
+        const products = this.products || [];
 
         let html = `
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -63,7 +65,7 @@ class AdminProducts {
         } else {
             products.forEach(product => {
                 html += `
-                    <tr style="border-bottom: 1px solid #40444b;">
+                    <tr style="border-bottom: 1px solid #40444b;" data-product-id="${product.id}">
                         <td style="padding: 12px;">
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #5865F2, #4752c4); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
@@ -128,6 +130,7 @@ class AdminProducts {
     showAddProductForm() {
         const modal = document.createElement('div');
         modal.className = 'modal';
+        modal.id = 'addProductModal';
         modal.style.cssText = `
             position: fixed;
             top: 0;
@@ -152,25 +155,25 @@ class AdminProducts {
                 </div>
                 
                 <form id="addProductForm">
-                    <div style="margin-bottom: 15px;">
+                    <div class="form-group">
                         <label style="color: #b9bbbe; display: block; margin-bottom: 5px;">Название товара</label>
                         <input type="text" id="productName" required 
                                style="width: 100%; padding: 10px; background: #202225; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
                     
-                    <div style="margin-bottom: 15px;">
+                    <div class="form-group">
                         <label style="color: #b9bbbe; display: block; margin-bottom: 5px;">Описание</label>
                         <textarea id="productDescription" rows="3" required 
                                   style="width: 100%; padding: 10px; background: #202225; border: 1px solid #40444b; border-radius: 8px; color: white; resize: vertical;"></textarea>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                        <div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
                             <label style="color: #b9bbbe; display: block; margin-bottom: 5px;">Цена (₽)</label>
                             <input type="number" id="productPrice" required min="0" step="1"
                                    style="width: 100%; padding: 10px; background: #202225; border: 1px solid #40444b; border-radius: 8px; color: white;">
                         </div>
-                        <div>
+                        <div class="form-group">
                             <label style="color: #b9bbbe; display: block; margin-bottom: 5px;">Категория</label>
                             <select id="productCategory" 
                                     style="width: 100%; padding: 10px; background: #202225; border: 1px solid #40444b; border-radius: 8px; color: white;">
@@ -182,28 +185,28 @@ class AdminProducts {
                         </div>
                     </div>
                     
-                    <div style="margin-bottom: 15px;">
+                    <div class="form-group">
                         <label style="color: #b9bbbe; display: block; margin-bottom: 5px;">Иконка (Font Awesome класс)</label>
                         <input type="text" id="productIcon" value="fas fa-box"
                                style="width: 100%; padding: 10px; background: #202225; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
                     
-                    <div style="margin-bottom: 20px;">
+                    <div class="form-group">
                         <label style="color: #b9bbbe; display: block; margin-bottom: 5px;">Особенности (каждая с новой строки)</label>
                         <textarea id="productFeatures" rows="4" placeholder="Функция 1&#10;Функция 2&#10;Функция 3"
                                   style="width: 100%; padding: 10px; background: #202225; border: 1px solid #40444b; border-radius: 8px; color: white; resize: vertical;"></textarea>
                     </div>
                     
-                    <div style="margin-bottom: 20px;">
+                    <div class="form-group">
                         <label style="display: flex; align-items: center; gap: 10px; color: #b9bbbe;">
                             <input type="checkbox" id="productPopular"> 
                             <i class="fas fa-star" style="color: #FEE75C;"></i> Популярный товар
                         </label>
                     </div>
                     
-                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                        <button type="button" class="btn-secondary" onclick="this.closest('.modal').remove()">Отмена</button>
-                        <button type="submit" class="btn-primary">Добавить товар</button>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
+                        <button type="button" class="btn-admin" onclick="this.closest('.modal').remove()">Отмена</button>
+                        <button type="submit" class="btn-admin success">Добавить товар</button>
                     </div>
                 </form>
             </div>
@@ -219,8 +222,6 @@ class AdminProducts {
 
     async saveProduct() {
         try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
             const features = document.getElementById('productFeatures').value
                 .split('\n')
                 .map(f => f.trim())
@@ -237,24 +238,12 @@ class AdminProducts {
                 popular: document.getElementById('productPopular').checked
             };
             
-            const response = await fetch(`${this.baseUrl}/admin-products`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(productData)
-            });
+            await this.api.createProduct(productData);
             
-            const data = await response.json();
+            document.querySelector('.modal').remove();
+            this.showNotification('Товар успешно добавлен', 'success');
+            await this.loadProducts();
             
-            if (data.success) {
-                document.querySelector('.modal').remove();
-                this.showNotification('Товар успешно добавлен', 'success');
-                await this.loadProducts();
-            } else {
-                throw new Error(data.error || 'Ошибка добавления товара');
-            }
         } catch (error) {
             console.error('Ошибка сохранения товара:', error);
             this.showNotification('Ошибка при сохранении товара', 'error');
@@ -265,24 +254,9 @@ class AdminProducts {
         if (!confirm('Вы уверены, что хотите удалить этот товар?')) return;
         
         try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            const response = await fetch(`${this.baseUrl}/admin-products/${productId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                this.showNotification('Товар успешно удален', 'success');
-                await this.loadProducts();
-            } else {
-                throw new Error(data.error || 'Ошибка удаления товара');
-            }
+            await this.api.deleteProduct(productId);
+            this.showNotification('Товар успешно удален', 'success');
+            await this.loadProducts();
         } catch (error) {
             console.error('Ошибка удаления товара:', error);
             this.showNotification('Ошибка при удалении товара', 'error');
@@ -291,23 +265,14 @@ class AdminProducts {
 
     async editProduct(productId) {
         try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            const product = this.products.find(p => p.id === productId);
             
-            const response = await fetch(`${this.baseUrl}/admin-products/${productId}`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                this.showEditProductForm(data.product);
-            } else {
-                throw new Error(data.error || 'Ошибка загрузки товара');
+            if (!product) {
+                this.showNotification('Товар не найден', 'error');
+                return;
             }
+            
+            this.showEditProductForm(product);
         } catch (error) {
             console.error('Ошибка загрузки товара:', error);
             this.showNotification('Ошибка загрузки данных товара', 'error');
@@ -343,25 +308,25 @@ class AdminProducts {
                 </div>
                 
                 <form id="editProductForm">
-                    <div style="margin-bottom: 15px;">
+                    <div class="form-group">
                         <label style="color: #b9bbbe; display: block; margin-bottom: 5px;">Название товара</label>
                         <input type="text" id="editProductName" value="${this.escapeHtml(product.name)}" required 
                                style="width: 100%; padding: 10px; background: #202225; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
                     
-                    <div style="margin-bottom: 15px;">
+                    <div class="form-group">
                         <label style="color: #b9bbbe; display: block; margin-bottom: 5px;">Описание</label>
                         <textarea id="editProductDescription" rows="3" required 
                                   style="width: 100%; padding: 10px; background: #202225; border: 1px solid #40444b; border-radius: 8px; color: white; resize: vertical;">${this.escapeHtml(product.description)}</textarea>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                        <div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
                             <label style="color: #b9bbbe; display: block; margin-bottom: 5px;">Цена (₽)</label>
                             <input type="number" id="editProductPrice" value="${product.price}" required min="0" step="1"
                                    style="width: 100%; padding: 10px; background: #202225; border: 1px solid #40444b; border-radius: 8px; color: white;">
                         </div>
-                        <div>
+                        <div class="form-group">
                             <label style="color: #b9bbbe; display: block; margin-bottom: 5px;">Категория</label>
                             <select id="editProductCategory" 
                                     style="width: 100%; padding: 10px; background: #202225; border: 1px solid #40444b; border-radius: 8px; color: white;">
@@ -373,19 +338,19 @@ class AdminProducts {
                         </div>
                     </div>
                     
-                    <div style="margin-bottom: 15px;">
+                    <div class="form-group">
                         <label style="color: #b9bbbe; display: block; margin-bottom: 5px;">Иконка (Font Awesome класс)</label>
                         <input type="text" id="editProductIcon" value="${product.icon || 'fas fa-box'}"
                                style="width: 100%; padding: 10px; background: #202225; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
                     
-                    <div style="margin-bottom: 20px;">
+                    <div class="form-group">
                         <label style="color: #b9bbbe; display: block; margin-bottom: 5px;">Особенности (каждая с новой строки)</label>
                         <textarea id="editProductFeatures" rows="4" 
                                   style="width: 100%; padding: 10px; background: #202225; border: 1px solid #40444b; border-radius: 8px; color: white; resize: vertical;">${this.escapeHtml(featuresText)}</textarea>
                     </div>
                     
-                    <div style="margin-bottom: 20px;">
+                    <div class="form-group">
                         <label style="display: flex; align-items: center; gap: 10px; color: #b9bbbe;">
                             <input type="checkbox" id="editProductPopular" ${product.popular ? 'checked' : ''}> 
                             <i class="fas fa-star" style="color: #FEE75C;"></i> Популярный товар
@@ -394,9 +359,9 @@ class AdminProducts {
                     
                     <input type="hidden" id="editProductId" value="${product.id}">
                     
-                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                        <button type="button" class="btn-secondary" onclick="this.closest('.modal').remove()">Отмена</button>
-                        <button type="submit" class="btn-primary">Сохранить изменения</button>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px;">
+                        <button type="button" class="btn-admin" onclick="this.closest('.modal').remove()">Отмена</button>
+                        <button type="submit" class="btn-admin success">Сохранить изменения</button>
                     </div>
                 </form>
             </div>
@@ -412,8 +377,6 @@ class AdminProducts {
 
     async updateProduct(productId) {
         try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
             const features = document.getElementById('editProductFeatures').value
                 .split('\n')
                 .map(f => f.trim())
@@ -430,24 +393,12 @@ class AdminProducts {
                 popular: document.getElementById('editProductPopular').checked
             };
             
-            const response = await fetch(`${this.baseUrl}/admin-products/${productId}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${authData.token || ''}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(productData)
-            });
+            await this.api.updateProduct(productId, productData);
             
-            const data = await response.json();
+            document.querySelector('.modal').remove();
+            this.showNotification('Товар успешно обновлен', 'success');
+            await this.loadProducts();
             
-            if (data.success) {
-                document.querySelector('.modal').remove();
-                this.showNotification('Товар успешно обновлен', 'success');
-                await this.loadProducts();
-            } else {
-                throw new Error(data.error || 'Ошибка обновления товара');
-            }
         } catch (error) {
             console.error('Ошибка обновления товара:', error);
             this.showNotification('Ошибка при обновлении товара', 'error');
@@ -455,7 +406,6 @@ class AdminProducts {
     }
 
     viewProduct(productId) {
-        // Редирект на страницу товара
         window.open(`/shop.html#${productId}`, '_blank');
     }
 
@@ -491,7 +441,7 @@ class AdminProducts {
         
         notification.innerHTML = `
             <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-            <span>${message}</span>
+            <span>${this.escapeHtml(message)}</span>
         `;
         
         document.body.appendChild(notification);
@@ -505,20 +455,3 @@ class AdminProducts {
 // Инициализация
 window.AdminProducts = AdminProducts;
 window.adminProducts = new AdminProducts();
-
-// Глобальные функции
-window.loadProducts = async function() {
-    await window.adminProducts.loadProducts();
-};
-
-window.showAddProductForm = function() {
-    window.adminProducts.showAddProductForm();
-};
-
-window.editProduct = function(productId) {
-    window.adminProducts.editProduct(productId);
-};
-
-window.deleteProduct = function(productId) {
-    window.adminProducts.deleteProduct(productId);
-};
