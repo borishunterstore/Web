@@ -422,11 +422,9 @@ app.get('/api/chat/messages/:userId', async (req, res) => {
       try {
           const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
           
-          // РАЗРЕШАЕМ:
-          // 1. Самому пользователю смотреть свои сообщения
-          // 2. Админу смотреть любые сообщения
+          // РАЗРЕШАЕМ пользователю смотреть свои сообщения
           if (decoded.id !== userId) {
-              // Если это не тот пользователь, проверяем, админ ли он
+              // Если это не тот пользователь, проверяем админа
               const [user] = await sql`
                   SELECT badges FROM users WHERE discord_id = ${decoded.id}
               `;
@@ -438,7 +436,6 @@ app.get('/api/chat/messages/:userId', async (req, res) => {
               }
           }
           
-          // Получаем сообщения
           const messages = await sql`
               SELECT * FROM messages 
               WHERE user_id = ${userId} 
@@ -453,7 +450,6 @@ app.get('/api/chat/messages/:userId', async (req, res) => {
           });
           
       } catch (decodeError) {
-          console.error('❌ Ошибка декодирования токена:', decodeError);
           return res.status(401).json({ success: false, error: 'Неверный токен' });
       }
       
@@ -601,18 +597,14 @@ app.post('/api/chat/check', async (req, res) => {
               AND timestamp > ${checkTime}
           `;
           
-          // Проверяем, печатает ли админ (заглушка)
-          const adminTyping = false;
-          
           res.json({
               success: true,
               hasNew: parseInt(result.count) > 0,
               newCount: parseInt(result.count),
-              adminTyping: adminTyping
+              adminTyping: false
           });
           
       } catch (decodeError) {
-          console.error('❌ Ошибка декодирования токена:', decodeError);
           return res.status(401).json({ success: false, error: 'Неверный токен' });
       }
       
@@ -635,12 +627,20 @@ app.post('/api/chat/mark-read/:userId', async (req, res) => {
       
       try {
           const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-          
-          if (!isAdminUser(decoded)) {
-              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
-          }
-          
           const userId = req.params.userId;
+          
+          // Разрешаем пользователю отмечать свои сообщения
+          if (decoded.id !== userId) {
+              const [user] = await sql`
+                  SELECT badges FROM users WHERE discord_id = ${decoded.id}
+              `;
+              
+              const isAdmin = user?.badges?.admin === true || decoded.id === '992442453833547886';
+              
+              if (!isAdmin) {
+                  return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+              }
+          }
           
           await sql`
               UPDATE messages 
@@ -657,7 +657,7 @@ app.post('/api/chat/mark-read/:userId', async (req, res) => {
       }
       
   } catch (error) {
-      console.error('❌ Ошибка отметки сообщений:', error.message);
+      console.error('❌ Ошибка отметки сообщений:', error);
       res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
