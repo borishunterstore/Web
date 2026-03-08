@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ========== АВТОРИЗАЦИЯ ==========
 
+// ========== УЛУЧШЕННАЯ ПРОВЕРКА АВТОРИЗАЦИИ ==========
+
 async function checkAuth() {
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
     const authBtn = document.getElementById('authBtn');
@@ -51,6 +53,7 @@ async function checkAuth() {
     if (authData.username && !authData.verificationCode) {
         // Авторизован
         const badges = getUserBadges(authData);
+        const mainBadge = getMainBadgeForButton(authData.badges);
         
         // Получаем актуальный баланс
         try {
@@ -63,25 +66,163 @@ async function checkAuth() {
             console.error('❌ Ошибка загрузки баланса:', error);
         }
 
+        // Формируем URL аватара с учетом анимированных аватарок
+        let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
+        if (authData.avatar) {
+            if (authData.avatar.startsWith('a_')) {
+                avatarUrl = `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.gif?size=64`;
+            } else {
+                avatarUrl = `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=64`;
+            }
+        }
+
         authBtn.innerHTML = `
-            <img src="https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=32" 
-                 style="width: 32px; height: 32px; border-radius: 50%; margin-right: 8px;"
-                 onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-            <span>${authData.username} окак</span>
-            ${badges}
-            <i class="fas fa-chevron-down" style="margin-left: 5px;"></i>
+            <div class="auth-button-content">
+                <div class="auth-avatar-wrapper">
+                    <img src="${avatarUrl}" 
+                         class="auth-avatar-img"
+                         alt="Avatar"
+                         loading="lazy"
+                         onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                    ${mainBadge ? `<span class="auth-badge-icon">${mainBadge}</span>` : ''}
+                </div>
+                <span class="auth-username">${escapeHtml(authData.username)}</span>
+                ${badges ? `<span class="auth-badges">${badges}</span>` : ''}
+                <div class="auth-balance-indicator">
+                    <i class="fas fa-coins"></i>
+                    <span>${authData.balance || 0}</span>
+                </div>
+                <i class="fas fa-chevron-down auth-chevron"></i>
+            </div>
         `;
-        authBtn.onclick = showUserMenu;
+        
+        authBtn.classList.add('auth-authenticated');
+        authBtn.onclick = (e) => {
+            e.stopPropagation();
+            showUserMenu(e);
+        };
         
     } else if (authData.username && authData.verificationCode) {
         // Требуется верификация
-        authBtn.innerHTML = '<i class="fas fa-hourglass-half"></i> Завершить регистрацию';
+        authBtn.innerHTML = `
+            <div class="auth-button-content">
+                <div class="auth-verification-icon">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <span class="auth-verification-text">Завершить регистрацию</span>
+                <span class="auth-verification-badge">!</span>
+            </div>
+        `;
+        authBtn.classList.add('auth-verification');
         authBtn.onclick = () => window.location.href = '/verify.html';
     } else {
         // Не авторизован
-        authBtn.innerHTML = '<i class="fab fa-discord"></i> Войти';
+        authBtn.innerHTML = `
+            <div class="auth-button-content">
+                <div class="auth-discord-icon">
+                    <i class="fab fa-discord"></i>
+                </div>
+                <span class="auth-login-text">Войти через Discord</span>
+                <span class="auth-login-hint">нажмите для входа</span>
+            </div>
+        `;
+        authBtn.classList.remove('auth-authenticated', 'auth-verification');
         authBtn.onclick = () => window.location.href = '/auth.html';
     }
+}
+
+// ========== ФУНКЦИИ ДЛЯ БЕЙДЖЕЙ ==========
+
+function normalizeBadges(badgesData) {
+    if (!badgesData) {
+        return {
+            admin: false,
+            verified: false,
+            partner: false,
+            buyer: false,
+            early: false,
+            vip: false
+        };
+    }
+    
+    if (typeof badgesData === 'string') {
+        return {
+            admin: badgesData === 'admin',
+            verified: badgesData === 'verified',
+            partner: false,
+            buyer: false,
+            early: false,
+            vip: false
+        };
+    }
+    
+    if (typeof badgesData === 'object') {
+        return {
+            admin: !!badgesData.admin,
+            verified: !!badgesData.verified,
+            partner: !!badgesData.partner,
+            buyer: !!badgesData.buyer,
+            early: !!badgesData.early,
+            vip: !!badgesData.vip
+        };
+    }
+    
+    return {
+        admin: false,
+        verified: false,
+        partner: false,
+        buyer: false,
+        early: false,
+        vip: false
+    };
+}
+
+function getMainBadgeForButton(badgesData) {
+    const badges = normalizeBadges(badgesData);
+    
+    // Приоритет: Админ > Подтвержденный > Партнер > Покупатель > VIP > Ранний
+    if (badges.admin) {
+        return `<img src="${BADGE_CONFIG.admin.image}" alt="Admin" class="badge-icon-img" title="Администратор">`;
+    } else if (badges.verified) {
+        return `<img src="${BADGE_CONFIG.verified.image}" alt="Verified" class="badge-icon-img" title="Верифицированный">`;
+    } else if (badges.partner) {
+        return `<img src="${BADGE_CONFIG.partner.image}" alt="Partner" class="badge-icon-img" title="Партнёр">`;
+    } else if (badges.buyer) {
+        return `<img src="${BADGE_CONFIG.buyer.image}" alt="Buyer" class="badge-icon-img" title="Покупатель">`;
+    } else if (badges.vip) {
+        return `<img src="${BADGE_CONFIG.vip.image}" alt="VIP" class="badge-icon-img" title="VIP">`;
+    } else if (badges.early) {
+        return `<img src="${BADGE_CONFIG.early.image}" alt="Early" class="badge-icon-img" title="Ранний сторонник">`;
+    }
+    
+    return '';
+}
+
+function getUserBadges(authData) {
+    const badges = normalizeBadges(authData.badges);
+    let badgesHtml = '';
+    
+    // Сортируем по приоритету
+    const sortedBadges = Object.entries(badges)
+        .filter(([key, value]) => value && BADGE_CONFIG[key])
+        .sort((a, b) => BADGE_CONFIG[a[0]].priority - BADGE_CONFIG[b[0]].priority);
+    
+    sortedBadges.forEach(([badgeKey]) => {
+        const config = BADGE_CONFIG[badgeKey];
+        badgesHtml += `<img src="${config.image}" alt="${config.name}" class="badge-icon-img-small" title="${config.name}">`;
+    });
+    
+    return badgesHtml;
+}
+
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return String(unsafe)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 // ========== МЕНЮ ПОЛЬЗОВАТЕЛЯ ==========
