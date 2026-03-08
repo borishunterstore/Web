@@ -268,6 +268,7 @@
     </footer>
 
     <script>
+        // ИСПОЛЬЗУЕМ ГЛОБАЛЬНЫЙ ЭКЗЕМПЛЯР API
         const api = window.api;
         
         let currentFilter = 'all';
@@ -275,7 +276,7 @@
         const reviewsPerPage = 6;
         let allReviews = [];
         let totalPages = 1;
-
+    
         document.addEventListener('DOMContentLoaded', function() {
             console.log('📝 Загрузка страницы отзывов...');
             loadReviews();
@@ -283,32 +284,32 @@
             checkAuth();
             initEventListeners();
         });
-
+    
         function checkAuth() {
             const authData = api.getAuthData();
             const addReviewSection = document.getElementById('addReviewSection');
             const loginToReview = document.getElementById('loginToReview');
             
-            if (authData.username && !authData.verificationCode) {
+            if (authData?.id && !authData.verificationCode) {
                 addReviewSection.style.display = 'block';
                 loginToReview.style.display = 'none';
-                document.getElementById('reviewerName').value = authData.username;
+                document.getElementById('reviewerName').value = authData.username || '';
             } else {
                 addReviewSection.style.display = 'none';
                 loginToReview.style.display = 'block';
             }
         }
-
+    
         async function loadReviews() {
             try {
                 console.log('📡 Загрузка отзывов...');
-                const data = await api.request('/api/reviews');
+                const data = await api.request('/reviews');
                 console.log('📦 Отзывы загружены:', data);
                 
                 if (data.success) {
                     allReviews = data.reviews || [];
                     renderReviews();
-                    updateStats();
+                    updateStats(data.stats);
                 } else {
                     showNotification('Ошибка загрузки отзывов', 'error');
                 }
@@ -317,11 +318,11 @@
                 showNotification('Ошибка загрузки отзывов', 'error');
             }
         }
-
+    
         async function loadProducts() {
             try {
                 console.log('📡 Загрузка товаров...');
-                const data = await api.request('/api/products');
+                const data = await api.request('/products');
                 console.log('📦 Товары загружены:', data);
                 
                 if (data.success && data.products) {
@@ -337,11 +338,15 @@
                 console.error('❌ Ошибка загрузки товаров:', error);
             }
         }
-
+    
         function renderReviews() {
             const grid = document.getElementById('reviewsGrid');
             let filteredReviews = filterReviews(allReviews, currentFilter);
             totalPages = Math.ceil(filteredReviews.length / reviewsPerPage);
+            
+            // Корректируем текущую страницу
+            if (currentPage > totalPages) currentPage = Math.max(1, totalPages);
+            
             const startIndex = (currentPage - 1) * reviewsPerPage;
             const paginatedReviews = filteredReviews.slice(startIndex, startIndex + reviewsPerPage);
             
@@ -362,23 +367,24 @@
             
             renderPagination();
         }
-
+    
         function filterReviews(reviews, filter) {
+            if (!reviews) return [];
             if (filter === 'all') return reviews;
             if (filter === 'verified') return reviews.filter(r => r.verifiedPurchase);
             if (filter === 'with-photo') return reviews.filter(r => r.images && r.images.length > 0);
             return reviews.filter(r => r.rating === parseInt(filter));
         }
-
+    
         function createReviewCard(review) {
-            const date = new Date(review.createdAt).toLocaleDateString('ru-RU', {
+            const date = new Date(review.created_at || review.createdAt).toLocaleDateString('ru-RU', {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric'
             });
             
             const stars = generateStars(review.rating);
-            const verifiedClass = review.verifiedPurchase ? 'verified-purchase' : '';
+            const verifiedClass = review.verified_purchase || review.verifiedPurchase ? 'verified-purchase' : '';
             
             return `
                 <div class="review-card ${verifiedClass}" data-id="${review.id}">
@@ -390,7 +396,7 @@
                         <div class="reviewer-info">
                             <div class="reviewer-name">
                                 ${escapeHtml(review.name)}
-                                ${review.verified ? '<span class="verified-badge"><i class="fas fa-check"></i></span>' : ''}
+                                ${review.verified ? '<span class="verified-badge"><i class="fas fa-check-circle"></i></span>' : ''}
                             </div>
                             <div class="review-date">
                                 <i class="fas fa-calendar-alt"></i>
@@ -408,7 +414,7 @@
                     
                     <div class="review-product">
                         <i class="fas fa-tag"></i>
-                        ${escapeHtml(review.productName)}
+                        ${escapeHtml(review.product_name || review.productName)}
                     </div>
                     
                     <div class="review-text">
@@ -423,47 +429,42 @@
                         </div>
                     ` : ''}
                     
-                    ${review.adminReply ? `
+                    ${review.admin_reply ? `
                         <div class="admin-reply">
                             <div class="admin-reply-header">
                                 <i class="fas fa-headset"></i>
                                 Ответ администратора
                             </div>
                             <div class="admin-reply-text">
-                                ${escapeHtml(review.adminReply)}
+                                ${escapeHtml(review.admin_reply)}
                             </div>
                         </div>
                     ` : ''}
                 </div>
             `;
         }
-
+    
         function generateStars(rating) {
             let stars = '';
             for (let i = 1; i <= 5; i++) {
                 if (i <= rating) {
                     stars += '<i class="fas fa-star"></i>';
                 } else {
-                    stars += '<i class="fas fa-star empty"></i>';
+                    stars += '<i class="far fa-star"></i>';
                 }
             }
             return stars;
         }
-
-        function updateStats() {
-            const total = allReviews.length;
-            const avg = total > 0 
-                ? (allReviews.reduce((sum, r) => sum + r.rating, 0) / total).toFixed(1)
-                : '0.0';
-            const verified = allReviews.filter(r => r.verifiedPurchase).length;
-            const helpful = allReviews.reduce((sum, r) => sum + (r.helpful || 0), 0);
+    
+        function updateStats(stats) {
+            if (!stats) return;
             
-            document.getElementById('avgRating').textContent = avg;
-            document.getElementById('totalReviews').textContent = total;
-            document.getElementById('verifiedReviews').textContent = verified;
-            document.getElementById('helpfulCount').textContent = helpful;
+            document.getElementById('avgRating').textContent = stats.averageRating?.toFixed(1) || '0.0';
+            document.getElementById('totalReviews').textContent = stats.totalReviews || 0;
+            document.getElementById('verifiedReviews').textContent = stats.verifiedPurchases || 0;
+            document.getElementById('helpfulCount').textContent = stats.totalHelpful || 0;
         }
-
+    
         function renderPagination() {
             const pagination = document.getElementById('pagination');
             
@@ -478,6 +479,7 @@
                     <i class="fas fa-chevron-left"></i>
                 </button>
             `;
+            
             for (let i = 1; i <= totalPages; i++) {
                 if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
                     html += `
@@ -489,6 +491,7 @@
                     html += `<span class="pagination-dots">...</span>`;
                 }
             }
+            
             html += `
                 <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
                     <i class="fas fa-chevron-right"></i>
@@ -515,6 +518,7 @@
         };
         
         function initEventListeners() {
+            // Фильтры
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -524,15 +528,23 @@
                     renderReviews();
                 });
             });
+            
+            // Рейтинг
             initRatingStars();
+            
+            // Загрузка изображений
             initImageUpload();
+            
+            // Отправка формы
             document.getElementById('reviewForm').addEventListener('submit', submitReview);
         }
-
+    
         function initRatingStars() {
             const stars = document.querySelectorAll('.rating-stars-input i');
             const ratingInput = document.getElementById('reviewRating');
             const ratingText = document.getElementById('ratingText');
+            
+            if (!stars.length) return;
             
             stars.forEach(star => {
                 star.addEventListener('mouseover', function() {
@@ -568,13 +580,17 @@
                 const texts = ['Ужасно', 'Плохо', 'Нормально', 'Хорошо', 'Отлично'];
                 ratingText.textContent = texts[rating - 1];
             }
+            
+            // Инициализация
+            updateStars(5);
         }
-
+    
         function initImageUpload() {
             const upload = document.getElementById('imageUpload');
             const input = document.getElementById('imageInput');
             const preview = document.getElementById('imagePreview');
-            let files = [];
+            
+            if (!upload) return;
             
             upload.addEventListener('click', () => input.click());
             
@@ -620,24 +636,31 @@
                     return true;
                 });
                 
-                if (files.length + validFiles.length > 3) {
+                const currentFiles = Array.from(input.files);
+                if (currentFiles.length + validFiles.length > 3) {
                     showNotification('Максимум 3 изображения', 'warning');
                     return;
                 }
                 
-                files = [...files, ...validFiles];
+                // Создаем новый FileList
+                const dataTransfer = new DataTransfer();
+                currentFiles.forEach(file => dataTransfer.items.add(file));
+                validFiles.forEach(file => dataTransfer.items.add(file));
+                input.files = dataTransfer.files;
+                
                 renderPreviews();
             }
             
             function renderPreviews() {
                 preview.innerHTML = '';
+                const files = Array.from(input.files);
+                
                 files.forEach((file, index) => {
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         const div = document.createElement('div');
                         div.className = 'preview-image';
                         div.style.backgroundImage = `url(${e.target.result})`;
-                        div.style.backgroundSize = 'cover';
                         div.innerHTML = `
                             <div class="remove-image" onclick="removeImage(${index})">
                                 <i class="fas fa-times"></i>
@@ -648,18 +671,47 @@
                     reader.readAsDataURL(file);
                 });
             }
-            
-            window.removeImage = function(index) {
-                files.splice(index, 1);
-                renderPreviews();
-            };
         }
-
+    
+        window.removeImage = function(index) {
+            const input = document.getElementById('imageInput');
+            const dataTransfer = new DataTransfer();
+            const files = Array.from(input.files);
+            
+            files.splice(index, 1);
+            files.forEach(file => dataTransfer.items.add(file));
+            input.files = dataTransfer.files;
+            
+            renderPreviews();
+        };
+    
+        function renderPreviews() {
+            const preview = document.getElementById('imagePreview');
+            const input = document.getElementById('imageInput');
+            preview.innerHTML = '';
+            
+            Array.from(input.files).forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const div = document.createElement('div');
+                    div.className = 'preview-image';
+                    div.style.backgroundImage = `url(${e.target.result})`;
+                    div.innerHTML = `
+                        <div class="remove-image" onclick="removeImage(${index})">
+                            <i class="fas fa-times"></i>
+                        </div>
+                    `;
+                    preview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    
         async function submitReview(e) {
             e.preventDefault();
             
             const authData = api.getAuthData();
-            if (!authData.id) {
+            if (!authData?.id) {
                 showNotification('Необходимо авторизоваться', 'warning');
                 return;
             }
@@ -669,25 +721,18 @@
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
             
             try {
-                const formData = new FormData();
-                formData.append('userId', authData.id);
-                formData.append('name', document.getElementById('reviewerName').value);
-                formData.append('productId', document.getElementById('reviewProduct').value);
-                formData.append('productName', document.getElementById('reviewProduct').selectedOptions[0].text);
-                formData.append('rating', document.getElementById('reviewRating').value);
-                formData.append('text', document.getElementById('reviewText').value);
-                formData.append('verifiedPurchase', 'true');
+                const reviewData = {
+                    userId: authData.id,
+                    name: document.getElementById('reviewerName').value,
+                    productId: document.getElementById('reviewProduct').value,
+                    productName: document.getElementById('reviewProduct').selectedOptions[0]?.text || '',
+                    rating: parseInt(document.getElementById('reviewRating').value),
+                    text: document.getElementById('reviewText').value
+                };
                 
-                const imageInput = document.getElementById('imageInput');
-                if (imageInput.files.length > 0) {
-                    for (let i = 0; i < imageInput.files.length; i++) {
-                        formData.append('images', imageInput.files[i]);
-                    }
-                }
-                
-                const data = await api.request('/api/reviews', {
+                const data = await api.request('/reviews', {
                     method: 'POST',
-                    body: formData
+                    body: JSON.stringify(reviewData)
                 });
                 
                 if (data.success) {
@@ -695,7 +740,6 @@
                     document.getElementById('reviewForm').reset();
                     document.getElementById('imagePreview').innerHTML = '';
                     document.getElementById('reviewRating').value = '5';
-                    updateStars(5);
                     loadReviews();
                 } else {
                     showNotification(data.error || 'Ошибка при отправке отзыва', 'error');
@@ -708,18 +752,21 @@
                 submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Отправить отзыв';
             }
         }
-
+    
         window.openImageModal = function(imageUrl) {
             const modal = document.getElementById('imageModal');
             const modalImage = document.getElementById('modalImage');
-            modalImage.src = imageUrl;
-            modal.style.display = 'flex';
+            if (modal && modalImage) {
+                modalImage.src = imageUrl;
+                modal.style.display = 'flex';
+            }
         };
-
+    
         window.closeImageModal = function() {
-            document.getElementById('imageModal').style.display = 'none';
+            const modal = document.getElementById('imageModal');
+            if (modal) modal.style.display = 'none';
         };
-
+    
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
@@ -735,7 +782,7 @@
                 setTimeout(() => notification.remove(), 300);
             }, 3000);
         }
-
+    
         function escapeHtml(unsafe) {
             if (!unsafe) return '';
             return String(unsafe)
@@ -745,21 +792,21 @@
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
         }
-
+    
+        // Закрытие модального окна по клику на фон
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('image-modal')) {
                 closeImageModal();
             }
         });
-
+    
+        // Закрытие модального окна по Escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeImageModal();
             }
         });
     </script>
-    
-    <!-- ВСЕ ДУБЛИРУЮЩИЕСЯ СКРИПТЫ УДАЛЕНЫ! -->
     
     <div class="custom-cursor"></div>
     <canvas id="webCanvas"></canvas>
