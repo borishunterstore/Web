@@ -1,4 +1,4 @@
-// api.js - ПОЛНАЯ ВЕРСИЯ
+// api.js - ПОЛНАЯ ВЕРСИЯ СО ВСЕМИ МЕТОДАМИ
 class BHStoreAPI {
     constructor() {
         this.baseUrl = 'https://bhstore.netlify.app';
@@ -25,6 +25,7 @@ class BHStoreAPI {
         };
 
         try {
+            console.log(`📡 ${options.method || 'GET'} ${url}`);
             const response = await fetch(url, { ...options, headers });
             
             if (!response.ok) {
@@ -54,108 +55,22 @@ class BHStoreAPI {
         }
     }
 
-    // ========== ЧАТ МЕТОДЫ (ДЛЯ АДМИНКИ) ==========
-    async getChatUsers() {
-        const authData = this.getAuthData();
-        const response = await fetch(`${this.baseUrl}/api/admin/chat/users`, {
-            headers: {
-                'Authorization': `Bearer ${authData.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        
-        return await response.json();
+    // ========== ПОЛЬЗОВАТЕЛИ (АДМИН) ==========
+    async getAllUsers() {
+        return this.request('/admin/users');
     }
 
-    async getChatMessages(userId) {
-        const authData = this.getAuthData();
-        const response = await fetch(`${this.baseUrl}/api/chat/messages/${userId}`, {
-            headers: {
-                'Authorization': `Bearer ${authData.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        
-        return await response.json();
+    async getUserBalance(userId) {
+        return this.request(`/user/${userId}/balance`);
     }
 
-    async sendChatMessage(userId, message, fromAdmin = false) {
-        const authData = this.getAuthData();
-        const response = await fetch(`${this.baseUrl}/api/chat/send`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${authData.token || ''}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ userId, message, fromAdmin })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        
-        return await response.json();
-    }
-
-    async checkNewMessages(userId, lastChecked) {
-        const authData = this.getAuthData();
-        const response = await fetch(`${this.baseUrl}/api/chat/check`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${authData.token || ''}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ userId, lastChecked })
-        });
-        
-        return await response.json();
-    }
-
-    async markMessagesAsRead(userId) {
-        const authData = this.getAuthData();
-        const response = await fetch(`${this.baseUrl}/api/chat/mark-read/${userId}`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${authData.token || ''}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        return await response.json();
-    }
-
-    // ========== ПОЛЬЗОВАТЕЛИ ==========
-    async getUser(userId) { 
-        return this.request(`/user/${userId}`); 
-    }
-    
-    async getUserBalance(userId) { 
-        return this.request(`/user/${userId}/balance`); 
-    }
-    
-    async getUserOrders(userId) { 
-        return this.request(`/user/${userId}/orders`); 
-    }
-    
-    async getAllUsers() { 
-        return this.request('/admin/users'); 
-    }
-    
     async addUserBalance(userId, amount, reason) {
         return this.request('/admin/balance/add', {
             method: 'POST',
             body: JSON.stringify({ userId, amount, reason })
         });
     }
-    
+
     async removeUserBalance(userId, amount, reason) {
         return this.request('/admin/balance/remove', {
             method: 'POST',
@@ -163,62 +78,126 @@ class BHStoreAPI {
         });
     }
 
-    async getUserBalanceHistory(userId) {
-        const authData = this.getAuthData();
-        const response = await fetch(`${this.baseUrl}/api/admin/balance-history/${userId}`, {
-            headers: {
-                'Authorization': `Bearer ${authData.token || ''}`,
-                'Content-Type': 'application/json'
-            }
+    async setUserBalance(userId, newBalance, reason) {
+        return this.request('/admin/balance/set', {
+            method: 'POST',
+            body: JSON.stringify({ userId, newBalance, reason })
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        
-        return await response.json();
+    }
+
+    async getUserBalanceHistory(userId) {
+        return this.request(`/admin/balance-history/${userId}`);
+    }
+
+    // ========== ЗАКАЗЫ (АДМИН) ==========
+    async getAllOrders() {
+        return this.request('/admin/orders');
+    }
+
+    async updateOrderStatus(orderId, status) {
+        return this.request('/admin-update-order', {
+            method: 'POST',
+            body: JSON.stringify({ orderId, status })
+        });
     }
 
     // ========== ТОВАРЫ ==========
-    async getProducts() { 
-        return this.request('/products'); 
+    async getProducts() {
+        return this.request('/products');
     }
-    
+
     async createProduct(productData) {
         return this.request('/admin/products', {
             method: 'POST',
             body: JSON.stringify(productData)
         });
     }
-    
+
     async updateProduct(productId, productData) {
         return this.request(`/admin/products/${productId}`, {
             method: 'PUT',
             body: JSON.stringify(productData)
         });
     }
-    
+
     async deleteProduct(productId) {
-        return this.request(`/admin/products/${productId}`, { 
-            method: 'DELETE' 
+        return this.request(`/admin/products/${productId}`, {
+            method: 'DELETE'
         });
     }
 
-    // ========== ЗАКАЗЫ ==========
-    async getAllOrders() { 
-        return this.request('/admin/orders'); 
+    // ========== ЧАТ МЕТОДЫ (ДЛЯ АДМИНКИ) ==========
+    async getChatUsers() {
+        return this.request('/admin/chat/users');
     }
-    
+
+    async getChatMessages(userId) {
+        return this.request(`/chat/messages/${userId}`);
+    }
+
+    async sendChatMessage(userId, message, fromAdmin = false) {
+        return this.request('/chat/send', {
+            method: 'POST',
+            body: JSON.stringify({ userId, message, fromAdmin })
+        });
+    }
+
+    async checkNewMessages(userId, lastChecked) {
+        return this.request('/chat/check', {
+            method: 'POST',
+            body: JSON.stringify({ userId, lastChecked })
+        });
+    }
+
+    async markMessagesAsRead(userId) {
+        return this.request(`/chat/mark-read/${userId}`, {
+            method: 'POST'
+        });
+    }
+
+    // ========== СТАТИСТИКА ==========
+    async getStats() {
+        return this.request('/admin/stats');
+    }
+
+    // ========== ПОЛЬЗОВАТЕЛЬ (ОБЩЕЕ) ==========
+    async getUser(userId) {
+        return this.request(`/user/${userId}`);
+    }
+
+    async getUserOrders(userId) {
+        return this.request(`/user/${userId}/orders`);
+    }
+
+    // ========== ПРОМОКОДЫ ==========
+    async getUserPromocodes(userId) {
+        return this.request(`/promocodes/user/${userId}`);
+    }
+
+    async getActivePromocodes(userId) {
+        return this.request(`/promocodes/active/${userId}`);
+    }
+
+    async checkPromocode(userId, code) {
+        return this.request('/promocodes/check', {
+            method: 'POST',
+            body: JSON.stringify({ userId, code })
+        });
+    }
+
+    async activatePromocode(userId, code) {
+        return this.request('/promocodes/activate', {
+            method: 'POST',
+            body: JSON.stringify({ userId, code })
+        });
+    }
+
+    // ========== ЗАКАЗЫ (ПОЛЬЗОВАТЕЛЬ) ==========
     async createOrder(orderData) {
         return this.request('/create-order', {
             method: 'POST',
             body: JSON.stringify(orderData)
         });
-    }
-
-    // ========== СТАТИСТИКА ==========
-    async getStats() { 
-        return this.request('/admin/stats'); 
     }
 
     // ========== УТИЛИТЫ ==========
@@ -227,6 +206,24 @@ class BHStoreAPI {
         authData.token = token;
         localStorage.setItem('bhstore_auth', JSON.stringify(authData));
         this.authData = authData;
+    }
+
+    setUserData(userData) {
+        const authData = this.getAuthData();
+        const updatedData = { ...authData, ...userData };
+        localStorage.setItem('bhstore_auth', JSON.stringify(updatedData));
+        this.authData = updatedData;
+    }
+
+    logout() {
+        localStorage.removeItem('bhstore_auth');
+        localStorage.removeItem('bhstore_orders');
+        localStorage.removeItem('bhstore_active_promocodes');
+        window.location.href = '/';
+    }
+
+    formatError(error) {
+        return error.message || 'Неизвестная ошибка';
     }
 }
 
