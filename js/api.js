@@ -1,4 +1,4 @@
-// api.js - ПОЛНАЯ И ЗАВЕРШЕННАЯ ВЕРСИЯ
+// api.js - ПОЛНАЯ ВЕРСИЯ С МЕТОДАМИ ЧАТА
 class BHStoreAPI {
     constructor() {
         this.baseUrl = 'https://bhstore.netlify.app';
@@ -32,16 +32,17 @@ class BHStoreAPI {
                 headers: { ...defaultHeaders, ...options.headers }
             });
 
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('text/html')) {
-                console.error('❌ Сервер вернул HTML вместо JSON:', url);
-                const html = await response.text();
-                console.error('HTML preview:', html.substring(0, 200));
-                throw new Error('Сервер вернул HTML. Проверьте настройки Netlify Functions');
+            if (!response.ok) {
+                const text = await response.text();
+                try {
+                    const data = JSON.parse(text);
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                } catch {
+                    throw new Error(`HTTP ${response.status}: ${text.substring(0, 100)}`);
+                }
             }
 
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
             return data;
         } catch (error) {
             console.error(`❌ Ошибка API (${url}):`, error);
@@ -49,27 +50,70 @@ class BHStoreAPI {
         }
     }
 
-    // ========== АВТОРИЗАЦИЯ И АДМИН ==========
-    async isAdmin() {
-        try {
-            const data = await this.request('/admin/check');
-            return data.isAdmin === true;
-        } catch { 
-            return false; 
+    // ========== ЧАТ МЕТОДЫ ==========
+    async getChatMessages(userId) {
+        const authData = this.getAuthData();
+        const response = await fetch(`${this.baseUrl}/api/chat/messages/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${authData.token || ''}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Не удалось загрузить сообщения');
         }
+        
+        return await response.json();
     }
 
-    async checkAdminStatus() {
-        try {
-            const data = await this.request('/user/me');
-            return { 
-                isAdmin: data.user?.badges?.admin === true, 
-                isLoggedIn: true, 
-                user: data.user 
-            };
-        } catch { 
-            return { isAdmin: false, isLoggedIn: false }; 
+    async sendChatMessage(userId, message, fromAdmin = false) {
+        const authData = this.getAuthData();
+        const response = await fetch(`${this.baseUrl}/api/chat/send`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authData.token || ''}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId, message, fromAdmin })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Не удалось отправить сообщение');
         }
+        
+        return await response.json();
+    }
+
+    async checkNewMessages(userId, lastChecked) {
+        const authData = this.getAuthData();
+        const response = await fetch(`${this.baseUrl}/api/chat/check`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authData.token || ''}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId, lastChecked })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Не удалось проверить сообщения');
+        }
+        
+        return await response.json();
+    }
+
+    async markMessagesAsRead(userId) {
+        const authData = this.getAuthData();
+        const response = await fetch(`${this.baseUrl}/api/chat/mark-read/${userId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${authData.token || ''}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        return await response.json();
     }
 
     // ========== ПОЛЬЗОВАТЕЛИ ==========
@@ -102,47 +146,6 @@ class BHStoreAPI {
             body: JSON.stringify({ userId, amount, reason })
         });
     }
-    
-    async setUserBalance(userId, newBalance, reason) {
-        return this.request('/admin/balance/set', {
-            method: 'POST',
-            body: JSON.stringify({ userId, newBalance, reason })
-        });
-    }
-
-    // ========== ЧАТ ==========
-    async getChatUsers() { 
-        return this.request('/admin/chat/users'); 
-    }
-    
-    async checkAdminMessages() {
-        return this.request('/chat/admin/check', {
-            method: 'POST',
-            body: JSON.stringify({ lastChecked: Date.now() })
-        });
-    }
-    
-    async markMessagesAsRead(userId) {
-        return this.request(`/chat/admin/mark-read/${userId}`, { method: 'POST' });
-    }
-    
-    async sendChatMessage(userId, message, fromAdmin = false) {
-        return this.request('/chat/send', {
-            method: 'POST',
-            body: JSON.stringify({ userId, message, fromAdmin })
-        });
-    }
-    
-    async getChatMessages(userId) { 
-        return this.request(`/chat/messages/${userId}`); 
-    }
-    
-    async checkNewMessages(userId, lastChecked) {
-        return this.request('/chat/check', {
-            method: 'POST',
-            body: JSON.stringify({ userId, lastChecked })
-        });
-    }
 
     // ========== ПРОМОКОДЫ ==========
     async getUserPromocodes(userId) { 
@@ -166,77 +169,15 @@ class BHStoreAPI {
             body: JSON.stringify({ userId, code })
         });
     }
-    
-    async saveActivePromocodes(userId, activeDiscounts) {
-        return this.request('/promocodes/save-active', {
-            method: 'POST',
-            body: JSON.stringify({ userId, activeDiscounts })
-        });
-    }
-    
-    async removeActivePromocode(userId, code) {
-        return this.request('/promocodes/remove-active', {
-            method: 'POST',
-            body: JSON.stringify({ userId, code })
-        });
-    }
 
     // ========== ТОВАРЫ ==========
     async getProducts() { 
         return this.request('/products'); 
     }
-    
-    async createProduct(productData) {
-        return this.request('/admin/products', {
-            method: 'POST',
-            body: JSON.stringify(productData)
-        });
-    }
-    
-    async updateProduct(productId, productData) {
-        return this.request(`/admin/products/${productId}`, {
-            method: 'PUT',
-            body: JSON.stringify(productData)
-        });
-    }
-    
-    async deleteProduct(productId) {
-        return this.request(`/admin/products/${productId}`, { method: 'DELETE' });
-    }
-
-    // ========== НОВОСТИ ==========
-    async getNews() { 
-        return this.request('/news'); 
-    }
-
-    // ========== ОТЗЫВЫ ==========
-    async getReviews(page = 1, limit = 10) {
-        return this.request(`/reviews?page=${page}&limit=${limit}`);
-    }
-    
-    async createReview(reviewData) {
-        return this.request('/reviews', {
-            method: 'POST',
-            body: JSON.stringify(reviewData)
-        });
-    }
-    
-    async markReviewHelpful(reviewId) {
-        return this.request(`/reviews/${reviewId}/helpful`, { method: 'POST' });
-    }
 
     // ========== СТАТИСТИКА ==========
     async getStats() { 
         return this.request('/admin/stats'); 
-    }
-
-    // ========== УВЕДОМЛЕНИЯ ==========
-    async getUserNotifications(userId) { 
-        return this.request(`/notifications/user/${userId}`); 
-    }
-    
-    async markNotificationRead(notificationId) {
-        return this.request(`/notifications/${notificationId}/read`, { method: 'POST' });
     }
 
     // ========== ЗАКАЗЫ ==========
@@ -278,6 +219,7 @@ class BHStoreAPI {
     }
 }
 
+// Создаем глобальный экземпляр
 const api = new BHStoreAPI();
 window.BHStoreAPI = BHStoreAPI;
 window.api = api;
