@@ -407,7 +407,7 @@ app.get('/api/admin/chat/users', async (req, res) => {
   }
 });
 
-// Получение сообщений пользователя (админ)
+// Получение сообщений пользователя
 app.get('/api/chat/messages/:userId', async (req, res) => {
   try {
       const authHeader = req.headers.authorization;
@@ -416,26 +416,29 @@ app.get('/api/chat/messages/:userId', async (req, res) => {
       if (!authHeader) {
           return res.status(401).json({ success: false, error: 'Не авторизован' });
       }
+
+      const token = authHeader.replace('Bearer ', '');
       
       try {
-        const token = authHeader.replace('Bearer ', '');
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        
-        // ВАЖНО: hardcoded проверка для вашего ID
-        if (decoded.id === '992442453833547886') {
-            // Пропускаем, это админ - продолжаем выполнение
-            console.log('✅ Админ доступ по hardcoded ID');
-        } else {
-            // Проверяем в БД
-            const [user] = await sql`
-                SELECT badges FROM users WHERE discord_id = ${decoded.id}
-            `;
-            
-            if (!user?.badges?.admin) {
-                return res.status(403).json({ success: false, error: 'Требуются права администратора' });
-            }
-        }
+          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
           
+          // РАЗРЕШАЕМ:
+          // 1. Самому пользователю смотреть свои сообщения
+          // 2. Админу смотреть любые сообщения
+          if (decoded.id !== userId) {
+              // Если это не тот пользователь, проверяем, админ ли он
+              const [user] = await sql`
+                  SELECT badges FROM users WHERE discord_id = ${decoded.id}
+              `;
+              
+              const isAdmin = user?.badges?.admin === true || decoded.id === '992442453833547886';
+              
+              if (!isAdmin) {
+                  return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+              }
+          }
+          
+          // Получаем сообщения
           const messages = await sql`
               SELECT * FROM messages 
               WHERE user_id = ${userId} 
@@ -450,6 +453,7 @@ app.get('/api/chat/messages/:userId', async (req, res) => {
           });
           
       } catch (decodeError) {
+          console.error('❌ Ошибка декодирования токена:', decodeError);
           return res.status(401).json({ success: false, error: 'Неверный токен' });
       }
       
@@ -459,7 +463,7 @@ app.get('/api/chat/messages/:userId', async (req, res) => {
   }
 });
 
-// Отправка сообщения (админ)
+// Отправка сообщения
 app.post('/api/chat/send', async (req, res) => {
   try {
       const authHeader = req.headers.authorization;
@@ -472,7 +476,6 @@ app.post('/api/chat/send', async (req, res) => {
       
       try {
           const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-          const isAdmin = isAdminUser(decoded);
           
           const { userId, message, fromAdmin } = req.body;
           
@@ -480,9 +483,20 @@ app.post('/api/chat/send', async (req, res) => {
               return res.status(400).json({ success: false, error: 'Не указаны данные' });
           }
           
-          // Проверяем права
-          if (decoded.id !== userId && !isAdmin) {
-              return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+          // РАЗРЕШАЕМ:
+          // 1. Пользователю отправлять сообщения от своего имени
+          // 2. Админу отправлять сообщения от имени системы
+          if (decoded.id !== userId && !fromAdmin) {
+              // Проверяем, может это админ?
+              const [user] = await sql`
+                  SELECT badges FROM users WHERE discord_id = ${decoded.id}
+              `;
+              
+              const isAdmin = user?.badges?.admin === true || decoded.id === '992442453833547886';
+              
+              if (!isAdmin) {
+                  return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+              }
           }
           
           const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -501,31 +515,33 @@ app.post('/api/chat/send', async (req, res) => {
               )
           `;
           
-          // Получаем информацию о пользователе для вебхука
+          // Получаем информацию о пользователе
           const [user] = await sql`
               SELECT username FROM users WHERE discord_id = ${userId}
           `;
           
           // Отправляем уведомление в Discord
           const webhookUrl = fromAdmin 
-              ? process.env.DISCORD_WEBHOOK_CHAT || 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG'
-              : process.env.DISCORD_WEBHOOK_SUPPORT || 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG';
+              ? process.env.DISCORD_WEBHOOK_CHAT
+              : process.env.DISCORD_WEBHOOK_SUPPORT;
           
-          try {
-              await axios.post(webhookUrl, {
-                  embeds: [{
-                      title: fromAdmin ? '💬 Ответ от администратора' : '💬 Новое сообщение от пользователя',
-                      description: message,
-                      color: fromAdmin ? 0x5865F2 : 0x43b581,
-                      fields: [
-                          { name: '👤 Пользователь', value: `<@${userId}>`, inline: true },
-                          { name: '📝 Имя', value: user?.username || 'Неизвестно', inline: true }
-                      ],
-                      timestamp: now
-                  }]
-              });
-          } catch (webhookError) {
-              console.error('❌ Ошибка отправки вебхука:', webhookError.message);
+          if (webhookUrl) {
+              try {
+                  await axios.post(webhookUrl, {
+                      embeds: [{
+                          title: fromAdmin ? '💬 Ответ от администратора' : '💬 Новое сообщение от пользователя',
+                          description: message,
+                          color: fromAdmin ? 0x5865F2 : 0x43b581,
+                          fields: [
+                              { name: '👤 Пользователь', value: `<@${userId}>`, inline: true },
+                              { name: '📝 Имя', value: user?.username || 'Неизвестно', inline: true }
+                          ],
+                          timestamp: now
+                      }]
+                  });
+              } catch (webhookError) {
+                  console.error('❌ Ошибка отправки вебхука:', webhookError.message);
+              }
           }
           
           res.json({
@@ -534,16 +550,17 @@ app.post('/api/chat/send', async (req, res) => {
           });
           
       } catch (decodeError) {
+          console.error('❌ Ошибка декодирования токена:', decodeError);
           return res.status(401).json({ success: false, error: 'Неверный токен' });
       }
       
   } catch (error) {
-      console.error('❌ Ошибка отправки сообщения:', error.message);
+      console.error('❌ Ошибка отправки сообщения:', error);
       res.status(500).json({ success: false, error: 'Ошибка отправки' });
   }
 });
 
-// Проверка новых сообщений (polling)
+// Проверка новых сообщений
 app.post('/api/chat/check', async (req, res) => {
   try {
       const authHeader = req.headers.authorization;
@@ -563,9 +580,17 @@ app.post('/api/chat/check', async (req, res) => {
               return res.status(400).json({ success: false, error: 'Не указан userId' });
           }
           
-          // Проверяем права
-          if (decoded.id !== userId && !isAdminUser(decoded)) {
-              return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+          // Разрешаем пользователю проверять свои сообщения
+          if (decoded.id !== userId) {
+              const [user] = await sql`
+                  SELECT badges FROM users WHERE discord_id = ${decoded.id}
+              `;
+              
+              const isAdmin = user?.badges?.admin === true || decoded.id === '992442453833547886';
+              
+              if (!isAdmin) {
+                  return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+              }
           }
           
           const checkTime = lastChecked ? new Date(parseInt(lastChecked)).toISOString() : new Date(0).toISOString();
@@ -576,18 +601,23 @@ app.post('/api/chat/check', async (req, res) => {
               AND timestamp > ${checkTime}
           `;
           
+          // Проверяем, печатает ли админ (заглушка)
+          const adminTyping = false;
+          
           res.json({
               success: true,
               hasNew: parseInt(result.count) > 0,
-              newCount: parseInt(result.count)
+              newCount: parseInt(result.count),
+              adminTyping: adminTyping
           });
           
       } catch (decodeError) {
+          console.error('❌ Ошибка декодирования токена:', decodeError);
           return res.status(401).json({ success: false, error: 'Неверный токен' });
       }
       
   } catch (error) {
-      console.error('❌ Ошибка проверки сообщений:', error.message);
+      console.error('❌ Ошибка проверки сообщений:', error);
       res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
