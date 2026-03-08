@@ -416,15 +416,15 @@ app.get('/api/chat/messages/:userId', async (req, res) => {
       if (!authHeader) {
           return res.status(401).json({ success: false, error: 'Не авторизован' });
       }
-
-      const token = authHeader.replace('Bearer ', '');
       
       try {
+        const token = authHeader.replace('Bearer ', '');
         const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-
-        // Hardcoded проверка для вашего ID
+        
+        // ВАЖНО: hardcoded проверка для вашего ID
         if (decoded.id === '992442453833547886') {
-            // Пропускаем, это админ
+            // Пропускаем, это админ - продолжаем выполнение
+            console.log('✅ Админ доступ по hardcoded ID');
         } else {
             // Проверяем в БД
             const [user] = await sql`
@@ -2363,27 +2363,31 @@ app.get('/api/admin/check', async (req, res) => {
       try {
           const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
           
-          // Проверяем, является ли пользователь админом
-          const isAdmin = decoded.id === '992442453833547886';
+          // 1. Сначала проверяем hardcoded админов
+          if (decoded.id === '992442453833547886') {
+              console.log('✅ Hardcoded admin access');
+              return res.json({ isAdmin: true });
+          }
           
-          // Или проверяем в БД
-          if (sql && !isAdmin) {
+          // 2. Если нет в hardcoded, проверяем в БД
+          if (sql) {
               const [user] = await sql`
                   SELECT badges FROM users WHERE discord_id = ${decoded.id}
               `;
+              
               if (user?.badges?.admin) {
                   return res.json({ isAdmin: true });
               }
           }
           
-          res.json({ isAdmin });
+          res.json({ isAdmin: false });
 
       } catch (decodeError) {
           res.json({ isAdmin: false });
       }
       
   } catch (error) {
-      console.error('❌ Ошибка проверки админа:', error.message);
+      console.error('❌ Ошибка проверки админа:', error);
       res.json({ isAdmin: false });
   }
 });
