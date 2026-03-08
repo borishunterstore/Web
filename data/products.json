@@ -86,17 +86,45 @@
       ]
     },
     {
-      "id": "video_montaz",
+      "id": "video_montaz_easy",
       "name": "Монтаж для видео",
-      "description": "",
+      "description": "Уровень: Easy",
       "price": 499,
-      "category": "events",
+      "category": "youtube",
       "icon": "image/emoji/montaz.png",
       "features": [
-        "Приоритетный доступ",
-        "Эксклюзивные награды",
-        "Личное приветствие",
-        "Особые привилегии"
+        "Переходы",
+        "Соеденинение клипов"
+      ]
+    },
+    {
+      "id": "video_montaz_average",
+      "name": "Монтаж для видео",
+      "description": "Уровень: Average",
+      "price": 899,
+      "category": "youtube",
+      "icon": "image/emoji/montaz.png",
+      "features": [
+        "Все что в уровне: Easy",
+        "Изменение голосов",
+        "Специальные эффекты",
+        "Звуки"
+      ]
+    },
+    {
+      "id": "video_montaz_high",
+      "name": "Монтаж для видео",
+      "description": "Уровень: High",
+      "price": 1099,
+      "category": "youtube",
+      "icon": "image/emoji/montaz.png",
+      "features": [
+        "Все что в уровне: Easy и Average",
+        "Проффесиональные переходы",
+        "Проффесиональные спец.эффекты",
+        "Проффесиональные звуки",
+        "Проффесиональное изменение голосов",
+        "Проффесиональное соединение клипов"
       ]
     }
   ]
