@@ -517,32 +517,35 @@ app.post('/api/chat/send', async (req, res) => {
               SELECT username FROM users WHERE discord_id = ${userId}
           `;
           
-          // Отправляем уведомление в Discord (только для сообщений от пользователей)
-          if (!fromAdmin) {
-              try {
-                const webhookUrl = process.env.DISCORD_WEBHOOK_CHAT || 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG';
-                  
-                  if (webhookUrl) {
-                      await axios.post(webhookUrl, {
-                          embeds: [{
-                              title: '💬 Новое сообщение от пользователя',
-                              description: message,
-                              color: 0x5865F2,
-                              fields: [
-                                  { name: '👤 Пользователь', value: `<@${userId}>`, inline: true },
-                                  { name: '📝 Имя', value: user?.username || 'Неизвестно', inline: true }
-                              ],
-                              timestamp: now
-                          }]
-                      });
-                      console.log('✅ Вебхук отправлен в Discord');
-                  } else {
-                      console.warn('⚠️ DISCORD_WEBHOOK_CHAT не установлен');
-                  }
-              } catch (webhookError) {
-                  console.error('❌ Ошибка отправки вебхука:', webhookError.message);
-              }
-          }
+if (!fromAdmin) {
+  try {
+      // Используем переменную окружения, если нет - используем запасной URL
+      const webhookUrl = process.env.DISCORD_WEBHOOK_CHAT || 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG';
+      
+      console.log('📤 Попытка отправки вебхука на URL:', webhookUrl.substring(0, 50) + '...');
+      
+      const response = await axios.post(webhookUrl, {
+          embeds: [{
+              title: '💬 Новое сообщение от пользователя',
+              description: message,
+              color: 0x5865F2,
+              fields: [
+                  { name: '👤 Пользователь', value: `<@${userId}>`, inline: true },
+                  { name: '📝 Имя', value: user?.username || 'Неизвестно', inline: true }
+              ],
+              timestamp: now
+          }]
+      });
+      
+      console.log('✅ Вебхук отправлен в Discord, статус:', response.status);
+  } catch (webhookError) {
+      console.error('❌ Ошибка отправки вебхука:', webhookError.message);
+      if (webhookError.response) {
+          console.error('❌ Статус ответа Discord:', webhookError.response.status);
+          console.error('❌ Данные от Discord:', webhookError.response.data);
+      }
+  }
+}
           
           res.json({
               success: true,
