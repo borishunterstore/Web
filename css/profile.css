@@ -51,7 +51,6 @@
     object-fit: cover;
     box-shadow: 0 0 30px rgba(88, 101, 242, 0.3);
     transition: all var(--transition-base);
-    animation: pulse 2s infinite;
 }
 
 .profile-avatar:hover {
@@ -266,7 +265,6 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
     text-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
-    animation: pulse 2s infinite;
 }
 
 .balance-actions {
