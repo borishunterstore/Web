@@ -144,17 +144,18 @@
 
 .btn-secondary {
     padding: 16px 32px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 20px;
     background: rgba(255, 255, 255, 0.1);
     color: var(--text-primary);
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 40px;
-    width: 300px;
-    height: 150px;
-    font-weight: 600;
+    width: 250px;
+    height: 100px;
+    font-weight: 100px;
     font-size: 1.1rem;
-    cursor: pointer;
     transition: all var(--transition-base);
-    display: inline-flex;
     align-items: center;
     gap: 10px;
     text-decoration: none;
@@ -256,7 +257,6 @@
 
 .join-discord-btn {
     padding: 10px 20px;
-    background: #5865F2;
     color: white;
     border: none;
     border-radius: 30px;

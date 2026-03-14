@@ -59,7 +59,7 @@
                 <a href="/shop.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Магазин</a>
                 <a href="/news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
                 <a href="/faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
-                <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Правовая информация</a>
+                <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Документы</a>
             </div>
             <div class="nav-auth">
                 <button id="authBtn" class="btn-discord">
@@ -71,11 +71,31 @@
             </button>
         </div>
     </nav>
+<style>
+    .hero-background {
+    width: 100%; 
+    position: absolute;
+    background: var(--bg-body); /* Цвет, в который уходит переход */
+}
 
+.hero-background::after {
+    width: 100%; 
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to bottom, transparent 60%, var(--bg-body) 100%);
+}
+</style>
     <section class="hero">
         <div class="hero-background">
-            <img src="/image/banner_gif.gif" style="width: 100%; filter: brightness(0.2); -webkit-user-drag: none; user-select: none;">
+            <img src="image/banner_gif.gif" style="
+              width: 100%; 
+              filter: brightness(0.3); 
+              -webkit-user-drag: none; 
+              user-select: none;
+            ">
           </div>
+          
         
         <div class="hero-content">
             <div class="hero-text">
@@ -88,17 +108,17 @@
                 </p>
                 <div class="hero-buttons">
                     <a href="/shop.html" class="btn-primary" style="height: 70px;">
-                        <i class="fas fa-shopping-cart"></i> Магазин
+                        <i class="fas"></i> <img src="image/emoji/shop.png" style="width: 30px;"> Магазин
                     </a>
                     <a href="#features" class="btn-secondary" style="height: 70px;">
-                        <i class="fas fa-info-circle"></i> Узнать больше
+                        <i class="fas"></i> <img src="image/emoji/info.png" style="width: 30px;"> Узнать больше
                     </a>
                 </div>
                 
                 <div class="hero-stats" style="display: flex; gap: 30px; margin-top: 50px;">
                     <div class="stat-item">
                         <div class="stat-value" style="font-size: 2rem; font-weight: 700; color: var(--primary);">10+</div>
-                        <div class="stat-label" style="color: var(--text-secondary);">Довольных клиентов</div>
+                        <div class="stat-label" style="color: var(--text-secondary);">Клиентов</div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-value" style="font-size: 2rem; font-weight: 700; color: var(--primary);">7+</div>
@@ -132,16 +152,16 @@
                     <div class="discord-server-info" id="discordServerInfo">
                         <div class="server-stats">
                             <div class="stat">
-                                <i class="fas fa-users"></i>
-                                <span id="memberCount">Загрузка...</span>
+                                <i class="fas"></i>
+                                <img src="image/emoji/members.png" style="width: 25px"> <span id="memberCount">Загрузка...</span>
                             </div>
                             <div class="stat online">
-                                <i class="fas fa-circle"></i>
-                                <span id="onlineCount">...</span>
+                                <i class="fas"></i>
+                                <img src="image/emoji/online.gif" style="width: 25px"> <span id="onlineCount">...</span>
                             </div>
                         </div>
                         <a href="https://discord.gg/YfZxXXeW6D" target="_blank" class="join-discord-btn">
-                            <i class="fab fa-discord"></i> Присоединиться
+                            <i class="fab"></i> <img src="image/emoji/discordlogo.png" style="width: 50px"> Присоединиться
                         </a>
                     </div>
                 </div>
@@ -150,25 +170,25 @@
     </section>
 
     <section id="features" class="features">
-        <h2 class="section-title" style="justify-content: center; align-items: center;">Почему выбирают нас</h2>
+        <h2 class="section-title" style="justify-content: center; align-items: center;">Почему выбирают нас <img src="image/emoji/question.png" style="width: 100px;"></h2>
         <div class="features-grid">
             <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-shield-alt"></i>
+                <div>
+                    <i><img src="image/emoji/safety.png" style="width: 100px;"></i>
                 </div>
                 <h3>Безопасность</h3>
                 <p>Все платежи защищены шифрованием.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-bolt"></i>
+                <div>
+                    <i><img src="image/emoji/bolt.png" style="width: 100px;"></i>
                 </div>
                 <h3>Быстрое выполнение</h3>
                 <p>Заказ принимается быстро, и делается тоже так же! Качественно!</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-headset"></i>
+                <div>
+                    <i><img src="image/emoji/support.png" style="width: 100px;"></i>
                 </div>
                 <h3>Поддержка 24/7</h3>
                 <p>Наша тех-поддержка всегда готова помочь с любыми вопросами в Discord и Telegram.</p>
@@ -177,37 +197,35 @@
     </section>
 
     <section class="popular-products">
-        <h2 class="section-title" style="justify-content: center; align-items: center;">Популярные товары</h2>
+        <h2 class="section-title" style="justify-content: center; align-items: center;"><img src="image/emoji/popular.png" style="width: 70px;"> Популярные товары <img src="image/emoji/popular.png" style="width: 70px;"></h2>
         <div id="popularProducts" class="products-grid">
         </div>
         <a href="shop.html" class="btn-view-all">
-            <i class="fas fa-arrow-right"></i> Смотреть все товары
+            <i class="fas"></i> Все товары
         </a>
     </section>
 
     <section class="latest-news" style="justify-content: center; align-items: center;">
         <div class="news-header" style="justify-content: center; align-items: center;">
-            <h2 class="section-title" style="justify-content: center; align-items: center;">Последние новости</h2>
-            <a href="news.html" class="btn-secondary">
-                <i class="fas fa-newspaper" style="justify-content: center; align-items: center;"></i> Все новости
-            </a>
+            <h2 class="section-title" style="justify-content: center; align-items: center;"><img src="image/emoji/news_orange.png" style="width: 70px;"> Последние новости</h2>
         </div>
         <div id="latestNews" class="news-grid">
         </div>
+        <a href="news.html" class="btn-view-all"><i class="fas" style="justify-content: center; align-items: center"></i> Все новости</a>
     </section>
 
     <section class="cta-section" style="padding: 80px 0; background: linear-gradient(135deg, var(--primary), var(--secondary)); text-align: center;">
         <div class="container" style="max-width: var(--container-width); margin: 0 auto; padding: 0 24px;">
-            <h2 style="font-size: 2.5rem; color: white; margin-bottom: 20px;">Готовы начать?</h2>
+            <h2 style="font-size: 2.5rem; color: white; margin-bottom: 20px;">Готовы начать? <img src="image/emoji/ready.png" style="width: 80px"></h2>
             <p style="font-size: 1.2rem; color: rgba(255,255,255,0.9); margin-bottom: 40px; max-width: 600px; margin-left: auto; margin-right: auto;">
                 Присоединяйтесь к нашему Discord серверу и получите доступ к эксклюзивным функциям уже сегодня!
             </p>
             <div class="cta-buttons" style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
-                <a href="https://discord.gg/anime" target="_blank" class="btn-primary" style="background: white; color: var(--primary);">
-                    <i class="fab fa-discord"></i> Присоединиться в Discord
+                <a href="https://discord.gg/YfZxXXeW6D" target="_blank" class="btn-primary" style="background: white; color: var(--primary); font-size: 25px">
+                    <i class="fab"></i> <img src="image/emoji/discordlogo.png" style="width: 50px"> Присоединиться
                 </a>
-                <a href="/shop.html" class="btn-secondary" style="border-color: white; color: white;">
-                    <i class="fas fa-shopping-cart"></i> Перейти в магазин
+                <a href="/shop.html" class="btn-secondary" style="border-color: white; color: white; font-size: 25px">
+                    <i class="fas"></i> <img src="image/emoji/shop.png" style="width: 30px;"> Магазин
                 </a>
             </div>
         </div>
@@ -215,11 +233,9 @@
 
     <!-- Футер -->
     <footer class="footer">
+        <img src="image/bhstore.png" style="width: 100%;">
+        <p style="font-size: 50px; text-align: center; margin-bottom: 20px;">СПАСИБО, ЧТО ИСПОЛЬЗУЕТЕ НАШ СЕРВИС!</p>
         <div class="footer-content">
-            <div class="footer-section">
-                <h3>BHStore</h3>
-                <p>Создание Discord ботов; написание кодов; создание Telegram ботов; Монтаж видео; Превью; Баннера; Аватарки; Minecraft Плагины, моды.</p>
-            </div>
             <div class="footer-section">
                 <h3>Навигация</h3>
                 <a href="/">Главная</a>
@@ -228,19 +244,18 @@
                 <a href="faq.html">FAQ</a>
             </div>
             <div class="footer-section">
-                <h3>Правовая информация</h3>
+                <h3>Документы</h3>
                 <a href="legal.html#terms">Пользовательское соглашение</a>
                 <a href="legal.html#privacy">Политика конфиденциальности</a>
                 <a href="legal.html#offer">Публичная оферта</a>
-                <a href="legal.html#refund">Политика возвратов</a>
             </div>
             <div class="footer-section">
                 <h3>Контакты</h3>
-                <p style="color: #fff"><img src="image/emoji/emoji_3.png" alt="BHStore" style="width: 25px;"> @borishunterstore</p>
-                <p style="color: #fff"><img src="image/emoji/emoji_3.png" alt="BHStore" style="width: 25px;"> @borisonchikofficial</p>
+                <a href="https://t.me/borishunterstore"> <p style="color: #fff"><img src="image/emoji/emoji_3.png" alt="BHStore" style="width: 25px;"> @borishunterstore</p></a>
+                <a href="https://t.me/borisonchikofficial"> <p style="color: #fff"><img src="image/emoji/emoji_3.png" alt="BHStore" style="width: 25px;"> @borisonchikofficial</p></a>
             </div>
         </div>
-        <div class="footer-bottom">
+        <div class="footer-bottom" style="margin-bottom: 20px;">
             <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</a></p>
         </div>
     </footer>
