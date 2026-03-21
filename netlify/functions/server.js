@@ -1323,7 +1323,7 @@ app.post('/api/create-order', async (req, res) => {
     const { userId, productId, productName, price, originalPrice, username, promocodes, discount, discountAmount, orderId: clientOrderId } = req.body;
     
     // Используем orderId с фронтенда или генерируем новый
-    const orderId = clientOrderId || `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    const orderId = clientOrderId || `BH-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
     
     console.log(`🛒 Заказ от ${username || userId}: ${productName}`);
     console.log(`📦 Номер заказа: ${orderId}`);
