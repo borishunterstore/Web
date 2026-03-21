@@ -245,6 +245,11 @@ async function initDatabase() {
       )
     `;
     
+    await sql`
+    ALTER TABLE promocodes 
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  `;
+    
     console.log('✅ БД инициализирована');
     
     // Проверяем, есть ли товары
@@ -2720,18 +2725,56 @@ app.post('/api/promocodes/remove-active', async (req, res) => {
 });
 
 // История промокодов пользователя
+// История промокодов пользователя
 app.get('/api/promocodes/user/:userId', async (req, res) => {
   try {
-      const [user] = await sql`
-          SELECT used_promocodes FROM users WHERE discord_id = ${req.params.userId}
-      `;
+    const userId = req.params.userId;
+    
+    // Получаем все промокоды, где userId есть в used_by
+    const promocodes = await sql`
+      SELECT 
+        code, 
+        type, 
+        value, 
+        used_count,
+        used_by,
+        created_at
+      FROM promocodes 
+      WHERE used_by ? ${userId}
+      ORDER BY created_at DESC
+    `;
+    
+    // Форматируем данные для клиента
+    const formattedPromocodes = promocodes.map(promo => {
+      // Находим дату использования для этого пользователя
+      const usedByList = promo.used_by || [];
+      const usedAt = usedByList.includes(userId) ? promo.updated_at || promo.created_at : null;
       
-      res.json({
-          success: true,
-          promocodes: user?.used_promocodes || []
-      });
+      return {
+        code: promo.code,
+        type: promo.type,
+        value: promo.value,
+        usedAt: usedAt || promo.created_at,
+        created_at: promo.created_at
+      };
+    });
+    
+    console.log(`📜 Загружено ${formattedPromocodes.length} промокодов для ${userId}`);
+    
+    res.json({
+      success: true,
+      promocodes: formattedPromocodes,
+      total: formattedPromocodes.length
+    });
+    
   } catch (error) {
-      res.json({ success: true, promocodes: [] });
+    console.error('❌ Ошибка получения истории промокодов:', error.message);
+    // Возвращаем пустой массив, чтобы не ломать фронтенд
+    res.json({ 
+      success: true, 
+      promocodes: [],
+      total: 0
+    });
   }
 });
 
