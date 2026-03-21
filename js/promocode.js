@@ -271,6 +271,50 @@ class PromocodeSystem {
             : '<i class="fas fa-tag"></i> Активировать';
     }
 
+    // Добавьте эту функцию в класс PromocodeSystem
+async removeDiscount(code) {
+    const auth = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+    if (!auth.id) return;
+
+    try {
+        if (window.api) {
+            await window.api.request('/promocodes/remove-active', {
+                method: 'POST',
+                body: JSON.stringify({ userId: auth.id, code: code })
+            });
+        } else {
+            await fetch('/.netlify/functions/server/promocodes/remove-active', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: auth.id, code: code })
+            });
+        }
+        
+        this.activeDiscounts = this.activeDiscounts.filter(p => p.code !== code);
+        await this.saveToAPI();
+        this.renderUI();
+        
+        if (window.shopSystem && window.shopSystem.updatePrices) {
+            window.shopSystem.updatePrices(this.activeDiscounts);
+        }
+        
+        if (typeof updateHomePagePrices === 'function') {
+            updateHomePagePrices();
+        }
+        
+        // Обновляем цены на странице
+        if (typeof window.renderProducts === 'function' && window.allProducts) {
+            const currentCategory = document.querySelector('.category-btn.active')?.dataset.category || 'all';
+            const filtered = currentCategory === 'all' ? window.allProducts : filterProductsByCategory(window.allProducts, currentCategory);
+            window.renderProducts(filtered, currentCategory);
+        }
+        
+    } catch (e) {
+        console.error('Ошибка удаления промокода:', e);
+        this.showMessage('Ошибка при удалении', 'error');
+    }
+}
+
     showMessage(text, type) {
         if (!this.elements.message) return;
         

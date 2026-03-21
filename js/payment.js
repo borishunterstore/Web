@@ -1,12 +1,11 @@
-// payment.js - ИСПРАВЛЕННАЯ ВЕРСИЯ
+// payment.js - ПОЛНАЯ ВЕРСИЯ
 class PaymentSystem {
     constructor() {
         console.log('✅ PaymentSystem инициализирован');
     }
 
-    // Функция расчета цены со скидкой
     calculateDiscountedPrice(originalPrice, productId = null) {
-        if (!window.promocodeSystem || !window.promocodeSystem.activeDiscounts) {
+        if (!window.promocodeSystem || !window.promocodeSystem.activeDiscounts || !window.promocodeSystem.activeDiscounts.length) {
             return originalPrice;
         }
         
@@ -20,7 +19,7 @@ class PaymentSystem {
         
         let totalDiscount = 0;
         applicableDiscounts.forEach(promocode => {
-            totalDiscount += promocode.value;
+            totalDiscount += promocode.value || 0;
         });
         
         totalDiscount = Math.min(totalDiscount, 90);
@@ -29,9 +28,8 @@ class PaymentSystem {
         return finalPrice;
     }
 
-    // Функция получения информации о скидке
     getDiscountInfo(originalPrice, productId = null) {
-        if (!window.promocodeSystem || !window.promocodeSystem.activeDiscounts) {
+        if (!window.promocodeSystem || !window.promocodeSystem.activeDiscounts || !window.promocodeSystem.activeDiscounts.length) {
             return {
                 originalPrice: originalPrice,
                 finalPrice: originalPrice,
@@ -57,7 +55,7 @@ class PaymentSystem {
         
         let totalDiscount = 0;
         applicableDiscounts.forEach(promocode => {
-            totalDiscount += promocode.value;
+            totalDiscount += promocode.value || 0;
         });
         
         totalDiscount = Math.min(totalDiscount, 90);
@@ -81,36 +79,41 @@ class PaymentSystem {
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.9);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 10000;
+            font-family: 'Segoe UI', sans-serif;
         `;
         
         modal.innerHTML = `
-            <div style="background: #2a2b36; border-radius: 12px; padding: 2rem; max-width: 400px; width: 90%; text-align: center;">
-                <div style="width: 60px; height: 60px; background: #ED4245; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                    <i class="fas fa-exclamation-triangle" style="color: white; font-size: 1.5rem;"></i>
+            <div style="background: #2a2b36; border-radius: 16px; padding: 2rem; max-width: 400px; width: 90%; text-align: center;">
+                <div style="width: 70px; height: 70px; background: #ED4245; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-exclamation-triangle" style="color: white; font-size: 2rem;"></i>
                 </div>
-                <h2 style="color: white;">Недостаточно средств</h2>
-                <p style="color: #b9bbbe;">Для покупки "${escapeHtml(productName)}" не хватает ${price - balance} ₽</p>
-                <div style="background: #202225; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
-                    <div style="display: flex; justify-content: space-between;">
+                <h2 style="color: white; margin-bottom: 0.5rem;">Недостаточно средств</h2>
+                <p style="color: #b9bbbe; margin-bottom: 1rem;">Для покупки "${escapeHtml(productName)}"</p>
+                <div style="background: #202225; padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
                         <span style="color: #b9bbbe;">Стоимость:</span>
-                        <span style="color: #ED4245;">${price} ₽</span>
+                        <span style="color: #ED4245; font-weight: 600;">${price} ₽</span>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
                         <span style="color: #b9bbbe;">Ваш баланс:</span>
-                        <span style="color: #ED4245;">${balance} ₽</span>
+                        <span style="color: #ED4245; font-weight: 600;">${balance} ₽</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #40444b;">
+                        <span style="color: #b9bbbe;">Не хватает:</span>
+                        <span style="color: #ED4245; font-weight: 600;">${price - balance} ₽</span>
                     </div>
                 </div>
                 <div style="display: flex; gap: 1rem;">
-                    <button onclick="window.location.href='/profile.html'" style="flex: 1; padding: 0.8rem; background: #5865F2; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                        Пополнить баланс
+                    <button onclick="window.location.href='/profile.html'" style="flex: 1; padding: 0.8rem; background: #5865F2; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-coins"></i> Пополнить
                     </button>
-                    <button onclick="this.closest('div').parentElement.remove()" style="flex: 1; padding: 0.8rem; background: #40444b; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                        Закрыть
+                    <button onclick="this.closest('div').parentElement.remove()" style="flex: 1; padding: 0.8rem; background: #40444b; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-times"></i> Закрыть
                     </button>
                 </div>
             </div>
