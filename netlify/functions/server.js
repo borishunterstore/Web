@@ -2611,7 +2611,8 @@ app.post('/api/promocodes/activate', async (req, res) => {
     await sql`
       UPDATE promocodes 
       SET used_count = ${promocode.used_count + 1}, 
-          used_by = ${JSON.stringify(usedBy)}
+          used_by = ${JSON.stringify(usedBy)},
+          updated_at = ${new Date().toISOString()}
       WHERE code = ${promocode.code}
     `;
     
@@ -2656,7 +2657,8 @@ app.post('/api/promocodes/activate', async (req, res) => {
       message: promocode.type === 'balance' ? 
         `<:Money:1474931656610811966> Баланс пополнен на ${promocode.value}₽` :
         `<:Yes:1474931426951430225> Промокод "${promocode.code}" активирован`,
-      newBalance: newBalance
+      newBalance: newBalance,
+      value: promocode.value
     });
     
   } catch (error) {
