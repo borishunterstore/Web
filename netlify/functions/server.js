@@ -1322,11 +1322,12 @@ app.post('/api/create-order', async (req, res) => {
   try {
     const { userId, productId, productName, price, originalPrice, username, promocodes, discount, discountAmount } = req.body;
     
-    console.log(`🛒 Заказ от ${username || userId}: ${productName} за ${price} ₽`);
+    console.log(`🛒 Заказ от ${username || userId}: ${productName}`);
+    console.log(`💰 Цена: ${price} ₽ (оригинал: ${originalPrice || price} ₽)`);
     
     const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
     
-    // Получаем пользователя
+    // Получаем пользователя из БД
     let user = null;
     let userBalance = 0;
     
@@ -1358,24 +1359,26 @@ app.post('/api/create-order', async (req, res) => {
       });
     }
     
-    if (userBalance < price) {
+    const finalPrice = price;
+    
+    if (userBalance < finalPrice) {
       return res.status(400).json({ 
         success: false, 
         error: 'Недостаточно средств на балансе' 
       });
     }
     
-    const newBalance = userBalance - price;
+    const newBalance = userBalance - finalPrice;
     
     // Создаем заказ
     const order = {
       id: orderId,
       productId,
       productName,
-      price,
+      price: finalPrice,
       originalPrice: originalPrice || price,
-      discount,
-      discountAmount,
+      discount: discount || 0,
+      discountAmount: discountAmount || 0,
       promocodes: promocodes || [],
       date: new Date().toISOString(),
       status: 'completed'
@@ -1416,19 +1419,28 @@ app.post('/api/create-order', async (req, res) => {
     try {
       const webhookUrl = 'https://discord.com/api/webhooks/1475847164801581127/8YklZGMVs-4reVU9yr4WbsO5OM1R5l2lM6yYmYyIPxhFICS1fDRZCD4ATL8sLEIaF1v5';
       
-      await axios.post(webhookUrl, {
-        embeds: [{
-          title: '💰 Новая покупка!',
-          description: `<@${userId}> купил "${productName}"`,
-          color: 0x57F287,
-          fields: [
-            { name: 'Цена', value: `${price} ₽`, inline: true },
-            { name: 'Заказ', value: orderId, inline: true },
-            { name: 'Баланс после', value: `${newBalance} ₽`, inline: true }
-          ],
-          timestamp: new Date().toISOString()
-        }]
-      });
+      const embed = {
+        title: '💰 Новая покупка!',
+        description: `<@${userId}> купил "${productName}"`,
+        color: 0x57F287,
+        fields: [
+          { name: '💰 Цена', value: `${finalPrice} ₽`, inline: true },
+          { name: '📦 Заказ', value: orderId, inline: true },
+          { name: '💎 Баланс после', value: `${newBalance} ₽`, inline: true }
+        ],
+        timestamp: new Date().toISOString()
+      };
+      
+      if (discount && discount > 0) {
+        embed.fields.unshift({ name: '🏷️ Скидка', value: `${discount}%`, inline: true });
+      }
+      
+      if (promocodes && promocodes.length > 0) {
+        embed.fields.unshift({ name: '🎫 Промокоды', value: promocodes.join(', '), inline: true });
+      }
+      
+      await axios.post(webhookUrl, { embeds: [embed] });
+      console.log('✅ Уведомление отправлено в Discord');
     } catch (webhookError) {
       console.error('❌ Ошибка отправки вебхука:', webhookError.message);
     }
