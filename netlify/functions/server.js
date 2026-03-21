@@ -267,8 +267,11 @@ async function checkAndInsertProducts() {
   try {
     const [count] = await sql`SELECT COUNT(*) as count FROM products`;
     
+    // НЕ ДОБАВЛЯЕМ тестовые товары автоматически, только если нужно
     if (parseInt(count.count) === 0) {
-      await insertTestProducts();
+      console.log('⚠️ В БД нет товаров. Чтобы добавить товары, используйте админ-панель.');
+      // НЕ вызываем insertTestProducts() автоматически
+      // await insertTestProducts(); - ЗАКОММЕНТИРОВАНО
     }
   } catch (error) {
     console.error('❌ Ошибка проверки товаров:', error.message);
@@ -281,30 +284,7 @@ async function insertTestProducts() {
   
   try {
     const testProducts = [
-      {
-        id: "premium_month",
-        name: "Премиум на 1 месяц",
-        description: "Доступ ко всем премиум функциям на 30 дней",
-        price: 299,
-        category: "premium",
-        icon: "fas fa-crown",
-        image: "/image/premium.png",
-        features: JSON.stringify(["Все функции бота", "Приоритетная поддержка", "Эксклюзивные команды"]),
-        popular: true,
-        discount: 0
-      },
-      {
-        id: "premium_year",
-        name: "Премиум на 1 год",
-        description: "Доступ ко всем премиум функциям на 365 дней",
-        price: 2499,
-        category: "premium",
-        icon: "fas fa-crown",
-        image: "/image/premium.png",
-        features: JSON.stringify(["Все функции бота", "Приоритетная поддержка", "Эксклюзивные команды", "Скидка 30%"]),
-        popular: false,
-        discount: 30
-      }
+      // Здесь тестовые товары, но они НЕ будут добавляться автоматически
     ];
     
     for (const product of testProducts) {
@@ -1483,16 +1463,22 @@ app.get('/api/products', async (req, res) => {
       try {
         products = await sql`SELECT * FROM products ORDER BY created_at DESC`;
         console.log(`✅ Загружено ${products.length} товаров из БД`);
+        
+        // Если в БД есть товары, показываем их
+        if (products && products.length > 0) {
+          return res.json({
+            success: true,
+            products: products
+          });
+        }
       } catch (dbError) {
         console.error('❌ Ошибка при работе с БД:', dbError.message);
       }
     }
     
-    // Если БД не доступна или нет товаров, используем тестовые данные
-    if (!products || products.length === 0) {
-      console.log('📝 Используем тестовые товары из памяти');
-      products = getTestProducts();
-    }
+    // Только если БД не доступна ИЛИ нет товаров в БД - используем тестовые
+    console.log('⚠️ В БД нет товаров, используем тестовые данные');
+    products = getTestProducts();
     
     res.json({
       success: true,

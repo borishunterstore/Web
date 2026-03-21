@@ -263,66 +263,79 @@
         
         // Функция фильтрации товаров по категории
         function filterProductsByCategory(products, category) {
-            if (category === 'all') return products;
-            
-            // Маппинг категорий для поиска в товарах
-            const categoryFilters = {
-                'montaz': (product) => {
-                    const name = product.name.toLowerCase();
-                    const desc = (product.description || '').toLowerCase();
-                    const category = (product.category || '').toLowerCase();
-                    return name.includes('монтаж') || name.includes('видео') || 
-                           desc.includes('монтаж') || desc.includes('видео') ||
-                           category === 'montaz' || category === 'video' || category === 'youtube';
-                },
-                'ava': (product) => {
-                    const name = product.name.toLowerCase();
-                    const desc = (product.description || '').toLowerCase();
-                    return name.includes('аватар') || name.includes('avatar') ||
-                           desc.includes('аватар') || desc.includes('avatar') ||
-                           product.category === 'avatar';
-                },
-                'preview': (product) => {
-                    const name = product.name.toLowerCase();
-                    const desc = (product.description || '').toLowerCase();
-                    return name.includes('превью') || name.includes('preview') ||
-                           desc.includes('превью') || desc.includes('preview');
-                },
-                'discord': (product) => {
-                    const name = product.name.toLowerCase();
-                    const desc = (product.description || '').toLowerCase();
-                    const category = (product.category || '').toLowerCase();
-                    return name.includes('discord') || desc.includes('discord') ||
-                           category === 'discord' || category === 'discordbot' ||
-                           name.includes('сервер') || desc.includes('сервер');
-                },
-                'tgbot': (product) => {
-                    const name = product.name.toLowerCase();
-                    const desc = (product.description || '').toLowerCase();
-                    return name.includes('telegram') || name.includes('tg') ||
-                           desc.includes('telegram') || desc.includes('tg') ||
-                           product.category === 'telegram';
-                },
-                'website': (product) => {
-                    const name = product.name.toLowerCase();
-                    const desc = (product.description || '').toLowerCase();
-                    return name.includes('сайт') || name.includes('website') ||
-                           desc.includes('сайт') || desc.includes('website') ||
-                           name.includes('web') || product.category === 'website';
-                },
-                'minecraft': (product) => {
-                    const name = product.name.toLowerCase();
-                    const desc = (product.description || '').toLowerCase();
-                    return name.includes('minecraft') || name.includes('майнкрафт') ||
-                           desc.includes('minecraft') || desc.includes('майнкрафт') ||
-                           product.category === 'minecraft';
-                }
-            };
-            
-            const filter = categoryFilters[category];
-            return filter ? products.filter(filter) : products;
+    if (category === 'all') return products;
+    
+    // Маппинг категорий для поиска в товарах (учитываем ваши реальные категории из БД)
+    const categoryFilters = {
+        'montaz': (product) => {
+            const name = product.name.toLowerCase();
+            const desc = (product.description || '').toLowerCase();
+            const productCategory = (product.category || '').toLowerCase();
+            return name.includes('монтаж') || name.includes('видео') || 
+                   desc.includes('монтаж') || desc.includes('видео') ||
+                   productCategory === 'montaz' || productCategory === 'video' || 
+                   productCategory === 'youtube' || productCategory === 'montage';
+        },
+        'ava': (product) => {
+            const name = product.name.toLowerCase();
+            const desc = (product.description || '').toLowerCase();
+            const productCategory = (product.category || '').toLowerCase();
+            return name.includes('аватар') || name.includes('avatar') ||
+                   desc.includes('аватар') || desc.includes('avatar') ||
+                   productCategory === 'avatar' || productCategory === 'ava';
+        },
+        'preview': (product) => {
+            const name = product.name.toLowerCase();
+            const desc = (product.description || '').toLowerCase();
+            const productCategory = (product.category || '').toLowerCase();
+            return name.includes('превью') || name.includes('preview') ||
+                   desc.includes('превью') || desc.includes('preview') ||
+                   productCategory === 'preview';
+        },
+        'discord': (product) => {
+            const name = product.name.toLowerCase();
+            const desc = (product.description || '').toLowerCase();
+            const productCategory = (product.category || '').toLowerCase();
+            return name.includes('discord') || desc.includes('discord') ||
+                   productCategory === 'discord' || productCategory === 'discordbot' ||
+                   productCategory === 'discord_bot' ||
+                   name.includes('сервер') || desc.includes('сервер');
+        },
+        'tgbot': (product) => {
+            const name = product.name.toLowerCase();
+            const desc = (product.description || '').toLowerCase();
+            const productCategory = (product.category || '').toLowerCase();
+            return name.includes('telegram') || name.includes('tg') ||
+                   desc.includes('telegram') || desc.includes('tg') ||
+                   productCategory === 'telegram' || productCategory === 'tgbot' ||
+                   productCategory === 'bot';
+        },
+        'website': (product) => {
+            const name = product.name.toLowerCase();
+            const desc = (product.description || '').toLowerCase();
+            const productCategory = (product.category || '').toLowerCase();
+            return name.includes('сайт') || name.includes('website') ||
+                   desc.includes('сайт') || desc.includes('website') ||
+                   name.includes('web') || productCategory === 'website' ||
+                   productCategory === 'site';
+        },
+        'minecraft': (product) => {
+            const name = product.name.toLowerCase();
+            const desc = (product.description || '').toLowerCase();
+            const productCategory = (product.category || '').toLowerCase();
+            return name.includes('minecraft') || name.includes('майнкрафт') ||
+                   desc.includes('minecraft') || desc.includes('майнкрафт') ||
+                   productCategory === 'minecraft';
         }
-        
+    };
+    
+    const filter = categoryFilters[category];
+    const filtered = filter ? products.filter(filter) : [];
+    
+    console.log(`🔍 Фильтрация "${category}": найдено ${filtered.length} товаров из ${products.length}`);
+    return filtered;
+}
+
         // Функция для отображения товаров
         function renderProducts(products, activeCategory = null) {
             const container = document.getElementById('productsContainer');
