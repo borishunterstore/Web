@@ -1317,6 +1317,34 @@ app.post('/api/register', async (req, res) => {
 // Заказы
 // ============================================
 
+// Приветственное сообщение после верификации
+app.post('/api/welcome-message', async (req, res) => {
+  try {
+      const { userId } = req.body;
+      
+      const webhookUrl = 'https://discord.com/api/webhooks/1475846621425303674/Cm1D7yfWCjoh0nJys6jyedmEawUID6kpe2ycOc7xfjIC-p0M7i341cekSOVfMA2HLWn5';
+      
+      await axios.post(webhookUrl, {
+          content: `<@${userId}>`,
+          embeds: [{
+              title: '<:Wave:1386273780556496967> Добро пожаловать в BHStore!',
+              description: 'Вы успешно зарегистрировались в нашем магазине!',
+              color: 0x57F287,
+              fields: [
+                  { name: '🎉 Что дальше?', value: '1. Пополните баланс\n2. Выберите товары в магазине\n3. Наслаждайтесь покупками!', inline: false },
+                  { name: '🔗 Полезные ссылки', value: '[Магазин](https://bhstore.netlify.app/shop.html) | [Профиль](https://bhstore.netlify.app/profile.html) | [Поддержка](https://bhstore.netlify.app/profile.html#supportChat)', inline: false }
+              ],
+              timestamp: new Date().toISOString()
+          }]
+      });
+      
+      res.json({ success: true });
+  } catch (error) {
+      console.error('Ошибка отправки приветствия:', error.message);
+      res.json({ success: false });
+  }
+});
+
 // Создание заказа
 app.post('/api/create-order', async (req, res) => {
   try {

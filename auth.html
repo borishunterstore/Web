@@ -103,16 +103,11 @@ document.getElementById('authBtn').addEventListener('click', function() {
     const redirectUri = 'https://bhstore.netlify.app/auth/discord/callback';
     const scope = 'identify rpc email openid';
     const state = Math.random().toString(36).substring(2, 15);
-    
-    // Сохраняем state для проверки
     localStorage.setItem('discord_oauth_state', state);
-    
-    // Создаем URL для авторизации
     const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}&prompt=consent`;
     
     console.log('Opening Discord auth URL:', authUrl);
     
-    // Открываем окно авторизации
     const authWindow = window.open(
         authUrl, 
         'Discord Auth', 
@@ -124,10 +119,8 @@ document.getElementById('authBtn').addEventListener('click', function() {
         return;
     }
     
-    // Фокус на окне авторизации
     authWindow.focus();
     
-    // Слушаем сообщения от окна авторизации
     window.addEventListener('message', async function(event) {
         console.log('Message received from auth window:', event.data);
         
@@ -142,7 +135,6 @@ document.getElementById('authBtn').addEventListener('click', function() {
                 return;
             }
             
-            // Убираем state
             localStorage.removeItem('discord_oauth_state');
             
             const code = event.data.code;
@@ -152,14 +144,12 @@ document.getElementById('authBtn').addEventListener('click', function() {
                 return;
             }
             
-            // Показываем загрузку
             const authBtn = document.getElementById('authBtn');
             const originalText = authBtn.innerHTML;
             authBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Обработка...';
             authBtn.disabled = true;
             
             try {
-                // Отправляем код на сервер
                 console.log('Sending code to server...');
                 const response = await fetch('/api/auth/discord', {
                     method: 'POST',
@@ -174,12 +164,8 @@ document.getElementById('authBtn').addEventListener('click', function() {
                 
                 if (data.success && data.user) {
                     console.log('User authenticated:', data.user.username);
-                    
-                    // Генерируем код верификации
                     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
                     console.log('Generated verification code:', verificationCode);
-                    
-                    // Отправляем код пользователю через вебхук
                     const sendCodeResponse = await fetch('/api/send-verification', {
                         method: 'POST',
                         headers: {
@@ -194,7 +180,6 @@ document.getElementById('authBtn').addEventListener('click', function() {
                     const sendCodeResult = await sendCodeResponse.json();
                     
                     if (sendCodeResult.success) {
-                        // Сохраняем данные
                         const authData = {
                             ...data.user,
                             verificationCode: verificationCode,
@@ -204,8 +189,6 @@ document.getElementById('authBtn').addEventListener('click', function() {
                         localStorage.setItem('bhstore_auth', JSON.stringify(authData));
                         
                         console.log('Auth data saved, redirecting to verification...');
-                        
-                        // Перенаправляем на страницу верификации
                         window.location.href = '/verify.html';
                     } else {
                         throw new Error(sendCodeResult.error || 'Не удалось отправить код верификации');
@@ -216,8 +199,6 @@ document.getElementById('authBtn').addEventListener('click', function() {
             } catch (error) {
                 console.error('Auth error:', error);
                 alert('Ошибка авторизации: ' + error.message);
-                
-                // Восстанавливаем кнопку
                 authBtn.innerHTML = originalText;
                 authBtn.disabled = false;
             }
@@ -225,22 +206,21 @@ document.getElementById('authBtn').addEventListener('click', function() {
     });
 });
 
-        // Проверяем, если уже авторизован
         window.addEventListener('load', function() {
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             if (authData.username && !authData.verificationCode) {
-                // Уже авторизован, перенаправляем на главную
                 window.location.href = '/';
             }
         });
     </script>
-        <script src="js/cursor.js"></script>
-        <div class="custom-cursor"></div>
-        <canvas id="webCanvas"></canvas>
-        <div class="scroll-indicator">
-        <span class="scroll-value">0%</span>
-        </div>
-        <script src="js/pkm.js"></script>
-        <script src="js/mobile-nav.js"></script>
+<script src="js/cursor.js"></script>
+<script src="js/pkm.js"></script>
+<script src="js/mobile-nav.js"></script>
+
+<div class="custom-cursor"></div>
+<canvas id="webCanvas"></canvas>
+<div class="scroll-indicator">
+    <span class="scroll-value">0%</span>
+</div>
 </body>
 </html>
