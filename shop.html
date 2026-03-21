@@ -25,16 +25,15 @@
     <link rel="icon" type="image/png" href="/image/logo.png">
     
     <!-- СКРИПТЫ -->
-    <script src="js/shop.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/promocode.js"></script>
-    <script src="js/payment.js"></script>
-    <script src="js/chat.js"></script>
-    <script src="js/main.js"></script>
-    <script src="js/cursor.js"></script>
-    <script src="js/pkm.js"></script>
-    <script src="js/mobile-nav.js"></script>
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/promocode.js"></script>
+<script src="js/payment.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/main.js"></script>
+<script src="js/cursor.js"></script>
+<script src="js/pkm.js"></script>
+<script src="js/mobile-nav.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -125,17 +124,197 @@
     </footer>
 
     <script>
+// Загрузка страницы
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('🛍️ Загрузка магазина...');
+    
+    try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
+        
+        console.log('📦 Получены товары:', data);
+        
+        const container = document.getElementById('productsContainer');
+        
+        if (data.success && data.products && data.products.length > 0) {
+            window.allProducts = data.products;
+            
+            // Получаем категорию из URL
+            const urlCategory = getCategoryFromURL();
+            console.log('🔗 Категория из URL:', urlCategory);
+            
+            if (urlCategory) {
+                const filteredProducts = filterProductsByCategory(data.products, urlCategory);
+                renderProducts(filteredProducts, urlCategory);
+                activateCategoryButton(urlCategory);
+                
+                // Прокручиваем к каталогу
+                setTimeout(() => {
+                    document.querySelector('.shop-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 300);
+            } else {
+                renderProducts(data.products);
+                activateCategoryButton('all');
+            }
+            
+            initCategoryFilters(data.products);
+            
+            // Обрабатываем навигацию браузера (назад/вперед)
+            window.addEventListener('popstate', function() {
+                const newCategory = getCategoryFromURL();
+                if (newCategory) {
+                    const filtered = filterProductsByCategory(window.allProducts, newCategory);
+                    renderProducts(filtered, newCategory);
+                    activateCategoryButton(newCategory);
+                } else {
+                    renderProducts(window.allProducts);
+                    activateCategoryButton('all');
+                }
+            });
+            
+        } else {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <h3>Товары не найдены</h3>
+                    <p>В магазине пока нет товаров. Попробуйте зайти позже.</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.error('❌ Ошибка:', error);
+        document.getElementById('productsContainer').innerHTML = `
+            <div class="error-state">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Не удалось загрузить товары</p>
+                <button class="btn-primary" onclick="location.reload()">
+                    <i class="fas fa-sync-alt"></i> Попробовать снова
+                </button>
+            </div>
+        `;
+    }
+});
+
         // Маппинг URL параметров в категории
-        const URL_TO_CATEGORY = {
-            'montaz': 'montaz',
-            'ava': 'ava',
-            'preview': 'preview',
-            'discord': 'discord',
-            'discordbot': 'discord',
-            'tgbot': 'tgbot',
-            'website': 'website',
-            'minecraft': 'minecraft'
-        };
+const URL_TO_CATEGORY = {
+    'montaz': 'montaz',
+    'ava': 'ava',
+    'preview': 'preview',
+    'discord': 'discord',
+    'discordbot': 'discord',
+    'tgbot': 'tgbot',
+    'website': 'website',
+    'minecraft': 'minecraft'
+};
+
+// Функция для получения категории из URL
+function getCategoryFromURL() {
+    const hash = window.location.hash;
+    
+    // Формат #catalog?название
+    if (hash && hash.startsWith('#catalog')) {
+        const params = hash.split('?');
+        if (params.length > 1) {
+            const category = params[1];
+            if (URL_TO_CATEGORY[category]) {
+                console.log(`🔗 URL категория: ${category} -> ${URL_TO_CATEGORY[category]}`);
+                return URL_TO_CATEGORY[category];
+            }
+        }
+    }
+    
+    // Старый формат ?category=название
+    const urlParams = new URLSearchParams(window.location.search);
+    const catParam = urlParams.get('category');
+    if (catParam && URL_TO_CATEGORY[catParam]) {
+        return URL_TO_CATEGORY[catParam];
+    }
+    
+    return null;
+}
+
+// Функция для обновления URL без перезагрузки
+function updateURL(category) {
+    const categoryKey = Object.keys(URL_TO_CATEGORY).find(key => URL_TO_CATEGORY[key] === category);
+    if (categoryKey && categoryKey !== 'all') {
+        const newUrl = `/shop.html#catalog?${categoryKey}`;
+        window.history.pushState({ category: categoryKey }, '', newUrl);
+        console.log(`🔗 URL обновлен: ${newUrl}`);
+    } else {
+        const newUrl = `/shop.html`;
+        window.history.pushState({ category: 'all' }, '', newUrl);
+    }
+}
+
+// Функция фильтрации товаров
+function filterProductsByCategory(products, category) {
+    if (category === 'all') return products;
+    
+    const categoryFilters = {
+        'montaz': (product) => {
+            const name = product.name.toLowerCase();
+            const desc = (product.description || '').toLowerCase();
+            const productCategory = (product.category || '').toLowerCase();
+            return name.includes('монтаж') || name.includes('видео') || 
+                   desc.includes('монтаж') || desc.includes('видео') ||
+                   productCategory === 'montaz' || productCategory === 'video' || 
+                   productCategory === 'youtube';
+        },
+        'ava': (product) => {
+            const name = product.name.toLowerCase();
+            const desc = (product.description || '').toLowerCase();
+            const productCategory = (product.category || '').toLowerCase();
+            return name.includes('аватар') || name.includes('avatar') ||
+                   desc.includes('аватар') || desc.includes('avatar') ||
+                   productCategory === 'avatar';
+        },
+        'preview': (product) => {
+            const name = product.name.toLowerCase();
+            const desc = (product.description || '').toLowerCase();
+            const productCategory = (product.category || '').toLowerCase();
+            return name.includes('превью') || name.includes('preview') ||
+                   desc.includes('превью') || desc.includes('preview') ||
+                   productCategory === 'preview';
+        },
+        'discord': (product) => {
+            const name = product.name.toLowerCase();
+            const desc = (product.description || '').toLowerCase();
+            const productCategory = (product.category || '').toLowerCase();
+            return name.includes('discord') || desc.includes('discord') ||
+                   productCategory === 'discord' || productCategory === 'discordbot';
+        },
+        'tgbot': (product) => {
+            const name = product.name.toLowerCase();
+            const desc = (product.description || '').toLowerCase();
+            const productCategory = (product.category || '').toLowerCase();
+            return name.includes('telegram') || name.includes('tg') ||
+                   desc.includes('telegram') || desc.includes('tg') ||
+                   productCategory === 'telegram';
+        },
+        'website': (product) => {
+            const name = product.name.toLowerCase();
+            const desc = (product.description || '').toLowerCase();
+            const productCategory = (product.category || '').toLowerCase();
+            return name.includes('сайт') || name.includes('website') ||
+                   desc.includes('сайт') || desc.includes('website') ||
+                   productCategory === 'website';
+        },
+        'minecraft': (product) => {
+            const name = product.name.toLowerCase();
+            const desc = (product.description || '').toLowerCase();
+            const productCategory = (product.category || '').toLowerCase();
+            return name.includes('minecraft') || name.includes('майнкрафт') ||
+                   desc.includes('minecraft') || desc.includes('майнкрафт') ||
+                   productCategory === 'minecraft';
+        }
+    };
+    
+    const filter = categoryFilters[category];
+    const filtered = filter ? products.filter(filter) : [];
+    
+    console.log(`🔍 Фильтрация "${category}": найдено ${filtered.length} товаров из ${products.length}`);
+    return filtered;
+}
         
         // Обратное маппинг для отображения
         const CATEGORY_NAMES = {
@@ -255,90 +434,95 @@
         
         // Функция для отображения товаров
         function renderProducts(products, activeCategory = null) {
-            const container = document.getElementById('productsContainer');
-            
-            if (!products || products.length === 0) {
-                const categoryName = activeCategory ? CATEGORY_NAMES[activeCategory] || activeCategory : '';
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-box-open"></i>
-                        <h3>Товары не найдены</h3>
-                        <p>В категории "${categoryName}" пока нет товаров.</p>
-                        <button class="btn-primary" onclick="window.location.href='/shop.html'">
-                            <i class="fas fa-store"></i> Показать все товары
-                        </button>
-                    </div>
-                `;
-                return;
+    const container = document.getElementById('productsContainer');
+    
+    if (!products || products.length === 0) {
+        const categoryName = activeCategory ? CATEGORY_NAMES[activeCategory] || activeCategory : '';
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-box-open"></i>
+                <h3>Товары не найдены</h3>
+                <p>В категории "${categoryName}" пока нет товаров.</p>
+                <button class="btn-primary" onclick="window.location.href='/shop.html'">
+                    <i class="fas fa-store"></i> Показать все товары
+                </button>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = products.map((product, index) => {
+        // Получаем скидку
+        let finalPrice = product.price;
+        let discountInfo = { discount: 0 };
+        
+        // Используем paymentSystem если он есть
+        if (window.paymentSystem) {
+            if (window.paymentSystem.getDiscountInfo) {
+                discountInfo = window.paymentSystem.getDiscountInfo(product.price, product.id);
+                finalPrice = discountInfo.finalPrice;
+            } else if (window.paymentSystem.calculateDiscountedPrice) {
+                finalPrice = window.paymentSystem.calculateDiscountedPrice(product.price, product.id);
+                discountInfo.discount = Math.round((product.price - finalPrice) / product.price * 100);
             }
-            
-            container.innerHTML = products.map((product, index) => {
-                // Получаем скидку
-                let finalPrice = product.price;
-                let discountInfo = { discount: 0 };
-                
-                if (window.paymentSystem && window.paymentSystem.getDiscountInfo) {
-                    discountInfo = window.paymentSystem.getDiscountInfo(product.price, product.id);
-                    finalPrice = discountInfo.finalPrice;
-                }
-                
-                const hasDiscount = discountInfo.discount > 0;
-                
-                return `
-                    <div class="product-card" style="animation-delay: ${index * 0.1}s" data-product-id="${escapeHtml(product.id)}">
-                        ${hasDiscount ? `
-                            <div class="product-discount-badge">
-                                <i class="fas fa-tag"></i> -${discountInfo.discount}%
-                            </div>
-                        ` : ''}
-                        <div class="product-image">
-                            <img src="${product.image || product.icon || '/image/default-product.png'}" 
-                                 alt="${escapeHtml(product.name)}"
-                                 onerror="this.src='/image/default-product.png'">
-                        </div>
-                        <div class="product-info">
-                            <h3 class="product-title">${escapeHtml(product.name)}</h3>
-                            <p class="product-description">${escapeHtml(product.description || '')}</p>
-                            
-                            ${product.features ? `
-                                <div class="product-features">
-                                    ${Array.isArray(product.features) ? product.features.slice(0, 3).map(f => `
-                                        <div class="feature-item">
-                                            <i class="fas fa-check"></i>
-                                            <span>${escapeHtml(f)}</span>
-                                        </div>
-                                    `).join('') : ''}
-                                </div>
-                            ` : ''}
-                            
-                            <div class="price-section">
-                                ${hasDiscount ? `
-                                    <div class="original-price">
-                                        <span><i class="fas fa-clock"></i> Обычная цена</span>
-                                        <span>${product.price} ₽</span>
-                                    </div>
-                                    <div class="final-price">
-                                        <span><i class="fas fa-tag"></i> Цена со скидкой</span>
-                                        <span>${finalPrice} ₽</span>
-                                    </div>
-                                ` : `
-                                    <div class="final-price" style="justify-content: center;">
-                                        <span>${finalPrice} ₽</span>
-                                    </div>
-                                `}
-                            </div>
-                            
-                            <button class="btn-buy" 
-                                    onclick="buyProductDirect('${escapeHtml(product.id)}', '${escapeHtml(product.name)}', ${product.price})"
-                                    data-product-id="${escapeHtml(product.id)}">
-                                <i class="fas fa-shopping-cart"></i> Купить сейчас
-                            </button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
         }
         
+        const hasDiscount = discountInfo.discount > 0;
+        
+        return `
+            <div class="product-card" style="animation-delay: ${index * 0.1}s" data-product-id="${escapeHtml(product.id)}">
+                ${hasDiscount ? `
+                    <div class="product-discount-badge">
+                        <i class="fas fa-tag"></i> -${discountInfo.discount}%
+                    </div>
+                ` : ''}
+                <div class="product-image">
+                    <img src="${product.image || product.icon || '/image/default-product.png'}" 
+                         alt="${escapeHtml(product.name)}"
+                         onerror="this.src='/image/default-product.png'">
+                </div>
+                <div class="product-info">
+                    <h3 class="product-title">${escapeHtml(product.name)}</h3>
+                    <p class="product-description">${escapeHtml(product.description || '')}</p>
+                    
+                    ${product.features ? `
+                        <div class="product-features">
+                            ${Array.isArray(product.features) ? product.features.slice(0, 3).map(f => `
+                                <div class="feature-item">
+                                    <i class="fas fa-check"></i>
+                                    <span>${escapeHtml(f)}</span>
+                                </div>
+                            `).join('') : ''}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="price-section">
+                        ${hasDiscount ? `
+                            <div class="original-price">
+                                <span><i class="fas fa-clock"></i> Обычная цена</span>
+                                <span>${product.price} ₽</span>
+                            </div>
+                            <div class="final-price">
+                                <span><i class="fas fa-tag"></i> Цена со скидкой</span>
+                                <span>${finalPrice} ₽</span>
+                            </div>
+                        ` : `
+                            <div class="final-price" style="justify-content: center;">
+                                <span>${finalPrice} ₽</span>
+                            </div>
+                        `}
+                    </div>
+                    
+                    <button class="btn-buy" 
+                            onclick="buyProductDirect('${escapeHtml(product.id)}', '${escapeHtml(product.name)}', ${product.price})"
+                            data-product-id="${escapeHtml(product.id)}">
+                        <i class="fas fa-shopping-cart"></i> Купить сейчас
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+} 
     window.buyProductDirect = async function(productId, productName, originalPrice) {
         console.log('🛒 buyProductDirect:', { productId, productName, originalPrice });
         

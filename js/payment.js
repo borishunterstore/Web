@@ -1,9 +1,35 @@
-// payment.js - ПОЛНОСТЬЮ ПЕРЕПИСАН
+// payment.js - ИСПРАВЛЕННАЯ ВЕРСИЯ
 class PaymentSystem {
     constructor() {
         console.log('✅ PaymentSystem инициализирован');
     }
 
+    // Функция расчета цены со скидкой
+    calculateDiscountedPrice(originalPrice, productId = null) {
+        if (!window.promocodeSystem || !window.promocodeSystem.activeDiscounts) {
+            return originalPrice;
+        }
+        
+        const applicableDiscounts = window.promocodeSystem.activeDiscounts.filter(promocode => 
+            !promocode.productId || promocode.productId === productId
+        );
+        
+        if (applicableDiscounts.length === 0) {
+            return originalPrice;
+        }
+        
+        let totalDiscount = 0;
+        applicableDiscounts.forEach(promocode => {
+            totalDiscount += promocode.value;
+        });
+        
+        totalDiscount = Math.min(totalDiscount, 90);
+        const finalPrice = Math.round(originalPrice * (100 - totalDiscount) / 100);
+        
+        return finalPrice;
+    }
+
+    // Функция получения информации о скидке
     getDiscountInfo(originalPrice, productId = null) {
         if (!window.promocodeSystem || !window.promocodeSystem.activeDiscounts) {
             return {
@@ -83,7 +109,7 @@ class PaymentSystem {
                     <button onclick="window.location.href='/profile.html'" style="flex: 1; padding: 0.8rem; background: #5865F2; color: white; border: none; border-radius: 8px; cursor: pointer;">
                         Пополнить баланс
                     </button>
-                    <button onclick="this.closest('div').remove()" style="flex: 1; padding: 0.8rem; background: #40444b; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                    <button onclick="this.closest('div').parentElement.remove()" style="flex: 1; padding: 0.8rem; background: #40444b; color: white; border: none; border-radius: 8px; cursor: pointer;">
                         Закрыть
                     </button>
                 </div>
