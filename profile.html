@@ -19,15 +19,11 @@
     <title>Профиль | BHStore</title>
     <meta name="description" content="Управляйте своим профилем, балансом и заказами в BHStore">
     <meta name="keywords" content="профиль, баланс, заказы, промокоды, discord">
-    
-    <!-- Стили -->
     <link rel="stylesheet" href="css/general.css">
     <link rel="stylesheet" href="css/profile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="/image/logo.png">
-    
-    <!-- Скрипты в правильном порядке -->
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/chat.js"></script>
@@ -37,8 +33,6 @@
     <script src="js/cursor.js"></script>
     <script src="js/pkm.js"></script>
     <script src="js/mobile-nav.js"></script>
-    
-    <!-- Эффекты -->
     <div class="custom-cursor"></div>
     <canvas id="webCanvas"></canvas>
     <div class="scroll-indicator">
@@ -156,7 +150,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно пополнения баланса -->
     <div id="addBalanceModal" class="modal" style="display: none;">
         <div class="modal-content">
             <h2>
@@ -175,7 +168,6 @@
         </div>
     </div>
 
-    <!-- Модальное окно информации о промокоде -->
     <div id="promocodeInfoModal" class="modal" style="display: none;">
         <div class="modal-content">
             <h2>
@@ -192,25 +184,30 @@
     </div>
 
     <footer class="footer">
+        <img src="image/bhstore.png" style="width: 100%;">
+        <p class="footertxt" style="text-align: center; margin-bottom: 20px;">СПАСИБО, ЧТО ИСПОЛЬЗУЕТЕ НАШ СЕРВИС!</p>
         <div class="footer-content">
             <div class="footer-section">
-                <h3>BHStore</h3>
-                <p>Создание Discord ботов; написание кодов; создание Telegram ботов; Монтаж видео; Превью; Баннера; Аватарки; Minecraft Плагины, моды.</p>
+                <h3>Навигация</h3>
+                <a href="/">Главная</a>
+                <a href="shop.html">Магазин</a>
+                <a href="news.html">Новости</a>
+                <a href="faq.html">FAQ</a>
             </div>
             <div class="footer-section">
-                <h3>Профиль</h3>
-                <a href="#" onclick="logout()">Выйти</a>
-                <a href="/shop.html">Магазин</a>
-                <a href="/faq.html">Помощь</a>
+                <h3>Документы</h3>
+                <a href="legal.html#terms">Пользовательское соглашение</a>
+                <a href="legal.html#privacy">Политика конфиденциальности</a>
+                <a href="legal.html#offer">Публичная оферта</a>
             </div>
             <div class="footer-section">
                 <h3>Контакты</h3>
-                <p style="color: #fff"><img src="image/emoji/emoji_3.png" alt="BHStore" style="width: 25px;"> @borishunterstore</p>
-                <p style="color: #fff"><img src="image/emoji/emoji_3.png" alt="BHStore" style="width: 25px;"> @borisonchikofficial</p>
+                <a href="https://t.me/borishunterstore"> <p style="color: #fff"><img src="image/emoji/emoji_3.png" alt="BHStore" style="width: 25px;"> @borishunterstore</p></a>
+                <a href="https://t.me/borisonchikofficial"> <p style="color: #fff"><img src="image/emoji/emoji_3.png" alt="BHStore" style="width: 25px;"> @borisonchikofficial</p></a>
             </div>
         </div>
-        <div class="footer-bottom">
-            <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</p>
+        <div class="footer-bottom" style="margin-bottom: 20px;">
+            <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</a></p>
         </div>
     </footer>
 
@@ -581,6 +578,7 @@
                 });
             }
             
+            // Загружаем использованные промокоды при инициализации
             await loadUserPromocodes();
         }
     
@@ -616,6 +614,7 @@
                         await loadProfile();
                     }
                     
+                    // Обновляем список использованных промокодов
                     await loadUserPromocodes();
                     showPromocodeInfo(data);
                 } else {
@@ -676,8 +675,167 @@
             modal.style.display = 'flex';
         }
     
+        // Загрузка использованных промокодов из БД
         async function loadUserPromocodes() {
-            // Здесь можно загрузить список использованных промокодов
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            
+            if (!authData.id) {
+                console.log('❌ Нет ID пользователя для загрузки промокодов');
+                return;
+            }
+            
+            try {
+                console.log('📡 Загрузка истории промокодов пользователя...');
+                
+                // Загружаем историю использованных промокодов
+                const response = await fetch(`/api/promocodes/user/${authData.id}`);
+                const data = await response.json();
+                
+                if (data.success && data.promocodes) {
+                    renderUserPromocodes(data.promocodes);
+                    console.log(`✅ Загружено ${data.promocodes.length} использованных промокодов`);
+                } else {
+                    console.log('⚠️ Нет истории промокодов или ошибка загрузки');
+                    renderUserPromocodes([]);
+                }
+                
+            } catch (error) {
+                console.error('❌ Ошибка загрузки промокодов:', error);
+                renderUserPromocodes([]);
+            }
+        }
+        
+        // Отображение списка использованных промокодов
+        function renderUserPromocodes(promocodes) {
+            const container = document.getElementById('userPromocodesList');
+            
+            // Если контейнера нет, создаем его
+            let promocodesContainer = container;
+            if (!promocodesContainer) {
+                const promocodeSection = document.getElementById('promocodeSection');
+                if (promocodeSection) {
+                    // Создаем контейнер для списка использованных промокодов
+                    const newContainer = document.createElement('div');
+                    newContainer.id = 'userPromocodesList';
+                    newContainer.className = 'user-promocodes-list';
+                    newContainer.style.marginTop = '20px';
+                    promocodeSection.appendChild(newContainer);
+                    promocodesContainer = newContainer;
+                }
+            }
+            
+            if (!promocodesContainer) return;
+            
+            if (!promocodes || promocodes.length === 0) {
+                promocodesContainer.innerHTML = `
+                    <div class="empty-promocodes" style="text-align: center; padding: 20px; color: #b9bbbe;">
+                        <i class="fas fa-ticket-alt"></i>
+                        <p>У вас пока нет использованных промокодов</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Сортируем по дате (новые сверху)
+            const sortedPromocodes = [...promocodes].sort((a, b) => {
+                const dateA = new Date(a.usedAt || a.created_at || 0);
+                const dateB = new Date(b.usedAt || b.created_at || 0);
+                return dateB - dateA;
+            });
+            
+            promocodesContainer.innerHTML = `
+                <div class="promocodes-history-header" style="margin-bottom: 15px;">
+                    <h3 style="font-size: 1.1rem; color: #fff;">
+                        <i class="fas fa-history"></i> История использованных промокодов
+                    </h3>
+                </div>
+                <div class="promocodes-list">
+                    ${sortedPromocodes.map(promo => `
+                        <div class="promocode-history-item" style="
+                            background: #1e1f29;
+                            border-radius: 12px;
+                            padding: 12px 16px;
+                            margin-bottom: 10px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            transition: transform 0.2s, background 0.2s;
+                        ">
+                            <div class="promocode-info" style="display: flex; align-items: center; gap: 12px;">
+                                <div class="promocode-icon" style="
+                                    width: 40px;
+                                    height: 40px;
+                                    background: linear-gradient(135deg, #5865F2, #4752C4);
+                                    border-radius: 10px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                ">
+                                    <i class="fas fa-ticket-alt" style="color: #fff; font-size: 1.2rem;"></i>
+                                </div>
+                                <div>
+                                    <div class="promocode-code" style="
+                                        font-weight: 600;
+                                        color: #FEE75C;
+                                        font-family: monospace;
+                                        font-size: 1rem;
+                                    ">
+                                        ${escapeHtml(promo.code)}
+                                    </div>
+                                    <div class="promocode-details" style="
+                                        display: flex;
+                                        gap: 15px;
+                                        margin-top: 4px;
+                                        font-size: 0.85rem;
+                                        color: #b9bbbe;
+                                    ">
+                                        <span>
+                                            <i class="fas fa-${promo.type === 'discount' ? 'percent' : 'coins'}"></i>
+                                            ${promo.type === 'discount' ? `${promo.value}% скидка` : `${promo.value}₽`}
+                                        </span>
+                                        <span>
+                                            <i class="fas fa-calendar-alt"></i>
+                                            ${new Date(promo.usedAt || promo.created_at || Date.now()).toLocaleDateString('ru-RU')}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="promocode-status" style="
+                                padding: 4px 12px;
+                                border-radius: 20px;
+                                font-size: 0.8rem;
+                                background: #2a2b36;
+                                color: #57F287;
+                            ">
+                                <i class="fas fa-check-circle"></i> Использован
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            // Добавляем стили для hover эффекта
+            const style = document.createElement('style');
+            style.textContent = `
+                .promocode-history-item:hover {
+                    background: #2a2b36 !important;
+                    transform: translateX(5px);
+                }
+                .user-promocodes-list {
+                    animation: fadeIn 0.3s ease;
+                }
+                @keyframes fadeIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(10px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
         }
     
         // Логаут

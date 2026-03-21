@@ -1811,3 +1811,72 @@ body {
     pointer-events: none;
     opacity: 0.7;
 }
+
+.txtcta{
+    font-size: 25px
+}
+.footertxt{
+    font-size: 50px
+}
+.ready{
+    width: 80px
+}
+.txtminn{
+    font-size: 25px
+}
+@media (max-width: 1024px) {
+.txtcta{
+    font-size: 25px
+}
+.footertxt{
+    font-size: 40px
+}
+.ready{
+    width: 70px
+}
+.txtminn{
+    font-size: 25px
+    width: 45px; 
+}}
+@media (max-width: 768px) {
+.txtcta{
+    font-size: 20px
+}
+.footertxt{
+    font-size: 25px
+}
+.ready{
+    width: 50px
+}
+.txtminn{
+    font-size: 25px;
+    width: 45px; 
+}}
+@media (max-width: 480px) {
+.txtcta{
+    font-size: 10px
+}
+.footertxt{
+    font-size: 25px
+}
+.ready{
+    width: 25px
+}
+.txtminn{
+    font-size: 25px;
+    width: 45px; 
+}}
+@media (max-width: 452px) {
+.txtcta{
+    font-size: 10px
+}
+.footertxt{
+    font-size: 25px
+}
+.ready{
+    width: 0px
+}
+.txtminn{
+    font-size: 25px;
+    width: 20px; 
+}}
