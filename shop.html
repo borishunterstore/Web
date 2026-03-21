@@ -28,6 +28,7 @@
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/promocode.js"></script>
+    <script src="js/payment.js"></script>
     <script src="js/chat.js"></script>
     <script src="js/main.js"></script>
     <script src="js/cursor.js"></script>
@@ -337,434 +338,319 @@
             }).join('');
         }
         
-        // Прямая функция покупки
-        window.buyProductDirect = async function(productId, productName, originalPrice) {
-            console.log('🛒 buyProductDirect вызван:', { productId, productName, originalPrice });
+    window.buyProductDirect = async function(productId, productName, originalPrice) {
+        console.log('🛒 buyProductDirect:', { productId, productName, originalPrice });
+        
+        // Проверяем входные данные
+        if (!productId || !productName || originalPrice === undefined || originalPrice === null) {
+            console.error('❌ Ошибка: отсутствуют параметры');
+            showToast('Ошибка: не удалось получить данные товара', 'error');
+            return;
+        }
+        
+        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+        
+        if (!authData.id) {
+            if (confirm('Для покупки необходимо авторизоваться. Перейти на страницу входа?')) {
+                window.location.href = '/auth.html';
+            }
+            return;
+        }
+        
+        try {
+            showToast('Проверка баланса...', 'info');
             
-            // Проверяем входные данные
-            if (!productId || !productName || originalPrice === undefined || originalPrice === null) {
-                console.error('❌ Ошибка: отсутствуют параметры', { productId, productName, originalPrice });
-                showToast('Ошибка: не удалось получить данные товара', 'error');
+            // Получаем баланс пользователя
+            const balanceResponse = await fetch(`/api/user/${authData.id}/balance`);
+            const balanceData = await balanceResponse.json();
+            
+            if (!balanceData.success) {
+                throw new Error('Не удалось получить баланс');
+            }
+            
+            const userBalance = balanceData.balance || 0;
+            
+            // Получаем скидку
+            let discountInfo = { discount: 0, discountAmount: 0, appliedPromocodes: [] };
+            let finalPrice = originalPrice;
+            
+            if (window.paymentSystem && window.paymentSystem.getDiscountInfo) {
+                discountInfo = window.paymentSystem.getDiscountInfo(originalPrice, productId);
+                finalPrice = discountInfo.finalPrice;
+            }
+            
+            console.log(`💰 Баланс: ${userBalance} ₽, Цена: ${finalPrice} ₽, Скидка: ${discountInfo.discount}%`);
+            
+            if (userBalance < finalPrice) {
+                if (window.paymentSystem && window.paymentSystem.showInsufficientFundsModal) {
+                    window.paymentSystem.showInsufficientFundsModal(finalPrice, userBalance, productName);
+                } else {
+                    showToast(`Недостаточно средств! Нужно: ${finalPrice} ₽`, 'error');
+                }
                 return;
             }
             
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            // Показываем модальное окно
+            showPurchaseModal(productId, productName, originalPrice, finalPrice, discountInfo, userBalance);
             
-            if (!authData.id) {
-                if (confirm('Для покупки необходимо авторизоваться. Перейти на страницу входа?')) {
-                    window.location.href = '/auth.html';
-                }
-                return;
-            }
-            
-            if (authData.verificationCode) {
-                if (confirm('Необходимо завершить регистрацию. Перейти на страницу верификации?')) {
-                    window.location.href = '/verify.html';
-                }
-                return;
-            }
-            
-            try {
-                showToast('Проверка баланса...', 'info');
+        } catch (error) {
+            console.error('❌ Ошибка:', error);
+            showToast('Ошибка: ' + error.message, 'error');
+        }
+    };
+    
+    // Функция показа модального окна
+    function showPurchaseModal(productId, productName, originalPrice, finalPrice, discountInfo, userBalance) {
+        // Удаляем старый модал
+        const existingModal = document.getElementById('purchaseModal');
+        if (existingModal) existingModal.remove();
+        
+        // Генерируем номер заказа (единый формат)
+        const orderId = 'ORD-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+        
+        const modal = document.createElement('div');
+        modal.id = 'purchaseModal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        `;
+        
+        // Безопасные значения
+        const safeProductName = productName || 'Товар';
+        const safeFinalPrice = finalPrice || 0;
+        const safeUserBalance = userBalance || 0;
+        const safeNewBalance = safeUserBalance - safeFinalPrice;
+        
+        let discountHTML = '';
+        if (discountInfo && discountInfo.discount > 0) {
+            discountHTML = `
+                <div style="background: #202225; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                    <div style="color: #57F287; font-weight: 600; margin-bottom: 0.5rem;">
+                        <i class="fas fa-tag"></i> Примененные скидки:
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #b9bbbe;">Оригинальная цена:</span>
+                        <span style="color: #b9bbbe; text-decoration: line-through;">${originalPrice} ₽</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #b9bbbe;">Скидка (${discountInfo.discount}%):</span>
+                        <span style="color: #57F287;">-${discountInfo.discountAmount} ₽</span>
+                    </div>
+                    ${discountInfo.appliedPromocodes && discountInfo.appliedPromocodes.length > 0 ? `
+                        <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #b9bbbe;">
+                            <i class="fas fa-ticket-alt"></i> Промокоды: ${discountInfo.appliedPromocodes.map(p => p.code).join(', ')}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        modal.innerHTML = `
+            <div style="background: #2a2b36; border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 style="color: white; margin: 0;">Подтверждение покупки</h2>
+                    <button onclick="this.closest('#purchaseModal').remove()" 
+                            style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">
+                        ×
+                    </button>
+                </div>
                 
-                // Получаем баланс пользователя
-                const balanceResponse = await fetch(`/api/user/${authData.id}/balance`);
-                const balanceData = await balanceResponse.json();
+                <div style="background: #202225; padding: 1rem; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="color: #b9bbbe;">Товар:</span>
+                        <span style="color: white; font-weight: 500;">${escapeHtml(safeProductName)}</span>
+                    </div>
+                    ${discountHTML}
+                    <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
+                        <span style="color: #b9bbbe;">Итоговая сумма:</span>
+                        <span style="color: #57F287; font-size: 1.2rem; font-weight: 600;">${safeFinalPrice} ₽</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #b9bbbe;">Ваш баланс:</span>
+                        <span style="color: ${safeUserBalance >= safeFinalPrice ? '#57F287' : '#ED4245'};">${safeUserBalance} ₽</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: #b9bbbe;">Останется:</span>
+                        <span style="color: ${safeNewBalance >= 0 ? '#57F287' : '#ED4245'};">${safeNewBalance} ₽</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
+                        <span style="color: #b9bbbe;">Номер заказа:</span>
+                        <span style="color: #5865F2;">${orderId}</span>
+                    </div>
+                </div>
                 
-                if (!balanceData.success) {
-                    throw new Error('Не удалось получить баланс');
-                }
-                
-                const userBalance = balanceData.balance || 0;
-                
-                // Получаем скидку
-                let finalPrice = originalPrice;
-                let discountInfo = { discount: 0, discountAmount: 0, appliedPromocodes: [] };
-                
-                if (window.paymentSystem && window.paymentSystem.getDiscountInfo) {
-                    discountInfo = window.paymentSystem.getDiscountInfo(originalPrice, productId);
-                    finalPrice = discountInfo.finalPrice;
-                }
-                
-                console.log(`💰 Баланс: ${userBalance} ₽, Цена: ${finalPrice} ₽, Скидка: ${discountInfo.discount}%`);
-                
-                if (userBalance < finalPrice) {
-                    showToast(`Недостаточно средств! Нужно: ${finalPrice} ₽, у вас: ${userBalance} ₽`, 'error');
-                    return;
-                }
-                
-                // Показываем модальное окно подтверждения
-                showPurchaseModal(productId, productName, originalPrice, finalPrice, discountInfo, userBalance);
-                
-            } catch (error) {
-                console.error('❌ Ошибка:', error);
-                showToast('Ошибка: ' + error.message, 'error');
-            }
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button id="confirmPurchaseBtn" 
+                            style="flex: 1; padding: 0.8rem; background: #57F287; color: #1e1f29; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-check"></i> Подтвердить
+                    </button>
+                    <button onclick="this.closest('#purchaseModal').remove()" 
+                            style="flex: 1; padding: 0.8rem; background: #ED4245; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-times"></i> Отмена
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Обработчик подтверждения
+        document.getElementById('confirmPurchaseBtn').onclick = async () => {
+            await confirmPurchase(productId, safeProductName, safeFinalPrice, originalPrice, orderId, discountInfo);
+            modal.remove();
         };
+    }
+    
+    // Функция подтверждения покупки
+    async function confirmPurchase(productId, productName, finalPrice, originalPrice, orderId, discountInfo) {
+        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
         
-        // Функция показа модального окна подтверждения
-        function showPurchaseModal(productId, productName, originalPrice, finalPrice, discountInfo, userBalance) {
-            console.log('📦 showPurchaseModal вызван:', {
-                productId, productName, originalPrice, finalPrice, discountInfo, userBalance
-            });
+        try {
+            showToast('Обработка покупки...', 'info');
             
-            // Удаляем старый модал если есть
-            const existingModal = document.getElementById('purchaseModal');
-            if (existingModal) existingModal.remove();
+            const orderData = {
+                userId: authData.id,
+                productId: productId,
+                productName: productName,
+                price: finalPrice,
+                originalPrice: originalPrice || finalPrice,
+                username: authData.username
+            };
             
-            // Генерируем номер заказа
-            const orderId = 'ORD-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-            
-            const modal = document.createElement('div');
-            modal.id = 'purchaseModal';
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.8);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 10000;
-                font-family: 'Segoe UI', sans-serif;
-            `;
-            
-            // Проверяем значения
-            const safeProductName = productName || 'Товар';
-            const safeFinalPrice = finalPrice || 0;
-            const safeUserBalance = userBalance || 0;
-            const safeNewBalance = safeUserBalance - safeFinalPrice;
-            
-            let discountHTML = '';
-            if (discountInfo && discountInfo.discount > 0) {
-                const safeDiscountAmount = discountInfo.discountAmount || Math.round(originalPrice * discountInfo.discount / 100);
-                discountHTML = `
-                    <div style="background: #202225; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
-                        <div style="color: #57F287; font-weight: 600; margin-bottom: 0.5rem;">
-                            <i class="fas fa-tag"></i> Примененные скидки:
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="color: #b9bbbe;">Оригинальная цена:</span>
-                            <span style="color: #b9bbbe; text-decoration: line-through;">${originalPrice || safeFinalPrice} ₽</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="color: #b9bbbe;">Скидка (${discountInfo.discount}%):</span>
-                            <span style="color: #57F287;">-${safeDiscountAmount} ₽</span>
-                        </div>
-                        ${discountInfo.appliedPromocodes && discountInfo.appliedPromocodes.length > 0 ? `
-                            <div style="margin-top: 0.5rem; font-size: 0.9rem; color: #b9bbbe;">
-                                <i class="fas fa-ticket-alt"></i> Промокоды: ${discountInfo.appliedPromocodes.map(p => p.code).join(', ')}
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
+            if (discountInfo && discountInfo.appliedPromocodes && discountInfo.appliedPromocodes.length > 0) {
+                orderData.promocodes = discountInfo.appliedPromocodes.map(p => p.code);
+                orderData.discount = discountInfo.discount;
+                orderData.discountAmount = discountInfo.discountAmount;
             }
             
-            modal.innerHTML = `
-                <div style="background: #2a2b36; border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%;">
-                    <h2 style="color: white; margin: 0 0 1rem 0;">Подтверждение покупки</h2>
-                    
-                    <div style="background: #202225; padding: 1rem; border-radius: 8px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                            <span style="color: #b9bbbe;">Товар:</span>
-                            <span style="color: white; font-weight: 500;">${escapeHtml(safeProductName)}</span>
-                        </div>
-                        ${discountHTML}
-                        <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
-                            <span style="color: #b9bbbe;">Итоговая сумма:</span>
-                            <span style="color: #57F287; font-size: 1.2rem; font-weight: 600;">${safeFinalPrice} ₽</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="color: #b9bbbe;">Ваш баланс:</span>
-                            <span style="color: ${safeUserBalance >= safeFinalPrice ? '#57F287' : '#ED4245'};">${safeUserBalance} ₽</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <span style="color: #b9bbbe;">Останется:</span>
-                            <span style="color: ${safeNewBalance >= 0 ? '#57F287' : '#ED4245'};">${safeNewBalance} ₽</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
-                            <span style="color: #b9bbbe;">Номер заказа:</span>
-                            <span style="color: #5865F2;">${orderId}</span>
-                        </div>
-                    </div>
-                    
-                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
-                        <button id="confirmPurchaseBtn" 
-                                style="flex: 1; padding: 0.8rem; background: #57F287; color: #1e1f29; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                            <i class="fas fa-check"></i> Подтвердить
-                        </button>
-                        <button id="cancelPurchaseBtn" 
-                                style="flex: 1; padding: 0.8rem; background: #ED4245; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                            <i class="fas fa-times"></i> Отмена
-                        </button>
-                    </div>
-                </div>
-            `;
+            console.log('📤 Отправка заказа:', orderData);
             
-            document.body.appendChild(modal);
-            
-            // Обработчик подтверждения
-            document.getElementById('confirmPurchaseBtn').onclick = async () => {
-                await confirmPurchaseDirect(productId, safeProductName, safeFinalPrice, originalPrice, orderId, discountInfo);
-                modal.remove();
-            };
-            
-            // Обработчик отмены
-            document.getElementById('cancelPurchaseBtn').onclick = () => {
-                console.log('❌ Покупка отменена');
-                modal.remove();
-            };
-            
-            // Закрытие по клику на фон
-            modal.onclick = (e) => {
-                if (e.target === modal) modal.remove();
-            };
-        }
-        
-        // Функция подтверждения покупки
-        async function confirmPurchaseDirect(productId, productName, finalPrice, originalPrice, orderId, discountInfo) {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            try {
-                showToast('Обработка покупки...', 'info');
-                
-                const orderData = {
-                    userId: authData.id,
-                    productId: productId,
-                    productName: productName,
-                    price: finalPrice,
-                    originalPrice: originalPrice || finalPrice,
-                    username: authData.username
-                };
-                
-                if (discountInfo && discountInfo.appliedPromocodes && discountInfo.appliedPromocodes.length > 0) {
-                    orderData.promocodes = discountInfo.appliedPromocodes.map(p => p.code);
-                    orderData.discount = discountInfo.discount;
-                    orderData.discountAmount = discountInfo.discountAmount;
-                }
-                
-                console.log('📤 Отправка заказа:', orderData);
-                
-                const response = await fetch('/api/create-order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(orderData)
-                });
-                
-                const result = await response.json();
-                console.log('📥 Ответ сервера:', result);
-                
-                if (result.success) {
-                    // Обновляем данные пользователя
-                    authData.balance = result.newBalance;
-                    if (!authData.badges) authData.badges = {};
-                    authData.badges.buyer = true;
-                    localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-                    
-                    // Удаляем использованные промокоды
-                    if (discountInfo && discountInfo.appliedPromocodes && discountInfo.appliedPromocodes.length > 0 && window.promocodeSystem) {
-                        discountInfo.appliedPromocodes.forEach(promo => {
-                            if (window.promocodeSystem.removeDiscount) {
-                                window.promocodeSystem.removeDiscount(promo.code);
-                            }
-                        });
-                    }
-                    
-                    showSuccessMessage(result.orderId || orderId, productName, result.newBalance);
-                } else {
-                    throw new Error(result.error || 'Ошибка при создании заказа');
-                }
-                
-            } catch (error) {
-                console.error('❌ Ошибка покупки:', error);
-                showToast('Ошибка: ' + error.message, 'error');
-            }
-        }
-        
-        // Функция показа сообщения об успехе
-        function showSuccessMessage(orderId, productName, newBalance) {
-            const successDiv = document.createElement('div');
-            successDiv.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.9);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 10001;
-            `;
-            
-            successDiv.innerHTML = `
-                <div style="background: #2a2b36; padding: 2rem; border-radius: 12px; text-align: center; max-width: 400px; width: 90%;">
-                    <div style="width: 60px; height: 60px; background: #57F287; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                        <i class="fas fa-check" style="color: #1e1f29; font-size: 2rem;"></i>
-                    </div>
-                    <h2 style="color: #57F287;">Покупка успешна!</h2>
-                    <p style="color: white;">Заказ: <strong>${orderId}</strong></p>
-                    <p style="color: white;">Товар: ${escapeHtml(productName)}</p>
-                    <p style="color: #57F287; font-size: 1.2rem;">Остаток: ${newBalance} ₽</p>
-                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                        <button onclick="location.reload()" style="flex: 1; padding: 0.8rem; background: #5865F2; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                            Ок
-                        </button>
-                        <button onclick="window.location.href='/profile.html'" style="flex: 1; padding: 0.8rem; background: #40444b; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                            В профиль
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(successDiv);
-            
-            setTimeout(() => {
-                successDiv.remove();
-            }, 3000);
-        }
-        
-        // Функция показа уведомления (toast)
-        function showToast(message, type = 'info') {
-            const toast = document.createElement('div');
-            toast.style.cssText = `
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                padding: 12px 20px;
-                background: ${type === 'error' ? '#ED4245' : type === 'success' ? '#57F287' : '#5865F2'};
-                color: white;
-                border-radius: 8px;
-                z-index: 10002;
-                animation: slideIn 0.3s ease;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                font-size: 14px;
-            `;
-            toast.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : 'info-circle'}"></i> ${escapeHtml(message)}`;
-            document.body.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-        
-        // Функция активации кнопки категории
-        function activateCategoryButton(category) {
-            const buttons = document.querySelectorAll('.category-btn');
-            buttons.forEach(btn => {
-                if (btn.dataset.category === category) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+            const response = await fetch('/api/create-order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
             });
-        }
-        
-        // Функция инициализации фильтров
-        function initCategoryFilters(allProducts) {
-            const categoryButtons = document.querySelectorAll('.category-btn');
             
-            categoryButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const category = this.dataset.category;
-                    updateURL(category);
-                    
-                    if (category === 'all') {
-                        renderProducts(allProducts);
-                        activateCategoryButton('all');
-                    } else {
-                        const filtered = filterProductsByCategory(allProducts, category);
-                        renderProducts(filtered, category);
-                        activateCategoryButton(category);
-                    }
-                    
-                    document.querySelector('.shop-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                });
-            });
-        }
-        
-        // Функция экранирования HTML
-        function escapeHtml(unsafe) {
-            if (!unsafe) return '';
-            return String(unsafe)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-        
-        // Загрузка страницы
-        document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🛍️ Загрузка магазина...');
+            const result = await response.json();
+            console.log('📥 Ответ сервера:', result);
             
-            try {
-                const response = await fetch('/api/products');
-                const data = await response.json();
+            if (result.success) {
+                // Обновляем данные пользователя
+                authData.balance = result.newBalance;
+                if (!authData.badges) authData.badges = {};
+                authData.badges.buyer = true;
+                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
                 
-                console.log('📦 Получены товары:', data);
-                
-                const container = document.getElementById('productsContainer');
-                
-                if (data.success && data.products && data.products.length > 0) {
-                    window.allProducts = data.products;
-                    
-                    const urlCategory = getCategoryFromURL();
-                    
-                    if (urlCategory) {
-                        const filteredProducts = filterProductsByCategory(data.products, urlCategory);
-                        renderProducts(filteredProducts, urlCategory);
-                        activateCategoryButton(urlCategory);
-                        
-                        setTimeout(() => {
-                            document.querySelector('.shop-container')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }, 300);
-                    } else {
-                        renderProducts(data.products);
-                        activateCategoryButton('all');
-                    }
-                    
-                    initCategoryFilters(data.products);
-                    
-                    window.addEventListener('popstate', function() {
-                        const newCategory = getCategoryFromURL();
-                        if (newCategory) {
-                            const filtered = filterProductsByCategory(window.allProducts, newCategory);
-                            renderProducts(filtered, newCategory);
-                            activateCategoryButton(newCategory);
-                        } else {
-                            renderProducts(window.allProducts);
-                            activateCategoryButton('all');
+                // Удаляем использованные промокоды
+                if (discountInfo && discountInfo.appliedPromocodes && discountInfo.appliedPromocodes.length > 0 && window.promocodeSystem) {
+                    discountInfo.appliedPromocodes.forEach(promo => {
+                        if (window.promocodeSystem.removeDiscount) {
+                            window.promocodeSystem.removeDiscount(promo.code);
                         }
                     });
-                    
-                } else {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-box-open"></i>
-                            <h3>Товары не найдены</h3>
-                            <p>В магазине пока нет товаров. Попробуйте зайти позже.</p>
-                        </div>
-                    `;
                 }
-            } catch (error) {
-                console.error('❌ Ошибка:', error);
-                document.getElementById('productsContainer').innerHTML = `
-                    <div class="error-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>Не удалось загрузить товары</p>
-                        <button class="btn-primary" onclick="location.reload()">
-                            <i class="fas fa-sync-alt"></i> Попробовать снова
-                        </button>
-                    </div>
-                `;
+                
+                showSuccessMessage(result.orderId || orderId, productName, result.newBalance);
+            } else {
+                throw new Error(result.error || 'Ошибка при создании заказа');
             }
-        });
-    </script>
+            
+        } catch (error) {
+            console.error('❌ Ошибка покупки:', error);
+            showToast('Ошибка: ' + error.message, 'error');
+        }
+    }
+    
+    // Функция показа сообщения об успехе
+    function showSuccessMessage(orderId, productName, newBalance) {
+        const successDiv = document.createElement('div');
+        successDiv.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10001;
+        `;
+        
+        successDiv.innerHTML = `
+            <div style="background: #2a2b36; border-radius: 12px; padding: 2rem; text-align: center; max-width: 400px; width: 90%;">
+                <div style="width: 60px; height: 60px; background: #57F287; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-check" style="color: #1e1f29; font-size: 2rem;"></i>
+                </div>
+                <h2 style="color: #57F287;">Покупка успешна!</h2>
+                <p style="color: white;">Заказ: <strong>${orderId}</strong></p>
+                <p style="color: white;">Товар: <strong>${escapeHtml(productName)}</strong></p>
+                <div style="background: #202225; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                    <p style="color: #b9bbbe; margin: 0;">Остаток на балансе:</p>
+                    <p style="color: #57F287; font-size: 1.5rem; font-weight: 600; margin: 0.5rem 0 0 0;">${newBalance} ₽</p>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <button onclick="location.reload()" style="flex: 1; padding: 0.8rem; background: #5865F2; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        Ок
+                    </button>
+                    <button onclick="window.location.href='/profile.html'" style="flex: 1; padding: 0.8rem; background: #40444b; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        В профиль
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(successDiv);
+        
+        setTimeout(() => {
+            successDiv.remove();
+        }, 3000);
+    }
+    
+    // Функция показа уведомления
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background: ${type === 'error' ? '#ED4245' : type === 'success' ? '#57F287' : '#5865F2'};
+            color: white;
+            border-radius: 8px;
+            z-index: 10002;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        `;
+        toast.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'success' ? 'check-circle' : 'info-circle'}"></i> ${escapeHtml(message)}`;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
+    // Функция экранирования HTML
+    function escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return String(unsafe)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+</script>
     
     <div class="custom-cursor"></div>
     <canvas id="webCanvas"></canvas>
