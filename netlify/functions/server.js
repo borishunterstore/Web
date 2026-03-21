@@ -1320,12 +1320,14 @@ app.post('/api/register', async (req, res) => {
 // Создание заказа
 app.post('/api/create-order', async (req, res) => {
   try {
-    const { userId, productId, productName, price, originalPrice, username, promocodes, discount, discountAmount } = req.body;
+    const { userId, productId, productName, price, originalPrice, username, promocodes, discount, discountAmount, orderId: clientOrderId } = req.body;
+    
+    // Используем orderId с фронтенда или генерируем новый
+    const orderId = clientOrderId || `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
     
     console.log(`🛒 Заказ от ${username || userId}: ${productName}`);
+    console.log(`📦 Номер заказа: ${orderId}`);
     console.log(`💰 Цена: ${price} ₽ (оригинал: ${originalPrice || price} ₽)`);
-    
-    const orderId = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
     
     // Получаем пользователя из БД
     let user = null;
@@ -1370,9 +1372,9 @@ app.post('/api/create-order', async (req, res) => {
     
     const newBalance = userBalance - finalPrice;
     
-    // Создаем заказ
+    // Создаем заказ с ИСПОЛЬЗОВАНИЕМ orderId с фронтенда
     const order = {
-      id: orderId,
+      id: orderId,  // Используем orderId с фронтенда
       productId,
       productName,
       price: finalPrice,
@@ -1409,13 +1411,13 @@ app.post('/api/create-order', async (req, res) => {
               badges = ${JSON.stringify(badges)}
           WHERE discord_id = ${userId}
         `;
-        console.log('✅ Заказ сохранен в БД');
+        console.log('✅ Заказ сохранен в БД с номером:', orderId);
       } catch (dbError) {
         console.error('❌ Ошибка сохранения заказа в БД:', dbError.message);
       }
     }
 
-    // Отправляем уведомление в Discord
+    // Отправляем уведомление в Discord с ТЕМ ЖЕ номером заказа
     try {
       const webhookUrl = 'https://discord.com/api/webhooks/1475847164801581127/8YklZGMVs-4reVU9yr4WbsO5OM1R5l2lM6yYmYyIPxhFICS1fDRZCD4ATL8sLEIaF1v5';
       
@@ -1425,7 +1427,7 @@ app.post('/api/create-order', async (req, res) => {
         color: 0x57F287,
         fields: [
           { name: '💰 Цена', value: `${finalPrice} ₽`, inline: true },
-          { name: '📦 Заказ', value: orderId, inline: true },
+          { name: '📦 Заказ', value: orderId, inline: true },  // Используем ТОТ ЖЕ orderId
           { name: '💎 Баланс после', value: `${newBalance} ₽`, inline: true }
         ],
         timestamp: new Date().toISOString()
@@ -1440,14 +1442,14 @@ app.post('/api/create-order', async (req, res) => {
       }
       
       await axios.post(webhookUrl, { embeds: [embed] });
-      console.log('✅ Уведомление отправлено в Discord');
+      console.log('✅ Уведомление отправлено в Discord с номером заказа:', orderId);
     } catch (webhookError) {
       console.error('❌ Ошибка отправки вебхука:', webhookError.message);
     }
 
     res.json({
       success: true,
-      orderId: orderId,
+      orderId: orderId,  // Возвращаем ТОТ ЖЕ orderId
       newBalance: newBalance
     });
 
