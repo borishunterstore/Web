@@ -45,7 +45,7 @@
                         </a>
                     `).join('')}
                 </div>
-                <div class="mobile-nav-auth">
+                <div class="mobile-nav-auth" style="margin-bottom: 30px;">
                     ${navAuth ? navAuth.innerHTML : ''}
                 </div>
             `;

@@ -2,18 +2,18 @@
 <html lang="ru">
 <head>
     <!-- Yandex.Metrika counter -->
-<script type="text/javascript">
-    (function(m,e,t,r,i,k,a){
-        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-        m[i].l=1*new Date();
-        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097', 'ym');
+    <script type="text/javascript">
+        (function(m,e,t,r,i,k,a){
+            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+            m[i].l=1*new Date();
+            for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+        })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097', 'ym');
 
-    ym(107215097, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-</script>
-<noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-<!-- /Yandex.Metrika counter -->
+        ym(107215097, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+    </script>
+    <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    <!-- /Yandex.Metrika counter -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Новости | BHStore</title>
@@ -22,6 +22,63 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="/image/logo.png">
+    <style>
+        .news-loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px;
+            color: var(--text-secondary);
+        }
+        .news-loading i {
+            font-size: 2rem;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .news-empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            color: var(--text-secondary);
+        }
+        .news-empty i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+        .news-article {
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .pagination-dots {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            height: 40px;
+            color: var(--text-secondary);
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -133,9 +190,19 @@
             </div>
         </div>
         <div class="footer-bottom" style="margin-bottom: 20px;">
-            <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</a></p>
+            <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</p>
         </div>
     </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/promocode.js"></script>
+    <script src="js/payment.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/cursor.js"></script>
+    <script src="js/pkm.js"></script>
+    <script src="js/mobile-nav.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', async function() {
@@ -149,41 +216,139 @@
             let currentFilter = 'all';
             let searchTerm = '';
             let currentPage = 1;
-            const newsPerPage = 5;
+            const newsPerPage = 6;
 
             try {
                 newsContainer.innerHTML = `
                     <div class="news-loading">
-                        <i class="fas fa-circle-notch"></i>
-                        <p>Загрузка...</p>
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                        <p>Загрузка новостей...</p>
                     </div>
                 `;
 
+                // Используем API из server.js
                 const response = await fetch('/api/news');
                 const data = await response.json();
                 
-                if (data.success) {
+                console.log('📰 Загружены новости:', data);
+                
+                if (data.success && data.news && data.news.length > 0) {
                     allNews = data.news;
+                    
+                    // Обновляем статистику
                     totalNewsEl.textContent = allNews.length;
+                    
+                    // Считаем новости за последнюю неделю
                     const oneWeekAgo = new Date();
                     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
                     const weeklyNews = allNews.filter(article => {
-                        const articleDate = new Date(article.date.split('.').reverse().join('-'));
+                        const articleDate = new Date(article.date);
                         return articleDate >= oneWeekAgo;
                     }).length;
                     weeklyNewsEl.textContent = weeklyNews;
 
                     renderNews();
+                } else {
+                    // Показываем демо-новости если нет в БД
+                    allNews = getDemoNews();
+                    totalNewsEl.textContent = allNews.length;
+                    weeklyNewsEl.textContent = allNews.filter(a => {
+                        const date = new Date(a.date);
+                        const weekAgo = new Date();
+                        weekAgo.setDate(weekAgo.getDate() - 7);
+                        return date >= weekAgo;
+                    }).length;
+                    renderNews();
                 }
             } catch (error) {
-                console.error('Error loading news:', error);
-                newsContainer.innerHTML = `
-                    <div class="news-empty">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>Не удалось загрузить...</p>
-                        <span>В скором времени разработчик исправит!</span>
-                    </div>
-                `;
+                console.error('❌ Ошибка загрузки новостей:', error);
+                // Показываем демо-новости при ошибке
+                allNews = getDemoNews();
+                totalNewsEl.textContent = allNews.length;
+                weeklyNewsEl.textContent = allNews.filter(a => {
+                    const date = new Date(a.date);
+                    const weekAgo = new Date();
+                    weekAgo.setDate(weekAgo.getDate() - 7);
+                    return date >= weekAgo;
+                }).length;
+                renderNews();
+            }
+
+            // Функция с демо-новостями
+            function getDemoNews() {
+                return [
+                    {
+                        id: 1,
+                        title: 'Добро пожаловать в BHStore!',
+                        content: 'Мы рады приветствовать вас в нашем магазине! BHStore - это современный Discord магазин с широким выбором товаров и услуг. У нас вы найдете премиум подписки, игровые валюты и многое другое. Приятных покупок!',
+                        date: new Date().toISOString().split('T')[0],
+                        category: 'announcement',
+                        views: 156,
+                        tags: ['welcome', 'new', 'bhstore']
+                    },
+                    {
+                        id: 2,
+                        title: 'Запуск системы отзывов',
+                        content: 'Мы запустили новую систему отзывов! Теперь вы можете оценивать товары и делиться своим мнением с другими покупателями. Лучшие отзывы будут получать бонусы на баланс!',
+                        date: new Date(Date.now() - 2*24*60*60*1000).toISOString().split('T')[0],
+                        category: 'updates',
+                        views: 89,
+                        tags: ['reviews', 'update', 'features']
+                    },
+                    {
+                        id: 3,
+                        title: 'Новогодняя распродажа!',
+                        content: 'Скидки до 50% на все премиум подписки! Успейте приобрести товары по выгодным ценам. Акция действует до 15 января.',
+                        date: new Date(Date.now() - 5*24*60*60*1000).toISOString().split('T')[0],
+                        category: 'promo',
+                        views: 234,
+                        tags: ['sale', 'discount', 'newyear']
+                    },
+                    {
+                        id: 4,
+                        title: 'Обновление магазина',
+                        content: 'Добавлены новые товары: Discord боты, настройка серверов и многое другое! Заходите в магазин, чтобы ознакомиться с ассортиментом.',
+                        date: new Date(Date.now() - 7*24*60*60*1000).toISOString().split('T')[0],
+                        category: 'updates',
+                        views: 67,
+                        tags: ['update', 'new-products']
+                    },
+                    {
+                        id: 5,
+                        title: 'Ближайшие ивенты',
+                        content: 'Скоро состоится розыгрыш призов среди активных покупателей. Следите за новостями, чтобы не пропустить!',
+                        date: new Date(Date.now() - 10*24*60*60*1000).toISOString().split('T')[0],
+                        category: 'events',
+                        views: 45,
+                        tags: ['events', 'giveaway']
+                    }
+                ];
+            }
+
+            // Функция форматирования даты
+            function formatDate(dateString) {
+                if (!dateString) return 'Дата неизвестна';
+                try {
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('ru-RU', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                    });
+                } catch {
+                    return dateString;
+                }
+            }
+
+            // Функция получения названия категории
+            function getCategoryName(category) {
+                const categories = {
+                    'announcement': '📢 Объявление',
+                    'updates': '🚀 Обновление',
+                    'events': '🎉 Событие',
+                    'promo': '🎁 Акция'
+                };
+                return categories[category] || category;
             }
 
             filterButtons.forEach(btn => {
@@ -204,8 +369,16 @@
 
             function renderNews() {
                 let filteredNews = allNews.filter(article => {
-                    if (currentFilter !== 'all' && article.category.toLowerCase() !== currentFilter) {
-                        return false;
+                    if (currentFilter !== 'all') {
+                        const categoryMap = {
+                            'updates': 'updates',
+                            'events': 'events',
+                            'promo': 'promo'
+                        };
+                        const targetCategory = categoryMap[currentFilter] || currentFilter;
+                        if (article.category !== targetCategory) {
+                            return false;
+                        }
                     }
                     
                     if (searchTerm) {
@@ -225,34 +398,37 @@
                     newsContainer.innerHTML = `
                         <div class="news-empty">
                             <i class="fas fa-newspaper"></i>
-                            <p>Новости не найдены</p>
-                            <span>Попробуйте изменить параметры поиска</span>
+                            <h3>Новости не найдены</h3>
+                            <p>Попробуйте изменить параметры поиска или фильтрации</p>
+                            <button class="btn-primary" onclick="resetFilters()" style="margin-top: 1rem;">
+                                <i class="fas fa-undo"></i> Сбросить фильтры
+                            </button>
                         </div>
                     `;
                 } else {
                     newsContainer.innerHTML = paginatedNews.map((article, index) => `
-                        <div class="news-article" style="animation-delay: ${index * 0.1}s">
-                            <h2>${article.title}</h2>
+                        <div class="news-article" style="animation-delay: ${index * 0.05}s">
+                            <div class="news-category-badge ${article.category}">
+                                ${getCategoryName(article.category)}
+                            </div>
+                            <h2>${escapeHtml(article.title)}</h2>
                             <div class="news-meta">
-                                <span><i class="fas fa-calendar-alt"></i> ${article.date}</span>
+                                <span><i class="fas fa-calendar-alt"></i> ${formatDate(article.date)}</span>
                                 <span><i class="fas fa-tag"></i> ${article.category}</span>
                                 ${article.views ? `
                                     <span><i class="fas fa-eye"></i> ${article.views}</span>
                                 ` : ''}
                             </div>
-                            <p>${article.content}</p>
-                            ${article.tags ? `
+                            <p>${escapeHtml(article.content)}</p>
+                            ${article.tags && article.tags.length ? `
                                 <div class="news-tags">
                                     ${article.tags.map(tag => `
-                                        <span class="news-tag">
-                                            <i class="fas fa-hashtag"></i>${tag}
+                                        <span class="news-tag" onclick="searchByTag('${escapeHtml(tag)}')">
+                                            <i class="fas fa-hashtag"></i>${escapeHtml(tag)}
                                         </span>
                                     `).join('')}
                                 </div>
                             ` : ''}
-                            <a href="#" class="read-more">
-                                Читать далее <i class="fas fa-arrow-right"></i>
-                            </a>
                         </div>
                     `).join('');
                 }
@@ -268,7 +444,7 @@
                     return;
                 }
 
-                let paginationHtml = '';
+                let paginationHtml = '<div class="pagination-wrapper">';
                 paginationHtml += `
                     <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
                         <i class="fas fa-chevron-left"></i>
@@ -292,6 +468,7 @@
                         <i class="fas fa-chevron-right"></i>
                     </button>
                 `;
+                paginationHtml += '</div>';
 
                 paginationEl.innerHTML = paginationHtml;
             }
@@ -299,24 +476,47 @@
             window.changePage = function(page) {
                 currentPage = page;
                 renderNews();
-                document.querySelector('.news-container').scrollIntoView({ behavior: 'smooth' });
+                document.querySelector('.news-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
             };
+
+            window.resetFilters = function() {
+                searchInput.value = '';
+                searchTerm = '';
+                currentFilter = 'all';
+                filterButtons.forEach(btn => {
+                    if (btn.dataset.filter === 'all') {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+                currentPage = 1;
+                renderNews();
+            };
+
+            window.searchByTag = function(tag) {
+                searchInput.value = tag;
+                searchTerm = tag.toLowerCase();
+                currentPage = 1;
+                renderNews();
+            };
+
+            function escapeHtml(unsafe) {
+                if (!unsafe) return '';
+                return String(unsafe)
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
+            }
         });
     </script>
 
-<script src="js/api.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/promocode.js"></script>
-<script src="js/payment.js"></script>
-<script src="js/chat.js"></script>
-<script src="js/main.js"></script>
-<script src="js/cursor.js"></script>
-<div class="custom-cursor"></div>
-<canvas id="webCanvas"></canvas>
-<div class="scroll-indicator">
-<span class="scroll-value">0%</span>
-</div>
-<script src="js/pkm.js"></script>
-<script src="js/mobile-nav.js"></script>
+    <div class="custom-cursor"></div>
+    <canvas id="webCanvas"></canvas>
+    <div class="scroll-indicator">
+        <span class="scroll-value">0%</span>
+    </div>
 </body>
 </html>

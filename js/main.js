@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    
     checkAuth().then(() => {
         if (document.getElementById('popularProducts')) loadPopularProducts();
         if (document.getElementById('latestNews')) loadLatestNews();
@@ -17,8 +16,91 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 1000);
 });
 
-// ========== АВТОРИЗАЦИЯ ==========
+// ========== КОНФИГУРАЦИЯ БЕЙДЖЕЙ ==========
+const BADGE_CONFIG = {
+    admin: {
+        name: 'Администратор',
+        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75',
+        color: '#FFD700',
+        bgColor: 'rgba(255, 215, 0, 0.15)',
+        priority: 1
+    },
+    verified: {
+        name: 'Верифицированный',
+        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75',
+        color: '#57F287',
+        bgColor: 'rgba(87, 242, 135, 0.15)',
+        priority: 2
+    },
+    partner: {
+        name: 'Партнёр',
+        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75',
+        color: '#FF73FA',
+        bgColor: 'rgba(255, 115, 250, 0.15)',
+        priority: 3
+    },
+    buyer: {
+        name: 'Покупатель',
+        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75',
+        color: '#FEE75C',
+        bgColor: 'rgba(254, 231, 92, 0.15)',
+        priority: 4
+    },
+    early: {
+        name: 'Ранний сторонник',
+        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1085815477030092860.png%3Fv%3D1&w=64&q=75',
+        color: '#5865F2',
+        bgColor: 'rgba(88, 101, 242, 0.15)',
+        priority: 5
+    },
+    vip: {
+        name: 'VIP',
+        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1074074255389896764.png%3Fv%3D1&w=64&q=75',
+        color: '#9B59B6',
+        bgColor: 'rgba(155, 89, 182, 0.15)',
+        priority: 6
+    }
+};
 
+// ========== УТИЛИТЫ ==========
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return String(unsafe)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function normalizeBadges(badgesData) {
+    if (!badgesData) {
+        return { admin: false, verified: false, partner: false, buyer: false, early: false, vip: false };
+    }
+    
+    if (typeof badgesData === 'string') {
+        return {
+            admin: badgesData === 'admin',
+            verified: badgesData === 'verified',
+            partner: false, buyer: false, early: false, vip: false
+        };
+    }
+    
+    if (typeof badgesData === 'object') {
+        return {
+            admin: !!badgesData.admin,
+            verified: !!badgesData.verified,
+            partner: !!badgesData.partner,
+            buyer: !!badgesData.buyer,
+            early: !!badgesData.early,
+            vip: !!badgesData.vip
+        };
+    }
+    
+    return { admin: false, verified: false, partner: false, buyer: false, early: false, vip: false };
+}
+
+// ========== АВТОРИЗАЦИЯ ==========
 async function checkAuth() {
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
     const authBtn = document.getElementById('authBtn');
@@ -44,9 +126,6 @@ async function checkAuth() {
     }
 
     if (authData.username && !authData.verificationCode) {
-        const badges = getUserBadges(authData);
-        const mainBadge = getMainBadgeForButton(authData.badges);
-        
         try {
             const balanceData = await window.api?.getUserBalance(authData.id);
             if (balanceData?.success) {
@@ -66,6 +145,10 @@ async function checkAuth() {
             }
         }
 
+        const badges = normalizeBadges(authData.badges);
+        const mainBadge = getMainBadgeHTML(badges);
+        const badgesHtml = getUserBadgesHTML(badges);
+
         authBtn.innerHTML = `
             <div class="auth-button-content">
                 <div class="auth-avatar-wrapper">
@@ -77,7 +160,7 @@ async function checkAuth() {
                     ${mainBadge ? `<span class="auth-badge-icon">${mainBadge}</span>` : ''}
                 </div>
                 <span class="auth-username">${escapeHtml(authData.username)}</span>
-                ${badges ? `<span class="auth-badges">${badges}</span>` : ''}
+                ${badgesHtml ? `<span class="auth-badges">${badgesHtml}</span>` : ''}
                 <div class="auth-balance-indicator">
                     <i class="fas fa-coins"></i>
                     <span>${authData.balance || 0}</span>
@@ -119,106 +202,38 @@ async function checkAuth() {
     }
 }
 
-// ========== ФУНКЦИИ ДЛЯ БЕЙДЖЕЙ ==========
-
-function normalizeBadges(badgesData) {
-    if (!badgesData) {
-        return {
-            admin: false,
-            verified: false,
-            partner: false,
-            buyer: false,
-            early: false,
-            vip: false
-        };
-    }
-    
-    if (typeof badgesData === 'string') {
-        return {
-            admin: badgesData === 'admin',
-            verified: badgesData === 'verified',
-            partner: false,
-            buyer: false,
-            early: false,
-            vip: false
-        };
-    }
-    
-    if (typeof badgesData === 'object') {
-        return {
-            admin: !!badgesData.admin,
-            verified: !!badgesData.verified,
-            partner: !!badgesData.partner,
-            buyer: !!badgesData.buyer,
-            early: !!badgesData.early,
-            vip: !!badgesData.vip
-        };
-    }
-    
-    return {
-        admin: false,
-        verified: false,
-        partner: false,
-        buyer: false,
-        early: false,
-        vip: false
-    };
-}
-
-function getMainBadgeForButton(badgesData) {
-    const badges = normalizeBadges(badgesData);
-    
-    if (badges.admin) {
-        return `<img src="${BADGE_CONFIG.admin.image}" alt="Admin" class="badge-icon-img" title="Администратор">`;
-    } else if (badges.verified) {
-        return `<img src="${BADGE_CONFIG.verified.image}" alt="Verified" class="badge-icon-img" title="Верифицированный">`;
-    } else if (badges.partner) {
-        return `<img src="${BADGE_CONFIG.partner.image}" alt="Partner" class="badge-icon-img" title="Партнёр">`;
-    } else if (badges.buyer) {
-        return `<img src="${BADGE_CONFIG.buyer.image}" alt="Buyer" class="badge-icon-img" title="Покупатель">`;
-    } else if (badges.vip) {
-        return `<img src="${BADGE_CONFIG.vip.image}" alt="VIP" class="badge-icon-img" title="VIP">`;
-    } else if (badges.early) {
-        return `<img src="${BADGE_CONFIG.early.image}" alt="Early" class="badge-icon-img" title="Ранний сторонник">`;
-    }
-    
-    return '';
-}
-
-function getUserBadges(authData) {
-    const badges = normalizeBadges(authData.badges);
-    let badgesHtml = '';
-    
+function getMainBadgeHTML(badges) {
     const sortedBadges = Object.entries(badges)
         .filter(([key, value]) => value && BADGE_CONFIG[key])
         .sort((a, b) => BADGE_CONFIG[a[0]].priority - BADGE_CONFIG[b[0]].priority);
     
-    sortedBadges.forEach(([badgeKey]) => {
-        const config = BADGE_CONFIG[badgeKey];
-        badgesHtml += `<img src="${config.image}" alt="${config.name}" class="badge-icon-img-small" title="${config.name}">`;
-    });
+    if (sortedBadges.length === 0) return '';
     
-    return badgesHtml;
+    const [badgeKey] = sortedBadges[0];
+    const config = BADGE_CONFIG[badgeKey];
+    
+    return `<img src="${config.image}" alt="${config.name}" style="width: 20px; height: 20px; border-radius: 50%;">`;
 }
 
-function escapeHtml(unsafe) {
-    if (!unsafe) return '';
-    return String(unsafe)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+function getUserBadgesHTML(badges) {
+    const sortedBadges = Object.entries(badges)
+        .filter(([key, value]) => value && BADGE_CONFIG[key])
+        .sort((a, b) => BADGE_CONFIG[a[0]].priority - BADGE_CONFIG[b[0]].priority);
+    
+    let html = '';
+    sortedBadges.forEach(([badgeKey]) => {
+        const config = BADGE_CONFIG[badgeKey];
+        html += `<img src="${config.image}" alt="${config.name}" class="badge-icon-img-small" title="${config.name}" style="width: 16px; height: 16px;">`;
+    });
+    
+    return html;
 }
 
 // ========== МЕНЮ ПОЛЬЗОВАТЕЛЯ ==========
-
 async function showUserMenu(event) {
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
     if (!authData.id) return;
-    if (event) {
-        event.stopPropagation();
-    }
+    if (event) event.stopPropagation();
 
     try {
         const data = await window.api?.getUser(authData.id);
@@ -232,16 +247,13 @@ async function showUserMenu(event) {
     }
 
     const existingMenu = document.querySelector('.user-menu');
-    if (existingMenu) {
-        existingMenu.remove();
-    }
+    if (existingMenu) existingMenu.remove();
 
     const authBtn = document.getElementById('authBtn');
     if (!authBtn) return;
 
     const btnRect = authBtn.getBoundingClientRect();
     const isMobile = window.innerWidth <= 768;
-
     const badges = normalizeBadges(authData.badges);
     const mainBadge = getMainBadgeHTML(badges);
     const allBadges = generateAllBadgesHTML(badges);
@@ -249,28 +261,27 @@ async function showUserMenu(event) {
 
     const menu = document.createElement('div');
     menu.className = 'user-menu';
-    
-    if (isMobile) {
-        menu.classList.add('user-menu-mobile');
-    }
+    if (isMobile) menu.classList.add('user-menu-mobile');
 
     if (!isMobile) {
         menu.style.top = `${btnRect.bottom + window.scrollY + 5}px`;
         menu.style.left = `${btnRect.left + (btnRect.width / 2)}px`;
     }
 
+    let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
+    if (authData.avatar) {
+        avatarUrl = `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=128`;
+    }
+
     menu.innerHTML = `
         <div class="user-menu-header">
             <div class="user-menu-avatar-wrapper">
-                <img src="https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=64" 
-                     class="user-menu-avatar"
-                     onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                <img src="${avatarUrl}" class="user-menu-avatar" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                 ${mainBadge ? `<div class="user-menu-avatar-badge">${mainBadge}</div>` : ''}
             </div>
             <div class="user-menu-user-info">
                 <div class="user-menu-username">
                     ${escapeHtml(authData.username)}
-                    ${mainBadge ? `<span class="user-menu-badge-icon">${mainBadge}</span>` : ''}
                 </div>
                 <div class="user-menu-user-id">ID: ${authData.id}</div>
                 <div class="user-menu-badges-container">
@@ -284,8 +295,7 @@ async function showUserMenu(event) {
 
         <div class="user-menu-balance">
             <div class="user-menu-balance-label">
-                <i class="fas fa-wallet"></i>
-                Баланс
+                <i class="fas fa-wallet"></i> Баланс
             </div>
             <div class="user-menu-balance-amount">
                 ${authData.balance || 0} ₽
@@ -294,43 +304,32 @@ async function showUserMenu(event) {
 
         <div class="user-menu-nav">
             <a href="/profile.html" class="user-menu-item">
-                <div class="user-menu-item-icon">
-                    <i class="fas fa-user"></i>
-                </div>
+                <div class="user-menu-item-icon"><i class="fas fa-user"></i></div>
                 <div class="user-menu-item-content">
                     <div class="user-menu-item-title">Профиль</div>
                     <div class="user-menu-item-desc">Ваша личная информация</div>
                 </div>
                 <i class="fas fa-chevron-right user-menu-item-arrow"></i>
             </a>
-
             <a href="/profile.html#orders" class="user-menu-item">
-                <div class="user-menu-item-icon">
-                    <i class="fas fa-shopping-bag"></i>
-                </div>
+                <div class="user-menu-item-icon"><i class="fas fa-shopping-bag"></i></div>
                 <div class="user-menu-item-content">
                     <div class="user-menu-item-title">Мои заказы</div>
                     <div class="user-menu-item-desc">История покупок</div>
                 </div>
                 <i class="fas fa-chevron-right user-menu-item-arrow"></i>
             </a>
-
             <a href="/profile.html#balance" class="user-menu-item">
-                <div class="user-menu-item-icon">
-                    <i class="fas fa-coins"></i>
-                </div>
+                <div class="user-menu-item-icon"><i class="fas fa-coins"></i></div>
                 <div class="user-menu-item-content">
                     <div class="user-menu-item-title">Баланс</div>
                     <div class="user-menu-item-desc">Пополнение и история</div>
                 </div>
                 <i class="fas fa-chevron-right user-menu-item-arrow"></i>
             </a>
-
             ${isAdminUser ? `
                 <a href="/admin.html" class="user-menu-item user-menu-item-admin">
-                    <div class="user-menu-item-icon">
-                        <i class="fas fa-crown"></i>
-                    </div>
+                    <div class="user-menu-item-icon"><i class="fas fa-crown"></i></div>
                     <div class="user-menu-item-content">
                         <div class="user-menu-item-title">Админ панель</div>
                         <div class="user-menu-item-desc">Управление магазином</div>
@@ -342,156 +341,35 @@ async function showUserMenu(event) {
 
         <div class="user-menu-footer">
             <button onclick="logout()" class="user-menu-logout-btn">
-                <i class="fas fa-sign-out-alt"></i>
-                Выйти из аккаунта
+                <i class="fas fa-sign-out-alt"></i> Выйти из аккаунта
             </button>
         </div>
     `;
 
     document.body.appendChild(menu);
-    setTimeout(() => {
-        menu.classList.add('user-menu-visible');
-    }, 10);
+    setTimeout(() => menu.classList.add('user-menu-visible'), 10);
 
     const closeMenu = (e) => {
         if (!menu.contains(e.target) && e.target !== authBtn && !authBtn.contains(e.target)) {
             menu.classList.remove('user-menu-visible');
-            setTimeout(() => {
-                menu.remove();
-            }, 300);
+            setTimeout(() => menu.remove(), 300);
             document.removeEventListener('click', closeMenu);
         }
     };
-
-    setTimeout(() => {
-        document.addEventListener('click', closeMenu);
-    }, 100);
+    setTimeout(() => document.addEventListener('click', closeMenu), 100);
 
     const escHandler = (e) => {
         if (e.key === 'Escape') {
             menu.classList.remove('user-menu-visible');
-            setTimeout(() => {
-                menu.remove();
-            }, 300);
+            setTimeout(() => menu.remove(), 300);
             document.removeEventListener('keydown', escHandler);
         }
     };
     document.addEventListener('keydown', escHandler);
 }
 
-// ========== ФУНКЦИИ ДЛЯ БЕЙДЖЕЙ ==========
-
-const BADGE_CONFIG = {
-    admin: {
-        name: 'Администратор',
-        icon: 'fas fa-crown',
-        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75',
-        color: '#FFD700',
-        bgColor: 'rgba(255, 215, 0, 0.15)',
-        priority: 1
-    },
-    verified: {
-        name: 'Верифицированный',
-        icon: 'fas fa-check-circle',
-        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75',
-        color: '#57F287',
-        bgColor: 'rgba(87, 242, 135, 0.15)',
-        priority: 2
-    },
-    partner: {
-        name: 'Партнёр',
-        icon: 'fas fa-handshake',
-        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75',
-        color: '#FF73FA',
-        bgColor: 'rgba(255, 115, 250, 0.15)',
-        priority: 3
-    },
-    buyer: {
-        name: 'Покупатель',
-        icon: 'fas fa-shopping-bag',
-        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75',
-        color: '#FEE75C',
-        bgColor: 'rgba(254, 231, 92, 0.15)',
-        priority: 4
-    },
-    early: {
-        name: 'Ранний сторонник',
-        icon: 'fas fa-star',
-        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1085815477030092860.png%3Fv%3D1&w=64&q=75',
-        color: '#5865F2',
-        bgColor: 'rgba(88, 101, 242, 0.15)',
-        priority: 5
-    },
-    vip: {
-        name: 'VIP',
-        icon: 'fas fa-gem',
-        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1074074255389896764.png%3Fv%3D1&w=64&q=75',
-        color: '#9B59B6',
-        bgColor: 'rgba(155, 89, 182, 0.15)',
-        priority: 6
-    }
-};
-
-function normalizeBadges(badgesData) {
-    if (!badgesData) {
-        return {
-            admin: false,
-            verified: false,
-            partner: false,
-            buyer: false,
-            early: false,
-            vip: false
-        };
-    }
-    
-    if (typeof badgesData === 'string') {
-        return {
-            admin: badgesData === 'admin',
-            verified: badgesData === 'verified',
-            partner: false,
-            buyer: false,
-            early: false,
-            vip: false
-        };
-    }
-    
-    if (typeof badgesData === 'object') {
-        return {
-            admin: !!badgesData.admin,
-            verified: !!badgesData.verified,
-            partner: !!badgesData.partner,
-            buyer: !!badgesData.buyer,
-            early: !!badgesData.early,
-            vip: !!badgesData.vip
-        };
-    }
-    
-    return {
-        admin: false,
-        verified: false,
-        partner: false,
-        buyer: false,
-        early: false,
-        vip: false
-    };
-}
-
-function getMainBadgeHTML(badges) {
-    const sortedBadges = Object.entries(badges)
-        .filter(([key, value]) => value && BADGE_CONFIG[key])
-        .sort((a, b) => BADGE_CONFIG[a[0]].priority - BADGE_CONFIG[b[0]].priority);
-    
-    if (sortedBadges.length === 0) return '';
-    
-    const [badgeKey] = sortedBadges[0];
-    const config = BADGE_CONFIG[badgeKey];
-    
-    return `<img src="${config.image}" alt="${config.name}" style="width: 16px; height: 16px; border-radius: 50%;">`;
-}
-
 function generateAllBadgesHTML(badges) {
     let html = '';
-    
     const sortedBadges = Object.entries(badges)
         .filter(([key, value]) => value && BADGE_CONFIG[key])
         .sort((a, b) => BADGE_CONFIG[a[0]].priority - BADGE_CONFIG[b[0]].priority);
@@ -505,36 +383,12 @@ function generateAllBadgesHTML(badges) {
             </div>
         `;
     });
-    
     return html;
 }
 
-function getUserBadges(authData) {
-    const badges = normalizeBadges(authData.badges);
-    const mainBadge = getMainBadgeHTML(badges);
-    
-    if (mainBadge) {
-        return `<span class="user-badge-icon">${mainBadge}</span>`;
-    }
-    
-    return '';
-}
-
-function escapeHtml(unsafe) {
-    if (!unsafe) return '';
-    return String(unsafe)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
 // ========== ПРОВЕРКА АДМИНА ==========
-
 async function isAdmin() {
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-    
     if (authData.token && window.api) {
         try {
             return await window.api.isAdmin();
@@ -542,15 +396,14 @@ async function isAdmin() {
             console.error('❌ Ошибка проверки админа:', error);
         }
     }
-    
-    return authData.id === '992442453833547886' || authData.discordId === '1460708954907869412';
+    return authData.id === '992442453833547886';
 }
 
 // ========== ЗАГРУЗКА НОВОСТЕЙ ==========
-
 async function loadLatestNews() {
     try {
-        const data = await window.api.getNews();
+        const response = await fetch('/api/news');
+        const data = await response.json();
         if (!data?.success) return;
 
         const latest = data.news.slice(0, 3);
@@ -562,9 +415,8 @@ async function loadLatestNews() {
                 <div class="news-content">
                     <div class="news-date">${news.date}</div>
                     <span class="news-tag">${news.category}</span>
-                    ${news.image ? `<img src="${news.image}" style="width: 100%; border-radius: 10%;">` : ''}
-                    <h3>${news.title}</h3>
-                    <p style="color: #b9bbbe;">${news.content.substring(0, 100)}...</p>
+                    <h3>${escapeHtml(news.title)}</h3>
+                    <p style="color: #b9bbbe;">${escapeHtml(news.content.substring(0, 100))}...</p>
                     <a href="/news.html" style="color: #5865F2;">Читать далее →</a>
                 </div>
             </div>
@@ -574,8 +426,42 @@ async function loadLatestNews() {
     }
 }
 
-// ========== ПОКУПКА ТОВАРА ==========
+// ========== ЗАГРУЗКА ПОПУЛЯРНЫХ ТОВАРОВ ==========
+async function loadPopularProducts() {
+    try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
+        if (!data?.success) return;
 
+        const popular = data.products.filter(p => p.popular).slice(0, 3);
+        const container = document.getElementById('popularProducts');
+        if (!container) return;
+
+        if (popular.length === 0 && data.products.length > 0) {
+            popular.push(...data.products.slice(0, 3));
+        }
+
+        container.innerHTML = popular.map(product => `
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="${product.image || product.icon || '/image/default-product.png'}" alt="${escapeHtml(product.name)}">
+                </div>
+                <div class="product-info">
+                    <h3>${escapeHtml(product.name)}</h3>
+                    <p>${escapeHtml(product.description || '')}</p>
+                    <div class="product-price">${product.price} ₽</div>
+                    <button class="btn-buy" onclick="buyProduct('${escapeHtml(product.id)}', '${escapeHtml(product.name)}', ${product.price})">
+                        Купить
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('❌ Ошибка загрузки товаров:', error);
+    }
+}
+
+// ========== ПОКУПКА ТОВАРА ==========
 function buyProduct(productId, productName, originalPrice) {
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
     
@@ -599,7 +485,7 @@ function buyProduct(productId, productName, originalPrice) {
             const finalPrice = window.paymentSystem?.calculateDiscountedPrice(originalPrice, productId) || originalPrice;
 
             if (userBalance < finalPrice) {
-                if (window.paymentSystem) {
+                if (window.paymentSystem?.showInsufficientFundsModal) {
                     window.paymentSystem.showInsufficientFundsModal(finalPrice, userBalance, productName);
                 } else {
                     alert(`Недостаточно средств: нужно ${finalPrice} ₽, у вас ${userBalance} ₽`);
@@ -607,13 +493,10 @@ function buyProduct(productId, productName, originalPrice) {
                 return;
             }
 
-            if (window.paymentSystem) {
+            if (window.paymentSystem?.showPaymentModal) {
                 window.paymentSystem.showPaymentModal(productName, originalPrice, productId);
             } else {
-                const script = document.createElement('script');
-                script.src = '/js/payment.js';
-                script.onload = () => window.paymentSystem?.showPaymentModal(productName, originalPrice, productId);
-                document.head.appendChild(script);
+                alert('Система оплаты временно недоступна');
             }
         })
         .catch(error => {
@@ -622,45 +505,7 @@ function buyProduct(productId, productName, originalPrice) {
         });
 }
 
-// ========== СОЗДАНИЕ ЗАКАЗА ==========
-
-async function createOrder(productId, productName, price) {
-    try {
-        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-        
-        const data = await window.api.createOrder({
-            userId: authData.id,
-            productId,
-            productName,
-            price,
-            username: authData.username
-        });
-
-        if (data?.success) {
-            const balanceData = await window.api.getUserBalance(authData.id);
-            if (balanceData?.success) {
-                authData.balance = balanceData.balance;
-                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-            }
-            
-            checkAuth();
-            
-            if (window.paymentSystem) {
-                window.paymentSystem.showSuccessMessage(data.orderId, productName, authData.balance);
-            } else {
-                alert(`Заказ #${data.orderId} создан!`);
-            }
-        } else {
-            alert('Ошибка: ' + (data?.error || 'Неизвестная ошибка'));
-        }
-    } catch (error) {
-        console.error('❌ Ошибка заказа:', error);
-        alert('Ошибка при создании заказа');
-    }
-}
-
 // ========== УТИЛИТЫ ==========
-
 function toggleMobileMenu() {
     const navMenu = document.querySelector('.nav-menu');
     if (navMenu) {
@@ -670,8 +515,9 @@ function toggleMobileMenu() {
 
 function updateHomePagePrices() {
     document.querySelectorAll('#popularProducts .product-card').forEach(card => {
-        const productId = card.querySelector('.btn-buy')?.dataset.productId;
-        const originalPrice = parseFloat(card.querySelector('.btn-buy')?.dataset.price);
+        const btn = card.querySelector('.btn-buy');
+        const productId = btn?.onclick?.toString().match(/'([^']+)'/)?.[1];
+        const originalPrice = parseFloat(btn?.onclick?.toString().match(/, (\d+)/)?.[1]);
         
         if (productId && originalPrice && window.paymentSystem) {
             const finalPrice = window.paymentSystem.calculateDiscountedPrice(originalPrice, productId);
@@ -692,81 +538,10 @@ function logout() {
     }
 }
 
-window.buyProductFromMain = function(productId, productName, price) {
-    console.log('🛒 buyProductFromMain вызван из main.js:', { productId, productName, price });
-    
-    const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-    
-    if (!authData.username) {
-        alert('Пожалуйста, авторизуйтесь');
-        window.location.href = '/auth.html';
-        return;
-    }
-    
-    if (authData.verificationCode) {
-        alert('Завершите регистрацию');
-        window.location.href = '/verify.html';
-        return;
-    }
-
-    window.api.getUser(authData.id)
-        .then(data => {
-            if (!data?.success || !data.user) throw new Error('Нет данных пользователя');
-            
-            const userBalance = data.user.balance || 0;
-            const finalPrice = window.paymentSystem?.calculateDiscountedPrice(price, productId) || price;
-
-            if (userBalance < finalPrice) {
-                if (window.paymentSystem && window.paymentSystem.showInsufficientFundsModal) {
-                    window.paymentSystem.showInsufficientFundsModal(finalPrice, userBalance, productName);
-                } else {
-                    alert(`Недостаточно средств: нужно ${finalPrice} ₽, у вас ${userBalance} ₽`);
-                }
-                return;
-            }
-
-            if (window.paymentSystem && window.paymentSystem.showPaymentModal) {
-                window.paymentSystem.showPaymentModal(productName, price, productId);
-            } else {
-                const script = document.createElement('script');
-                script.src = '/js/payment.js';
-                script.onload = () => {
-                    if (window.paymentSystem?.showPaymentModal) {
-                        window.paymentSystem.showPaymentModal(productName, price, productId);
-                    } else {
-                        alert('Система оплаты временно недоступна');
-                    }
-                };
-                document.head.appendChild(script);
-            }
-        })
-        .catch(error => {
-            console.error('❌ Ошибка покупки:', error);
-            alert('Ошибка: ' + error.message);
-        });
-};
-
-if (typeof window.buyProduct !== 'function') {
-    window.buyProduct = buyProduct;
-}
-
-if (typeof window.buyProduct !== 'function') {
-    window.buyProductFromMain = buyProduct;
-    window.buyProduct = buyProduct;
-}
-
+// ========== ЭКСПОРТ ==========
+window.buyProduct = buyProduct;
 window.showUserMenu = showUserMenu;
 window.logout = logout;
-window.buyProduct = buyProduct;
 window.isAdmin = isAdmin;
-
-const style = document.createElement('style');
-style.textContent = `
-    .menu-item {
-        display: flex; align-items: center; gap: 10px; padding: 0.75rem;
-        color: white; text-decoration: none; border-radius: 4px;
-        transition: background 0.3s; background: none; border: none; cursor: pointer;
-    }
-    .menu-item:hover { background: #40444b; }
-`;
-document.head.appendChild(style);
+window.checkAuth = checkAuth;
+window.updateHomePagePrices = updateHomePagePrices;
