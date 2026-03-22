@@ -116,6 +116,22 @@ async function initDatabase() {
   }
   
   try {
+    await sql`
+    CREATE TABLE IF NOT EXISTS news (
+      id SERIAL PRIMARY KEY,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      date DATE DEFAULT CURRENT_DATE,
+      category TEXT DEFAULT 'announcement',
+      views INTEGER DEFAULT 0,
+      author TEXT DEFAULT 'BHStore',
+      tags JSONB DEFAULT '[]',
+      image TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
+
     // БД Users
     await sql`
       CREATE TABLE IF NOT EXISTS users (
@@ -1675,90 +1691,193 @@ function getTestProducts() {
 // Получение новостей
 app.get('/api/news', async (req, res) => {
   try {
-      // В реальном проекте здесь должно быть получение из БД
-      // Сейчас возвращаем тестовые данные
-      const news = [
-      ];
-      
-      res.json({
+    console.log('📰 Запрос новостей');
+    
+    let news = [];
+    
+    if (sql) {
+      try {
+        // Получаем новости из БД
+        news = await sql`
+          SELECT * FROM news 
+          ORDER BY created_at DESC 
+          LIMIT 20
+        `;
+        
+        console.log(`✅ Загружено ${news.length} новостей из БД`);
+        
+        // Форматируем данные для клиента
+        const formattedNews = news.map(item => ({
+          id: item.id,
+          title: item.title,
+          content: item.content,
+          date: item.date ? new Date(item.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          category: item.category,
+          views: item.views || 0,
+          author: item.author || 'BHStore',
+          tags: item.tags || [],
+          image: item.image || null,
+          created_at: item.created_at
+        }));
+        
+        return res.json({
           success: true,
-          news: news,
-          total: news.length
-      });
-      
+          news: formattedNews,
+          total: formattedNews.length
+        });
+        
+      } catch (dbError) {
+        console.error('❌ Ошибка при работе с БД новостей:', dbError.message);
+      }
+    }
+    
+    // Если БД не доступна или нет новостей, возвращаем демо-новости
+    console.log('⚠️ БД не доступна или нет новостей, используем демо-данные');
+    const demoNews = getDemoNews();
+    
+    res.json({
+      success: true,
+      news: demoNews,
+      total: demoNews.length,
+      notice: 'Используются демо-новости. Добавьте новости в БД через админ-панель.'
+    });
+    
   } catch (error) {
-      console.error('❌ Ошибка получения новостей:', error.message);
-      res.status(500).json({ 
-          success: false, 
-          error: 'Ошибка загрузки новостей' 
-      });
+    console.error('❌ Ошибка получения новостей:', error.message);
+    // Возвращаем демо-новости при ошибке
+    res.json({
+      success: true,
+      news: getDemoNews(),
+      total: getDemoNews().length
+    });
   }
 });
 
 // Получение одной новости по ID
 app.get('/api/news/:id', async (req, res) => {
   try {
-      const newsId = parseInt(req.params.id);
-      
-      // В реальном проекте здесь запрос к БД
-      const news = [
-          {
-              id: 1,
-              title: 'Добро пожаловать в BHStore!',
-              content: 'Мы рады приветствовать вас в нашем магазине! BHStore - это современный Discord магазин с широким выбором товаров и услуг. У нас вы найдете премиум подписки, игровые валюты и многое другое.',
-              date: new Date().toISOString().split('T')[0],
-              category: 'announcement',
-              views: 156,
-              author: 'Borisonchik',
-              tags: ['welcome', 'new', 'bhstore']
-          },
-          {
-              id: 2,
-              title: 'Запуск системы отзывов',
-              content: 'Мы запустили новую систему отзывов! Теперь вы можете оценивать товары и делиться своим мнением с другими покупателями. Лучшие отзывы будут получать бонусы на баланс!',
-              date: new Date(Date.now() - 2*24*60*60*1000).toISOString().split('T')[0],
-              category: 'update',
-              views: 89,
-              author: 'Borisonchik',
-              tags: ['reviews', 'update', 'features']
-          },
-          {
-              id: 3,
-              title: 'Новогодняя распродажа!',
-              content: 'Скидки до 50% на все премиум подписки! Успейте приобрести товары по выгодным ценам. Акция действует до 15 января.',
-              date: new Date(Date.now() - 5*24*60*60*1000).toISOString().split('T')[0],
-              category: 'promo',
-              views: 234,
-              author: 'Borisonchik',
-              tags: ['sale', 'discount', 'newyear']
-          }
-      ];
-      
-      const article = news.find(n => n.id === newsId);
-      
-      if (!article) {
-          return res.status(404).json({
-              success: false,
-              error: 'Новость не найдена'
+    const newsId = parseInt(req.params.id);
+    
+    if (sql) {
+      try {
+        const [newsItem] = await sql`
+          SELECT * FROM news WHERE id = ${newsId}
+        `;
+        
+        if (newsItem) {
+          // Увеличиваем счетчик просмотров
+          await sql`
+            UPDATE news 
+            SET views = views + 1 
+            WHERE id = ${newsId}
+          `;
+          
+          return res.json({
+            success: true,
+            news: {
+              id: newsItem.id,
+              title: newsItem.title,
+              content: newsItem.content,
+              date: newsItem.date ? new Date(newsItem.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              category: newsItem.category,
+              views: (newsItem.views || 0) + 1,
+              author: newsItem.author || 'BHStore',
+              tags: newsItem.tags || [],
+              image: newsItem.image || null,
+              created_at: newsItem.created_at
+            }
           });
+        }
+      } catch (dbError) {
+        console.error('❌ Ошибка БД:', dbError.message);
       }
-      
-      // Увеличиваем счетчик просмотров
-      article.views = (article.views || 0) + 1;
-      
-      res.json({
-          success: true,
-          news: article
+    }
+    
+    // Если не найдено в БД, ищем в демо
+    const demoNews = getDemoNews();
+    const article = demoNews.find(n => n.id === newsId);
+    
+    if (article) {
+      return res.json({
+        success: true,
+        news: article
       });
-      
+    }
+    
+    return res.status(404).json({
+      success: false,
+      error: 'Новость не найдена'
+    });
+    
   } catch (error) {
-      console.error('❌ Ошибка получения новости:', error.message);
-      res.status(500).json({ 
-          success: false, 
-          error: 'Ошибка загрузки новости' 
-      });
+    console.error('❌ Ошибка получения новости:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка загрузки новости' 
+    });
   }
 });
+
+// Функция с демо-новостями
+function getDemoNews() {
+  return [
+    {
+      id: 1,
+      title: 'Добро пожаловать в BHStore!',
+      content: 'Мы рады приветствовать вас в нашем магазине! BHStore - это современный Discord магазин с широким выбором товаров и услуг. У нас вы найдете премиум подписки, игровые валюты и многое другое. Приятных покупок!',
+      date: new Date().toISOString().split('T')[0],
+      category: 'announcement',
+      views: 156,
+      author: 'Borisonchik',
+      tags: ['welcome', 'new', 'bhstore'],
+      image: null
+    },
+    {
+      id: 2,
+      title: 'Запуск системы отзывов',
+      content: 'Мы запустили новую систему отзывов! Теперь вы можете оценивать товары и делиться своим мнением с другими покупателями. Лучшие отзывы будут получать бонусы на баланс!',
+      date: new Date(Date.now() - 2*24*60*60*1000).toISOString().split('T')[0],
+      category: 'updates',
+      views: 89,
+      author: 'Borisonchik',
+      tags: ['reviews', 'update', 'features'],
+      image: null
+    },
+    {
+      id: 3,
+      title: 'Новогодняя распродажа!',
+      content: 'Скидки до 50% на все премиум подписки! Успейте приобрести товары по выгодным ценам. Акция действует до 15 января.',
+      date: new Date(Date.now() - 5*24*60*60*1000).toISOString().split('T')[0],
+      category: 'promo',
+      views: 234,
+      author: 'Borisonchik',
+      tags: ['sale', 'discount', 'newyear'],
+      image: null
+    },
+    {
+      id: 4,
+      title: 'Обновление магазина',
+      content: 'Добавлены новые товары: Discord боты, настройка серверов и многое другое! Заходите в магазин, чтобы ознакомиться с ассортиментом.',
+      date: new Date(Date.now() - 7*24*60*60*1000).toISOString().split('T')[0],
+      category: 'updates',
+      views: 67,
+      author: 'Borisonchik',
+      tags: ['update', 'new-products'],
+      image: null
+    },
+    {
+      id: 5,
+      title: 'Ближайшие ивенты',
+      content: 'Скоро состоится розыгрыш призов среди активных покупателей. Следите за новостями, чтобы не пропустить!',
+      date: new Date(Date.now() - 10*24*60*60*1000).toISOString().split('T')[0],
+      category: 'events',
+      views: 45,
+      author: 'Borisonchik',
+      tags: ['events', 'giveaway'],
+      image: null
+    }
+  ];
+}
 
 // ============================================
 // Админ маршруты
@@ -1772,6 +1891,178 @@ function isAdminUser(decodedToken) {
 // ============================================
 // Админ маршруты для управления пользователями
 // ============================================
+app.get('/api/admin/news', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    
+    try {
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      
+      if (!isAdminUser(decoded)) {
+        return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+      }
+      
+      const news = await sql`
+        SELECT * FROM news ORDER BY created_at DESC
+      `;
+      
+      res.json({
+        success: true,
+        news: news,
+        total: news.length
+      });
+      
+    } catch (decodeError) {
+      return res.status(401).json({ success: false, error: 'Неверный токен' });
+    }
+    
+  } catch (error) {
+    console.error('❌ Ошибка получения новостей для админки:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Удаление новости (админ)
+app.delete('/api/admin/news/:id', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    
+    try {
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      
+      if (!isAdminUser(decoded)) {
+        return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+      }
+      
+      const newsId = req.params.id;
+      
+      await sql`
+        DELETE FROM news WHERE id = ${newsId}
+      `;
+      
+      console.log(`📰 Админ ${decoded.username} удалил новость: ${newsId}`);
+      
+      res.json({
+        success: true,
+        message: 'Новость удалена'
+      });
+      
+    } catch (decodeError) {
+      return res.status(401).json({ success: false, error: 'Неверный токен' });
+    }
+    
+  } catch (error) {
+    console.error('❌ Ошибка удаления новости:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+app.put('/api/admin/news/:id', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
+
+    const token = authHeader.replace('Bearer', '');
+    
+    try {
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      
+      if (!isAdminUser(decoded)) {
+        return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+      }
+      
+      const newsId = req.params.id;
+      const { title, content, category, tags, image } = req.body;
+      
+      await sql`
+        UPDATE news 
+        SET title = ${title},
+            content = ${content},
+            category = ${category || 'announcement'},
+            tags = ${JSON.stringify(tags || [])},
+            image = ${image || null},
+            updated_at = NOW()
+        WHERE id = ${newsId}
+      `;
+      
+      console.log(`📰 Админ ${decoded.username} обновил новость: ${newsId}`);
+      
+      res.json({
+        success: true,
+        message: 'Новость обновлена'
+      });
+      
+    } catch (decodeError) {
+      return res.status(401).json({ success: false, error: 'Неверный токен' });
+    }
+    
+  } catch (error) {
+    console.error('❌ Ошибка обновления новости:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+app.post('/api/admin/news', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    
+    try {
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      
+      if (!isAdminUser(decoded)) {
+        return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+      }
+      
+      const { title, content, category, tags, image } = req.body;
+      
+      if (!title || !content) {
+        return res.status(400).json({ success: false, error: 'Не указаны обязательные поля' });
+      }
+      
+      const result = await sql`
+        INSERT INTO news (title, content, category, tags, image, author, created_at, updated_at)
+        VALUES (${title}, ${content}, ${category || 'announcement'}, ${JSON.stringify(tags || [])}, ${image || null}, ${decoded.username}, NOW(), NOW())
+        RETURNING id
+      `;
+      
+      console.log(`📰 Админ ${decoded.username} создал новость: ${title}`);
+      
+      res.json({
+        success: true,
+        message: 'Новость создана',
+        id: result[0].id
+      });
+      
+    } catch (decodeError) {
+      return res.status(401).json({ success: false, error: 'Неверный токен' });
+    }
+    
+  } catch (error) {
+    console.error('❌ Ошибка создания новости:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
 
 // Добавление баланса пользователя
 app.post('/api/admin/balance/add', async (req, res) => {
