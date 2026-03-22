@@ -7,10 +7,10 @@
     "start": "node server.js",
     "dev": "node server.js",
     "build": "echo 'No build required'",
-    "postinstall": "npm install @neondatabase/serverless"
+    "postinstall": "npm install @neondatabase/serverless@latest"
   },
   "dependencies": {
-    "@neondatabase/serverless": "^0.9.5",
+    "@neondatabase/serverless": "^0.10.0",
     "axios": "^1.7.9",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
