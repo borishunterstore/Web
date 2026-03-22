@@ -1830,7 +1830,8 @@ function getDemoNews() {
       views: 156,
       author: 'Borisonchik',
       tags: ['welcome', 'new', 'bhstore'],
-      image: null
+      image: null,
+      created_at: new Date().toISOString()
     },
     {
       id: 2,
@@ -1841,7 +1842,8 @@ function getDemoNews() {
       views: 89,
       author: 'Borisonchik',
       tags: ['reviews', 'update', 'features'],
-      image: null
+      image: null,
+      created_at: new Date(Date.now() - 2*24*60*60*1000).toISOString()
     },
     {
       id: 3,
@@ -1852,7 +1854,8 @@ function getDemoNews() {
       views: 234,
       author: 'Borisonchik',
       tags: ['sale', 'discount', 'newyear'],
-      image: null
+      image: null,
+      created_at: new Date(Date.now() - 5*24*60*60*1000).toISOString()
     },
     {
       id: 4,
@@ -1863,7 +1866,8 @@ function getDemoNews() {
       views: 67,
       author: 'Borisonchik',
       tags: ['update', 'new-products'],
-      image: null
+      image: null,
+      created_at: new Date(Date.now() - 7*24*60*60*1000).toISOString()
     },
     {
       id: 5,
@@ -1874,7 +1878,8 @@ function getDemoNews() {
       views: 45,
       author: 'Borisonchik',
       tags: ['events', 'giveaway'],
-      image: null
+      image: null,
+      created_at: new Date(Date.now() - 10*24*60*60*1000).toISOString()
     }
   ];
 }
@@ -1891,7 +1896,160 @@ function isAdminUser(decodedToken) {
 // ============================================
 // Админ маршруты для управления пользователями
 // ============================================
-app.get('/api/admin/news', async (req, res) => {
+app.post('/api/admin/news', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    
+    try {
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());      
+      if (!isAdminUser(decoded)) {
+        return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+      }
+      
+      const { title, content, category, date, tags, image } = req.body;
+      
+      console.log('📰 Создание новости:', { title, content, category, date, tags });
+      
+      if (!title || !content) {
+        return res.status(400).json({ success: false, error: 'Не указаны обязательные поля (title, content)' });
+      }
+      
+      // Проверяем, существует ли таблица news
+      if (sql) {
+        try {
+          // Проверяем существование таблицы
+          const tableCheck = await sql`
+            SELECT EXISTS (
+              SELECT FROM information_schema.tables 
+              WHERE table_name = 'news'
+            )
+          `;
+          
+          if (!tableCheck[0].exists) {
+            // Создаем таблицу если не существует
+            await sql`
+              CREATE TABLE IF NOT EXISTS news (
+                id SERIAL PRIMARY KEY,
+                title TEXT NOT NULL,
+                content TEXT NOT NULL,
+                date DATE DEFAULT CURRENT_DATE,
+                category TEXT DEFAULT 'announcement',
+                views INTEGER DEFAULT 0,
+                author TEXT,
+                tags JSONB DEFAULT '[]',
+                image TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+              )
+            `;
+            console.log('✅ Таблица news создана');
+          }
+          
+          // Вставляем новость
+          const result = await sql`
+            INSERT INTO news (title, content, date, category, tags, image, author, created_at, updated_at)
+            VALUES (
+              ${title}, 
+              ${content}, 
+              ${date ? new Date(date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}, 
+              ${category || 'announcement'}, 
+              ${JSON.stringify(tags || [])}, 
+              ${image || null}, 
+              ${decoded.username || 'Администратор'},
+              NOW(),
+              NOW()
+            )
+            RETURNING id
+          `;
+          
+          console.log(`✅ Новость создана: ${title} (ID: ${result[0].id})`);
+          
+          // Отправляем уведомление в Discord
+          try {
+            const webhookUrl = 'https://discord.com/api/webhooks/1475843665921576960/dzWLdmiJOrsOH_Lnvj7I3DVB69UaAiCg4b-Leiu7-LlhiZZzVYL2thbjvXdXvwtVTw89';
+            
+            const categoryNames = {
+              'announcement': '📢 Объявление',
+              'updates': '🚀 Обновление',
+              'events': '🎉 Событие',
+              'promo': '🎁 Акция'
+            };
+            
+            await axios.post(webhookUrl, {
+              embeds: [{
+                title: '<:Wave:1386273780556496967> Новая новость!',
+                description: `**${title}**`,
+                color: 0x57F287,
+                fields: [
+                  { name: '📋 Категория', value: categoryNames[category] || category, inline: true },
+                  { name: '👤 Автор', value: decoded.username || 'Администратор', inline: true },
+                  { name: '📝 Содержание', value: content.substring(0, 200) + (content.length > 200 ? '...' : ''), inline: false }
+                ],
+                timestamp: new Date().toISOString()
+              }]
+            }).catch(console.error);
+          } catch (webhookError) {
+            console.error('Ошибка отправки вебхука:', webhookError.message);
+          }
+          
+          res.json({
+            success: true,
+            message: 'Новость создана',
+            id: result[0].id
+          });
+          
+        } catch (dbError) {
+          console.error('❌ Ошибка БД:', dbError.message);
+          res.status(500).json({ success: false, error: 'Ошибка базы данных: ' + dbError.message });
+        }
+      } else {
+        // Если БД не доступна, сохраняем в памяти (для тестирования)
+        const newId = Date.now();
+        const demoNews = getDemoNews();
+        demoNews.unshift({
+          id: newId,
+          title: title,
+          content: content,
+          date: date || new Date().toISOString().split('T')[0],
+          category: category || 'announcement',
+          views: 0,
+          author: decoded.username || 'Администратор',
+          tags: tags || [],
+          image: image || null,
+          created_at: new Date().toISOString()
+        });
+        
+        // Сохраняем в глобальную переменную для демо
+        if (!global.demoNews) global.demoNews = demoNews;
+        
+        console.log(`✅ Новость создана в памяти: ${title}`);
+        
+        res.json({
+          success: true,
+          message: 'Новость создана (демо-режим)',
+          id: newId
+        });
+      }
+      
+    } catch (decodeError) {
+      console.error('❌ Ошибка декодирования токена:', decodeError);
+      return res.status(401).json({ success: false, error: 'Неверный токен' });
+    }
+    
+  } catch (error) {
+    console.error('❌ Ошибка создания новости:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера: ' + error.message });
+  }
+});
+
+// Удаление новости (админ)
+app.put('/api/admin/news/:id', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
     
@@ -1908,14 +2066,32 @@ app.get('/api/admin/news', async (req, res) => {
         return res.status(403).json({ success: false, error: 'Требуются права администратора' });
       }
       
-      const news = await sql`
-        SELECT * FROM news ORDER BY created_at DESC
-      `;
+      const newsId = parseInt(req.params.id);
+      const { title, content, category, date, tags, image } = req.body;
+      
+      if (!title || !content) {
+        return res.status(400).json({ success: false, error: 'Не указаны обязательные поля' });
+      }
+      
+      if (sql) {
+        await sql`
+          UPDATE news 
+          SET title = ${title},
+              content = ${content},
+              date = ${date ? new Date(date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]},
+              category = ${category || 'announcement'},
+              tags = ${JSON.stringify(tags || [])},
+              image = ${image || null},
+              updated_at = NOW()
+          WHERE id = ${newsId}
+        `;
+        
+        console.log(`✅ Новость обновлена: ${newsId}`);
+      }
       
       res.json({
         success: true,
-        news: news,
-        total: news.length
+        message: 'Новость обновлена'
       });
       
     } catch (decodeError) {
@@ -1923,12 +2099,11 @@ app.get('/api/admin/news', async (req, res) => {
     }
     
   } catch (error) {
-    console.error('❌ Ошибка получения новостей для админки:', error.message);
+    console.error('❌ Ошибка обновления новости:', error.message);
     res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
 
-// Удаление новости (админ)
 app.delete('/api/admin/news/:id', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -1946,13 +2121,15 @@ app.delete('/api/admin/news/:id', async (req, res) => {
         return res.status(403).json({ success: false, error: 'Требуются права администратора' });
       }
       
-      const newsId = req.params.id;
+      const newsId = parseInt(req.params.id);
       
-      await sql`
-        DELETE FROM news WHERE id = ${newsId}
-      `;
-      
-      console.log(`📰 Админ ${decoded.username} удалил новость: ${newsId}`);
+      if (sql) {
+        await sql`
+          DELETE FROM news WHERE id = ${newsId}
+        `;
+        
+        console.log(`✅ Новость удалена: ${newsId}`);
+      }
       
       res.json({
         success: true,
@@ -1969,55 +2146,7 @@ app.delete('/api/admin/news/:id', async (req, res) => {
   }
 });
 
-app.put('/api/admin/news/:id', async (req, res) => {
-  try {
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader) {
-      return res.status(401).json({ success: false, error: 'Не авторизован' });
-    }
-
-    const token = authHeader.replace('Bearer', '');
-    
-    try {
-      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-      
-      if (!isAdminUser(decoded)) {
-        return res.status(403).json({ success: false, error: 'Требуются права администратора' });
-      }
-      
-      const newsId = req.params.id;
-      const { title, content, category, tags, image } = req.body;
-      
-      await sql`
-        UPDATE news 
-        SET title = ${title},
-            content = ${content},
-            category = ${category || 'announcement'},
-            tags = ${JSON.stringify(tags || [])},
-            image = ${image || null},
-            updated_at = NOW()
-        WHERE id = ${newsId}
-      `;
-      
-      console.log(`📰 Админ ${decoded.username} обновил новость: ${newsId}`);
-      
-      res.json({
-        success: true,
-        message: 'Новость обновлена'
-      });
-      
-    } catch (decodeError) {
-      return res.status(401).json({ success: false, error: 'Неверный токен' });
-    }
-    
-  } catch (error) {
-    console.error('❌ Ошибка обновления новости:', error.message);
-    res.status(500).json({ success: false, error: 'Ошибка сервера' });
-  }
-});
-
-app.post('/api/admin/news', async (req, res) => {
+app.get('/api/admin/news', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
     
@@ -2034,24 +2163,20 @@ app.post('/api/admin/news', async (req, res) => {
         return res.status(403).json({ success: false, error: 'Требуются права администратора' });
       }
       
-      const { title, content, category, tags, image } = req.body;
+      let news = [];
       
-      if (!title || !content) {
-        return res.status(400).json({ success: false, error: 'Не указаны обязательные поля' });
+      if (sql) {
+        news = await sql`
+          SELECT * FROM news ORDER BY created_at DESC
+        `;
+      } else {
+        news = getDemoNews();
       }
-      
-      const result = await sql`
-        INSERT INTO news (title, content, category, tags, image, author, created_at, updated_at)
-        VALUES (${title}, ${content}, ${category || 'announcement'}, ${JSON.stringify(tags || [])}, ${image || null}, ${decoded.username}, NOW(), NOW())
-        RETURNING id
-      `;
-      
-      console.log(`📰 Админ ${decoded.username} создал новость: ${title}`);
       
       res.json({
         success: true,
-        message: 'Новость создана',
-        id: result[0].id
+        news: news,
+        total: news.length
       });
       
     } catch (decodeError) {
@@ -2059,7 +2184,7 @@ app.post('/api/admin/news', async (req, res) => {
     }
     
   } catch (error) {
-    console.error('❌ Ошибка создания новости:', error.message);
+    console.error('❌ Ошибка получения новостей для админки:', error.message);
     res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });

@@ -340,6 +340,65 @@ class AdminNews {
         });
     }
 
+
+    async saveNews() {
+        try {
+            const title = document.getElementById('newsTitle').value.trim();
+            const content = document.getElementById('newsContent').value.trim();
+            
+            if (!title) {
+                this.showNotification('Введите заголовок новости', 'error');
+                return;
+            }
+            
+            if (!content) {
+                this.showNotification('Введите содержание новости', 'error');
+                return;
+            }
+            
+            const tags = document.getElementById('newsTags').value
+                .split(',')
+                .map(t => t.trim())
+                .filter(t => t.length > 0);
+            
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            
+            const newsData = {
+                title: title,
+                content: content,
+                category: document.getElementById('newsCategory').value,
+                date: document.getElementById('newsDate').value,
+                tags: tags,
+                image: document.getElementById('newsImage').value || null
+            };
+            
+            console.log('📤 Отправка новости:', newsData);
+            
+            const response = await fetch('/api/admin/news', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authData.token || ''}`
+                },
+                body: JSON.stringify(newsData)
+            });
+            
+            const result = await response.json();
+            console.log('📥 Ответ сервера:', result);
+            
+            if (result.success) {
+                document.querySelector('.modal').remove();
+                this.showNotification('Новость успешно добавлена', 'success');
+                await this.loadNews();
+            } else {
+                throw new Error(result.error || 'Ошибка при сохранении');
+            }
+        } catch (error) {
+            console.error('Ошибка сохранения новости:', error);
+            this.showNotification('Ошибка при сохранении новости: ' + error.message, 'error');
+        }
+    }
+    
     async saveNews() {
         try {
             const tags = document.getElementById('newsTags').value
