@@ -275,33 +275,56 @@ class AdminNews {
     }
 
     showAddNewsForm() {
+        // Удаляем старый модал если есть
+        const existingModal = document.querySelector('.modal');
+        if (existingModal) existingModal.remove();
+        
         const modal = document.createElement('div');
         modal.className = 'modal';
         modal.id = 'addNewsModal';
-        modal.style.display = 'flex';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        `;
         
         modal.innerHTML = `
-            <div class="modal-content" style="max-width: 600px;">
-                <div class="modal-header">
-                    <h2><i class="fas fa-plus-circle"></i> Добавить новость</h2>
-                    <button class="modal-close" onclick="this.closest('.modal').remove()">×</button>
+            <div class="modal-content" style="max-width: 600px; width: 90%; background: #2a2b36; border-radius: 16px; padding: 0; overflow: hidden;">
+                <div class="modal-header" style="padding: 20px; background: #1e1f29; border-bottom: 1px solid #40444b;">
+                    <h2 style="margin: 0; color: white;">
+                        <i class="fas fa-plus-circle" style="color: #57F287;"></i> 
+                        Добавить новость
+                    </h2>
+                    <button class="modal-close" onclick="this.closest('.modal').remove()" 
+                            style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
                 </div>
                 
-                <form id="addNewsForm">
-                    <div class="form-group">
-                        <label>Заголовок новости</label>
-                        <input type="text" id="newsTitle" required placeholder="Введите заголовок">
+                <form id="addNewsForm" style="padding: 20px;">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 8px; color: #b9bbbe;">Заголовок новости *</label>
+                        <input type="text" id="newsTitle" required 
+                               style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
                     
-                    <div class="form-group">
-                        <label>Содержание</label>
-                        <textarea id="newsContent" required rows="8" placeholder="Введите текст новости..."></textarea>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 8px; color: #b9bbbe;">Содержание *</label>
+                        <textarea id="newsContent" required rows="8" 
+                                  style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white; resize: vertical;"></textarea>
                     </div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                         <div class="form-group">
-                            <label>Категория</label>
-                            <select id="newsCategory">
+                            <label style="display: block; margin-bottom: 8px; color: #b9bbbe;">Категория</label>
+                            <select id="newsCategory" 
+                                    style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                                 <option value="announcement">📢 Объявление</option>
                                 <option value="updates">🚀 Обновление</option>
                                 <option value="events">🎉 Событие</option>
@@ -309,24 +332,33 @@ class AdminNews {
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Дата публикации</label>
-                            <input type="date" id="newsDate" value="${new Date().toISOString().split('T')[0]}">
+                            <label style="display: block; margin-bottom: 8px; color: #b9bbbe;">Дата публикации</label>
+                            <input type="date" id="newsDate" value="${new Date().toISOString().split('T')[0]}" 
+                                   style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                         </div>
                     </div>
                     
-                    <div class="form-group">
-                        <label>Теги (через запятую)</label>
-                        <input type="text" id="newsTags" placeholder="новость, обновление, акция">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 8px; color: #b9bbbe;">Теги (через запятую)</label>
+                        <input type="text" id="newsTags" placeholder="новость, обновление, акция" 
+                               style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
                     
-                    <div class="form-group">
-                        <label>Изображение (URL, опционально)</label>
-                        <input type="url" id="newsImage" placeholder="https://example.com/image.jpg">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; color: #b9bbbe;">Изображение (URL, опционально)</label>
+                        <input type="url" id="newsImage" placeholder="https://example.com/image.jpg" 
+                               style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
                     
-                    <div class="form-actions">
-                        <button type="button" class="btn-admin" onclick="this.closest('.modal').remove()">Отмена</button>
-                        <button type="submit" class="btn-admin success">Добавить новость</button>
+                    <div class="form-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" class="btn-admin" onclick="this.closest('.modal').remove()"
+                                style="padding: 10px 20px; background: #40444b; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                            Отмена
+                        </button>
+                        <button type="submit" class="btn-admin success" 
+                                style="padding: 10px 20px; background: #57F287; color: #1e1f29; border: none; border-radius: 8px; cursor: pointer;">
+                            <i class="fas fa-plus"></i> Добавить новость
+                        </button>
                     </div>
                 </form>
             </div>
@@ -334,18 +366,50 @@ class AdminNews {
         
         document.body.appendChild(modal);
         
-        document.getElementById('addNewsForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.saveNews();
-        });
+        const form = document.getElementById('addNewsForm');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.saveNews();
+            });
+        }
+        
+        // Фокус на поле заголовка
+        setTimeout(() => {
+            const titleInput = document.getElementById('newsTitle');
+            if (titleInput) titleInput.focus();
+        }, 100);
     }
 
 
     async saveNews() {
         try {
-            const title = document.getElementById('newsTitle').value.trim();
-            const content = document.getElementById('newsContent').value.trim();
+            // Получаем значения с проверкой
+            const title = document.getElementById('newsTitle')?.value?.trim() || '';
+            const content = document.getElementById('newsContent')?.value?.trim() || '';
+            const category = document.getElementById('newsCategory')?.value || 'announcement';
+            const date = document.getElementById('newsDate')?.value || new Date().toISOString().split('T')[0];
+            const image = document.getElementById('newsImage')?.value || null;
             
+            // Получаем теги
+            let tags = [];
+            const tagsInput = document.getElementById('newsTags')?.value;
+            if (tagsInput) {
+                tags = tagsInput.split(',')
+                    .map(t => t.trim())
+                    .filter(t => t.length > 0);
+            }
+            
+            console.log('📝 Данные формы:', {
+                title: title,
+                contentLength: content.length,
+                category: category,
+                date: date,
+                tags: tags,
+                image: image
+            });
+            
+            // Проверка обязательных полей
             if (!title) {
                 this.showNotification('Введите заголовок новости', 'error');
                 return;
@@ -356,45 +420,57 @@ class AdminNews {
                 return;
             }
             
-            const tags = document.getElementById('newsTags').value
-                .split(',')
-                .map(t => t.trim())
-                .filter(t => t.length > 0);
+            if (content.length < 10) {
+                this.showNotification('Содержание должно быть не менее 10 символов', 'error');
+                return;
+            }
             
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            const token = authData.token;
+            
+            if (!token) {
+                this.showNotification('Ошибка авторизации. Пожалуйста, войдите снова.', 'error');
+                return;
+            }
             
             const newsData = {
                 title: title,
                 content: content,
-                category: document.getElementById('newsCategory').value,
-                date: document.getElementById('newsDate').value,
+                category: category,
+                date: date,
                 tags: tags,
-                image: document.getElementById('newsImage').value || null
+                image: image
             };
             
-            console.log('📤 Отправка новости:', newsData);
+            console.log('📤 Отправка данных на сервер:', JSON.stringify(newsData, null, 2));
             
             const response = await fetch('/api/admin/news', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authData.token || ''}`
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(newsData)
             });
             
+            console.log('📥 Статус ответа:', response.status);
+            
             const result = await response.json();
             console.log('📥 Ответ сервера:', result);
             
-            if (result.success) {
-                document.querySelector('.modal').remove();
-                this.showNotification('Новость успешно добавлена', 'success');
+            if (response.ok && result.success) {
+                // Закрываем модальное окно
+                const modal = document.querySelector('.modal');
+                if (modal) modal.remove();
+                
+                this.showNotification('Новость успешно добавлена!', 'success');
                 await this.loadNews();
             } else {
-                throw new Error(result.error || 'Ошибка при сохранении');
+                throw new Error(result.error || `Ошибка сервера: ${response.status}`);
             }
+            
         } catch (error) {
-            console.error('Ошибка сохранения новости:', error);
+            console.error('❌ Ошибка сохранения новости:', error);
             this.showNotification('Ошибка при сохранении новости: ' + error.message, 'error');
         }
     }
