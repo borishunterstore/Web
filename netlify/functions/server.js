@@ -39,6 +39,7 @@ try {
   }
 } catch (error) {
   console.error('❌ Ошибка инициализации Neon:', error.message);
+  sql = null;
 }
 
 app.use(cors());
