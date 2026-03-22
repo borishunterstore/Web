@@ -1678,36 +1678,6 @@ app.get('/api/news', async (req, res) => {
       // В реальном проекте здесь должно быть получение из БД
       // Сейчас возвращаем тестовые данные
       const news = [
-          {
-              id: 1,
-              title: 'Добро пожаловать в BHStore!',
-              content: 'Мы рады приветствовать вас в нашем магазине! BHStore - это современный Discord магазин с широким выбором товаров и услуг. У нас вы найдете премиум подписки, игровые валюты и многое другое.',
-              date: new Date().toISOString().split('T')[0],
-              category: 'announcement',
-              views: 156,
-              author: 'Borisonchik',
-              tags: ['welcome', 'new', 'bhstore']
-          },
-          {
-              id: 2,
-              title: 'Запуск системы отзывов',
-              content: 'Мы запустили новую систему отзывов! Теперь вы можете оценивать товары и делиться своим мнением с другими покупателями. Лучшие отзывы будут получать бонусы на баланс!',
-              date: new Date(Date.now() - 2*24*60*60*1000).toISOString().split('T')[0],
-              category: 'update',
-              views: 89,
-              author: 'Borisonchik',
-              tags: ['reviews', 'update', 'features']
-          },
-          {
-              id: 3,
-              title: 'Новогодняя распродажа!',
-              content: 'Скидки до 50% на все премиум подписки! Успейте приобрести товары по выгодным ценам. Акция действует до 15 января.',
-              date: new Date(Date.now() - 5*24*60*60*1000).toISOString().split('T')[0],
-              category: 'promo',
-              views: 234,
-              author: 'Borisonchik',
-              tags: ['sale', 'discount', 'newyear']
-          }
       ];
       
       res.json({
