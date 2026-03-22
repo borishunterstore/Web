@@ -25,12 +25,20 @@ let sql;
 try {
   if (process.env.DATABASE_URL) {
     sql = neon(process.env.DATABASE_URL);
-    console.log('✅ Подключение к Neon');
+    
+    (async () => {
+      try {
+        await sql`SELECT 1`;
+        console.log('✅ Подключение к Neon установлено');
+      } catch (err) {
+        console.error('❌ Ошибка подключения к Neon:', err.message);
+      }
+    })();
   } else {
     console.log('⚠️ DATABASE_URL не установлен, работаем без БД');
   }
 } catch (error) {
-  console.error('❌ Ошибка подключения к Neon:', error.message);
+  console.error('❌ Ошибка инициализации Neon:', error.message);
 }
 
 app.use(cors());
