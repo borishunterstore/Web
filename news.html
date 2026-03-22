@@ -226,7 +226,6 @@
                     </div>
                 `;
 
-                // Используем API из server.js
                 const response = await fetch('/api/news');
                 const data = await response.json();
                 
@@ -234,11 +233,7 @@
                 
                 if (data.success && data.news && data.news.length > 0) {
                     allNews = data.news;
-                    
-                    // Обновляем статистику
                     totalNewsEl.textContent = allNews.length;
-                    
-                    // Считаем новости за последнюю неделю
                     const oneWeekAgo = new Date();
                     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
                     const weeklyNews = allNews.filter(article => {
@@ -249,7 +244,6 @@
 
                     renderNews();
                 } else {
-                    // Показываем демо-новости если нет в БД
                     allNews = getDemoNews();
                     totalNewsEl.textContent = allNews.length;
                     weeklyNewsEl.textContent = allNews.filter(a => {
@@ -262,7 +256,6 @@
                 }
             } catch (error) {
                 console.error('❌ Ошибка загрузки новостей:', error);
-                // Показываем демо-новости при ошибке
                 allNews = getDemoNews();
                 totalNewsEl.textContent = allNews.length;
                 weeklyNewsEl.textContent = allNews.filter(a => {
@@ -274,7 +267,6 @@
                 renderNews();
             }
 
-            // Функция с демо-новостями
             function getDemoNews() {
                 return [
                     {
@@ -325,7 +317,6 @@
                 ];
             }
 
-            // Функция форматирования даты
             function formatDate(dateString) {
                 if (!dateString) return 'Дата неизвестна';
                 try {
@@ -340,7 +331,6 @@
                 }
             }
 
-            // Функция получения названия категории
             function getCategoryName(category) {
                 const categories = {
                     'announcement': '📢 Объявление',

@@ -75,7 +75,7 @@
     .hero-background {
     width: 100%; 
     position: absolute;
-    background: var(--bg-body); /* Цвет, в который уходит переход */
+    background: var(--bg-body);
 }
 
 .hero-background::after {
@@ -230,7 +230,6 @@
         </div>
     </section>
 
-    <!-- Футер -->
     <footer class="footer">
         <img src="image/bhstore.png" style="width: 100%;">
         <p class="footertxt" style="text-align: center; margin-bottom: 20px;">СПАСИБО, ЧТО ИСПОЛЬЗУЕТЕ НАШ СЕРВИС!</p>
@@ -260,7 +259,6 @@
     </footer>
 
     <script>
-        // Загрузка информации о Discord сервере через API
         document.addEventListener('DOMContentLoaded', async function() {
             try {
                 const response = await fetch('https://discord.com/api/guilds/1241001251907309701/widget.json');
@@ -277,15 +275,10 @@
                 document.getElementById('memberCount').textContent = 'Discord сервер';
                 document.getElementById('onlineCount').innerHTML = '<i class="fas fa-circle" style="color: #57F287;"></i> онлайн';
             }
-            
-            // Загрузка популярных товаров
             await loadPopularProducts();
-            
-            // Загрузка последних новостей
             await loadLatestNews();
         });
         
-        // Загрузка популярных товаров
         async function loadPopularProducts() {
             const container = document.getElementById('popularProducts');
             
@@ -319,7 +312,6 @@
             }
         }
         
-        // Загрузка последних новостей
         async function loadLatestNews() {
             const container = document.getElementById('latestNews');
             
@@ -348,6 +340,5 @@
             }
         }
     </script>
-    
 </body>
 </html>

@@ -86,7 +86,7 @@
             </div>
         </div>
 
-        <div class="profile-stats">
+        <div class="profile-stats" style="margin-bottom: 25px;">
             <div class="stat-card">
                 <div class="stat-icon">
                     <i class="fas fa-shopping-bag"></i>
@@ -260,7 +260,6 @@
                 if (data.success && data.user) {
                     const user = data.user;
                     
-                    // Обновляем localStorage
                     authData.balance = user.balance;
                     authData.badges = user.badges || {};
                     localStorage.setItem('bhstore_auth', JSON.stringify(authData));
@@ -272,7 +271,6 @@
                     renderProfile(user);
                     renderBalance(user.balance || 0);
                     
-                    // Получаем заказы пользователя
                     const ordersResponse = await fetch(`/api/user/${authData.id}/orders`);
                     const ordersData = await ordersResponse.json();
                     
@@ -284,7 +282,6 @@
                         updateStats([], user);
                     }
                 } else {
-                    // Если пользователь не найден в БД, создаем его
                     const registerResponse = await fetch('/api/register', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -299,7 +296,7 @@
                     const registerData = await registerResponse.json();
                     
                     if (registerData.success) {
-                        await loadProfile(); // Повторно загружаем профиль
+                        await loadProfile();
                     } else {
                         renderProfile(authData);
                         renderBalance(0);
@@ -578,7 +575,6 @@
                 });
             }
             
-            // Загружаем использованные промокоды при инициализации
             await loadUserPromocodes();
         }
     
@@ -613,8 +609,6 @@
                     if (data.newBalance !== undefined) {
                         await loadProfile();
                     }
-                    
-                    // Обновляем список использованных промокодов
                     await loadUserPromocodes();
                     showPromocodeInfo(data);
                 } else {
@@ -675,7 +669,6 @@
             modal.style.display = 'flex';
         }
     
-        // Загрузка использованных промокодов из БД
         async function loadUserPromocodes() {
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             
@@ -686,8 +679,6 @@
             
             try {
                 console.log('📡 Загрузка истории промокодов пользователя...');
-                
-                // Загружаем историю использованных промокодов
                 const response = await fetch(`/api/promocodes/user/${authData.id}`);
                 const data = await response.json();
                 
@@ -705,16 +696,13 @@
             }
         }
         
-        // Отображение списка использованных промокодов
         function renderUserPromocodes(promocodes) {
             const container = document.getElementById('userPromocodesList');
             
-            // Если контейнера нет, создаем его
             let promocodesContainer = container;
             if (!promocodesContainer) {
                 const promocodeSection = document.getElementById('promocodeSection');
                 if (promocodeSection) {
-                    // Создаем контейнер для списка использованных промокодов
                     const newContainer = document.createElement('div');
                     newContainer.id = 'userPromocodesList';
                     newContainer.className = 'user-promocodes-list';
@@ -736,7 +724,6 @@
                 return;
             }
             
-            // Сортируем по дате (новые сверху)
             const sortedPromocodes = [...promocodes].sort((a, b) => {
                 const dateA = new Date(a.usedAt || a.created_at || 0);
                 const dateB = new Date(b.usedAt || b.created_at || 0);
@@ -814,7 +801,6 @@
                 </div>
             `;
             
-            // Добавляем стили для hover эффекта
             const style = document.createElement('style');
             style.textContent = `
                 .promocode-history-item:hover {
@@ -838,7 +824,6 @@
             document.head.appendChild(style);
         }
     
-        // Логаут
         window.logout = function() {
             localStorage.removeItem('bhstore_auth');
             localStorage.removeItem('bhstore_active_promocodes');

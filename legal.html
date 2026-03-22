@@ -300,7 +300,6 @@
 
 
     <script>
-        // Активная навигация при скролле
         document.addEventListener('DOMContentLoaded', function() {
             const sections = document.querySelectorAll('.legal-section');
             const navItems = document.querySelectorAll('.legal-nav-item');
@@ -326,7 +325,6 @@
                 });
             });
             
-            // Плавный скролл
             navItems.forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.preventDefault();
