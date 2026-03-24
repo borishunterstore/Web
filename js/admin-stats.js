@@ -43,7 +43,7 @@ class AdminStats {
                 // Сохраняем в localStorage для синхронизации с фронтендом
                 localStorage.setItem('bhstore_shop_closed', this.shopClosed);
                 localStorage.setItem('bhstore_registration_enabled', this.registrationEnabled);
-                localStorage.setitem('bhstore_site_access', this.siteAccess);
+                localStorage.setItem('bhstore_site_access', this.siteAccess);
                 
                 // Обновляем чекбоксы
                 const shopCheckbox = document.getElementById('shopClosedToggle');
