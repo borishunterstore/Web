@@ -141,9 +141,104 @@
         .toast-success { background: #57F287; color: #1e1f29; }
         .toast-error { background: #ED4245; color: white; }
         .toast-info { background: #5865F2; color: white; }
+        
+        /* Сообщение о закрытии магазина */
+        .shop-closed-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 40px;
+            background: linear-gradient(135deg, #2a2b36, #1e1f29);
+            border-radius: 24px;
+            border: 2px solid #ED4245;
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        .shop-closed-message i {
+            font-size: 5rem;
+            color: #ED4245;
+            margin-bottom: 20px;
+        }
+        
+        .shop-closed-message h2 {
+            color: #ED4245;
+            margin-bottom: 15px;
+            font-size: 2rem;
+        }
+        
+        .shop-closed-message p {
+            color: #b9bbbe;
+            margin-bottom: 10px;
+        }
+        
+        .shop-closed-message .small-text {
+            font-size: 0.9rem;
+            color: #72767d;
+            margin-top: 20px;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .category-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
     </style>
 
     <script>
+        // ==================== ФУНКЦИЯ ПРОВЕРКИ СТАТУСА МАГАЗИНА ====================
+        function isShopClosed() {
+            try {
+                const shopClosed = localStorage.getItem('bhstore_shop_closed') === 'true';
+                console.log('🔍 Статус магазина из localStorage:', shopClosed);
+                return shopClosed;
+            } catch (error) {
+                console.error('Ошибка проверки статуса:', error);
+                return false;
+            }
+        }
+        
+        function isAdminUser() {
+            try {
+                const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+                const isAdmin = authData.badges?.admin === true || authData.id === '992442453833547886';
+                console.log('🔍 Проверка админа:', isAdmin);
+                return isAdmin;
+            } catch (error) {
+                return false;
+            }
+        }
+        
+        function showShopClosedMessage() {
+            const container = document.getElementById('productsContainer');
+            if (container) {
+                container.innerHTML = `
+                    <div class="shop-closed-message">
+                        <i class="fas fa-store-slash"></i>
+                        <h2>Магазин временно закрыт</h2>
+                        <p>Администрация проводит технические работы. Приносим извинения за неудобства!</p>
+                        <p class="small-text">Пожалуйста, зайдите позже</p>
+                    </div>
+                `;
+            }
+            
+            // Блокируем кнопки категорий
+            const categoryBtns = document.querySelectorAll('.category-btn');
+            categoryBtns.forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            });
+        }
+        
         // ==================== КОНФИГУРАЦИЯ ====================
         const URL_TO_CATEGORY = {
             'montaz': 'montaz', 'ava': 'ava', 'preview': 'preview',
@@ -232,6 +327,12 @@
         function renderProducts(products, activeCategory = null) {
             const container = document.getElementById('productsContainer');
             
+            // Еще раз проверяем статус магазина
+            if (isShopClosed() && !isAdminUser()) {
+                showShopClosedMessage();
+                return;
+            }
+            
             if (!products || products.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
@@ -286,6 +387,12 @@
 
         // ==================== ПОКУПКА ТОВАРА ====================
         window.buyProduct = async function(productId, productName, originalPrice) {
+            // Проверяем статус магазина
+            if (isShopClosed() && !isAdminUser()) {
+                showToast('Магазин временно закрыт. Покупки недоступны.', 'error');
+                return;
+            }
+            
             console.log('🛒 Покупка:', { productId, productName, originalPrice });
             
             if (!productId || !productName || originalPrice === undefined) {
@@ -381,58 +488,57 @@
         }
         
         async function confirmPurchase(productId, productName, finalPrice, originalPrice, orderId, discountInfo, modal) {
-    const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-    
-    try {
-        showToast('Обработка покупки...', 'info');
-        
-        const orderData = {
-            userId: authData.id,
-            productId: productId,
-            productName: productName,
-            price: finalPrice,
-            originalPrice: originalPrice || finalPrice,
-            username: authData.username,
-            orderId: orderId  // <-- ВАЖНО: передаем orderId на сервер
-        };
-        
-        if (discountInfo.appliedPromocodes?.length) {
-            orderData.promocodes = discountInfo.appliedPromocodes.map(p => p.code);
-            orderData.discount = discountInfo.discount;
-            orderData.discountAmount = discountInfo.discountAmount;
-        }
-        
-        console.log('📤 Отправка заказа с номером:', orderId);
-        
-        const response = await fetch('/api/create-order', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            authData.balance = result.newBalance;
-            if (!authData.badges) authData.badges = {};
-            authData.badges.buyer = true;
-            localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             
-            if (discountInfo.appliedPromocodes?.length && window.promocodeSystem) {
-                discountInfo.appliedPromocodes.forEach(p => window.promocodeSystem.removeDiscount?.(p.code));
+            try {
+                showToast('Обработка покупки...', 'info');
+                
+                const orderData = {
+                    userId: authData.id,
+                    productId: productId,
+                    productName: productName,
+                    price: finalPrice,
+                    originalPrice: originalPrice || finalPrice,
+                    username: authData.username,
+                    orderId: orderId
+                };
+                
+                if (discountInfo.appliedPromocodes?.length) {
+                    orderData.promocodes = discountInfo.appliedPromocodes.map(p => p.code);
+                    orderData.discount = discountInfo.discount;
+                    orderData.discountAmount = discountInfo.discountAmount;
+                }
+                
+                console.log('📤 Отправка заказа с номером:', orderId);
+                
+                const response = await fetch('/api/create-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    authData.balance = result.newBalance;
+                    if (!authData.badges) authData.badges = {};
+                    authData.badges.buyer = true;
+                    localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                    
+                    if (discountInfo.appliedPromocodes?.length && window.promocodeSystem) {
+                        discountInfo.appliedPromocodes.forEach(p => window.promocodeSystem.removeDiscount?.(p.code));
+                    }
+                    
+                    modal.remove();
+                    showSuccessMessage(orderId, productName, result.newBalance);
+                } else {
+                    throw new Error(result.error || 'Ошибка при создании заказа');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                showToast('Ошибка: ' + error.message, 'error');
             }
-            
-            modal.remove();
-            // Показываем успех с ТЕМ ЖЕ orderId
-            showSuccessMessage(orderId, productName, result.newBalance);
-        } else {
-            throw new Error(result.error || 'Ошибка при создании заказа');
         }
-    } catch (error) {
-        console.error('Ошибка:', error);
-        showToast('Ошибка: ' + error.message, 'error');
-    }
-}
 
         function showSuccessMessage(orderId, productName, newBalance) {
             const div = document.createElement('div');
@@ -455,6 +561,12 @@
         function initCategoryFilters(allProducts) {
             document.querySelectorAll('.category-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
+                    // Проверяем статус магазина
+                    if (isShopClosed() && !isAdminUser()) {
+                        showToast('Магазин временно закрыт', 'error');
+                        return;
+                    }
+                    
                     const category = this.dataset.category;
                     updateURL(category);
                     const filtered = category === 'all' ? allProducts : filterProductsByCategory(allProducts, category);
@@ -468,6 +580,13 @@
         // ==================== ЗАГРУЗКА СТРАНИЦЫ ====================
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🛍️ Загрузка магазина...');
+            
+            // ПРОВЕРЯЕМ СТАТУС МАГАЗИНА В ПЕРВУЮ ОЧЕРЕДЬ
+            if (isShopClosed() && !isAdminUser()) {
+                console.log('❌ Магазин закрыт для обычных пользователей');
+                showShopClosedMessage();
+                return;
+            }
             
             try {
                 const response = await fetch('/api/products');
@@ -489,6 +608,10 @@
                     initCategoryFilters(data.products);
                     
                     window.addEventListener('popstate', () => {
+                        if (isShopClosed() && !isAdminUser()) {
+                            showShopClosedMessage();
+                            return;
+                        }
                         const newCategory = getCategoryFromURL();
                         if (newCategory) {
                             renderProducts(filterProductsByCategory(window.allProducts, newCategory), newCategory);
