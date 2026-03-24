@@ -2017,3 +2017,91 @@ tr:hover td {
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* Toggle Switch для закрытия магазина */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: #ED4245;
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+}
+
+.toggle-slider:after {
+    content: "❌";
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+input:checked + .toggle-slider:after {
+    opacity: 1;
+}
+
+.toggle-switch input:not(:checked) + .toggle-slider:before {
+    content: "✅";
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    background: transparent;
+    width: auto;
+    height: auto;
+    color: #1e1f29;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    content: "❌";
+    position: absolute;
+    right: 8px;
+    left: auto;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    background: transparent;
+    width: auto;
+    height: auto;
+    color: white;
+}
