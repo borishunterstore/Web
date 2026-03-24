@@ -1251,3 +1251,53 @@
 .notification.warning {
     border-left-color: #FEE75C;
 }
+
+/* Сообщение о закрытии магазина */
+.shop-closed-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 40px;
+    background: linear-gradient(135deg, #2a2b36, #1e1f29);
+    border-radius: 24px;
+    border: 2px solid #ED4245;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.shop-closed-message i {
+    font-size: 5rem;
+    color: #ED4245;
+    margin-bottom: 20px;
+}
+
+.shop-closed-message h2 {
+    color: #ED4245;
+    margin-bottom: 15px;
+    font-size: 2rem;
+}
+
+.shop-closed-message p {
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.shop-closed-message .small-text {
+    font-size: 0.9rem;
+    color: var(--text-tertiary);
+    margin-top: 20px;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.category-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
