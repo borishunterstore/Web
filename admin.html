@@ -299,6 +299,22 @@
                         <p>Загрузка чата...</p>
                     </div>
                 </div>
+
+                <div class="admin-section" id="section-chat">
+                    <h2><i class="fas fa-comments"></i> Чат поддержки</h2>
+                    <div id="chatContent" class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Загрузка чата...</p>
+                    </div>
+                </div>
+                
+                <div class="admin-section" id="section-chat">
+                    <h2><i class="fas fa-comments"></i> Настройки</h2>
+                    <div id="settingContent" class="loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Загрузка настроек...</p>
+                    </div>
+                </div>
                 
                 <div class="admin-section" id="section-news">
     <h2><i class="fas fa-newspaper"></i> Управление новостями</h2>
@@ -353,6 +369,9 @@
                         break;
                     case 'news':
                         if (window.adminNews) await window.adminNews.loadNews();
+                        break;
+                    case 'setting':
+                        if (window.adminSetting) await window.adminSetting.loadSetting();
                         break;
                     case 'products':
                         if (window.adminProducts) await window.adminProducts.loadProducts();
