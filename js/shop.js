@@ -5,6 +5,45 @@
     let currentCategory = 'all';
     let currentUser = null;
     let isApiReady = false;
+    let isShopClosed = false;
+
+    // Функция проверки статуса магазина
+    async function checkShopStatus() {
+        try {
+            const shopClosed = localStorage.getItem('bhstore_shop_closed') === 'true';
+            
+            if (shopClosed) {
+                const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+                const isAdmin = authData.badges?.admin === true || authData.id === '992442453833547886';
+                
+                if (!isAdmin) {
+                    const container = document.getElementById('productsContainer');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="shop-closed-message">
+                                <i class="fas fa-store-slash"></i>
+                                <h2>Магазин временно закрыт</h2>
+                                <p>Администрация проводит технические работы. Приносим извинения за неудобства!</p>
+                                <p class="small-text">Пожалуйста, зайдите позже</p>
+                            </div>
+                        `;
+                    }
+                    
+                    const categoryBtns = document.querySelectorAll('.category-btn');
+                    categoryBtns.forEach(btn => btn.disabled = true);
+                    
+                    return false;
+                } else {
+                    showNotification('⚠️ Магазин закрыт для пользователей. Вы видите товары как администратор.', 'warning');
+                    return true;
+                }
+            }
+            return true;
+        } catch (error) {
+            console.error('Ошибка проверки статуса магазина:', error);
+            return true;
+        }
+    }
 
     document.addEventListener('DOMContentLoaded', async function() {
         console.log('🛍️ Shop page initializing...');
@@ -178,7 +217,11 @@
         const categoryButtons = document.querySelectorAll('.category-btn');
 
         categoryButtons.forEach(button => {
-            button.addEventListener('click', function() {
+            button.addEventListener('click', async function() {
+                // Проверяем статус магазина перед загрузкой категории
+                const canView = await checkShopStatus();
+                if (!canView) return;
+                
                 categoryButtons.forEach(btn => btn.classList.remove('active'));
                 this.classList.add('active');
                 currentCategory = this.dataset.category;
@@ -198,6 +241,10 @@
             console.error('❌ Products container not found');
             return;
         }
+
+        // Проверяем статус магазина
+        const canView = await checkShopStatus();
+        if (!canView) return;
 
         currentCategory = category;
         showLoading(container);
@@ -420,6 +467,17 @@
     window.buyProduct = async function(productId, productName, originalPrice) {
         console.log('🛒 buyProduct вызван из shop.js с параметрами:', { productId, productName, originalPrice });
         
+        // Проверяем статус магазина
+        const shopClosed = localStorage.getItem('bhstore_shop_closed') === 'true';
+        if (shopClosed) {
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            const isAdmin = authData.badges?.admin === true || authData.id === '992442453833547886';
+            if (!isAdmin) {
+                showNotification('Магазин временно закрыт. Покупки недоступны.', 'error');
+                return;
+            }
+        }
+        
         if (!productId || !productName || originalPrice === undefined || originalPrice === null) {
             console.error('❌ Ошибка: отсутствуют параметры', { productId, productName, originalPrice });
             showNotification('Ошибка: не удалось получить данные товара', 'error');
@@ -563,7 +621,8 @@
                 productName,
                 price: finalPrice,
                 originalPrice,
-                username: authData.username
+                username: authData.username,
+                orderId: orderId
             };
 
             if (discountInfo.appliedPromocodes.length > 0) {
@@ -791,6 +850,40 @@
                     transform: translateX(100%);
                     opacity: 0;
                 }
+            }
+
+            /* Сообщение о закрытии магазина */
+            .shop-closed-message {
+                grid-column: 1 / -1;
+                text-align: center;
+                padding: 80px 40px;
+                background: linear-gradient(135deg, #2a2b36, #1e1f29);
+                border-radius: 24px;
+                border: 2px solid #ED4245;
+                animation: fadeInUp 0.5s ease-out;
+            }
+
+            .shop-closed-message i {
+                font-size: 5rem;
+                color: #ED4245;
+                margin-bottom: 20px;
+            }
+
+            .shop-closed-message h2 {
+                color: #ED4245;
+                margin-bottom: 15px;
+                font-size: 2rem;
+            }
+
+            .shop-closed-message p {
+                color: var(--text-secondary);
+                margin-bottom: 10px;
+            }
+
+            .shop-closed-message .small-text {
+                font-size: 0.9rem;
+                color: var(--text-tertiary);
+                margin-top: 20px;
             }
 
             .notification {

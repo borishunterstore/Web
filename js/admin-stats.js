@@ -95,8 +95,7 @@ class AdminStats {
                         </div>
                         <p style="color: #b9bbbe; font-size: 0.9rem; margin-top: 10px;">
                             <i class="fas fa-info-circle"></i>
-                            При закрытии магазина обычные пользователи не смогут просматривать товары и делать покупки.
-                            Администраторы будут видеть предупреждение, но смогут пользоваться магазином.
+                            Закрытие / Открытие магазина
                         </p>
                     </div>
                     <div style="display: flex; align-items: center; gap: 15px;">
