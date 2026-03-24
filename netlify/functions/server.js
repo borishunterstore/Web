@@ -521,6 +521,8 @@ app.get('/api/shop-status', async (req, res) => {
       SELECT setting_value FROM shop_settings WHERE setting_key = 'shop_closed'
     `;
     
+    console.log('📡 Запрос статуса магазина:', setting?.setting_value);
+    
     res.json({
       success: true,
       shop_closed: setting?.setting_value || false
