@@ -17,27 +17,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Поддержка | BHStore</title>
-    
-    <!-- SEO -->
     <meta name="description" content="Чат поддержки BHStore. Получите помощь по вопросам покупки, активации товаров и другим вопросам.">
     <meta name="keywords" content="чат поддержки, помощь, bhstore, discord бот, поддержка">
-    
-    <!-- Open Graph -->
     <meta property="og:title" content="Чат поддержки BHStore">
     <meta property="og:description" content="Получите помощь от нашей команды поддержки">
     <meta property="og:image" content="/image/chat-banner.jpg">
-    
-    <!-- CSS -->
     <link rel="stylesheet" href="css/general.css">
     <link rel="stylesheet" href="css/chat.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="/image/logo.png">
 </head>
 <body>
-    <!-- Навигация -->
     <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo">
@@ -65,7 +56,6 @@
         </div>
     </nav>
 
-    <!-- Основной контент -->
     <div class="chat-page">
         <div class="chat-container">
             <div class="chat-header">
@@ -89,21 +79,16 @@
             </div>
 
             <div class="chat-main">
-                <!-- Основное окно чата -->
                 <div class="chat-window">
-                    <!-- Список сообщений -->
                     <div class="chat-messages" id="chatMessages">
-                        <!-- Сообщения загружаются через JS -->
                     </div>
 
-                    <!-- Индикатор набора сообщения -->
                     <div class="typing-indicator" id="typingIndicator">
                         <span></span>
                         <span></span>
                         <span></span>
                     </div>
 
-                    <!-- Поле ввода -->
                     <div class="chat-input">
                         <div class="chat-input-wrapper">
                             <textarea class="chat-input-textarea" 
@@ -121,9 +106,7 @@
                     </div>
                 </div>
 
-                <!-- Боковая панель -->
                 <div class="chat-sidebar">
-                    <!-- Информация о пользователе -->
                     <div class="user-info" id="userInfo">
                         <div class="user-avatar-wrapper">
                             <img src="https://cdn.discordapp.com/embed/avatars/0.png" 
@@ -138,7 +121,6 @@
                         <div class="user-id" id="userId">ID: загрузка...</div>
                     </div>
 
-                    <!-- Статистика -->
                     <div class="user-stats">
                         <div class="stat-item">
                             <div class="stat-value" id="ordersCount">0</div>
@@ -150,7 +132,6 @@
                         </div>
                     </div>
 
-                    <!-- Информация о поддержке -->
                     <div class="chat-info">
                         <h3 class="info-title"><i class="fas fa-info-circle"></i> Информация</h3>
                         <ul class="info-list">
@@ -166,7 +147,6 @@
         </div>
     </div>
 
-    <!-- Подключаем скрипты -->
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/main.js"></script>
@@ -175,16 +155,10 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🔄 Chat page initialized');
-            
-            // Проверяем авторизацию
             checkAuth();
-            
-            // Инициализируем элементы интерфейса
             initChatInterface();
-            
-            // Запускаем обновление статуса
             updateStatus();
-            setInterval(updateStatus, 30000); // Обновляем каждые 30 секунд
+            setInterval(updateStatus, 30000);
         });
 
         // Проверка авторизации

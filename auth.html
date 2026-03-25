@@ -2,18 +2,18 @@
 <html lang="ru">
 <head>
     <!-- Yandex.Metrika counter -->
-<script type="text/javascript">
-    (function(m,e,t,r,i,k,a){
-        m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-        m[i].l=1*new Date();
-        for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-        k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-    })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097', 'ym');
+    <script type="text/javascript">
+        (function(m,e,t,r,i,k,a){
+            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+            m[i].l=1*new Date();
+            for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+        })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097', 'ym');
 
-    ym(107215097, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-</script>
-<noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-<!-- /Yandex.Metrika counter -->
+        ym(107215097, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
+    </script>
+    <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    <!-- /Yandex.Metrika counter -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Авторизация | BHStore</title>
@@ -23,7 +23,136 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="/image/logo.png">
-
+    
+    <style>
+        /* Стили для трёх кнопок согласия */
+        .consent-buttons {
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .consent-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .consent-item.completed {
+            background: rgba(76, 175, 80, 0.15);
+            border-color: rgba(76, 175, 80, 0.5);
+        }
+        
+        .consent-btn {
+            flex: 1;
+            padding: 10px 15px;
+            background: rgba(88, 101, 242, 0.2);
+            border: 1px solid rgba(88, 101, 242, 0.5);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .consent-btn i {
+            width: 20px;
+            font-size: 16px;
+        }
+        
+        .consent-btn:hover:not(:disabled) {
+            background: rgba(88, 101, 242, 0.4);
+            border-color: #5865F2;
+            transform: translateX(5px);
+        }
+        
+        .consent-btn.completed {
+            background: rgba(76, 175, 80, 0.3);
+            border-color: #4caf50;
+            color: #4caf50;
+        }
+        
+        .consent-btn.completed i {
+            color: #4caf50;
+        }
+        
+        .consent-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .consent-status {
+            font-size: 20px;
+            width: 30px;
+            text-align: center;
+        }
+        
+        .consent-status .pending {
+            color: #ff9800;
+        }
+        
+        .consent-status .completed {
+            color: #4caf50;
+        }
+        
+        .consent-progress {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            font-size: 13px;
+            color: #aaa;
+        }
+        
+        .btn-auth.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        .warning-message {
+            background: rgba(255, 107, 107, 0.2);
+            border: 1px solid #ff6b6b;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            text-align: center;
+            font-size: 13px;
+            color: #ff6b6b;
+            display: none;
+        }
+        
+        .warning-message.show {
+            display: block;
+        }
+        
+        .consent-item .doc-link {
+            font-size: 12px;
+            color: #7fc5ff;
+            text-decoration: none;
+            margin-left: auto;
+            padding: 5px 10px;
+            border-radius: 6px;
+            background: rgba(127, 197, 255, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .consent-item .doc-link:hover {
+            background: rgba(127, 197, 255, 0.2);
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <div class="auth-container">
@@ -33,13 +162,13 @@
                 <h1>Авторизация через Discord</h1>
                 <p class="fas">Авторизуйтесь, чтобы получить доступ к:</p>
                 <ol>
-                <li class="fas">Покупки товаров и услуг</li>
-                <li class="fas">Обратной поддержки</li>
-            </ol>
+                    <li class="fas">Покупки товаров и услуг</li>
+                    <li class="fas">Обратной поддержки</li>
+                </ol>
             </div>
             
             <div class="auth-instruction">
-                <h3><i class="fas" style="margin-right: 50px;"></i> <img src="https://cdn3.emoji.gg/emojis/61421-miku.png"  style="transform: scaleX(-1); width: 65px; margin-left: -15px; margin-top: 10px; position: absolute; z-index: 1000;"> Подсказка авторизации:</h3>
+                <h3><i class="fas" style="margin-right: 50px;"></i> <img src="https://cdn3.emoji.gg/emojis/61421-miku.png" style="transform: scaleX(-1); width: 65px; margin-left: -15px; margin-top: 10px; position: absolute; z-index: 1000;"> Подсказка авторизации:</h3>
                 <ol>
                     <p>Зайдите на сервер BHStore</p>
                     <p>Нажмите кнопку "<strong>Авторизация</strong>"</p>
@@ -47,7 +176,8 @@
                     <p>Разрешите то что он требует</p>
                     <p>Мы отправим вам код в ЛС</p>
                     <p>Введите код на сайте</p>
-                    <p>И всё</p><img src="https://cdn3.emoji.gg/emojis/8169-miku-hello.png" style="width: 90px; margin-left: 100px; margin-top: -60px; position: absolute; z-index: 1000;">
+                    <p>И всё</p>
+                    <img src="https://cdn3.emoji.gg/emojis/8169-miku-hello.png" style="width: 90px; margin-left: 100px; margin-top: -60px; position: absolute; z-index: 1000;">
                 </ol>
             </div>
             
@@ -75,8 +205,59 @@
                 </div>
             </div>
             
-            <button id="authBtn" class="btn-auth">
-                <img src="https://cdn3.emoji.gg/emojis/135845-discord.png" style="width: 45px; height: 50px; position: absolute; z-index: 1000; margin-right: 135px;"> <i class="fab" style="margin-left: 35px;">Авторизация</i>
+            <!-- Три кнопки для ознакомления с документами -->
+            <div class="consent-buttons">
+                <div class="consent-item" data-doc="offer">
+                    <div class="consent-status">
+                        <i class="fas fa-circle pending" style="font-size: 12px;"></i>
+                    </div>
+                    <button class="consent-btn" data-doc="offer">
+                        <i class="fas fa-file-signature"></i>
+                        Ознакомиться с Офертой
+                    </button>
+                    <a href="/legal?offer" target="_blank" class="doc-link">
+                        <i class="fas fa-external-link-alt"></i> Читать
+                    </a>
+                </div>
+                
+                <div class="consent-item" data-doc="terms">
+                    <div class="consent-status">
+                        <i class="fas fa-circle pending" style="font-size: 12px;"></i>
+                    </div>
+                    <button class="consent-btn" data-doc="terms">
+                        <i class="fas fa-file-contract"></i>
+                        Ознакомиться с Пользовательским соглашением
+                    </button>
+                    <a href="/legal?terms" target="_blank" class="doc-link">
+                        <i class="fas fa-external-link-alt"></i> Читать
+                    </a>
+                </div>
+                
+                <div class="consent-item" data-doc="privacy">
+                    <div class="consent-status">
+                        <i class="fas fa-circle pending" style="font-size: 12px;"></i>
+                    </div>
+                    <button class="consent-btn" data-doc="privacy">
+                        <i class="fas fa-shield-alt"></i>
+                        Ознакомиться с Политикой конфиденциальности
+                    </button>
+                    <a href="/legal?privacy" target="_blank" class="doc-link">
+                        <i class="fas fa-external-link-alt"></i> Читать
+                    </a>
+                </div>
+            </div>
+            
+            <div class="consent-progress" id="consentProgress">
+                <span id="completedCount">0</span> из <span id="totalCount">3</span> документов ознакомлены
+            </div>
+            
+            <div class="warning-message" id="warningMessage">
+                <i class="fas fa-exclamation-triangle"></i> Для авторизации необходимо ознакомиться со всеми документами
+            </div>
+            
+            <button id="authBtn" class="btn-auth disabled">
+                <img src="https://cdn3.emoji.gg/emojis/135845-discord.png" style="width: 45px; height: 50px; position: absolute; z-index: 1000; margin-right: 135px;"> 
+                <i class="fab" style="margin-left: 35px;">Авторизация</i>
             </button>
             
             <div class="security-note">
@@ -89,138 +270,373 @@
             </div>
             
             <div class="auth-footer">
-                <p style="color: #fff">Регистрируясь, вы соглашаетесь со всеми <a href="/legal.html">документами</a></p>
-                <p><a href="/"><i class="fas fa-arrow-left"></i> Вернуться на главную</a></p>
+                <p style="color: #fff">Нажимая кнопку авторизации, вы подтверждаете, что ознакомлены со всей <a href="/legal" style="color: #7fc5ff;">документацией</a></p>
             </div>
         </div>
     </div>
 
     <script>
-document.getElementById('authBtn').addEventListener('click', function() {
-    console.log('Starting Discord OAuth2 flow...');
-    
-    const clientId = '1328718434967486575';
-    const redirectUri = 'https://bhstore.netlify.app/auth/discord/callback';
-    const scope = 'identify rpc email openid';
-    const state = Math.random().toString(36).substring(2, 15);
-    localStorage.setItem('discord_oauth_state', state);
-    const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}&prompt=consent`;
-    
-    console.log('Opening Discord auth URL:', authUrl);
-    
-    const authWindow = window.open(
-        authUrl, 
-        'Discord Auth', 
-        'width=500,height=600,menubar=no,toolbar=no,location=no,status=no'
-    );
-    
-    if (!authWindow) {
-        alert('Пожалуйста, разрешите всплывающие окна для этого сайта');
-        return;
-    }
-    
-    authWindow.focus();
-    
-    window.addEventListener('message', async function(event) {
-        console.log('Message received from auth window:', event.data);
-        
-        if (event.data.type === 'DISCORD_AUTH_CALLBACK') {
-            console.log('Processing Discord callback...');
-            
-            // Проверяем state
-            const savedState = localStorage.getItem('discord_oauth_state');
-            if (savedState !== event.data.state) {
-                console.error('State mismatch!');
-                alert('Ошибка безопасности: несоответствие состояния');
-                return;
-            }
-            
-            localStorage.removeItem('discord_oauth_state');
-            
-            const code = event.data.code;
-            
-            if (!code) {
-                alert('Ошибка: код авторизации не получен');
-                return;
-            }
-            
+        (function() {
+            // Получаем элементы
             const authBtn = document.getElementById('authBtn');
-            const originalText = authBtn.innerHTML;
-            authBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Обработка...';
-            authBtn.disabled = true;
+            const consentBtns = document.querySelectorAll('.consent-btn');
+            const consentItems = document.querySelectorAll('.consent-item');
+            const completedCountSpan = document.getElementById('completedCount');
+            const warningMessage = document.getElementById('warningMessage');
+            const totalCount = 3;
             
-            try {
-                console.log('Sending code to server...');
-                const response = await fetch('/api/auth/discord', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ code: code })
+            // Ключи для localStorage
+            const STORAGE_KEYS = {
+                offer: 'legal_consent_offer',
+                terms: 'legal_consent_terms',
+                privacy: 'legal_consent_privacy'
+            };
+            
+            // Названия документов для отображения
+            const DOC_NAMES = {
+                offer: 'Оферту',
+                terms: 'Пользовательское соглашение',
+                privacy: 'Политику конфиденциальности'
+            };
+            
+            // Функция обновления состояния кнопки авторизации
+            function updateAuthButtonState() {
+                const allCompleted = checkAllConsentsCompleted();
+                
+                if (allCompleted) {
+                    authBtn.classList.remove('disabled');
+                    warningMessage.classList.remove('show');
+                } else {
+                    authBtn.classList.add('disabled');
+                }
+            }
+            
+            // Функция проверки, ознакомлен ли пользователь со всеми документами
+            function checkAllConsentsCompleted() {
+                return (
+                    localStorage.getItem(STORAGE_KEYS.offer) === 'true' &&
+                    localStorage.getItem(STORAGE_KEYS.terms) === 'true' &&
+                    localStorage.getItem(STORAGE_KEYS.privacy) === 'true'
+                );
+            }
+            
+            // Функция подсчёта ознакомленных документов
+            function getCompletedCount() {
+                let count = 0;
+                if (localStorage.getItem(STORAGE_KEYS.offer) === 'true') count++;
+                if (localStorage.getItem(STORAGE_KEYS.terms) === 'true') count++;
+                if (localStorage.getItem(STORAGE_KEYS.privacy) === 'true') count++;
+                return count;
+            }
+            
+            // Функция обновления UI всех элементов
+            function updateUI() {
+                const completedCount = getCompletedCount();
+                completedCountSpan.textContent = completedCount;
+                
+                // Обновляем каждый документ
+                ['offer', 'terms', 'privacy'].forEach(doc => {
+                    const isCompleted = localStorage.getItem(STORAGE_KEYS[doc]) === 'true';
+                    const consentItem = document.querySelector(`.consent-item[data-doc="${doc}"]`);
+                    const consentBtn = consentItem?.querySelector('.consent-btn');
+                    const statusIcon = consentItem?.querySelector('.consent-status i');
+                    
+                    if (consentItem) {
+                        if (isCompleted) {
+                            consentItem.classList.add('completed');
+                            consentBtn.classList.add('completed');
+                            if (statusIcon) {
+                                statusIcon.className = 'fas fa-check-circle completed';
+                            }
+                            consentBtn.innerHTML = `<i class="fas fa-check-circle"></i> Ознакомлен(а) с ${DOC_NAMES[doc]}`;
+                            consentBtn.disabled = true;
+                        } else {
+                            consentItem.classList.remove('completed');
+                            consentBtn.classList.remove('completed');
+                            if (statusIcon) {
+                                statusIcon.className = 'fas fa-circle pending';
+                            }
+                            const originalText = {
+                                offer: '<i class="fas fa-file-signature"></i> Ознакомиться с Офертой',
+                                terms: '<i class="fas fa-file-contract"></i> Ознакомиться с Пользовательским соглашением',
+                                privacy: '<i class="fas fa-shield-alt"></i> Ознакомиться с Политикой конфиденциальности'
+                            };
+                            consentBtn.innerHTML = originalText[doc];
+                            consentBtn.disabled = false;
+                        }
+                    }
                 });
                 
-                const data = await response.json();
-                console.log('Server response:', data);
+                updateAuthButtonState();
+            }
+            
+            // Функция отметки документа как прочитанного
+            function markDocumentAsRead(docType) {
+                if (!STORAGE_KEYS[docType]) return;
                 
-                if (data.success && data.user) {
-                    console.log('User authenticated:', data.user.username);
-                    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-                    console.log('Generated verification code:', verificationCode);
-                    const sendCodeResponse = await fetch('/api/send-verification', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            userId: data.user.id,
-                            code: verificationCode
-                        })
-                    });
-                    
-                    const sendCodeResult = await sendCodeResponse.json();
-                    
-                    if (sendCodeResult.success) {
-                        const authData = {
-                            ...data.user,
-                            verificationCode: verificationCode,
-                            token: data.token
-                        };
-                        
-                        localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-                        
-                        console.log('Auth data saved, redirecting to verification...');
-                        window.location.href = '/verify.html';
-                    } else {
-                        throw new Error(sendCodeResult.error || 'Не удалось отправить код верификации');
-                    }
-                } else {
-                    throw new Error(data.error || 'Ошибка авторизации');
+                localStorage.setItem(STORAGE_KEYS[docType], 'true');
+                localStorage.setItem(`${STORAGE_KEYS[docType]}_date`, new Date().toISOString());
+                localStorage.setItem(`${STORAGE_KEYS[docType]}_version`, '1.0');
+                
+                updateUI();
+                
+                // Показываем анимацию завершения
+                const consentItem = document.querySelector(`.consent-item[data-doc="${docType}"]`);
+                if (consentItem) {
+                    consentItem.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        consentItem.style.transform = '';
+                    }, 300);
                 }
-            } catch (error) {
-                console.error('Auth error:', error);
-                alert('Ошибка авторизации: ' + error.message);
-                authBtn.innerHTML = originalText;
-                authBtn.disabled = false;
             }
-        }
-    });
-});
-
-        window.addEventListener('load', function() {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            if (authData.username && !authData.verificationCode) {
-                window.location.href = '/';
+            
+            // Функция проверки, можно ли отметить документ как прочитанный
+            function canMarkAsRead(docType) {
+                // Если уже отмечен, нельзя отметить снова
+                if (localStorage.getItem(STORAGE_KEYS[docType]) === 'true') {
+                    return false;
+                }
+                return true;
             }
-        });
+            
+            // Обработчики для кнопок "Ознакомиться"
+            consentBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const docType = this.getAttribute('data-doc');
+                    
+                    if (!docType) return;
+                    
+                    // Проверяем, можно ли отметить
+                    if (!canMarkAsRead(docType)) {
+                        // Уже ознакомлен, ничего не делаем
+                        return;
+                    }
+                    
+                    // Отмечаем как ознакомленного
+                    markDocumentAsRead(docType);
+                });
+            });
+            
+            // Защита от программного изменения localStorage через консоль
+            const originalSetItem = localStorage.setItem;
+            const originalRemoveItem = localStorage.removeItem;
+            
+            localStorage.setItem = function(key, value) {
+                // Если пытаются изменить ключи согласия
+                if (Object.values(STORAGE_KEYS).includes(key)) {
+                    const newValue = value === 'true';
+                    const currentValue = localStorage.getItem(key) === 'true';
+                    
+                    // Запрещаем снимать отметку (менять true на false)
+                    if (currentValue === true && newValue === false) {
+                        console.warn('Попытка снять отметку ознакомления с документом заблокирована');
+                        return;
+                    }
+                }
+                return originalSetItem.call(this, key, value);
+            };
+            
+            localStorage.removeItem = function(key) {
+                // Запрещаем удаление ключей согласия
+                if (Object.values(STORAGE_KEYS).includes(key)) {
+                    console.warn('Попытка удалить отметку ознакомления с документом заблокирована');
+                    return;
+                }
+                return originalRemoveItem.call(this, key);
+            };
+            
+            // Функция авторизации
+            function startDiscordAuth() {
+                const allCompleted = checkAllConsentsCompleted();
+                
+                if (!allCompleted) {
+                    warningMessage.classList.add('show');
+                    return false;
+                }
+                
+                console.log('Starting Discord OAuth2 flow...');
+                
+                const clientId = '1328718434967486575';
+                const redirectUri = 'https://bhstore.netlify.app/auth/discord/callback';
+                const scope = 'identify rpc email openid';
+                const state = Math.random().toString(36).substring(2, 15);
+                localStorage.setItem('discord_oauth_state', state);
+                const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}&prompt=consent`;
+                
+                console.log('Opening Discord auth URL:', authUrl);
+                
+                const authWindow = window.open(
+                    authUrl, 
+                    'Discord Auth', 
+                    'width=500,height=600,menubar=no,toolbar=no,location=no,status=no'
+                );
+                
+                if (!authWindow) {
+                    alert('Пожалуйста, разрешите всплывающие окна для этого сайта');
+                    return false;
+                }
+                
+                authWindow.focus();
+                return true;
+            }
+            
+            // Назначаем обработчик на кнопку авторизации
+            authBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (authBtn.classList.contains('disabled')) {
+                    warningMessage.classList.add('show');
+                    return;
+                }
+                
+                startDiscordAuth();
+            });
+            
+            // Защита от вызова click() через консоль
+            const originalClick = HTMLElement.prototype.click;
+            HTMLElement.prototype.click = function() {
+                if (this.id === 'authBtn' && this.classList && this.classList.contains('disabled')) {
+                    console.warn('Попытка обхода авторизации через click() заблокирована');
+                    return;
+                }
+                return originalClick.call(this);
+            };
+            
+            // Обработчик сообщений из окна авторизации
+            window.addEventListener('message', async function(event) {
+                console.log('Message received from auth window:', event.data);
+                
+                if (event.data.type === 'DISCORD_AUTH_CALLBACK') {
+                    // Финальная проверка согласия перед обработкой
+                    const allCompleted = checkAllConsentsCompleted();
+                    
+                    if (!allCompleted) {
+                        alert('Для завершения авторизации необходимо ознакомиться со всей документацией');
+                        return;
+                    }
+                    
+                    console.log('Processing Discord callback...');
+                    
+                    const savedState = localStorage.getItem('discord_oauth_state');
+                    if (savedState !== event.data.state) {
+                        console.error('State mismatch!');
+                        alert('Ошибка безопасности: несоответствие состояния');
+                        return;
+                    }
+                    
+                    localStorage.removeItem('discord_oauth_state');
+                    
+                    const code = event.data.code;
+                    
+                    if (!code) {
+                        alert('Ошибка: код авторизации не получен');
+                        return;
+                    }
+                    
+                    const originalText = authBtn.innerHTML;
+                    authBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Обработка...';
+                    authBtn.disabled = true;
+                    
+                    try {
+                        console.log('Sending code to server...');
+                        const response = await fetch('/api/auth/discord', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ code: code })
+                        });
+                        
+                        const data = await response.json();
+                        console.log('Server response:', data);
+                        
+                        if (data.success && data.user) {
+                            console.log('User authenticated:', data.user.username);
+                            const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+                            console.log('Generated verification code:', verificationCode);
+                            const sendCodeResponse = await fetch('/api/send-verification', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    userId: data.user.id,
+                                    code: verificationCode
+                                })
+                            });
+                            
+                            const sendCodeResult = await sendCodeResponse.json();
+                            
+                            if (sendCodeResult.success) {
+                                const authData = {
+                                    ...data.user,
+                                    verificationCode: verificationCode,
+                                    token: data.token,
+                                    legalConsents: {
+                                        offer: localStorage.getItem(STORAGE_KEYS.offer) === 'true',
+                                        terms: localStorage.getItem(STORAGE_KEYS.terms) === 'true',
+                                        privacy: localStorage.getItem(STORAGE_KEYS.privacy) === 'true'
+                                    }
+                                };
+                                
+                                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                                
+                                console.log('Auth data saved, redirecting to verification...');
+                                window.location.href = '/verify.html';
+                            } else {
+                                throw new Error(sendCodeResult.error || 'Не удалось отправить код верификации');
+                            }
+                        } else {
+                            throw new Error(data.error || 'Ошибка авторизации');
+                        }
+                    } catch (error) {
+                        console.error('Auth error:', error);
+                        alert('Ошибка авторизации: ' + error.message);
+                        authBtn.innerHTML = originalText;
+                        authBtn.disabled = false;
+                    }
+                }
+            });
+            
+            // Загрузка сохранённых состояний
+            updateUI();
+            
+            // Проверка при загрузке страницы
+            window.addEventListener('load', function() {
+                const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+                if (authData.username && !authData.verificationCode) {
+                    window.location.href = '/';
+                }
+            });
+            
+            // Защита от удаления элементов через DevTools
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList') {
+                        const consentContainer = document.querySelector('.consent-buttons');
+                        if (!consentContainer || consentContainer.children.length === 0) {
+                            console.warn('Попытка удаления кнопок согласия заблокирована');
+                            location.reload();
+                        }
+                    }
+                });
+            });
+            
+            observer.observe(document.body, { childList: true, subtree: true });
+        })();
     </script>
-<script src="js/cursor.js"></script>
-<script src="js/pkm.js"></script>
-<script src="js/mobile-nav.js"></script>
+    <script src="js/cursor.js"></script>
+    <script src="js/pkm.js"></script>
+    <script src="js/mobile-nav.js"></script>
 
-<div class="custom-cursor"></div>
-<canvas id="webCanvas"></canvas>
-<div class="scroll-indicator">
-    <span class="scroll-value">0%</span>
-</div>
+    <div class="custom-cursor"></div>
+    <canvas id="webCanvas"></canvas>
+    <div class="scroll-indicator">
+        <span class="scroll-value">0%</span>
+    </div>
 </body>
 </html>

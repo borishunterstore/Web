@@ -50,24 +50,24 @@
         <img src="image/banner.jpg" alt="News Banner" class="news-banner-image">
         <div class="news-banner-overlay">
             <div class="news-banner-title">
-                <img src="image/emoji/shop.png" style="width: 50px;"> Магазин
+                <i class="fas fa-store" style="font-size: 50px;"></i> Магазин
                 <span>Оформляйте заказ, и радуйтесь результату!</span>
             </div>
         </div>
     </div>
 
     <div class="shop-container">
-        <h1 class="section-title">Магазин товаров</h1>
+        <h1 class="section-title"><i class="fas fa-tags"></i> Магазин товаров</h1>
         
         <div class="categories">
-            <button class="category-btn active" data-category="all">Все товары</button>
-            <button class="category-btn" data-category="montaz">🎬 Монтаж видео</button>
-            <button class="category-btn" data-category="ava">🖼️ Аватарки</button>
-            <button class="category-btn" data-category="preview">📸 Превью</button>
-            <button class="category-btn" data-category="discord">💬 Discord</button>
-            <button class="category-btn" data-category="tgbot">🤖 Telegram бот</button>
-            <button class="category-btn" data-category="website">🌐 Сайты</button>
-            <button class="category-btn" data-category="minecraft">⛏️ Minecraft</button>
+            <button class="category-btn active" data-category="all"><i class="fas fa-th-large"></i> Все товары</button>
+            <button class="category-btn" data-category="montaz"><i class="fas fa-video"></i> Монтаж видео</button>
+            <button class="category-btn" data-category="ava"><i class="fas fa-user-circle"></i> Аватарки</button>
+            <button class="category-btn" data-category="preview"><i class="fas fa-images"></i> Превью</button>
+            <button class="category-btn" data-category="discord"><i class="fab fa-discord"></i> Discord</button>
+            <button class="category-btn" data-category="tgbot"><i class="fab fa-telegram"></i> Telegram бот</button>
+            <button class="category-btn" data-category="website"><i class="fas fa-globe"></i> Сайты</button>
+            <button class="category-btn" data-category="minecraft"><i class="fas fa-cube"></i> Minecraft</button>
         </div>
         
         <div id="productsContainer" class="products-grid">
@@ -83,26 +83,27 @@
         <p class="footertxt" style="text-align: center; margin-bottom: 20px;">СПАСИБО, ЧТО ИСПОЛЬЗУЕТЕ НАШ СЕРВИС!</p>
         <div class="footer-content">
             <div class="footer-section">
-                <h3>Навигация</h3>
-                <a href="/">Главная</a>
-                <a href="shop.html">Магазин</a>
-                <a href="news.html">Новости</a>
-                <a href="faq.html">FAQ</a>
+                <h3><i class="fas fa-compass"></i> Навигация</h3>
+                <a href="/"><i class="fas fa-home"></i> Главная</a>
+                <a href="shop.html"><i class="fas fa-shopping-cart"></i> Магазин</a>
+                <a href="news.html"><i class="fas fa-newspaper"></i> Новости</a>
+                <a href="faq.html"><i class="fas fa-question-circle"></i> FAQ</a>
             </div>
             <div class="footer-section">
-                <h3>Документы</h3>
-                <a href="legal.html#terms">Пользовательское соглашение</a>
-                <a href="legal.html#privacy">Политика конфиденциальности</a>
-                <a href="legal.html#offer">Публичная оферта</a>
+                <h3><i class="fas fa-file-contract"></i> Документы</h3>
+                <a href="legal.html#terms"><i class="fas fa-file-signature"></i> Пользовательское соглашение</a>
+                <a href="legal.html#privacy"><i class="fas fa-shield-alt"></i> Политика конфиденциальности</a>
+                <a href="legal.html#offer"><i class="fas fa-hand-holding-heart"></i> Публичная оферта</a>
             </div>
             <div class="footer-section">
-                <h3>Контакты</h3>
-                <a href="https://t.me/borishunterstore"> <p style="color: #fff"><img src="image/emoji/emoji_3.png" alt="BHStore" style="width: 25px;"> @borishunterstore</p></a>
-                <a href="https://t.me/borisonchikofficial"> <p style="color: #fff"><img src="image/emoji/emoji_3.png" alt="BHStore" style="width: 25px;"> @borisonchikofficial</p></a>
+                <h3><i class="fas fa-headset"></i> Контакты</h3>
+                <a href="https://t.me/borishunterstore"><i class="fab fa-telegram"></i> t.me/@borishunterstore</a>
+                <a href="https://discord.gg/borishunterstore"><i class="fab fa-discord"></i> discord.gg/borishunterstore</a>
             </div>
         </div>
         <div class="footer-bottom" style="margin-bottom: 20px;">
-            <p>&copy; 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</p>
+            <p><i class="far fa-copyright"></i> 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</p>
+            <p><i class="fas fa-id-card"></i> ИНН: 742541714674 / Стахеев Д.А.</p>
         </div>
     </footer>
 
@@ -123,6 +124,7 @@
                 opacity: 1;
             }
         }
+        
         .toast-notification {
             position: fixed;
             bottom: 20px;
@@ -192,22 +194,331 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+        
+        /* Стили для модального окна согласия с офертой */
+        .offer-consent-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .offer-consent-content {
+            background: linear-gradient(135deg, #2a2b36, #1e1f29);
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 550px;
+            width: 90%;
+            border: 1px solid rgba(88, 101, 242, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            animation: scaleIn 0.3s ease;
+        }
+        
+        .offer-consent-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .offer-consent-header i {
+            font-size: 4rem;
+            color: #ffbd7f;
+            margin-bottom: 1rem;
+        }
+        
+        .offer-consent-header h2 {
+            color: #fff;
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .offer-consent-header p {
+            color: #b9bbbe;
+            font-size: 0.9rem;
+        }
+        
+        .offer-text {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .offer-text h3 {
+            color: #ffbd7f;
+            margin: 0 0 1rem 0;
+            font-size: 1.2rem;
+        }
+        
+        .offer-text h3 i {
+            margin-right: 8px;
+        }
+        
+        .offer-text p {
+            color: #b9bbbe;
+            line-height: 1.6;
+            margin: 0.8rem 0;
+            font-size: 0.9rem;
+        }
+        
+        .offer-text .offer-summary {
+            background: rgba(88, 101, 242, 0.1);
+            padding: 12px;
+            border-radius: 12px;
+            margin: 1rem 0;
+            border-left: 3px solid #5865F2;
+        }
+        
+        .offer-text .offer-summary i {
+            color: #5865F2;
+            margin-right: 8px;
+        }
+        
+        .offer-consent-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .btn-agree {
+            flex: 1;
+            padding: 14px;
+            background: linear-gradient(135deg, #57F287, #43b581);
+            border: none;
+            border-radius: 12px;
+            color: #1e1f29;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-agree:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(87, 242, 135, 0.3);
+        }
+        
+        .btn-disagree {
+            flex: 1;
+            padding: 14px;
+            background: rgba(237, 66, 69, 0.2);
+            border: 1px solid #ED4245;
+            border-radius: 12px;
+            color: #ED4245;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-disagree:hover {
+            background: rgba(237, 66, 69, 0.4);
+        }
+        
+        .offer-link {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+        }
+        
+        .offer-link a {
+            color: #7fc5ff;
+            text-decoration: none;
+        }
+        
+        .offer-link a:hover {
+            text-decoration: underline;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .product-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .section-title i {
+            margin-right: 12px;
+            color: #ffbd7f;
+        }
+        
+        .category-btn i {
+            margin-right: 8px;
+        }
+        
+        .footer-section h3 i {
+            margin-right: 8px;
+            color: #ffbd7f;
+        }
+        
+        .footer-section a i {
+            margin-right: 8px;
+            width: 20px;
+        }
     </style>
 
     <script>
+        // ==================== КЛЮЧ ДЛЯ СОГЛАСИЯ С ОФЕРТОЙ ====================
+        const OFFER_CONSENT_KEY = 'bhstore_offer_consent';
+        
+        // Функция проверки согласия с офертой
+        function hasOfferConsent() {
+            const consent = localStorage.getItem(OFFER_CONSENT_KEY);
+            if (!consent) return false;
+            try {
+                const data = JSON.parse(consent);
+                // Проверяем, не старше ли 30 дней (опционально)
+                const consentDate = new Date(data.date);
+                const now = new Date();
+                const daysDiff = (now - consentDate) / (1000 * 60 * 60 * 24);
+                // Если согласие старше 90 дней, запрашиваем заново
+                if (daysDiff > 90) {
+                    localStorage.removeItem(OFFER_CONSENT_KEY);
+                    return false;
+                }
+                return data.agreed === true;
+            } catch (e) {
+                return false;
+            }
+        }
+        
+        // Функция сохранения согласия
+        function saveOfferConsent() {
+            const consentData = {
+                agreed: true,
+                date: new Date().toISOString(),
+                version: '1.0'
+            };
+            localStorage.setItem(OFFER_CONSENT_KEY, JSON.stringify(consentData));
+        }
+        
+        // Функция показа модального окна согласия с офертой
+        function showOfferConsentModal(callback) {
+            // Если уже согласен, сразу вызываем callback
+            if (hasOfferConsent()) {
+                if (callback) callback();
+                return;
+            }
+            
+            // Проверяем, нет ли уже открытого модального окна
+            if (document.getElementById('offerConsentModal')) return;
+            
+            const modal = document.createElement('div');
+            modal.id = 'offerConsentModal';
+            modal.className = 'offer-consent-modal';
+            modal.innerHTML = `
+                <div class="offer-consent-content">
+                    <div class="offer-consent-header">
+                        <i class="fas fa-file-contract"></i>
+                        <h2>Подтверждение ознакомления с офертой</h2>
+                        <p>Перед покупкой необходимо ознакомиться с публичной офертой</p>
+                    </div>
+                    
+                    <div class="offer-text">
+                        <h3><i class="fas fa-info-circle"></i> Краткое содержание публичной оферты</h3>
+                        <div class="offer-summary">
+                            <i class="fas fa-check-circle"></i> Услуги оказываются в соответствии с согласованным техническим заданием
+                        </div>
+                        <div class="offer-summary">
+                            <i class="fas fa-check-circle"></i> Оплата производится через СБП на карту Исполнителя
+                        </div>
+                        <div class="offer-summary">
+                            <i class="fas fa-check-circle"></i> Сроки оказания услуг согласовываются индивидуально
+                        </div>
+                        <div class="offer-summary">
+                            <i class="fas fa-check-circle"></i> Приёмка работ осуществляется в течение 3 рабочих дней
+                        </div>
+                        <div class="offer-summary">
+                            <i class="fas fa-check-circle"></i> Возврат средств возможен до начала оказания услуг
+                        </div>
+                        <p style="margin-top: 15px; font-size: 0.85rem; color: #72767d;">
+                            <i class="fas fa-gavel"></i> Полный текст оферты доступен по ссылке ниже
+                        </p>
+                    </div>
+                    
+                    <div class="offer-consent-buttons">
+                        <button class="btn-agree" id="agreeOfferBtn">
+                            <i class="fas fa-check"></i> Я ознакомлен(а) и согласен(на)
+                        </button>
+                        <button class="btn-disagree" id="disagreeOfferBtn">
+                            <i class="fas fa-times"></i> Отмена
+                        </button>
+                    </div>
+                    
+                    <div class="offer-link">
+                        <i class="fas fa-external-link-alt"></i> 
+                        <a href="/legal.html#offer" target="_blank">Прочитать полную версию публичной оферты</a>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Обработчик согласия
+            document.getElementById('agreeOfferBtn').addEventListener('click', function() {
+                saveOfferConsent();
+                modal.remove();
+                if (callback) callback();
+            });
+            
+            // Обработчик отмены
+            document.getElementById('disagreeOfferBtn').addEventListener('click', function() {
+                modal.remove();
+                showToast('Для совершения покупки необходимо ознакомиться с публичной офертой', 'warning');
+            });
+            
+            // Закрытие по клику на фон
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.remove();
+                    showToast('Для совершения покупки необходимо ознакомиться с публичной офертой', 'warning');
+                }
+            });
+        }
+        
         // ==================== ФУНКЦИЯ ПРОВЕРКИ СТАТУСА МАГАЗИНА ====================
         
-        // Получить статус магазина с сервера
         async function getShopStatusFromServer() {
             try {
                 console.log('📡 Запрос статуса магазина с сервера...');
                 const response = await fetch('/api/shop-status');
-                console.log('📡 Статус ответа:', response.status);
                 const data = await response.json();
-                console.log('📡 Данные с сервера:', data);
                 
                 if (data.success) {
-                    // Сохраняем в localStorage для кэша
                     localStorage.setItem('bhstore_shop_closed', data.shop_closed);
                     console.log('📡 Статус магазина с сервера:', data.shop_closed ? 'ЗАКРЫТ ❌' : 'ОТКРЫТ ✅');
                     return data.shop_closed;
@@ -215,14 +526,11 @@
             } catch (error) {
                 console.error('❌ Ошибка получения статуса с сервера:', error);
             }
-            // Если ошибка, проверяем localStorage
             const localStatus = localStorage.getItem('bhstore_shop_closed') === 'true';
-            console.log('📦 Статус из localStorage:', localStatus ? 'ЗАКРЫТ ❌' : 'ОТКРЫТ ✅');
             return localStatus;
         }
         
         function isShopClosed() {
-            // Проверяем глобальную переменную, которая будет установлена при загрузке
             return window.shopClosed === true;
         }
         
@@ -249,7 +557,6 @@
                 `;
             }
             
-            // Блокируем кнопки категорий
             const categoryBtns = document.querySelectorAll('.category-btn');
             categoryBtns.forEach(btn => {
                 btn.disabled = true;
@@ -271,21 +578,6 @@
             }, 3000);
         }
         
-        // ==================== КОНФИГУРАЦИЯ ====================
-        const URL_TO_CATEGORY = {
-            'montaz': 'montaz', 'ava': 'ava', 'preview': 'preview',
-            'discord': 'discord', 'discordbot': 'discord', 'tgbot': 'tgbot',
-            'website': 'website', 'minecraft': 'minecraft'
-        };
-        
-        const CATEGORY_NAMES = {
-            'montaz': '🎬 Монтаж видео', 'ava': '🖼️ Аватарки',
-            'preview': '📸 Превью', 'discord': '💬 Discord услуги',
-            'tgbot': '🤖 Telegram боты', 'website': '🌐 Сайты',
-            'minecraft': '⛏️ Minecraft'
-        };
-
-        // ==================== УТИЛИТЫ ====================
         function escapeHtml(unsafe) {
             if (!unsafe) return '';
             return String(unsafe).replace(/[&<>]/g, function(m) {
@@ -297,6 +589,20 @@
                 return c;
             });
         }
+        
+        // ==================== КОНФИГУРАЦИЯ ====================
+        const URL_TO_CATEGORY = {
+            'montaz': 'montaz', 'ava': 'ava', 'preview': 'preview',
+            'discord': 'discord', 'discordbot': 'discord', 'tgbot': 'tgbot',
+            'website': 'website', 'minecraft': 'minecraft'
+        };
+        
+        const CATEGORY_NAMES = {
+            'montaz': 'Монтаж видео', 'ava': 'Аватарки',
+            'preview': 'Превью', 'discord': 'Discord услуги',
+            'tgbot': 'Telegram боты', 'website': 'Сайты',
+            'minecraft': 'Minecraft'
+        };
 
         // ==================== URL И КАТЕГОРИИ ====================
         function getCategoryFromURL() {
@@ -346,7 +652,6 @@
         function renderProducts(products, activeCategory = null) {
             const container = document.getElementById('productsContainer');
             
-            // Еще раз проверяем статус магазина
             if (isShopClosed() && !isAdminUser()) {
                 showShopClosedMessage();
                 return;
@@ -404,15 +709,23 @@
             }).join('');
         }
 
-        // ==================== ПОКУПКА ТОВАРА ====================
+        // ==================== ПОКУПКА ТОВАРА (С ПРОВЕРКОЙ СОГЛАСИЯ С ОФЕРТОЙ) ====================
         window.buyProduct = async function(productId, productName, originalPrice) {
+            console.log('🛒 Покупка:', { productId, productName, originalPrice });
+            
+            // Сначала проверяем согласие с офертой
+            showOfferConsentModal(async () => {
+                // После согласия продолжаем покупку
+                await processPurchase(productId, productName, originalPrice);
+            });
+        };
+        
+        async function processPurchase(productId, productName, originalPrice) {
             // Проверяем статус магазина
             if (isShopClosed() && !isAdminUser()) {
                 showToast('Магазин временно закрыт. Покупки недоступны.', 'error');
                 return;
             }
-            
-            console.log('🛒 Покупка:', { productId, productName, originalPrice });
             
             if (!productId || !productName || originalPrice === undefined) {
                 showToast('Ошибка: не удалось получить данные товара', 'error');
@@ -458,7 +771,7 @@
                 console.error('Ошибка:', error);
                 showToast('Ошибка: ' + error.message, 'error');
             }
-        };
+        }
         
         function showPurchaseModal(productId, productName, originalPrice, finalPrice, discountInfo, userBalance) {
             const existing = document.getElementById('purchaseModal');
@@ -484,7 +797,7 @@
             modal.innerHTML = `
                 <div style="background:#2a2b36;border-radius:16px;padding:2rem;max-width:500px;width:90%;">
                     <div style="display:flex;justify-content:space-between;margin-bottom:1.5rem;">
-                        <h2 style="color:white;margin:0;">Подтверждение покупки</h2>
+                        <h2 style="color:white;margin:0;"><i class="fas fa-shopping-cart"></i> Подтверждение покупки</h2>
                         <button onclick="this.closest('#purchaseModal').remove()" style="background:none;border:none;color:#b9bbbe;font-size:1.5rem;cursor:pointer;">×</button>
                     </div>
                     <div style="background:#202225;padding:1rem;border-radius:8px;">
@@ -580,7 +893,6 @@
         function initCategoryFilters(allProducts) {
             document.querySelectorAll('.category-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    // Проверяем статус магазина
                     if (isShopClosed() && !isAdminUser()) {
                         showToast('Магазин временно закрыт', 'error');
                         return;
@@ -600,29 +912,25 @@
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🛍️ Загрузка магазина...');
             
-            // ПОЛУЧАЕМ СТАТУС С СЕРВЕРА
             const serverStatus = await getShopStatusFromServer();
             window.shopClosed = serverStatus;
             
             console.log('🔍 ФИНАЛЬНЫЙ СТАТУС МАГАЗИНА:', window.shopClosed ? 'ЗАКРЫТ ❌' : 'ОТКРЫТ ✅');
             
-            // Проверяем статус
             if (window.shopClosed === true) {
-                // Проверяем, админ ли пользователь
                 const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
                 const isAdmin = authData.badges?.admin === true || authData.id === '992442453833547886';
                 
                 if (!isAdmin) {
                     console.log('❌ Магазин закрыт для обычных пользователей');
                     showShopClosedMessage();
-                    return; // Выходим, не загружаем товары
+                    return;
                 } else {
                     console.log('👑 Вы админ, магазин доступен несмотря на закрытие');
                     showToast('⚠️ Магазин закрыт для пользователей. Вы видите товары как администратор.', 'warning');
                 }
             }
             
-            // Загружаем товары (только если магазин открыт ИЛИ пользователь админ)
             try {
                 const response = await fetch('/api/products');
                 const data = await response.json();
@@ -643,7 +951,6 @@
                     initCategoryFilters(data.products);
                     
                     window.addEventListener('popstate', async () => {
-                        // При возврате тоже проверяем статус
                         const currentStatus = await getShopStatusFromServer();
                         window.shopClosed = currentStatus;
                         
