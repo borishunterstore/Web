@@ -113,21 +113,295 @@
         <span class="scroll-value">0%</span>
     </div>
 
+    <style>
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 10002;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toast-success { background: #57F287; color: #1e1f29; }
+        .toast-error { background: #ED4245; color: white; }
+        .toast-info { background: #5865F2; color: white; }
+        .toast-warning { background: #FEE75C; color: #1e1f29; }
+        
+        .shop-closed-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 40px;
+            background: linear-gradient(135deg, #2a2b36, #1e1f29);
+            border-radius: 24px;
+            border: 2px solid #ED4245;
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        .shop-closed-message i {
+            font-size: 5rem;
+            color: #ED4245;
+            margin-bottom: 20px;
+        }
+        
+        .shop-closed-message h2 {
+            color: #ED4245;
+            margin-bottom: 15px;
+            font-size: 2rem;
+        }
+        
+        .shop-closed-message p {
+            color: #b9bbbe;
+            margin-bottom: 10px;
+        }
+        
+        .shop-closed-message .small-text {
+            font-size: 0.9rem;
+            color: #72767d;
+            margin-top: 20px;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .category-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Стили для модального окна согласия с офертой */
+        .offer-consent-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .offer-consent-content {
+            background: linear-gradient(135deg, #2a2b36, #1e1f29);
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 550px;
+            width: 90%;
+            border: 1px solid rgba(88, 101, 242, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            animation: scaleIn 0.3s ease;
+        }
+        
+        .offer-consent-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .offer-consent-header i {
+            font-size: 4rem;
+            color: #ffbd7f;
+            margin-bottom: 1rem;
+        }
+        
+        .offer-consent-header h2 {
+            color: #fff;
+            margin: 0 0 0.5rem 0;
+        }
+        
+        .offer-consent-header p {
+            color: #b9bbbe;
+            font-size: 0.9rem;
+        }
+        
+        .offer-text {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .offer-text h3 {
+            color: #ffbd7f;
+            margin: 0 0 1rem 0;
+            font-size: 1.2rem;
+        }
+        
+        .offer-text h3 i {
+            margin-right: 8px;
+        }
+        
+        .offer-text p {
+            color: #b9bbbe;
+            line-height: 1.6;
+            margin: 0.8rem 0;
+            font-size: 0.9rem;
+        }
+        
+        .offer-text .offer-summary {
+            background: rgba(88, 101, 242, 0.1);
+            padding: 12px;
+            border-radius: 12px;
+            margin: 1rem 0;
+            border-left: 3px solid #5865F2;
+        }
+        
+        .offer-text .offer-summary i {
+            color: #5865F2;
+            margin-right: 8px;
+        }
+        
+        .offer-consent-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .btn-agree {
+            flex: 1;
+            padding: 14px;
+            background: linear-gradient(135deg, #57F287, #43b581);
+            border: none;
+            border-radius: 12px;
+            color: #1e1f29;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-agree:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(87, 242, 135, 0.3);
+        }
+        
+        .btn-disagree {
+            flex: 1;
+            padding: 14px;
+            background: rgba(237, 66, 69, 0.2);
+            border: 1px solid #ED4245;
+            border-radius: 12px;
+            color: #ED4245;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-disagree:hover {
+            background: rgba(237, 66, 69, 0.4);
+        }
+        
+        .offer-link {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 0.85rem;
+        }
+        
+        .offer-link a {
+            color: #7fc5ff;
+            text-decoration: none;
+        }
+        
+        .offer-link a:hover {
+            text-decoration: underline;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        
+        .product-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .section-title i {
+            margin-right: 12px;
+            color: #ffbd7f;
+        }
+        
+        .category-btn i {
+            margin-right: 8px;
+        }
+        
+        .footer-section h3 i {
+            margin-right: 8px;
+            color: #ffbd7f;
+        }
+        
+        .footer-section a i {
+            margin-right: 8px;
+            width: 20px;
+        }
+    </style>
+
     <script>
         // ==================== КЛЮЧ ДЛЯ СОГЛАСИЯ С ОФЕРТОЙ ====================
         const OFFER_CONSENT_KEY = 'bhstore_offer_consent';
         
-        // Функция проверки согласия с офертой
         function hasOfferConsent() {
             const consent = localStorage.getItem(OFFER_CONSENT_KEY);
             if (!consent) return false;
             try {
                 const data = JSON.parse(consent);
-                // Проверяем, не старше ли 30 дней (опционально)
                 const consentDate = new Date(data.date);
                 const now = new Date();
                 const daysDiff = (now - consentDate) / (1000 * 60 * 60 * 24);
-                // Если согласие старше 90 дней, запрашиваем заново
                 if (daysDiff > 90) {
                     localStorage.removeItem(OFFER_CONSENT_KEY);
                     return false;
@@ -138,7 +412,6 @@
             }
         }
         
-        // Функция сохранения согласия
         function saveOfferConsent() {
             const consentData = {
                 agreed: true,
@@ -148,15 +421,12 @@
             localStorage.setItem(OFFER_CONSENT_KEY, JSON.stringify(consentData));
         }
         
-        // Функция показа модального окна согласия с офертой
         function showOfferConsentModal(callback) {
-            // Если уже согласен, сразу вызываем callback
             if (hasOfferConsent()) {
                 if (callback) callback();
                 return;
             }
             
-            // Проверяем, нет ли уже открытого модального окна
             if (document.getElementById('offerConsentModal')) return;
             
             const modal = document.createElement('div');
@@ -210,20 +480,17 @@
             
             document.body.appendChild(modal);
             
-            // Обработчик согласия
             document.getElementById('agreeOfferBtn').addEventListener('click', function() {
                 saveOfferConsent();
                 modal.remove();
                 if (callback) callback();
             });
             
-            // Обработчик отмены
             document.getElementById('disagreeOfferBtn').addEventListener('click', function() {
                 modal.remove();
                 showToast('Для совершения покупки необходимо ознакомиться с публичной офертой', 'warning');
             });
             
-            // Закрытие по клику на фон
             modal.addEventListener('click', function(e) {
                 if (e.target === modal) {
                     modal.remove();
@@ -326,7 +593,6 @@
             'minecraft': 'Minecraft'
         };
 
-        // ==================== URL И КАТЕГОРИИ ====================
         function getCategoryFromURL() {
             const hash = window.location.hash;
             if (hash && hash.startsWith('#catalog')) {
@@ -353,7 +619,6 @@
             });
         }
 
-        // ==================== ФИЛЬТРАЦИЯ ТОВАРОВ ====================
         function filterProductsByCategory(products, category) {
             if (category === 'all') return products;
             
@@ -370,7 +635,7 @@
             return filters[category] ? products.filter(filters[category]) : [];
         }
 
-        // ==================== ОТОБРАЖЕНИЕ ТОВАРОВ ====================
+        // ==================== ОТОБРАЖЕНИЕ ТОВАРОВ (БЕЗ INLINE-ОБРАБОТЧИКОВ) ====================
         function renderProducts(products, activeCategory = null) {
             const container = document.getElementById('productsContainer');
             
@@ -385,9 +650,17 @@
                         <i class="fas fa-box-open"></i>
                         <h3>Товары не найдены</h3>
                         <p>${activeCategory ? `В категории "${CATEGORY_NAMES[activeCategory] || activeCategory}" пока нет товаров.` : 'В магазине пока нет товаров.'}</p>
-                        ${activeCategory ? '<button class="btn-primary" onclick="window.location.href=\'/shop.html\'"><i class="fas fa-store"></i> Показать все товары</button>' : ''}
+                        ${activeCategory ? '<button class="btn-primary" id="showAllProductsBtn"><i class="fas fa-store"></i> Показать все товары</button>' : ''}
                     </div>
                 `;
+                if (activeCategory) {
+                    const showAllBtn = document.getElementById('showAllProductsBtn');
+                    if (showAllBtn) {
+                        showAllBtn.addEventListener('click', () => {
+                            window.location.href = '/shop.html';
+                        });
+                    }
+                }
                 return;
             }
             
@@ -402,7 +675,7 @@
                 }
                 
                 return `
-                    <div class="product-card" style="animation-delay: ${index * 0.05}s">
+                    <div class="product-card" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.name)}" data-product-price="${product.price}" style="animation-delay: ${index * 0.05}s">
                         ${discount > 0 ? `<div class="product-discount-badge"><i class="fas fa-tag"></i> -${discount}%</div>` : ''}
                         <div class="product-image">
                             <img src="${product.image || product.icon || '/image/default-product.png'}" 
@@ -422,28 +695,37 @@
                                     <div class="final-price"><span>Цена со скидкой</span><span>${finalPrice} ₽</span></div>
                                 ` : `<div class="final-price" style="justify-content: center;"><span>${finalPrice} ₽</span></div>`}
                             </div>
-                            <button class="btn-buy" onclick="buyProduct('${escapeHtml(product.id)}', '${escapeHtml(product.name)}', ${product.price})">
+                            <button class="btn-buy" data-product-id="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.name)}" data-product-price="${product.price}">
                                 <i class="fas fa-shopping-cart"></i> Купить сейчас
                             </button>
                         </div>
                     </div>
                 `;
             }).join('');
+            
+            // Привязываем обработчики событий к кнопкам покупки
+            document.querySelectorAll('.btn-buy').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const productId = this.getAttribute('data-product-id');
+                    const productName = this.getAttribute('data-product-name');
+                    const productPrice = parseFloat(this.getAttribute('data-product-price'));
+                    buyProduct(productId, productName, productPrice);
+                });
+            });
         }
 
-        // ==================== ПОКУПКА ТОВАРА (С ПРОВЕРКОЙ СОГЛАСИЯ С ОФЕРТОЙ) ====================
+        // ==================== ПОКУПКА ТОВАРА ====================
         window.buyProduct = async function(productId, productName, originalPrice) {
             console.log('🛒 Покупка:', { productId, productName, originalPrice });
             
-            // Сначала проверяем согласие с офертой
             showOfferConsentModal(async () => {
-                // После согласия продолжаем покупку
                 await processPurchase(productId, productName, originalPrice);
             });
         };
         
         async function processPurchase(productId, productName, originalPrice) {
-            // Проверяем статус магазина
             if (isShopClosed() && !isAdminUser()) {
                 showToast('Магазин временно закрыт. Покупки недоступны.', 'error');
                 return;
@@ -520,7 +802,7 @@
                 <div style="background:#2a2b36;border-radius:16px;padding:2rem;max-width:500px;width:90%;">
                     <div style="display:flex;justify-content:space-between;margin-bottom:1.5rem;">
                         <h2 style="color:white;margin:0;"><i class="fas fa-shopping-cart"></i> Подтверждение покупки</h2>
-                        <button onclick="this.closest('#purchaseModal').remove()" style="background:none;border:none;color:#b9bbbe;font-size:1.5rem;cursor:pointer;">×</button>
+                        <button class="close-modal-btn" style="background:none;border:none;color:#b9bbbe;font-size:1.5rem;cursor:pointer;">×</button>
                     </div>
                     <div style="background:#202225;padding:1rem;border-radius:8px;">
                         <div style="display:flex;justify-content:space-between;"><span style="color:#b9bbbe;">Товар:</span><span style="color:white;">${escapeHtml(productName)}</span></div>
@@ -532,13 +814,16 @@
                     </div>
                     <div style="display:flex;gap:1rem;margin-top:1.5rem;">
                         <button id="confirmBtn" style="flex:1;padding:0.8rem;background:#57F287;color:#1e1f29;border:none;border-radius:8px;font-weight:600;cursor:pointer;"><i class="fas fa-check"></i> Подтвердить</button>
-                        <button onclick="this.closest('#purchaseModal').remove()" style="flex:1;padding:0.8rem;background:#ED4245;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;"><i class="fas fa-times"></i> Отмена</button>
+                        <button class="cancel-modal-btn" style="flex:1;padding:0.8rem;background:#ED4245;color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer;"><i class="fas fa-times"></i> Отмена</button>
                     </div>
                 </div>
             `;
             
             document.body.appendChild(modal);
-            document.getElementById('confirmBtn').onclick = () => confirmPurchase(productId, productName, finalPrice, originalPrice, orderId, discountInfo, modal);
+            
+            modal.querySelector('.close-modal-btn').addEventListener('click', () => modal.remove());
+            modal.querySelector('.cancel-modal-btn').addEventListener('click', () => modal.remove());
+            modal.querySelector('#confirmBtn').addEventListener('click', () => confirmPurchase(productId, productName, finalPrice, originalPrice, orderId, discountInfo, modal));
         }
         
         async function confirmPurchase(productId, productName, finalPrice, originalPrice, orderId, discountInfo, modal) {
@@ -604,14 +889,17 @@
                     <p style="color:white;">Заказ: <strong>${orderId}</strong></p>
                     <p style="color:white;">Товар: <strong>${escapeHtml(productName)}</strong></p>
                     <div style="background:#202225;padding:1rem;border-radius:8px;margin:1rem 0;"><p style="color:#b9bbbe;margin:0;">Остаток на балансе:</p><p style="color:#57F287;font-size:1.5rem;margin:0.5rem 0 0 0;">${newBalance} ₽</p></div>
-                    <div style="display:flex;gap:1rem;"><button onclick="location.reload()" style="flex:1;padding:0.8rem;background:#5865F2;color:white;border:none;border-radius:8px;cursor:pointer;">Ок</button><button onclick="window.location.href='/profile.html'" style="flex:1;padding:0.8rem;background:#40444b;color:white;border:none;border-radius:8px;cursor:pointer;">В профиль</button></div>
+                    <div style="display:flex;gap:1rem;"><button id="successOkBtn" style="flex:1;padding:0.8rem;background:#5865F2;color:white;border:none;border-radius:8px;cursor:pointer;">Ок</button><button id="successProfileBtn" style="flex:1;padding:0.8rem;background:#40444b;color:white;border:none;border-radius:8px;cursor:pointer;">В профиль</button></div>
                 </div>
             `;
             document.body.appendChild(div);
+            
+            document.getElementById('successOkBtn').addEventListener('click', () => location.reload());
+            document.getElementById('successProfileBtn').addEventListener('click', () => window.location.href = '/profile.html');
+            
             setTimeout(() => div.remove(), 4000);
         }
 
-        // ==================== ИНИЦИАЛИЗАЦИЯ ФИЛЬТРОВ ====================
         function initCategoryFilters(allProducts) {
             document.querySelectorAll('.category-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
@@ -630,7 +918,6 @@
             });
         }
 
-        // ==================== ЗАГРУЗКА СТРАНИЦЫ ====================
         document.addEventListener('DOMContentLoaded', async function() {
             console.log('🛍️ Загрузка магазина...');
             
@@ -697,8 +984,12 @@
             } catch (error) {
                 console.error('Ошибка:', error);
                 document.getElementById('productsContainer').innerHTML = `
-                    <div class="error-state"><i class="fas fa-exclamation-triangle"></i><p>Не удалось загрузить товары</p><button class="btn-primary" onclick="location.reload()"><i class="fas fa-sync-alt"></i> Попробовать снова</button></div>
+                    <div class="error-state"><i class="fas fa-exclamation-triangle"></i><p>Не удалось загрузить товары</p><button class="btn-primary" id="reloadBtn"><i class="fas fa-sync-alt"></i> Попробовать снова</button></div>
                 `;
+                const reloadBtn = document.getElementById('reloadBtn');
+                if (reloadBtn) {
+                    reloadBtn.addEventListener('click', () => location.reload());
+                }
             }
         });
     </script>

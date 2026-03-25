@@ -2018,62 +2018,13 @@ function getDemoNews() {
     {
       id: 1,
       title: 'Добро пожаловать в BHStore!',
-      content: 'Мы рады приветствовать вас в нашем магазине! BHStore - это современный Discord магазин с широким выбором товаров и услуг. У нас вы найдете премиум подписки, игровые валюты и многое другое. Приятных покупок!',
+      content: 'Мы рады приветствовать вас в нашем магазине!',
       date: new Date().toISOString().split('T')[0],
       category: 'announcement',
-      views: 156,
       author: 'Borisonchik',
       tags: ['welcome', 'new', 'bhstore'],
       image: null,
       created_at: new Date().toISOString()
-    },
-    {
-      id: 2,
-      title: 'Запуск системы отзывов',
-      content: 'Мы запустили новую систему отзывов! Теперь вы можете оценивать товары и делиться своим мнением с другими покупателями. Лучшие отзывы будут получать бонусы на баланс!',
-      date: new Date(Date.now() - 2*24*60*60*1000).toISOString().split('T')[0],
-      category: 'updates',
-      views: 89,
-      author: 'Borisonchik',
-      tags: ['reviews', 'update', 'features'],
-      image: null,
-      created_at: new Date(Date.now() - 2*24*60*60*1000).toISOString()
-    },
-    {
-      id: 3,
-      title: 'Новогодняя распродажа!',
-      content: 'Скидки до 50% на все премиум подписки! Успейте приобрести товары по выгодным ценам. Акция действует до 15 января.',
-      date: new Date(Date.now() - 5*24*60*60*1000).toISOString().split('T')[0],
-      category: 'promo',
-      views: 234,
-      author: 'Borisonchik',
-      tags: ['sale', 'discount', 'newyear'],
-      image: null,
-      created_at: new Date(Date.now() - 5*24*60*60*1000).toISOString()
-    },
-    {
-      id: 4,
-      title: 'Обновление магазина',
-      content: 'Добавлены новые товары: Discord боты, настройка серверов и многое другое! Заходите в магазин, чтобы ознакомиться с ассортиментом.',
-      date: new Date(Date.now() - 7*24*60*60*1000).toISOString().split('T')[0],
-      category: 'updates',
-      views: 67,
-      author: 'Borisonchik',
-      tags: ['update', 'new-products'],
-      image: null,
-      created_at: new Date(Date.now() - 7*24*60*60*1000).toISOString()
-    },
-    {
-      id: 5,
-      title: 'Ближайшие ивенты',
-      content: 'Скоро состоится розыгрыш призов среди активных покупателей. Следите за новостями, чтобы не пропустить!',
-      date: new Date(Date.now() - 10*24*60*60*1000).toISOString().split('T')[0],
-      category: 'events',
-      views: 45,
-      author: 'Borisonchik',
-      tags: ['events', 'giveaway'],
-      image: null,
-      created_at: new Date(Date.now() - 10*24*60*60*1000).toISOString()
     }
   ];
 }
