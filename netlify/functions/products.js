@@ -11,7 +11,7 @@ const pool = new Pool({
 });
 
 exports.handler = async (event) => {
-  console.log('🛍️ Products function called');
+  console.log('PRODUCTS Loading');
   
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };

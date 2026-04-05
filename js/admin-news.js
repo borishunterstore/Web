@@ -1,4 +1,3 @@
-// admin-news.js - Управление новостями в админ-панели
 class AdminNews {
     constructor() {
         this.api = window.api;
@@ -697,6 +696,5 @@ class AdminNews {
     }
 }
 
-// Инициализация
 window.AdminNews = AdminNews;
 window.adminNews = new AdminNews();

@@ -1,4 +1,3 @@
-// admin-orders.js - Исправленная версия
 class AdminOrders {
     constructor() {
         this.api = window.api; 

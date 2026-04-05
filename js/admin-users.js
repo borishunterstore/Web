@@ -1,4 +1,3 @@
-// admin-users.js - ИСПРАВЛЕННАЯ ВЕРСИЯ (без автоматических вызовов)
 class AdminUsers {
     constructor() {
         this.api = window.api;

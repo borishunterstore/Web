@@ -12,7 +12,7 @@ if (process.env.DATABASE_URL) {
 }
 
 exports.handler = async (event) => {
-  console.log('📰 News function called');
+  console.log('NEWS Loading');
   
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: '' };
@@ -27,7 +27,6 @@ exports.handler = async (event) => {
   }
 
   try {
-    // Если БД доступна, пробуем получить новости
     if (sql) {
       try {
         const result = await sql`
@@ -37,7 +36,7 @@ exports.handler = async (event) => {
         `;
         
         if (result && result.length > 0) {
-          console.log(`✅ Загружено ${result.length} новостей из БД`);
+          console.log(`Загружено ${result.length} новостей из БД`);
           return {
             statusCode: 200,
             headers,
@@ -53,7 +52,6 @@ exports.handler = async (event) => {
       }
     }
     
-    // Если БД недоступна или нет новостей, возвращаем демо-новости
     console.log('📝 Используем демо-новости');
     const demoNews = [
       {

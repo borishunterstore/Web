@@ -1,4 +1,3 @@
-// admin-products.js - ИСПРАВЛЕННАЯ ВЕРСИЯ
 class AdminProducts {
     constructor() {
         this.api = window.api;

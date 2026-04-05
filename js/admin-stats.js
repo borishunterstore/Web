@@ -1,4 +1,3 @@
-// admin-stats.js - Статистика и настройки магазина
 class AdminStats {
     constructor() {
         this.api = window.api; 
@@ -8,7 +7,6 @@ class AdminStats {
         this.siteAccess = true;
     }
 
-    // Получить токен авторизации
     getAuthToken() {
         try {
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');

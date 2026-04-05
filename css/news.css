@@ -664,3 +664,106 @@
     color: var(--text-primary);
     margin: 0;
 }
+
+.btn-primary {
+    background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+    color: white;
+    border: none;
+    padding: 14px 30px;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 5px 15px rgba(238, 90, 36, 0.4);
+  }
+  
+  .btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(238, 90, 36, 0.6);
+  }
+  
+  .btn-primary:active {
+    transform: scale(1);
+  }
+
+.txtcta{
+    font-size: 25px
+}
+@media (max-width: 1024px) {
+.txtcta{
+    font-size: 25px
+}}
+@media (max-width: 768px) {
+.txtcta{
+    font-size: 20px
+}}
+@media (max-width: 480px) {
+.txtcta{
+    font-size: 10px
+}}
+@media (max-width: 452px) {
+.txtcta{
+    font-size: 10px
+}}
+
+.news-loading {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px;
+    color: var(--text-secondary);
+}
+.news-loading i {
+    font-size: 2rem;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+    display: inline-block;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.news-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 60px;
+    background: var(--bg-card);
+    border-radius: 12px;
+    color: var(--text-secondary);
+}
+.news-empty i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+.news-article {
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+}
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.pagination-dots {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    color: var(--text-secondary);
+}

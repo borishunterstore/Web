@@ -819,3 +819,17 @@
         justify-content: center;
     }
 }
+
+.hero-background {
+    width: 100%; 
+    position: absolute;
+    background: var(--bg-body);
+}
+
+.hero-background::after {
+    width: 100%; 
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to bottom, transparent 60%, var(--bg-body) 100%);
+}

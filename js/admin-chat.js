@@ -1,4 +1,3 @@
-// admin-chat.js - ИСПРАВЛЕННАЯ ВЕРСИЯ
 class AdminChat {
     constructor() {
         this.api = window.api;
@@ -20,13 +19,13 @@ class AdminChat {
         this.startPolling();
         
         this.isInitialized = true;
-        console.log('✅ AdminChat инициализирован');
+        console.log('Админ-чат загружен');
     }
 
     async loadChatUI() {
         const chatContainer = document.getElementById('chatContent');
         if (!chatContainer) {
-            console.error('❌ Контейнер чата не найден');
+            console.error('Контейнер чата не найден');
             return;
         }
 
@@ -68,7 +67,7 @@ class AdminChat {
             this.renderUsersList();
             this.updateUnreadCount();
         } catch (error) {
-            console.error('❌ Ошибка загрузки пользователей:', error);
+            console.error('Ошибка загрузки пользователей', error);
             const usersList = document.getElementById('usersList');
             if (usersList) {
                 usersList.innerHTML = `
@@ -147,7 +146,7 @@ class AdminChat {
             this.messages = data.messages || [];
             this.renderChatPanel();
         } catch (error) {
-            console.error('Ошибка загрузки чата:', error);
+            console.error('Ошибка загрузки чата', error);
             this.messages = [];
             this.renderChatPanel();
         }
@@ -283,34 +282,28 @@ class AdminChat {
         if (!message) return;
     
         try {
-            console.log('📤 Отправка сообщения от админа...');
-            
-            // Отправляем сообщение с флагом fromAdmin: true
+            console.log('Отправка сообщения');
             const result = await this.api.sendChatMessage(this.selectedUserId, message, true);
             
-            console.log('✅ Сообщение отправлено:', result);
-            
-            // Добавляем в список сообщений
+            console.log('Сообщение отправлено', result);
             this.messages.push({
                 message: message,
                 from_admin: true,
                 timestamp: new Date().toISOString()
             });
             
-            // Обновляем отображение
             const messagesList = document.getElementById('chatMessagesList');
             if (messagesList) {
                 messagesList.innerHTML = this.renderMessages();
             }
             
-            // Очищаем поле
             input.value = '';
             input.focus();
             
             this.scrollToBottom();
             
         } catch (error) {
-            console.error('❌ Ошибка отправки сообщения:', error);
+            console.error('Ошибка отправки сообщения', error);
             this.showNotification('Не удалось отправить сообщение', 'error');
         }
     }
@@ -330,7 +323,6 @@ class AdminChat {
         
         if (!input || !sendBtn) return;
         
-        // Авто-высота textarea
         input.addEventListener('input', () => {
             input.style.height = 'auto';
             input.style.height = Math.min(input.scrollHeight, 120) + 'px';
@@ -356,7 +348,6 @@ class AdminChat {
                 await this.loadUserChat(this.selectedUserId);
             }
         } catch (error) {
-            // Игнорируем ошибки при проверке
         }
     }
 
@@ -364,7 +355,7 @@ class AdminChat {
         try {
             await this.api.markMessagesAsRead(userId);
         } catch (error) {
-            console.error('Ошибка отметки как прочитано:', error);
+            console.error('Ошибка отметки функции "ПРОЧИТАНО":', error);
         }
     }
 
@@ -393,7 +384,6 @@ class AdminChat {
 
     updateUnreadCount() {
         const totalUnread = this.users.reduce((sum, user) => sum + (user.unreadMessages || 0), 0);
-        // Можно добавить бейдж в навигацию если нужно
     }
 
     showUserInfo(userId) {
@@ -431,6 +421,5 @@ class AdminChat {
     }
 }
 
-// Инициализация
 window.AdminChat = AdminChat;
 window.adminChat = new AdminChat();

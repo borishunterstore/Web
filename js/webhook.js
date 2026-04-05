@@ -6,7 +6,7 @@
     }
 
     init() {
-        console.log('Webhook Manager инициализирован');
+        console.log('WEBHOOK Loading');
         this.loadNotificationsFromServer();
         
         if ("Notification" in window && Notification.permission === "default") {
@@ -128,15 +128,15 @@
             });
 
             if (response.ok) {
-                console.log('✅ Уведомление отправлено в Discord');
+                console.log('Уведомление отправлено в Discord');
                 return true;
             } else {
                 const error = await response.json();
-                console.error('❌ Ошибка отправки уведомления:', error);
+                console.error('Ошибка отправки уведомления:', error);
                 return false;
             }
         } catch (error) {
-            console.error('❌ Ошибка отправки вебхука:', error);
+            console.error('Ошибка отправки вебхука:', error);
             return false;
         }
     }
@@ -178,7 +178,7 @@
                 ]
             );
         } catch (error) {
-            console.error('❌ Ошибка отправки уведомления о покупке:', error);
+            console.error('Ошибка отправки уведомления о покупке:', error);
             return false;
         }
     }
@@ -217,7 +217,7 @@
                 ]
             );
         } catch (error) {
-            console.error('❌ Ошибка отправки уведомления о регистрации:', error);
+            console.error('Ошибка отправки уведомления о регистрации:', error);
             return false;
         }
     }
@@ -258,7 +258,7 @@
                 fields
             );
         } catch (error) {
-            console.error('❌ Ошибка отправки уведомления об ошибке:', error);
+            console.error('Ошибка отправки уведомления об ошибке:', error);
             return false;
         }
     }
@@ -276,7 +276,7 @@
                 ]
             );
         } catch (error) {
-            console.error('❌ Ошибка отправки уведомления о промокоде:', error);
+            console.error('Ошибка отправки уведомления о промокоде:', error);
             return false;
         }
     }
@@ -299,7 +299,7 @@
                 fields
             );
         } catch (error) {
-            console.error('❌ Ошибка отправки админ уведомления:', error);
+            console.error('Ошибка отправки админ уведомления:', error);
             return false;
         }
     }
@@ -334,7 +334,7 @@
                 fields
             );
         } catch (error) {
-            console.error('❌ Ошибка отправки статистики:', error);
+            console.error('Ошибка отправки статистики:', error);
             return false;
         }
     }
@@ -357,7 +357,7 @@
                 return this.notifications;
             }
         } catch (error) {
-            console.error('❌ Ошибка получения уведомлений:', error);
+            console.error('Ошибка получения уведомлений:', error);
         }
         return [];
     }
@@ -386,7 +386,7 @@
                 this.displayNotifications();
             }
         } catch (error) {
-            console.error('❌ Ошибка отметки уведомления:', error);
+            console.error('Ошибка отметки уведомления:', error);
         }
     }
 
@@ -404,7 +404,7 @@
             this.notifications.forEach(n => n.read = true);
             this.displayNotifications();
         } catch (error) {
-            console.error('❌ Ошибка отметки всех уведомлений:', error);
+            console.error('Ошибка отметки всех уведомлений:', error);
         }
     }
 
@@ -451,7 +451,7 @@
                 }
             }
         } catch (error) {
-            console.error('❌ Ошибка проверки новых сообщений:', error);
+            console.error('Ошибка проверки новых сообщений:', error);
         }
     }
 

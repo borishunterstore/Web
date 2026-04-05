@@ -17,8 +17,8 @@
         back: { icon: 'fa-arrow-left', label: 'Назад', shortcut: 'Alt+←', action: 'back' },
         forward: { icon: 'fa-arrow-right', label: 'Вперед', shortcut: 'Alt+→', action: 'forward' },
         reload: { icon: 'fa-redo-alt', label: 'Перезагрузить', shortcut: 'Ctrl+R', action: 'reload' },
-        telegram: { icon: 'fa-telegram-plane', label: 'Перейти в Telegram', badge: 'NEW', class: 'telegram-item', action: 'telegram' },
-        discord: { icon: 'fa-discord', label: 'Перейти в Discord', badge: 'NEW', class: 'discord-item', action: 'discord' },
+        telegram: { icon: 'fab fa-telegram', label: 'Перейти в Telegram', badge: 'NEW', class: 'telegram-item', action: 'telegram' },
+        discord: { icon: 'fab fa-discord', label: 'Перейти в Discord', badge: 'NEW', class: 'discord-item', action: 'discord' },
         copy: { icon: 'fa-copy', label: 'Скопировать', shortcut: 'Ctrl+C', action: 'copy' },
         cut: { icon: 'fa-cut', label: 'Вырезать', shortcut: 'Ctrl+X', action: 'cut' },
         paste: { icon: 'fa-paste', label: 'Вставить', shortcut: 'Ctrl+V', action: 'paste' },
@@ -46,9 +46,23 @@
         }
         
         init() {
+            this.loadFontAwesome();
             this.disableDefaultContextMenu();
             this.createMenuStructure();
             this.initEvents();
+        }
+        
+        loadFontAwesome() {
+            if (!document.querySelector('link[href*="font-awesome"]') && 
+                !document.querySelector('link[href*="fontawesome"]')) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
+                link.integrity = 'sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==';
+                link.crossOrigin = 'anonymous';
+                link.referrerPolicy = 'no-referrer';
+                document.head.appendChild(link);
+            }
         }
         
         disableDefaultContextMenu() {
@@ -56,28 +70,7 @@
                 e.preventDefault();
                 e.stopPropagation();
                 return false;
-            }, true);
-            
-            const style = document.createElement('style');
-            style.textContent = `
-                * {
-                    -webkit-touch-callout: none;
-                    -webkit-user-select: none;
-                    -khtml-user-select: none;
-                    -moz-user-select: none;
-                    -ms-user-select: none;
-                    user-select: none;
-                }
-                
-                input, textarea {
-                    -webkit-user-select: auto;
-                    -khtml-user-select: auto;
-                    -moz-user-select: auto;
-                    -ms-user-select: auto;
-                    user-select: auto;
-                }
-            `;
-            document.head.appendChild(style);
+            }, { capture: true, passive: false });
         }
         
         createMenuStructure() {
@@ -115,6 +108,7 @@
             document.body.appendChild(this.menu);
             
             this.createToast();
+            this.addStyles();
         }
         
         createMenuItem(item) {
@@ -162,6 +156,165 @@
             document.body.appendChild(this.toast);
         }
         
+        addStyles() {
+            if (document.getElementById('context-menu-styles')) return;
+            
+            const style = document.createElement('style');
+            style.id = 'context-menu-styles';
+            style.textContent = `
+                .custom-context-menu {
+                    position: fixed;
+                    background: rgba(30, 30, 35, 0.98);
+                    backdrop-filter: blur(10px);
+                    border-radius: 12px;
+                    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+                    min-width: 220px;
+                    z-index: 10000;
+                    opacity: 0;
+                    visibility: hidden;
+                    transform-origin: top left;
+                    transition: opacity 0.15s ease, visibility 0.15s ease;
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                }
+                
+                .custom-context-menu.active {
+                    opacity: 1;
+                    visibility: visible;
+                }
+                
+                .context-menu-header {
+                    padding: 10px 12px;
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+                
+                .context-menu-title {
+                    font-size: 12px;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.6);
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                }
+                
+                .context-menu-close {
+                    cursor: pointer;
+                    color: rgba(255, 255, 255, 0.5);
+                    font-size: 14px;
+                    transition: color 0.2s;
+                    width: 20px;
+                    height: 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 4px;
+                }
+                
+                .context-menu-close:hover {
+                    color: #fff;
+                    background: rgba(255, 255, 255, 0.1);
+                }
+                
+                .context-menu-items {
+                    padding: 6px 0;
+                }
+                
+                .context-menu-item {
+                    padding: 8px 12px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                    color: rgba(255, 255, 255, 0.9);
+                    font-size: 14px;
+                }
+                
+                .context-menu-item:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                }
+                
+                .context-menu-item i {
+                    width: 20px;
+                    font-size: 14px;
+                    color: rgba(255, 255, 255, 0.7);
+                }
+                
+                .context-menu-item span:first-of-type {
+                    flex: 1;
+                }
+                
+                .context-badge {
+                    background: #5865F2;
+                    padding: 2px 6px;
+                    border-radius: 12px;
+                    font-size: 10px;
+                    font-weight: bold;
+                    color: white;
+                }
+                
+                .context-shortcut {
+                    color: rgba(255, 255, 255, 0.5);
+                    font-size: 11px;
+                }
+                
+                .context-menu-divider {
+                    height: 1px;
+                    background: rgba(255, 255, 255, 0.1);
+                    margin: 6px 0;
+                }
+                
+                .telegram-item i {
+                    color: #26A5E4 !important;
+                }
+                
+                .discord-item i {
+                    color: #5865F2 !important;
+                }
+                
+                .context-toast {
+                    position: fixed;
+                    bottom: 20px;
+                    left: 50%;
+                    transform: translateX(-50%) translateY(100px);
+                    background: rgba(16, 185, 129, 0.95);
+                    color: white;
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    font-size: 14px;
+                    z-index: 10001;
+                    transition: transform 0.3s ease;
+                    backdrop-filter: blur(8px);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                }
+                
+                .context-toast.show {
+                    transform: translateX(-50%) translateY(0);
+                }
+                
+                .context-toast i {
+                    font-size: 16px;
+                }
+                
+                @keyframes glowFade {
+                    0% {
+                        opacity: 1;
+                        transform: translate(-50%, -50%) scale(0.5);
+                    }
+                    100% {
+                        opacity: 0;
+                        transform: translate(-50%, -50%) scale(2);
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
         initEvents() {
             document.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
@@ -203,28 +356,37 @@
                 }
             });
             
-            this.menu.querySelector('.context-menu-close').addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.hideMenu();
-            });
+            const closeBtn = this.menu.querySelector('.context-menu-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.hideMenu();
+                });
+            }
         }
         
         showMenu(e) {
             if (!this.menu) return;
             
-            const x = Math.min(e.clientX, window.innerWidth - this.menu.offsetWidth - 10);
-            const y = Math.min(e.clientY, window.innerHeight - this.menu.offsetHeight - 10);
+            const menuRect = this.menu.getBoundingClientRect();
+            let x = e.clientX;
+            let y = e.clientY;
             
-            this.menu.style.left = '0';
-            this.menu.style.top = '0';
-            this.menu.style.transform = `translate(${x}px, ${y}px)`;
+            if (x + menuRect.width > window.innerWidth) {
+                x = window.innerWidth - menuRect.width - 10;
+            }
+            if (y + menuRect.height > window.innerHeight) {
+                y = window.innerHeight - menuRect.height - 10;
+            }
+            
+            this.menu.style.left = x + 'px';
+            this.menu.style.top = y + 'px';
+            this.menu.style.transform = 'none';
             
             this.menu.classList.add('active');
             this.isVisible = true;
             
-            requestAnimationFrame(() => {
-                this.addGlowEffect(e);
-            });
+            this.addGlowEffect(e);
         }
         
         hideMenu() {
@@ -255,6 +417,8 @@
             
             if (actions[action]) {
                 actions[action]();
+            } else {
+                this.showToast('Функция в разработке', 'warning');
             }
         }
         
@@ -267,7 +431,7 @@
                 } else {
                     this.showToast('Нет выделенного текста', 'warning');
                 }
-            } catch {
+            } catch (err) {
                 this.showToast('Ошибка при копировании', 'error');
             }
         }
@@ -276,9 +440,10 @@
             try {
                 const selection = window.getSelection();
                 const text = selection.toString();
-                if (text) {
+                if (text && selection.rangeCount > 0) {
                     await navigator.clipboard.writeText(text);
-                    document.execCommand('delete');
+                    const range = selection.getRangeAt(0);
+                    range.deleteContents();
                     this.showToast('Вырезано!');
                 } else {
                     this.showToast('Нет текста для вырезания', 'warning');
@@ -293,16 +458,17 @@
                 const text = await navigator.clipboard.readText();
                 const activeElement = document.activeElement;
                 
-                if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') {
+                if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
                     const start = activeElement.selectionStart;
                     const end = activeElement.selectionEnd;
-                    activeElement.value = activeElement.value.substring(0, start) + text + activeElement.value.substring(end);
+                    const currentValue = activeElement.value;
+                    activeElement.value = currentValue.substring(0, start) + text + currentValue.substring(end);
                     activeElement.selectionStart = activeElement.selectionEnd = start + text.length;
+                    this.showToast('Вставлено!');
                 } else {
                     document.execCommand('insertText', false, text);
+                    this.showToast('Вставлено!');
                 }
-                
-                this.showToast('Вставлено!');
             } catch {
                 this.showToast('Ошибка при вставке', 'error');
             }
@@ -311,12 +477,12 @@
         selectAll() {
             const activeElement = document.activeElement;
             
-            if (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA') {
+            if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
                 activeElement.select();
             } else {
+                const selection = window.getSelection();
                 const range = document.createRange();
                 range.selectNodeContents(document.body);
-                const selection = window.getSelection();
                 selection.removeAllRanges();
                 selection.addRange(range);
             }
@@ -330,9 +496,9 @@
             this.toastMessage.textContent = message;
             
             const colors = {
-                success: 'rgba(16, 185, 129, 0.9)',
-                error: 'rgba(239, 68, 68, 0.9)',
-                warning: 'rgba(245, 158, 11, 0.9)'
+                success: 'rgba(16, 185, 129, 0.95)',
+                error: 'rgba(239, 68, 68, 0.95)',
+                warning: 'rgba(245, 158, 11, 0.95)'
             };
             
             this.toast.style.background = colors[type] || colors.success;
@@ -358,33 +524,14 @@
                 z-index: 9999;
                 border-radius: 50%;
                 animation: glowFade 0.5s ease-out forwards;
-                will-change: transform, opacity;
             `;
             
             document.body.appendChild(glow);
             
-            requestAnimationFrame(() => {
-                setTimeout(() => glow.remove(), 500);
-            });
+            setTimeout(() => {
+                if (glow.parentNode) glow.remove();
+            }, 500);
         }
-    }
-    
-    if (!document.getElementById('glow-styles')) {
-        const style = document.createElement('style');
-        style.id = 'glow-styles';
-        style.textContent = `
-            @keyframes glowFade {
-                0% {
-                    opacity: 1;
-                    transform: translate(-50%, -50%) scale(0.5);
-                }
-                100% {
-                    opacity: 0;
-                    transform: translate(-50%, -50%) scale(2);
-                }
-            }
-        `;
-        document.head.appendChild(style);
     }
     
     if (document.readyState === 'loading') {

@@ -1,9 +1,8 @@
-// api.js - ПОЛНАЯ ВЕРСИЯ СО ВСЕМИ МЕТОДАМИ
 class BHStoreAPI {
     constructor() {
         this.baseUrl = 'https://bhstore.netlify.app';
         this.authData = this.getAuthData();
-        console.log('✅ BHStoreAPI инициализирован');
+        console.log('API Загружены');
     }
 
     getAuthData() {
@@ -227,7 +226,6 @@ class BHStoreAPI {
     }
 }
 
-// Создаем глобальный экземпляр
 const api = new BHStoreAPI();
 window.BHStoreAPI = BHStoreAPI;
 window.api = api;

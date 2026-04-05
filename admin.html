@@ -4,14 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Админ | BHStore</title>
-    
-    <!-- Стили - ТОЛЬКО general.css И admin.css -->
     <link rel="stylesheet" href="css/general.css">
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="/image/logo.png">
-    
     <!-- Yandex.Metrika counter -->
     <script type="text/javascript">
         (function(m,e,t,r,i,k,a){
@@ -25,7 +22,6 @@
     </script>
     <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
     
-    <!-- Скрипты (в правильном порядке) -->
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/admin-news.js"></script>
@@ -38,16 +34,9 @@
     <script src="js/cursor.js"></script>
     <script src="js/pkm.js"></script>
     <script src="js/mobile-nav.js"></script>
-    
-    <!-- Эффекты -->
     <div class="custom-cursor"></div>
-    <canvas id="webCanvas"></canvas>
-    <div class="scroll-indicator">
-        <span class="scroll-value">0%</span>
-    </div>
 </head>
 <body>
-    <!-- Навигация -->
     <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo">
@@ -71,7 +60,6 @@
         </div>
     </nav>
 
-    <!-- Основной контейнер -->
     <div class="admin-container">
         <div class="admin-header">
             <h1>
@@ -87,7 +75,6 @@
         <div id="adminContent"></div>
     </div>
 
-    <!-- Модальные окна -->
     <div id="addBalanceModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -188,7 +175,6 @@
     </div>
 
     <script>
-        // Глобальные функции
         window.showModal = function(modalId) {
             const modal = document.getElementById(modalId);
             if (modal) modal.style.display = 'flex';
@@ -199,9 +185,8 @@
             if (modal) modal.style.display = 'none';
         };
 
-        // Инициализация
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('🚀 Админ панель загружается...');
+            console.log('ADMIN Loading');
             
             try {
                 const authData = api.getAuthData();
@@ -325,7 +310,6 @@
                 </div>
             `;
             
-            // Навигация
             document.querySelectorAll('.admin-nav-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('.admin-nav-btn').forEach(b => b.classList.remove('active'));
@@ -384,7 +368,6 @@
         }
 
         function initFormHandlers() {
-            // Форма пополнения
             const addBalanceForm = document.getElementById('addBalanceForm');
             if (addBalanceForm) {
                 addBalanceForm.addEventListener('submit', async function(e) {
@@ -414,7 +397,6 @@
                 });
             }
             
-            // Причина пополнения
             const balanceReason = document.getElementById('balanceReason');
             if (balanceReason) {
                 balanceReason.addEventListener('change', function() {
@@ -423,7 +405,6 @@
                 });
             }
             
-            // Форма списания
             const removeBalanceForm = document.getElementById('removeBalanceForm');
             if (removeBalanceForm) {
                 removeBalanceForm.addEventListener('submit', async function(e) {
@@ -465,14 +446,11 @@
             }, 3000);
         }
 
-        // Закрытие модалок по клику на фон
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('modal')) {
                 e.target.style.display = 'none';
             }
         });
-
-        // Глобальные функции
         window.openUserChat = function(userId) {
             const chatBtn = document.querySelector('.admin-nav-btn[data-section="chat"]');
             if (chatBtn) {

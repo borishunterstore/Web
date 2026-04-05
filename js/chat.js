@@ -12,13 +12,11 @@ class ChatSystem {
     
     async init() {
         try {
-            // Проверяем, что API доступен
             if (!this.api) {
                 console.error('❌ window.api не найден');
                 return;
             }
 
-            // Проверяем, что метод getAuthData существует
             if (typeof this.api.getAuthData !== 'function') {
                 console.error('❌ Метод getAuthData отсутствует в API');
                 console.log('Доступные методы:', Object.keys(this.api));
@@ -44,7 +42,7 @@ class ChatSystem {
             this.startPolling();
             
             this.initialized = true;
-            console.log('✅ Chat System успешно инициализирован');
+            console.log('CHAT загружен');
         } catch (error) {
             console.error('❌ Ошибка инициализации чата:', error);
         }

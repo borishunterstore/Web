@@ -154,7 +154,7 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🔄 Chat page initialized');
+            console.log('Chat loading');
             checkAuth();
             initChatInterface();
             updateStatus();
@@ -278,136 +278,73 @@
             }
         }
 
-        // Инициализация интерфейса чата
         function initChatInterface() {
             const messageInput = document.getElementById('messageInput');
             const sendBtn = document.getElementById('sendBtn');
             const charCounter = document.getElementById('charCounter');
-            
-            // Счетчик символов
             if (messageInput) {
                 messageInput.addEventListener('input', function() {
                     const length = this.value.length;
                     charCounter.textContent = `${length}/2000`;
-                    
-                    // Изменяем цвет при приближении к лимиту
                     if (length > 1800) {
                         charCounter.style.color = '#ED4245';
                     } else if (length > 1500) {
                         charCounter.style.color = '#FEE75C';
                     } else {
-                        charCounter.style.color = 'var(--text-tertiary)';
-                    }
-                });
-            }
-            
-            // Отправка по Enter (Shift+Enter для новой строки)
+                        charCounter.style.color = 'var(--text-tertiary)';}});}
             if (messageInput && sendBtn) {
                 messageInput.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
                         if (!sendBtn.disabled) {
-                            sendMessage();
-                        }
-                    }
-                });
-                
-                sendBtn.addEventListener('click', sendMessage);
-            }
-            
-            // Быстрые вопросы
+                            sendMessage();}}});
+                sendBtn.addEventListener('click', sendMessage);}
             document.querySelectorAll('.quick-question-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     if (messageInput && !messageInput.disabled) {
                         messageInput.value = this.dataset.question;
-                        messageInput.focus();
-                    }
-                });
-            });
-            
-            // Кнопки действий
+                        messageInput.focus();}});});
             document.getElementById('createTicketBtn')?.addEventListener('click', showTicketModal);
             document.getElementById('clearChatBtn')?.addEventListener('click', showClearChatModal);
-            document.getElementById('endChatBtn')?.addEventListener('click', endChat);
-        }
+            document.getElementById('endChatBtn')?.addEventListener('click', endChat);}
 
-        // Отправка сообщения
         function sendMessage() {
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
-            
             if (!message) return;
-            
-            // Проверяем авторизацию
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             if (!authData.id) return;
-            
-            // Добавляем сообщение в UI
             const messagesContainer = document.getElementById('chatMessages');
             const time = new Date().toLocaleTimeString('ru-RU', { 
                 hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            
-            // Удаляем заглушку если есть
+                minute: '2-digit'});
             const emptyState = messagesContainer.querySelector('.chat-empty');
             if (emptyState) {
-                messagesContainer.innerHTML = '';
-            }
-            
-            const messageHTML = `
-                <div class="message user">
-                    <div class="message-content">
-                        <div class="message-text">${escapeHtml(message)}</div>
-                        <div class="message-time">
-                            <i class="far fa-clock"></i> ${time}
-                        </div>
-                    </div>
-                </div>
-            `;
-            
+                messagesContainer.innerHTML = '';}
+            const messageHTML = `<div class="message user"><div class="message-content"><div class="message-text">${escapeHtml(message)}</div><div class="message-time"><i class="far fa-clock"></i> ${time}</div></div></div>`;
             messagesContainer.insertAdjacentHTML('beforeend', messageHTML);
             input.value = '';
             input.focus();
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
             
-            // Показываем индикатор набора (ответ поддержки)
             setTimeout(() => {
                 showTypingIndicator();
-                
-                // Через 3 секунды показываем ответ
                 setTimeout(() => {
                     hideTypingIndicator();
-                    showSupportResponse(message);
-                }, 3000);
-            }, 500);
+                    showSupportResponse(message);}, 3000);}, 500);
             
-            // Обновляем счетчик сообщений
             const messagesCount = document.getElementById('messagesCount');
-            messagesCount.textContent = parseInt(messagesCount.textContent) + 1;
-        }
-
-        // Показать индикатор набора
+            messagesCount.textContent = parseInt(messagesCount.textContent) + 1;}
         function showTypingIndicator() {
-            document.getElementById('typingIndicator').classList.add('active');
-        }
-
-        // Скрыть индикатор набора
+            document.getElementById('typingIndicator').classList.add('active');}
         function hideTypingIndicator() {
-            document.getElementById('typingIndicator').classList.remove('active');
-        }
-
-        // Показать ответ поддержки
+            document.getElementById('typingIndicator').classList.remove('active');}
         function showSupportResponse(userMessage) {
             const messagesContainer = document.getElementById('chatMessages');
             const time = new Date().toLocaleTimeString('ru-RU', { 
                 hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            
+                minute: '2-digit'});
             let response = '';
-            
-            // Простые ответы на частые вопросы
             if (userMessage.toLowerCase().includes('баланс')) {
                 response = 'Пополнить баланс можно в разделе "Профиль" → "Баланс". Минимальная сумма пополнения - 50₽.';
             } else if (userMessage.toLowerCase().includes('покупк')) {
@@ -420,50 +357,24 @@
                 response = 'Спасибо за обращение! Ваш вопрос передан оператору. Ожидайте ответа в ближайшее время.';
             }
             
-            const messageHTML = `
-                <div class="message support">
-                    <div class="message-content">
-                        <div class="message-text">${response}</div>
-                        <div class="message-time">
-                            <i class="far fa-clock"></i> ${time}
-                            <span class="message-status">
-                                <i class="fas fa-check-double"></i>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
+            const messageHTML = `<div class="message support"><div class="message-content"><div class="message-text">${response}</div><div class="message-time"><i class="far fa-clock"></i> ${time}<span class="message-status"><i class="fas fa-check-double"></i></span></div></div></div>`;
             messagesContainer.insertAdjacentHTML('beforeend', messageHTML);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        // Показать модальное окно создания тикета
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;}
         function showTicketModal() {
-            document.getElementById('ticketModal').style.display = 'flex';
-        }
-
+            document.getElementById('ticketModal').style.display = 'flex';}
         function closeTicketModal() {
-            document.getElementById('ticketModal').style.display = 'none';
-        }
-
-        // Создание тикета
+            document.getElementById('ticketModal').style.display = 'none';}
         function createTicket() {
             const subject = document.getElementById('ticketSubject').value;
             const description = document.getElementById('ticketDescription').value.trim();
             
             if (!description) {
                 showNotification('Опишите вашу проблему', 'warning');
-                return;
-            }
-            
-            // Отправляем в чат
+                return;}
             const messagesContainer = document.getElementById('chatMessages');
             const time = new Date().toLocaleTimeString('ru-RU', { 
                 hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            
+                minute: '2-digit'});
             const messageHTML = `
                 <div class="message system">
                     <div class="message-content">
@@ -491,66 +402,36 @@
             
             closeTicketModal();
             document.getElementById('ticketDescription').value = '';
-            
-            showNotification('Тикет создан! Ожидайте ответа', 'success');
-        }
-
-        // Показать модальное окно очистки чата
+            showNotification('Тикет создан! Ожидайте ответа', 'success');}
         function showClearChatModal() {
-            document.getElementById('clearChatModal').style.display = 'flex';
-        }
-
+            document.getElementById('clearChatModal').style.display = 'flex';}
         function closeClearChatModal() {
-            document.getElementById('clearChatModal').style.display = 'none';
-        }
-
-        // Очистка чата
+            document.getElementById('clearChatModal').style.display = 'none';}
         function clearChat() {
             const messagesContainer = document.getElementById('chatMessages');
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
             if (!authData.username) return;
-            
-            // Показываем приветственное сообщение
             messagesContainer.innerHTML = `
                 <div class="message support">
                     <div class="message-content">
                         <div class="message-text">👋 Чат очищен. Чем мы можем вам помочь?</div>
                         <div class="message-time">
-                            <i class="far fa-clock"></i> ${new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
-                        </div>
-                    </div>
-                </div>
-            `;
+                            <i class="far fa-clock"></i> ${new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}</div></div></div>`;
             
             closeClearChatModal();
-            showNotification('Чат очищен', 'info');
-        }
-
-        // Завершение чата
+            showNotification('Чат очищен', 'info');}
         function endChat() {
             if (confirm('Вы уверены, что хотите завершить чат?')) {
-                window.location.href = '/';
-            }
-        }
+                window.location.href = '/';}}
 
-        // Уведомления
         function showNotification(message, type = 'info') {
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
             notification.innerHTML = `
                 <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                <span>${message}</span>
-            `;
-            
+                <span>${message}</span>`;
             document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
-
-        // Экранирование HTML
+            setTimeout(() => {notification.remove();}, 3000);}
         function escapeHtml(unsafe) {
             if (!unsafe) return '';
             return String(unsafe)
@@ -558,66 +439,34 @@
                 .replace(/</g, "&lt;")
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-
-        // Закрытие модальных окон по клику вне
+                .replace(/'/g, "&#039;");}
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
-        });
-
-        // ESC для закрытия модальных окон
+                e.target.style.display = 'none';}});
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 document.querySelectorAll('.modal').forEach(modal => {
-                    modal.style.display = 'none';
-                });
-            }
-        });
-
-        // Принудительное включение прокрутки
+                    modal.style.display = 'none';});}});
 function fixScrolling() {
     const messagesContainer = document.getElementById('chatMessages');
     if (messagesContainer) {
-        // Добавляем тестовое сообщение для проверки прокрутки
         const testMsg = document.createElement('div');
         testMsg.className = 'message support';
         testMsg.innerHTML = '<div class="message-content"><div class="message-text">Чат поддержки готов к работе</div></div>';
         messagesContainer.appendChild(testMsg);
         
-        // Прокручиваем вниз
-        setTimeout(() => {
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }, 100);
-        
-        // Проверяем, работает ли прокрутка
+        setTimeout(() => {messagesContainer.scrollTop = messagesContainer.scrollHeight;}, 100);
         console.log('Scroll height:', messagesContainer.scrollHeight);
         console.log('Client height:', messagesContainer.clientHeight);
-        console.log('Overflow style:', window.getComputedStyle(messagesContainer).overflowY);
-    }
-}
+        console.log('Overflow style:', window.getComputedStyle(messagesContainer).overflowY);}}
 
-// Вызываем после загрузки
 document.addEventListener('DOMContentLoaded', fixScrolling);
 window.addEventListener('load', fixScrolling);
     </script>
 
-    <!-- Дополнительные скрипты -->
     <script src="js/cursor.js"></script>
     <script src="js/pkm.js"></script>
     <script src="js/mobile-nav.js"></script>
-    
-    <!-- Кастомный курсор -->
     <div class="custom-cursor"></div>
-    
-    <!-- Канвас для анимации -->
-    <canvas id="webCanvas"></canvas>
-    
-    <!-- Индикатор прокрутки -->
-    <div class="scroll-indicator">
-        <span class="scroll-value">0%</span>
-    </div>
 </body>
 </html>

@@ -18,49 +18,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ========== КОНФИГУРАЦИЯ БЕЙДЖЕЙ ==========
 const BADGE_CONFIG = {
-    admin: {
-        name: 'Администратор',
-        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75',
-        color: '#FFD700',
-        bgColor: 'rgba(255, 215, 0, 0.15)',
-        priority: 1
-    },
-    verified: {
-        name: 'Верифицированный',
-        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75',
-        color: '#57F287',
-        bgColor: 'rgba(87, 242, 135, 0.15)',
-        priority: 2
-    },
-    partner: {
-        name: 'Партнёр',
-        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75',
-        color: '#FF73FA',
-        bgColor: 'rgba(255, 115, 250, 0.15)',
-        priority: 3
-    },
-    buyer: {
-        name: 'Покупатель',
-        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75',
-        color: '#FEE75C',
-        bgColor: 'rgba(254, 231, 92, 0.15)',
-        priority: 4
-    },
-    early: {
-        name: 'Ранний сторонник',
-        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1085815477030092860.png%3Fv%3D1&w=64&q=75',
-        color: '#5865F2',
-        bgColor: 'rgba(88, 101, 242, 0.15)',
-        priority: 5
-    },
-    vip: {
-        name: 'VIP',
-        image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1074074255389896764.png%3Fv%3D1&w=64&q=75',
-        color: '#9B59B6',
-        bgColor: 'rgba(155, 89, 182, 0.15)',
-        priority: 6
-    }
-};
+    admin: {name: 'Администратор',image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75',color: '#FFD700',bgColor: 'rgba(255, 215, 0, 0.15)',priority: 1},
+    verified: {name: 'Верифицированный',image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75',color: '#57F287',bgColor: 'rgba(87, 242, 135, 0.15)',priority: 2},
+    partner: {name: 'Партнёр',image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75',color: '#FF73FA',bgColor: 'rgba(255, 115, 250, 0.15)',priority: 3},
+    buyer: {name: 'Покупатель',image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75',color: '#FEE75C',bgColor: 'rgba(254, 231, 92, 0.15)',priority: 4},
+    early: {name: 'Ранний сторонник',image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1085815477030092860.png%3Fv%3D1&w=64&q=75',color: '#5865F2',bgColor: 'rgba(88, 101, 242, 0.15)',priority: 5},
+    vip: {name: 'VIP',image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1074074255389896764.png%3Fv%3D1&w=64&q=75',color: '#9B59B6',bgColor: 'rgba(155, 89, 182, 0.15)',priority: 6}};
 
 // ========== УТИЛИТЫ ==========
 function escapeHtml(unsafe) {
@@ -70,21 +33,16 @@ function escapeHtml(unsafe) {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
+        .replace(/'/g, "&#039;");}
 
 function normalizeBadges(badgesData) {
-    if (!badgesData) {
-        return { admin: false, verified: false, partner: false, buyer: false, early: false, vip: false };
-    }
+    if (!badgesData) {return { admin: false, verified: false, partner: false, buyer: false, early: false, vip: false };}
     
     if (typeof badgesData === 'string') {
         return {
             admin: badgesData === 'admin',
             verified: badgesData === 'verified',
-            partner: false, buyer: false, early: false, vip: false
-        };
-    }
+            partner: false, buyer: false, early: false, vip: false};}
     
     if (typeof badgesData === 'object') {
         return {
@@ -93,12 +51,9 @@ function normalizeBadges(badgesData) {
             partner: !!badgesData.partner,
             buyer: !!badgesData.buyer,
             early: !!badgesData.early,
-            vip: !!badgesData.vip
-        };
-    }
+            vip: !!badgesData.vip};}
     
-    return { admin: false, verified: false, partner: false, buyer: false, early: false, vip: false };
-}
+    return { admin: false, verified: false, partner: false, buyer: false, early: false, vip: false };}
 
 // ========== АВТОРИЗАЦИЯ ==========
 async function checkAuth() {
@@ -116,34 +71,21 @@ async function checkAuth() {
                     balance: data.user.balance,
                     badges: data.user.badges || {},
                     discordId: data.user.discordId,
-                    registeredAt: data.user.registeredAt
-                });
-                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-            }
-        } catch (error) {
-            console.error('❌ Ошибка обновления пользователя:', error);
-        }
-    }
+                    registeredAt: data.user.registeredAt});
+                localStorage.setItem('bhstore_auth', JSON.stringify(authData));}} catch (error) {
+            console.error('❌ Ошибка обновления пользователя:', error);}}
 
     if (authData.username && !authData.verificationCode) {
         try {
             const balanceData = await window.api?.getUserBalance(authData.id);
             if (balanceData?.success) {
                 authData.balance = balanceData.balance;
-                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-            }
-        } catch (error) {
-            console.error('❌ Ошибка загрузки баланса:', error);
-        }
+                localStorage.setItem('bhstore_auth', JSON.stringify(authData));}} catch (error) {
+            console.error('❌ Ошибка загрузки баланса:', error);}
 
         let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
         if (authData.avatar) {
-            if (authData.avatar.startsWith('a_')) {
-                avatarUrl = `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.gif?size=64`;
-            } else {
-                avatarUrl = `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=64`;
-            }
-        }
+            if (authData.avatar.startsWith('a_')) {avatarUrl = `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.gif?size=64`;} else {avatarUrl = `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=64`;}}
 
         const badges = normalizeBadges(authData.badges);
         const mainBadge = getMainBadgeHTML(badges);
@@ -166,14 +108,12 @@ async function checkAuth() {
                     <span>${authData.balance || 0}</span>
                 </div>
                 <i class="fas fa-chevron-down auth-chevron"></i>
-            </div>
-        `;
+            </div>`;
         
         authBtn.classList.add('auth-authenticated');
         authBtn.onclick = (e) => {
             e.stopPropagation();
-            showUserMenu(e);
-        };
+            showUserMenu(e);};
         
     } else if (authData.username && authData.verificationCode) {
         authBtn.innerHTML = `
@@ -538,7 +478,6 @@ function logout() {
     }
 }
 
-// ========== ЭКСПОРТ ==========
 window.buyProduct = buyProduct;
 window.showUserMenu = showUserMenu;
 window.logout = logout;

@@ -1,4 +1,3 @@
-// auth.js - Полная версия с интеграцией API и балансом
 class DiscordAuth {
     constructor() {
         this.apiBase = '/api';
@@ -6,9 +5,8 @@ class DiscordAuth {
     }
 
     init() {
-        console.log('🚀 Auth module initialized with PostgreSQL');
+        console.log('AUTH Загружен');
         
-        // Проверяем наличие токена в URL при загрузке
         this.checkUrlForToken();
         
         if (window.location.pathname === '/verify.html') {
@@ -21,11 +19,7 @@ class DiscordAuth {
                 this.handleCallback(event.data.code, event.data.state);
             }
         });
-
-        // Обновляем баланс при загрузке
         this.refreshUserBalance();
-        
-        // Обновляем кнопку авторизации
         this.updateAuthButton();
     }
 
@@ -35,7 +29,6 @@ class DiscordAuth {
         
         if (token) {
             try {
-                // Декодируем токен для получения данных пользователя
                 const userData = JSON.parse(atob(token));
                 
                 const authData = {
@@ -52,17 +45,12 @@ class DiscordAuth {
                 
                 this.saveAuthData(authData);
                 
-                // Обновляем токен в API
                 if (window.api) {
                     window.api.setAuthToken(token);
                 }
-                
-                // Очищаем URL от токена
                 window.history.replaceState({}, document.title, window.location.pathname);
                 
                 console.log('✅ Авторизация через токен в URL');
-                
-                // Перенаправляем на главную
                 window.location.href = '/';
             } catch (error) {
                 console.error('❌ Ошибка декодирования токена:', error);
@@ -78,8 +66,6 @@ class DiscordAuth {
                 if (balance !== null) {
                     authData.balance = balance;
                     this.saveAuthData(authData);
-                    
-                    // Обновляем UI
                     if (window.updateBalanceDisplay) {
                         window.updateBalanceDisplay(balance);
                     }
@@ -170,8 +156,6 @@ class DiscordAuth {
                     };
                     
                     this.saveAuthData(authData);
-                    
-                    // Обновляем токен в API
                     if (window.api) {
                         window.api.setAuthToken(data.token);
                     }
@@ -295,7 +279,6 @@ class DiscordAuth {
                 throw new Error('Неверный код верификации');
             }
 
-            // Регистрация пользователя
             const response = await fetch(`${this.apiBase}/register`, {
                 method: 'POST',
                 headers: {
@@ -382,7 +365,6 @@ class DiscordAuth {
         localStorage.setItem('bhstore_auth', JSON.stringify(data));
     }
 
-    // ===== ВАША ФУНКЦИЯ setAuthData =====
     setAuthData(userData, token) {
         const authData = {
             id: userData.id,
@@ -395,19 +377,14 @@ class DiscordAuth {
         };
         
         localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-        
-        // Обновляем токен в API
         if (window.api) {
             window.api.setAuthToken(token);
         }
-        
-        // Обновляем UI
         this.updateAuthButton();
         
         return authData;
     }
 
-    // Обновление кнопки авторизации
     updateAuthButton() {
         const authData = this.getAuthData();
         const authBtn = document.getElementById('authBtn');
@@ -415,7 +392,6 @@ class DiscordAuth {
         if (!authBtn) return;
         
         if (authData?.id) {
-            // Пользователь авторизован
             authBtn.innerHTML = `
                 <img src="https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=32" 
                      style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;"
@@ -424,36 +400,25 @@ class DiscordAuth {
             `;
             authBtn.onclick = () => window.location.href = '/profile.html';
         } else {
-            // Пользователь не авторизован
             authBtn.innerHTML = '<i class="fab fa-discord"></i> Войти';
             authBtn.onclick = () => window.location.href = '/auth.html';
         }
     }
 
-    // Проверка авторизации
     isAuthenticated() {
         const authData = this.getAuthData();
         return !!(authData?.id && authData?.token);
     }
 
-    // Получение токена
     getToken() {
         const authData = this.getAuthData();
         return authData?.token || null;
     }
 
-    // Выход из аккаунта
     logout() {
         localStorage.removeItem('bhstore_auth');
-        
-        // Очищаем токен в API
-        if (window.api) {
-            window.api.setAuthToken(null);
-        }
-        
+        if (window.api) {window.api.setAuthToken(null);}
         this.updateAuthButton();
-        
-        // Перенаправляем на главную
         window.location.href = '/';
     }
 
@@ -484,12 +449,9 @@ class DiscordAuth {
             if (authData) {
                 authData.balance = newBalance;
                 instance.saveAuthData(authData);
-                
-                // Обновляем UI
                 if (window.updateBalanceDisplay) {
                     window.updateBalanceDisplay(newBalance);
                 }
-                
                 if (window.checkAuth) {
                     window.checkAuth();
                 }
@@ -498,27 +460,19 @@ class DiscordAuth {
     }
 }
 
-// Создаем и экспортируем экземпляр
 const auth = new DiscordAuth();
 window.DiscordAuth = DiscordAuth;
 window.auth = auth;
 DiscordAuth.instance = auth;
 
-// Инициализация при загрузке DOM
 document.addEventListener('DOMContentLoaded', () => {
-    // Обновляем баланс
     auth.refreshUserBalance();
-    
-    // Обновляем кнопку авторизации
     auth.updateAuthButton();
-    
-    // Периодическое обновление баланса (каждые 30 секунд)
     setInterval(async () => {
         await auth.refreshUserBalance();
     }, 30000);
 });
 
-// Глобальные функции для использования в других скриптах
 window.updateUserBalance = function(newBalance) {
     DiscordAuth.updateBalanceAfterPurchase(newBalance);
 };
@@ -548,18 +502,4 @@ window.isAuthenticated = function() {
         return window.auth.isAuthenticated();
     }
     return false;
-};
-
-// Дебаг функция
-window.debugAuth = function() {
-    const authData = auth.getAuthData();
-    console.log('📊 Auth Data:', authData);
-    console.log('📊 Badges:', authData?.badges);
-    console.log('📊 Is Authenticated:', auth.isAuthenticated());
-    console.log('📊 Token:', auth.getToken()?.substring(0, 20) + '...');
-    
-    fetch('/api/test')
-        .then(r => r.json())
-        .then(data => console.log('📊 API Test:', data))
-        .catch(err => console.error('❌ API Error:', err));
 };

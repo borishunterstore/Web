@@ -7,7 +7,6 @@
     let isApiReady = false;
     let isShopClosed = false;
 
-    // Функция проверки статуса магазина
     async function checkShopStatus() {
         try {
             const shopClosed = localStorage.getItem('bhstore_shop_closed') === 'true';
@@ -46,7 +45,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', async function() {
-        console.log('🛍️ Shop page initializing...');
+        console.log('SHOP Loading');
 
         await waitForApi();
 
@@ -61,9 +60,9 @@
             addAnimationStyles();
             initMobileMenu();
 
-            console.log('✅ Shop initialized successfully');
+            console.log('Shop initialized successfully');
         } catch (error) {
-            console.error('❌ Error initializing shop:', error);
+            console.error('Error initializing shop:', error);
             showError('Ошибка инициализации магазина');
         }
     });
@@ -74,12 +73,12 @@
             await new Promise(resolve => setTimeout(resolve, 100));
         }
         if (!window.api) {
-            console.error('❌ API not loaded within timeout');
+            console.error('API not loaded within timeout');
             showError('Не удалось загрузить API. Обновите страницу.');
             return false;
         }
         isApiReady = true;
-        console.log('✅ API is ready');
+        console.log('API is ready');
         return true;
     }
 
@@ -96,10 +95,10 @@
                     authData.badges = data.user.badges;
                     localStorage.setItem('bhstore_auth', JSON.stringify(authData));
 
-                    console.log('✅ User data loaded:', currentUser);
+                    console.log('User data loaded:', currentUser);
                 }
             } catch (error) {
-                console.warn('⚠️ Failed to load user data:', error);
+                console.warn('Failed to load user data:', error);
             }
         }
     }
@@ -107,7 +106,7 @@
     async function initPromocodeSystem() {
         for (let i = 0; i < 10; i++) {
             if (window.promocodeSystem) {
-                console.log('✅ Promocode system loaded');
+                console.log('Promocode system loaded');
                 enhancePromocodeSystem();
 
                 if (typeof window.promocodeSystem.renderUI === 'function') {
@@ -121,7 +120,7 @@
             await new Promise(resolve => setTimeout(resolve, 200));
         }
 
-        console.warn('⚠️ Promocode system not loaded, creating fallback');
+        console.warn('Promocode system not loaded, creating fallback');
         createPromocodeFallback();
     }
 
@@ -210,7 +209,7 @@
             }
         };
         window.promocodeSystem.loadFromStorage();
-        console.log('✅ Promocode fallback created');
+        console.log('Promocode fallback created');
     }
 
     function initCategories() {
@@ -218,7 +217,6 @@
 
         categoryButtons.forEach(button => {
             button.addEventListener('click', async function() {
-                // Проверяем статус магазина перед загрузкой категории
                 const canView = await checkShopStatus();
                 if (!canView) return;
                 
@@ -238,65 +236,64 @@
     async function loadProducts(category) {
         const container = document.getElementById('productsContainer');
         if (!container) {
-            console.error('❌ Products container not found');
+            console.error('Products container not found');
             return;
         }
 
-        // Проверяем статус магазина
         const canView = await checkShopStatus();
         if (!canView) return;
 
         currentCategory = category;
         showLoading(container);
-        console.log(`📡 Loading products for category: ${category}`);
+        console.log(`Loading products for category: ${category}`);
 
         try {
             if (!window.api) {
-                console.error('❌ API not available');
+                console.error('API not available');
                 throw new Error('API not available');
             }
 
             console.log('📡 Fetching products via api.getProducts()...');
             const data = await window.api.getProducts();
-            console.log('📦 API Response:', data);
+            console.log('API Response:', data);
 
             if (!data) {
-                console.error('❌ No data received from API');
+                console.error('No data received from API');
                 renderNoProducts(category, true);
                 return;
             }
 
             if (!data.success) {
-                console.error('❌ API returned success: false', data);
+                console.error('API returned success: false', data);
                 renderNoProducts(category, true);
                 return;
             }
 
             if (!data.products || !Array.isArray(data.products)) {
-                console.error('❌ Products is not an array:', data.products);
+                console.error('Products is not an array:', data.products);
                 renderNoProducts(category, true);
                 return;
             }
 
-            console.log(`✅ Received ${data.products.length} products from API`);
+            console.log(`Received ${data.products.length} products from API`);
             products = data.products;
 
             const filtered = category === 'all'
                 ? products
                 : products.filter(p => p.category?.toLowerCase() === category.toLowerCase());
 
-            console.log(`🔄 Filtered products: ${filtered.length} for category "${category}"`);
+            console.log(`Filtered products: ${filtered.length} for category "${category}"`);
 
             if (filtered.length === 0) {
-                console.log('ℹ️ No products found for this category');
+                console.log('No products found for this category');
                 renderNoProducts(category, false);
             } else {
-                console.log('🎨 Rendering products...');
+                console.log('Rendering products...');
                 renderProducts(filtered);
             }
 
         } catch (error) {
-            console.error('❌ Error in loadProducts:', error);
+            console.error('Error in loadProducts:', error);
             showError('Не удалось загрузить товары. Пожалуйста, проверьте консоль для деталей.');
         }
     }
@@ -465,7 +462,7 @@
     }
 
     window.buyProduct = async function(productId, productName, originalPrice) {
-        console.log('🛒 buyProduct вызван из shop.js с параметрами:', { productId, productName, originalPrice });
+        console.log('buyProduct:', { productId, productName, originalPrice });
         
         // Проверяем статус магазина
         const shopClosed = localStorage.getItem('bhstore_shop_closed') === 'true';
@@ -479,7 +476,7 @@
         }
         
         if (!productId || !productName || originalPrice === undefined || originalPrice === null) {
-            console.error('❌ Ошибка: отсутствуют параметры', { productId, productName, originalPrice });
+            console.error('Ошибка: отсутствуют параметры', { productId, productName, originalPrice });
             showNotification('Ошибка: не удалось получить данные товара', 'error');
             return;
         }

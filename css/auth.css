@@ -604,3 +604,130 @@
         background: linear-gradient(135deg, #0a0a0f 0%, #000000 100%);
     }
 }
+
+.consent-buttons {
+    margin: 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.consent-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.consent-item.completed {
+    background: rgba(76, 175, 80, 0.15);
+    border-color: rgba(76, 175, 80, 0.5);
+}
+
+.consent-btn {
+    flex: 1;
+    padding: 10px 15px;
+    background: rgba(88, 101, 242, 0.2);
+    border: 1px solid rgba(88, 101, 242, 0.5);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.consent-btn i {
+    width: 20px;
+    font-size: 16px;
+}
+
+.consent-btn:hover:not(:disabled) {
+    background: rgba(88, 101, 242, 0.4);
+    border-color: #5865F2;
+    transform: translateX(5px);
+}
+
+.consent-btn.completed {
+    background: rgba(76, 175, 80, 0.3);
+    border-color: #4caf50;
+    color: #4caf50;
+}
+
+.consent-btn.completed i {
+    color: #4caf50;
+}
+
+.consent-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.consent-status {
+    font-size: 20px;
+    width: 30px;
+    text-align: center;
+}
+
+.consent-status .pending {
+    color: #ff9800;
+}
+
+.consent-status .completed {
+    color: #4caf50;
+}
+
+.consent-progress {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    font-size: 13px;
+    color: #aaa;
+}
+
+.btn-auth.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.warning-message {
+    background: rgba(255, 107, 107, 0.2);
+    border: 1px solid #ff6b6b;
+    border-radius: 8px;
+    padding: 10px;
+    margin-top: 10px;
+    text-align: center;
+    font-size: 13px;
+    color: #ff6b6b;
+    display: none;
+}
+
+.warning-message.show {
+    display: block;
+}
+
+.consent-item .doc-link {
+    font-size: 12px;
+    color: #7fc5ff;
+    text-decoration: none;
+    margin-left: auto;
+    padding: 5px 10px;
+    border-radius: 6px;
+    background: rgba(127, 197, 255, 0.1);
+    transition: all 0.3s;
+}
+
+.consent-item .doc-link:hover {
+    background: rgba(127, 197, 255, 0.2);
+    text-decoration: underline;
+}
