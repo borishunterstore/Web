@@ -2,8 +2,6 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const serverless = require('serverless-http');
-const path = require('path');
-const fs = require('fs');
 const { neon } = require('@neondatabase/serverless');
 require('dotenv').config();
 
@@ -13,13 +11,6 @@ const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'https://bhstore.netlify.app/auth/discord/callback';
 const BOT_API_URL = process.env.BOT_API_URL || 'https://bhstore.netlify.app';
-
-// console.log('✅ Запуск...');
-// console.log('✅ Client ID:', !!DISCORD_CLIENT_ID);
-// console.log('✅ Client Secret:', !!DISCORD_CLIENT_SECRET);
-// console.log('✅ Redirect URI:', DISCORD_REDIRECT_URI);
-// console.log('✅ Bot API URL:', BOT_API_URL);
-// console.log('✅ DATABASE_URL:', !!process.env.DATABASE_URL);
 
 let sql;
 try {

@@ -231,84 +231,76 @@
         });
 
         function loadAdminPanel() {
-            document.getElementById('adminContent').innerHTML = `
-            <div class="admin-nav">
-    <button class="admin-nav-btn active" data-section="stats">
-        <i class="fas fa-chart-bar"></i> Статистика
-    </button>
-    <button class="admin-nav-btn" data-section="users">
-        <i class="fas fa-users"></i> Пользователи
-    </button>
-    <button class="admin-nav-btn" data-section="orders">
-        <i class="fas fa-shopping-bag"></i> Заказы
-    </button>
-    <button class="admin-nav-btn" data-section="chat">
-        <i class="fas fa-comments"></i> Чат поддержки
-    </button>
-    <button class="admin-nav-btn" data-section="products">
-        <i class="fas fa-box"></i> Товары
-    </button>
-    <button class="admin-nav-btn" data-section="news">
-        <i class="fas fa-newspaper"></i> Новости
-    </button>
-</div>
-                
-                <div class="admin-section active" id="section-stats">
-                    <h2><i class="fas fa-chart-bar"></i> Статистика магазина</h2>
-                    <div id="statsContent" class="loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Загрузка статистики...</p>
-                    </div>
-                </div>
-                
-                <div class="admin-section" id="section-users">
-                    <h2><i class="fas fa-users"></i> Пользователи</h2>
-                    <div id="usersContent" class="loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Загрузка пользователей...</p>
-                    </div>
-                </div>
-                
-                <div class="admin-section" id="section-orders">
-                    <h2><i class="fas fa-shopping-bag"></i> Заказы</h2>
-                    <div id="ordersContent" class="loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Загрузка заказов...</p>
-                    </div>
-                </div>
-                
-                <div class="admin-section" id="section-chat">
-                    <h2><i class="fas fa-comments"></i> Чат поддержки</h2>
-                    <div id="chatContent" class="loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Загрузка чата...</p>
-                    </div>
-                </div>
-                
-                <div class="admin-section" id="section-chat">
-                    <h2><i class="fas fa-comments"></i> Чат поддержки</h2>
-                    <div id="chatContent" class="loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Загрузка чата...</p>
-                    </div>
-                </div>
-                
-                <div class="admin-section" id="section-news">
-    <h2><i class="fas fa-newspaper"></i> Управление новостями</h2>
-    <div id="newsContent" class="loading">
-        <i class="fas fa-spinner fa-spin"></i>
-        <p>Загрузка новостей...</p>
+    document.getElementById('adminContent').innerHTML = `
+    <div class="admin-nav">
+        <button class="admin-nav-btn active" data-section="stats">
+            <i class="fas fa-chart-bar"></i> Статистика
+        </button>
+        <button class="admin-nav-btn" data-section="users">
+            <i class="fas fa-users"></i> Пользователи
+        </button>
+        <button class="admin-nav-btn" data-section="orders">
+            <i class="fas fa-shopping-bag"></i> Заказы
+        </button>
+        <button class="admin-nav-btn" data-section="chat">
+            <i class="fas fa-comments"></i> Чат поддержки
+        </button>
+        <button class="admin-nav-btn" data-section="products">
+            <i class="fas fa-box"></i> Товары
+        </button>
+        <button class="admin-nav-btn" data-section="news">
+            <i class="fas fa-newspaper"></i> Новости
+        </button>
     </div>
-</div>
-
-                <div class="admin-section" id="section-products">
-                    <h2><i class="fas fa-box"></i> Управление товарами</h2>
-                    <div id="productsContent" class="loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Загрузка товаров...</p>
-                    </div>
-                </div>
-            `;
+    
+    <div class="admin-section active" id="section-stats">
+        <h2><i class="fas fa-chart-bar"></i> Статистика магазина</h2>
+        <div id="statsContent" class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Загрузка статистики...</p>
+        </div>
+    </div>
+    
+    <div class="admin-section" id="section-users">
+        <h2><i class="fas fa-users"></i> Пользователи</h2>
+        <div id="usersContent" class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Загрузка пользователей...</p>
+        </div>
+    </div>
+    
+    <div class="admin-section" id="section-orders">
+        <h2><i class="fas fa-shopping-bag"></i> Заказы</h2>
+        <div id="ordersContent" class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Загрузка заказов...</p>
+        </div>
+    </div>
+    
+    <div class="admin-section" id="section-chat">
+        <h2><i class="fas fa-comments"></i> Чат поддержки</h2>
+        <div id="chatContent" class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Загрузка чата...</p>
+        </div>
+    </div>
+    
+    <div class="admin-section" id="section-products">
+        <h2><i class="fas fa-box"></i> Управление товарами</h2>
+        <div id="productsContent" class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Загрузка товаров...</p>
+        </div>
+    </div>
+    
+    <div class="admin-section" id="section-news">
+        <h2><i class="fas fa-newspaper"></i> Управление новостями</h2>
+        <div id="newsContent" class="loading">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Загрузка новостей...</p>
+        </div>
+    </div>
+    `;
             
             document.querySelectorAll('.admin-nav-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
