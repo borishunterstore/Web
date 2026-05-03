@@ -1975,6 +1975,71 @@ function getDemoNews() {
 // УПРАВЛЕНИЕ ЗАКАЗАМИ (FULL CRUD)
 // ============================================
 
+app.post('/api/admin/orders/manual', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ success: false, error: 'Не авторизован' });
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    
+    const isAdmin = decoded.id === '992442453833547886';
+    if (!isAdmin) {
+      return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+    }
+
+    const { userId, productName, amount, status, orderId } = req.body;
+    
+    if (!userId || !productName || !amount) {
+      return res.status(400).json({ success: false, error: 'Не все данные заполнены' });
+    }
+    
+    const newOrder = {
+      id: orderId || `BH-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+      productId: `manual_${Date.now()}`,
+      productName: productName,
+      price: amount,
+      finalPrice: amount,
+      originalPrice: amount,
+      amount: amount,
+      status: status || 'completed',
+      date: new Date().toISOString(),
+      isManual: true,
+      createdAt: new Date().toISOString()
+    };
+    
+    if (!sql) {
+      if (!users[userId]) {
+        users[userId] = { discordId: userId, orders: [], balance: 0 };
+      }
+      users[userId].orders = users[userId].orders || [];
+      users[userId].orders.push(newOrder);
+      return res.json({ success: true, message: 'Заказ создан (in-memory)', order: newOrder });
+    }
+    
+    const [user] = await sql`SELECT * FROM users WHERE discord_id = ${userId}`;
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'Пользователь не найден' });
+    }
+    
+    const orders = user.orders || [];
+    orders.push(newOrder);
+    
+    await sql`
+      UPDATE users 
+      SET orders = ${JSON.stringify(orders)}
+      WHERE discord_id = ${userId}
+    `;
+    
+    console.log(`✅ Создан ручной заказ ${newOrder.id} для ${userId}`);
+    res.json({ success: true, message: 'Заказ создан', order: newOrder });
+    
+  } catch (error) {
+    console.error('❌ Ошибка создания заказа:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
 // Удалить заказ
 app.delete('/api/admin/orders/:orderId', async (req, res) => {
   try {
@@ -1984,17 +2049,34 @@ app.delete('/api/admin/orders/:orderId', async (req, res) => {
     const token = authHeader.replace('Bearer ', '');
     const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
     
-    if (!isAdminUser(decoded)) {
+    const isAdmin = decoded.id === '992442453833547886';
+    if (!isAdmin) {
       return res.status(403).json({ success: false, error: 'Требуются права администратора' });
     }
 
     const orderId = req.params.orderId;
     
-    // Находим пользователя, у которого есть этот заказ
-    const users = await sql`SELECT * FROM users`;
+    if (!sql) {
+      // Удаляем из памяти
+      let found = false;
+      for (const user of Object.values(users)) {
+        const orders = user.orders || [];
+        const orderIndex = orders.findIndex(o => o.id === orderId);
+        if (orderIndex !== -1) {
+          orders.splice(orderIndex, 1);
+          found = true;
+          break;
+        }
+      }
+      if (!found) return res.status(404).json({ success: false, error: 'Заказ не найден' });
+      return res.json({ success: true, message: 'Заказ удалён (in-memory)' });
+    }
+    
+    // Удаляем из БД
+    const usersList = await sql`SELECT * FROM users`;
     let found = false;
     
-    for (const user of users) {
+    for (const user of usersList) {
       const orders = user.orders || [];
       const orderIndex = orders.findIndex(o => o.id === orderId);
       if (orderIndex !== -1) {
@@ -2009,11 +2091,9 @@ app.delete('/api/admin/orders/:orderId', async (req, res) => {
       }
     }
     
-    if (!found) {
-      return res.status(404).json({ success: false, error: 'Заказ не найден' });
-    }
+    if (!found) return res.status(404).json({ success: false, error: 'Заказ не найден' });
     
-    console.log(`✅ Заказ ${orderId} удалён администратором ${decoded.username}`);
+    console.log(`✅ Заказ ${orderId} удалён`);
     res.json({ success: true, message: 'Заказ удалён' });
     
   } catch (error) {
@@ -2031,29 +2111,52 @@ app.put('/api/admin/orders/:orderId', async (req, res) => {
     const token = authHeader.replace('Bearer ', '');
     const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
     
-    if (!isAdminUser(decoded)) {
+    // Проверка админа
+    const isAdmin = decoded.id === '992442453833547886';
+    if (!isAdmin) {
       return res.status(403).json({ success: false, error: 'Требуются права администратора' });
     }
 
     const orderId = req.params.orderId;
     const { productName, finalPrice, status, date } = req.body;
     
-    const users = await sql`SELECT * FROM users`;
+    if (!sql) {
+      // Если нет БД, обновляем в памяти
+      let found = false;
+      for (const user of Object.values(users)) {
+        const orders = user.orders || [];
+        const orderIndex = orders.findIndex(o => o.id === orderId);
+        if (orderIndex !== -1) {
+          if (productName) orders[orderIndex].productName = productName;
+          if (finalPrice) orders[orderIndex].price = finalPrice;
+          if (finalPrice) orders[orderIndex].finalPrice = finalPrice;
+          if (status) orders[orderIndex].status = status;
+          if (date) orders[orderIndex].date = date;
+          orders[orderIndex].updatedAt = new Date().toISOString();
+          found = true;
+          break;
+        }
+      }
+      if (!found) return res.status(404).json({ success: false, error: 'Заказ не найден' });
+      return res.json({ success: true, message: 'Заказ обновлён (in-memory)' });
+    }
+    
+    // Обновляем в БД
+    const usersList = await sql`SELECT * FROM users`;
     let found = false;
     
-    for (const user of users) {
+    for (const user of usersList) {
       const orders = user.orders || [];
       const orderIndex = orders.findIndex(o => o.id === orderId);
       if (orderIndex !== -1) {
-        orders[orderIndex] = {
-          ...orders[orderIndex],
-          productName: productName || orders[orderIndex].productName,
-          price: finalPrice || orders[orderIndex].price,
-          finalPrice: finalPrice || orders[orderIndex].finalPrice || orders[orderIndex].price,
-          status: status || orders[orderIndex].status,
-          date: date || orders[orderIndex].date,
-          updatedAt: new Date().toISOString()
-        };
+        if (productName) orders[orderIndex].productName = productName;
+        if (finalPrice) {
+          orders[orderIndex].price = finalPrice;
+          orders[orderIndex].finalPrice = finalPrice;
+        }
+        if (status) orders[orderIndex].status = status;
+        if (date) orders[orderIndex].date = date;
+        orders[orderIndex].updatedAt = new Date().toISOString();
         
         await sql`
           UPDATE users 
@@ -2065,11 +2168,9 @@ app.put('/api/admin/orders/:orderId', async (req, res) => {
       }
     }
     
-    if (!found) {
-      return res.status(404).json({ success: false, error: 'Заказ не найден' });
-    }
+    if (!found) return res.status(404).json({ success: false, error: 'Заказ не найден' });
     
-    console.log(`✅ Заказ ${orderId} обновлён администратором ${decoded.username}`);
+    console.log(`✅ Заказ ${orderId} обновлён`);
     res.json({ success: true, message: 'Заказ обновлён' });
     
   } catch (error) {
