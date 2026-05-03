@@ -2104,3 +2104,164 @@ input:checked + .toggle-slider:after {
     height: auto;
     color: white;
 }
+
+/* Стили для чата */
+.chat-container {
+    display: flex;
+    gap: 20px;
+    height: 70vh;
+    min-height: 500px;
+}
+
+.chat-user {
+    transition: all 0.2s ease;
+}
+
+.chat-user:hover {
+    transform: translateX(4px);
+}
+
+.chat-user.active {
+    background: #5865F2 !important;
+}
+
+.unread-badge {
+    background: #ED4245;
+    color: white;
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 11px;
+    margin-left: 8px;
+}
+
+/* Стили для модальных окон */
+.modal {
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Стили для уведомлений */
+.notification {
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Badge стили */
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.badge-admin {
+    background: #5865F2;
+    color: white;
+}
+
+.badge-verified {
+    background: #57F287;
+    color: #1e1f29;
+}
+
+.badge-partner {
+    background: #FF73FA;
+    color: #1e1f29;
+}
+
+.badge-vip {
+    background: #9B59B6;
+    color: white;
+}
+
+/* Кнопки действий */
+.btn-icon {
+    background: none;
+    border: none;
+    color: #b9bbbe;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    background: #40444b;
+    color: white;
+}
+
+.btn-icon.danger:hover {
+    background: #ED4245;
+    color: white;
+}
+
+.btn-icon.success:hover {
+    background: #57F287;
+    color: #1e1f29;
+}
+
+.btn-icon.warning:hover {
+    background: #FEE75C;
+    color: #1e1f29;
+}
+
+/* Toggle switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #40444b;
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: #57F287;
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+}
