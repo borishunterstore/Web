@@ -21,12 +21,9 @@ class AdminOrders {
 
     applyFilters() {
         let filtered = [...this.orders];
-        
-        // Фильтр по статусу
         if (this.statusFilter !== 'all') {
             filtered = filtered.filter(o => o.status === this.statusFilter);
         }
-        
         this.filteredOrders = filtered;
         this.renderOrders();
     }
@@ -51,17 +48,8 @@ class AdminOrders {
         const cancelledOrders = this.filteredOrders.filter(o => o.status === 'cancelled').length;
         const processingOrders = this.filteredOrders.filter(o => o.status === 'processing').length;
 
-        const statusCounts = {
-            all: this.filteredOrders.length,
-            completed: completedOrders,
-            pending: pendingOrders,
-            processing: processingOrders,
-            cancelled: cancelledOrders
-        };
-
         let html = `
             <div style="margin-bottom: 20px;">
-                <!-- Статистика -->
                 <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
                     <div style="background: #1e1f29; padding: 12px 20px; border-radius: 12px;">
                         <span><i class="fas fa-shopping-cart"></i> Всего: <strong>${this.filteredOrders.length}</strong></span>
@@ -70,10 +58,10 @@ class AdminOrders {
                         <span><i class="fas fa-check-circle" style="color: #57F287;"></i> Выполнено: <strong style="color: #57F287;">${completedOrders}</strong></span>
                     </div>
                     <div style="background: #1e1f29; padding: 12px 20px; border-radius: 12px;">
-                        <span><i class="fas fa-clock" style="color: #FEE75C;"></i> В обработке: <strong style="color: #FEE75C;">${processingOrders}</strong></span>
+                        <span><i class="fas fa-cogs" style="color: #5865F2;"></i> В обработке: <strong style="color: #5865F2;">${processingOrders}</strong></span>
                     </div>
                     <div style="background: #1e1f29; padding: 12px 20px; border-radius: 12px;">
-                        <span><i class="fas fa-hourglass-half" style="color: #5865F2;"></i> Ожидают: <strong style="color: #5865F2;">${pendingOrders}</strong></span>
+                        <span><i class="fas fa-clock" style="color: #FEE75C;"></i> Ожидают: <strong style="color: #FEE75C;">${pendingOrders}</strong></span>
                     </div>
                     <div style="background: #1e1f29; padding: 12px 20px; border-radius: 12px;">
                         <span><i class="fas fa-ban" style="color: #ED4245;"></i> Отменено: <strong style="color: #ED4245;">${cancelledOrders}</strong></span>
@@ -83,14 +71,13 @@ class AdminOrders {
                     </div>
                 </div>
                 
-                <!-- Панель управления -->
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button class="btn-admin ${this.statusFilter === 'all' ? 'active' : ''}" onclick="window.adminOrders.setStatusFilter('all')">📋 Все (${statusCounts.all})</button>
-                        <button class="btn-admin ${this.statusFilter === 'completed' ? 'active' : ''}" onclick="window.adminOrders.setStatusFilter('completed')" style="background: ${this.statusFilter === 'completed' ? '#57F287' : ''}">✅ Выполненные (${statusCounts.completed})</button>
-                        <button class="btn-admin ${this.statusFilter === 'processing' ? 'active' : ''}" onclick="window.adminOrders.setStatusFilter('processing')" style="background: ${this.statusFilter === 'processing' ? '#5865F2' : ''}">⚙️ В обработке (${statusCounts.processing})</button>
-                        <button class="btn-admin ${this.statusFilter === 'pending' ? 'active' : ''}" onclick="window.adminOrders.setStatusFilter('pending')" style="background: ${this.statusFilter === 'pending' ? '#FEE75C' : ''}">⏳ Ожидают (${statusCounts.pending})</button>
-                        <button class="btn-admin ${this.statusFilter === 'cancelled' ? 'active' : ''}" onclick="window.adminOrders.setStatusFilter('cancelled')" style="background: ${this.statusFilter === 'cancelled' ? '#ED4245' : ''}">❌ Отменённые (${statusCounts.cancelled})</button>
+                        <button class="btn-admin ${this.statusFilter === 'all' ? 'active' : ''}" onclick="window.adminOrders.setStatusFilter('all')">📋 Все</button>
+                        <button class="btn-admin ${this.statusFilter === 'completed' ? 'active' : ''}" onclick="window.adminOrders.setStatusFilter('completed')" style="${this.statusFilter === 'completed' ? 'background: #57F287; color: #1e1f29;' : ''}">✅ Выполненные</button>
+                        <button class="btn-admin ${this.statusFilter === 'processing' ? 'active' : ''}" onclick="window.adminOrders.setStatusFilter('processing')" style="${this.statusFilter === 'processing' ? 'background: #5865F2;' : ''}">⚙️ В обработке</button>
+                        <button class="btn-admin ${this.statusFilter === 'pending' ? 'active' : ''}" onclick="window.adminOrders.setStatusFilter('pending')" style="${this.statusFilter === 'pending' ? 'background: #FEE75C; color: #1e1f29;' : ''}">⏳ Ожидают</button>
+                        <button class="btn-admin ${this.statusFilter === 'cancelled' ? 'active' : ''}" onclick="window.adminOrders.setStatusFilter('cancelled')" style="${this.statusFilter === 'cancelled' ? 'background: #ED4245;' : ''}">❌ Отменённые</button>
                     </div>
                     <div style="display: flex; gap: 10px;">
                         <input type="text" id="searchOrders" placeholder="🔍 Поиск по заказам..." 
@@ -106,7 +93,7 @@ class AdminOrders {
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr style="background: #2a2b36;">
-                            <th style="padding: 12px; text-align: left;">№ заказа</th>
+                            <th style="padding: 12px; text-align: left;">Заказ</th>
                             <th style="padding: 12px; text-align: left;">Пользователь</th>
                             <th style="padding: 12px; text-align: left;">Товар</th>
                             <th style="padding: 12px; text-align: left;">Сумма</th>
@@ -131,8 +118,8 @@ class AdminOrders {
                 const status = statusConfig[order.status] || { bg: '#40444b', color: 'white', text: order.status, icon: 'fa-question' };
                 
                 html += `
-                    <tr style="border-bottom: 1px solid #40444b;" data-order-id="${order.id}">
-                        <td style="padding: 12px;"><code style="color: #5865F2; font-weight: 600;">${order.id}</code></td>
+                    <tr style="border-bottom: 1px solid #40444b;">
+                        <td style="padding: 12px;"><code style="color: #5865F2; font-weight: 600;">${this.escapeHtml(order.id)}</code></td>
                         <td style="padding: 12px;">
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <img src="${order.userAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}" 
@@ -156,13 +143,13 @@ class AdminOrders {
                         </td>
                         <td style="padding: 12px;">
                             <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                                <button class="btn-icon" onclick="window.adminOrders.editOrder('${order.id}')" title="Редактировать">
+                                <button class="btn-icon" onclick="window.adminOrders.editOrderModal('${order.id}')" title="Редактировать" style="background: #5865F2; border: none; padding: 8px; border-radius: 6px; cursor: pointer; color: white;">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn-icon" onclick="window.adminOrders.changeStatusDropdown('${order.id}')" title="Изменить статус">
+                                <button class="btn-icon" onclick="window.adminOrders.changeStatus('${order.id}')" title="Изменить статус" style="background: #FEE75C; border: none; padding: 8px; border-radius: 6px; cursor: pointer; color: #1e1f29;">
                                     <i class="fas fa-tag"></i>
                                 </button>
-                                <button class="btn-icon danger" onclick="window.adminOrders.deleteOrder('${order.id}')" title="Удалить">
+                                <button class="btn-icon" onclick="window.adminOrders.deleteOrderConfirm('${order.id}')" title="Удалить" style="background: #ED4245; border: none; padding: 8px; border-radius: 6px; cursor: pointer; color: white;">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -229,7 +216,7 @@ class AdminOrders {
     }
 
     // ========== ИЗМЕНЕНИЕ СТАТУСА ==========
-    async changeStatusDropdown(orderId) {
+    async changeStatus(orderId) {
         const order = this.orders.find(o => o.id === orderId);
         if (!order) return;
         
@@ -237,28 +224,31 @@ class AdminOrders {
         modal.className = 'modal';
         modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 10000;';
         
-        const statuses = [
-            { value: 'completed', label: '✅ Выполнен', color: '#57F287', icon: 'fa-check-circle' },
-            { value: 'processing', label: '⚙️ В обработке', color: '#5865F2', icon: 'fa-cogs' },
-            { value: 'pending', label: '⏳ Ожидание', color: '#FEE75C', icon: 'fa-clock' },
-            { value: 'cancelled', label: '❌ Отменен', color: '#ED4245', icon: 'fa-ban' }
-        ];
-        
         modal.innerHTML = `
             <div style="background: #2a2b36; border-radius: 16px; padding: 25px; max-width: 350px; width: 90%;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h3 style="margin: 0;"><i class="fas fa-tag"></i> Изменить статус</h3>
                     <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
                 </div>
-                <p style="margin-bottom: 15px; color: #b9bbbe;">Заказ: <code style="color: #5865F2;">${order.id}</code></p>
+                <p style="margin-bottom: 15px; color: #b9bbbe;">Заказ: <code style="color: #5865F2;">${this.escapeHtml(order.id)}</code></p>
                 <p style="margin-bottom: 15px;">Товар: <strong>${this.escapeHtml(order.productName)}</strong></p>
                 <div style="display: flex; flex-direction: column; gap: 10px;">
-                    ${statuses.map(s => `
-                        <button onclick="window.adminOrders.updateOrderStatus('${orderId}', '${s.value}'); this.closest('.modal').remove();" 
-                                style="background: ${s.color}; border: none; padding: 12px; border-radius: 8px; color: ${s.value === 'completed' || s.value === 'pending' ? '#1e1f29' : 'white'}; cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                            <i class="fas ${s.icon}"></i> ${s.label}
-                        </button>
-                    `).join('')}
+                    <button onclick="window.adminOrders.updateStatus('${orderId}', 'completed'); this.closest('.modal').remove();" 
+                            style="background: #57F287; border: none; padding: 12px; border-radius: 8px; color: #1e1f29; cursor: pointer; font-weight: 500;">
+                        <i class="fas fa-check-circle"></i> ✅ Выполнен
+                    </button>
+                    <button onclick="window.adminOrders.updateStatus('${orderId}', 'processing'); this.closest('.modal').remove();" 
+                            style="background: #5865F2; border: none; padding: 12px; border-radius: 8px; color: white; cursor: pointer; font-weight: 500;">
+                        <i class="fas fa-cogs"></i> ⚙️ В обработке
+                    </button>
+                    <button onclick="window.adminOrders.updateStatus('${orderId}', 'pending'); this.closest('.modal').remove();" 
+                            style="background: #FEE75C; border: none; padding: 12px; border-radius: 8px; color: #1e1f29; cursor: pointer; font-weight: 500;">
+                        <i class="fas fa-clock"></i> ⏳ Ожидание
+                    </button>
+                    <button onclick="window.adminOrders.updateStatus('${orderId}', 'cancelled'); this.closest('.modal').remove();" 
+                            style="background: #ED4245; border: none; padding: 12px; border-radius: 8px; color: white; cursor: pointer; font-weight: 500;">
+                        <i class="fas fa-ban"></i> ❌ Отменен
+                    </button>
                 </div>
                 <button onclick="this.closest('.modal').remove()" style="margin-top: 15px; width: 100%; padding: 10px; background: #40444b; border: none; border-radius: 8px; color: white; cursor: pointer;">Отмена</button>
             </div>
@@ -267,58 +257,43 @@ class AdminOrders {
         document.body.appendChild(modal);
     }
 
-    async updateOrderStatus(orderId, status) {
+    async updateStatus(orderId, status) {
         try {
-            const order = this.orders.find(o => o.id === orderId);
-            if (!order) throw new Error('Заказ не найден');
-            
-            // Находим пользователя и обновляем статус заказа в БД
-            const users = await this.api.getAllUsers();
+            // Ищем заказ и обновляем статус
             let found = false;
-            
-            for (const user of users.users) {
-                const orders = user.orders || [];
-                const orderIndex = orders.findIndex(o => o.id === orderId);
-                if (orderIndex !== -1) {
-                    orders[orderIndex] = {
-                        ...orders[orderIndex],
-                        status: status,
-                        updatedAt: new Date().toISOString()
-                    };
-                    
-                    await this.api.request(`/admin/users/${user.discordId}`, {
-                        method: 'PUT',
-                        body: JSON.stringify({ orders: orders })
-                    });
+            for (const order of this.orders) {
+                if (order.id === orderId) {
+                    order.status = status;
                     found = true;
                     break;
                 }
             }
             
             if (!found) {
-                // Прямой API вызов
-                await this.api.request(`/admin/orders/${orderId}`, {
-                    method: 'PUT',
-                    body: JSON.stringify({ status })
-                });
+                throw new Error('Заказ не найден');
             }
+            
+            // Обновляем через API (нужно добавить в server.js)
+            const response = await fetch(`/api/admin/orders/${orderId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + (localStorage.getItem('bhstore_auth') ? JSON.parse(localStorage.getItem('bhstore_auth')).token : '')
+                },
+                body: JSON.stringify({ status: status })
+            });
+            
+            const result = await response.json();
             
             const statusNames = {
-                'completed': '✅ Выполнен',
-                'processing': '⚙️ В обработке',
-                'pending': '⏳ Ожидание',
-                'cancelled': '❌ Отменен'
+                'completed': 'Выполнен',
+                'processing': 'В обработке',
+                'pending': 'Ожидание',
+                'cancelled': 'Отменен'
             };
             
-            this.showNotification(`Статус заказа изменён на "${statusNames[status] || status}"`, 'success');
+            this.showNotification(`Статус заказа изменён на "${statusNames[status]}"`, 'success');
             await this.loadOrders();
-            
-            // Отправляем уведомление пользователю
-            if (status === 'cancelled') {
-                await this.sendOrderNotification(order.userDiscordId, order.productName, 'cancelled');
-            } else if (status === 'completed') {
-                await this.sendOrderNotification(order.userDiscordId, order.productName, 'completed');
-            }
             
         } catch (error) {
             console.error('Ошибка обновления статуса:', error);
@@ -326,8 +301,8 @@ class AdminOrders {
         }
     }
 
-    // ========== РЕДАКТИРОВАНИЕ ЗАКАЗА ==========
-    async editOrder(orderId) {
+    // ========== РЕДАКТИРОВАНИЕ ==========
+    async editOrderModal(orderId) {
         const order = this.orders.find(o => o.id === orderId);
         if (!order) return;
         
@@ -336,30 +311,26 @@ class AdminOrders {
         modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 10000;';
         
         modal.innerHTML = `
-            <div style="background: #2a2b36; border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div style="background: #2a2b36; border-radius: 16px; padding: 30px; max-width: 500px; width: 90%;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2 style="margin: 0;"><i class="fas fa-edit"></i> Редактировать заказ</h2>
                     <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
                 </div>
-                
                 <div style="background: #1e1f29; border-radius: 12px; padding: 15px; margin-bottom: 20px;">
-                    <p><strong>ID заказа:</strong> <code style="color: #5865F2;">${order.id}</code></p>
+                    <p><strong>ID заказа:</strong> <code style="color: #5865F2;">${this.escapeHtml(order.id)}</code></p>
                     <p><strong>Пользователь:</strong> ${this.escapeHtml(order.username)} (${order.userDiscordId})</p>
                 </div>
-                
                 <form id="editOrderForm">
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label>Название товара</label>
                         <input type="text" id="editProductName" value="${this.escapeHtml(order.productName)}" 
                                style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
-                    
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label>Сумма (₽)</label>
                         <input type="number" id="editAmount" value="${order.finalPrice || order.amount}" 
                                style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
-                    
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label>Статус</label>
                         <select id="editStatus" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
@@ -369,19 +340,11 @@ class AdminOrders {
                             <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>❌ Отменен</option>
                         </select>
                     </div>
-                    
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label>Дата</label>
                         <input type="datetime-local" id="editDate" value="${new Date(order.date || order.createdAt).toISOString().slice(0, 16)}" 
                                style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
-                    
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label>Примечание (необязательно)</label>
-                        <textarea id="editNote" rows="3" placeholder="Внутреннее примечание..." 
-                                  style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">${order.note || ''}</textarea>
-                    </div>
-                    
                     <div style="display: flex; gap: 10px; margin-top: 20px;">
                         <button type="button" onclick="this.closest('.modal').remove()" class="btn-admin" style="flex: 1;">Отмена</button>
                         <button type="submit" class="btn-admin success" style="flex: 1;">Сохранить</button>
@@ -399,40 +362,18 @@ class AdminOrders {
                 productName: document.getElementById('editProductName').value,
                 finalPrice: parseInt(document.getElementById('editAmount').value),
                 status: document.getElementById('editStatus').value,
-                date: new Date(document.getElementById('editDate').value).toISOString(),
-                note: document.getElementById('editNote').value
+                date: new Date(document.getElementById('editDate').value).toISOString()
             };
             
             try {
-                // Находим пользователя и обновляем заказ
-                const users = await this.api.getAllUsers();
-                let found = false;
-                
-                for (const user of users.users) {
-                    const orders = user.orders || [];
-                    const orderIndex = orders.findIndex(o => o.id === orderId);
-                    if (orderIndex !== -1) {
-                        orders[orderIndex] = {
-                            ...orders[orderIndex],
-                            ...updatedData,
-                            updatedAt: new Date().toISOString()
-                        };
-                        
-                        await this.api.request(`/admin/users/${user.discordId}`, {
-                            method: 'PUT',
-                            body: JSON.stringify({ orders: orders })
-                        });
-                        found = true;
-                        break;
-                    }
-                }
-                
-                if (!found) {
-                    await this.api.request(`/admin/orders/${orderId}`, {
-                        method: 'PUT',
-                        body: JSON.stringify(updatedData)
-                    });
-                }
+                const response = await fetch(`/api/admin/orders/${orderId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + (localStorage.getItem('bhstore_auth') ? JSON.parse(localStorage.getItem('bhstore_auth')).token : '')
+                    },
+                    body: JSON.stringify(updatedData)
+                });
                 
                 modal.remove();
                 this.showNotification('Заказ обновлён', 'success');
@@ -443,33 +384,17 @@ class AdminOrders {
         });
     }
 
-    // ========== УДАЛЕНИЕ ЗАКАЗА ==========
-    async deleteOrder(orderId) {
-        if (!confirm('⚠️ ВНИМАНИЕ! Удаление заказа также удалит его из истории пользователя. Это действие нельзя отменить. Продолжить?')) return;
+    // ========== УДАЛЕНИЕ ==========
+    async deleteOrderConfirm(orderId) {
+        if (!confirm('⚠️ ВНИМАНИЕ! Удаление заказа нельзя отменить. Продолжить?')) return;
         
         try {
-            // Находим пользователя и удаляем заказ
-            const users = await this.api.getAllUsers();
-            let found = false;
-            
-            for (const user of users.users) {
-                const orders = user.orders || [];
-                const orderIndex = orders.findIndex(o => o.id === orderId);
-                if (orderIndex !== -1) {
-                    orders.splice(orderIndex, 1);
-                    
-                    await this.api.request(`/admin/users/${user.discordId}`, {
-                        method: 'PUT',
-                        body: JSON.stringify({ orders: orders })
-                    });
-                    found = true;
-                    break;
+            const response = await fetch(`/api/admin/orders/${orderId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + (localStorage.getItem('bhstore_auth') ? JSON.parse(localStorage.getItem('bhstore_auth')).token : '')
                 }
-            }
-            
-            if (!found) {
-                await this.api.request(`/admin/orders/${orderId}`, { method: 'DELETE' });
-            }
+            });
             
             this.showNotification('Заказ удалён', 'success');
             await this.loadOrders();
@@ -478,9 +403,8 @@ class AdminOrders {
         }
     }
 
-    // ========== СОЗДАНИЕ ЗАКАЗА (ВРУЧНУЮ) ==========
+    // ========== СОЗДАНИЕ ЗАКАЗА ==========
     async showAddOrderModal() {
-        // Загружаем список пользователей для выбора
         const usersData = await this.api.getAllUsers();
         const users = usersData.users || [];
         
@@ -489,12 +413,11 @@ class AdminOrders {
         modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 10000;';
         
         modal.innerHTML = `
-            <div style="background: #2a2b36; border-radius: 16px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div style="background: #2a2b36; border-radius: 16px; padding: 30px; max-width: 500px; width: 90%;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                     <h2 style="margin: 0;"><i class="fas fa-plus-circle"></i> Создать заказ</h2>
                     <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
                 </div>
-                
                 <form id="addOrderForm">
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label>Пользователь</label>
@@ -503,19 +426,14 @@ class AdminOrders {
                             ${users.map(u => `<option value="${u.discordId}">${this.escapeHtml(u.username)} (${u.discordId})</option>`).join('')}
                         </select>
                     </div>
-                    
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label>Название товара</label>
-                        <input type="text" id="orderProductName" required placeholder="Например: Монтаж видео" 
-                               style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
+                        <input type="text" id="orderProductName" required style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
-                    
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label>Сумма (₽)</label>
-                        <input type="number" id="orderAmount" required min="0" step="1" placeholder="0" 
-                               style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
+                        <input type="number" id="orderAmount" required min="0" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
-                    
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label>Статус</label>
                         <select id="orderStatus" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
@@ -525,29 +443,9 @@ class AdminOrders {
                             <option value="cancelled">❌ Отменен</option>
                         </select>
                     </div>
-                    
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label>Дата</label>
-                        <input type="datetime-local" id="orderDate" value="${new Date().toISOString().slice(0, 16)}" 
-                               style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
-                    </div>
-                    
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label>Примечание</label>
-                        <textarea id="orderNote" rows="3" placeholder="Внутреннее примечание..." 
-                                  style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;"></textarea>
-                    </div>
-                    
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                            <input type="checkbox" id="orderSubtractBalance" checked>
-                            <span>Списать сумму с баланса пользователя</span>
-                        </label>
-                    </div>
-                    
                     <div style="display: flex; gap: 10px; margin-top: 20px;">
                         <button type="button" onclick="this.closest('.modal').remove()" class="btn-admin" style="flex: 1;">Отмена</button>
-                        <button type="submit" class="btn-admin success" style="flex: 1;">Создать заказ</button>
+                        <button type="submit" class="btn-admin success" style="flex: 1;">Создать</button>
                     </div>
                 </form>
             </div>
@@ -567,115 +465,58 @@ class AdminOrders {
         const productName = document.getElementById('orderProductName').value;
         const amount = parseInt(document.getElementById('orderAmount').value);
         const status = document.getElementById('orderStatus').value;
-        const date = document.getElementById('orderDate').value;
-        const note = document.getElementById('orderNote').value;
-        const subtractBalance = document.getElementById('orderSubtractBalance').checked;
         
         if (!userId || !productName || !amount) {
-            this.showNotification('Заполните все обязательные поля', 'error');
+            this.showNotification('Заполните все поля', 'error');
             return;
         }
         
         try {
-            // Получаем пользователя
-            const userData = await this.api.getUser(userId);
-            const user = userData.user;
-            
-            if (!user) {
-                this.showNotification('Пользователь не найден', 'error');
-                return;
-            }
-            
             const orderId = `BH-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
             
-            const order = {
-                id: orderId,
-                productId: `manual_${Date.now()}`,
+            const orderData = {
+                userId: userId,
                 productName: productName,
-                price: amount,
-                finalPrice: amount,
-                originalPrice: amount,
                 amount: amount,
                 status: status,
-                date: new Date(date).toISOString(),
-                note: note,
-                isManual: true,
-                createdAt: new Date().toISOString()
+                orderId: orderId,
+                isManual: true
             };
             
-            // Если нужно списать баланс
-            let newBalance = user.balance || 0;
-            if (subtractBalance && status !== 'cancelled') {
-                if (newBalance < amount) {
-                    this.showNotification(`Недостаточно средств на балансе пользователя! Доступно: ${newBalance} ₽`, 'error');
-                    return;
-                }
-                newBalance = newBalance - amount;
-            }
-            
-            // Обновляем пользователя
-            const orders = user.orders || [];
-            orders.push(order);
-            
-            await this.api.request(`/admin/users/${userId}`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                    orders: orders,
-                    balance: newBalance
-                })
+            const response = await fetch('/api/admin/orders/manual', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + (localStorage.getItem('bhstore_auth') ? JSON.parse(localStorage.getItem('bhstore_auth')).token : '')
+                },
+                body: JSON.stringify(orderData)
             });
             
             this.showNotification(`Заказ ${orderId} создан!`, 'success');
             await this.loadOrders();
             
         } catch (error) {
-            console.error('Ошибка создания заказа:', error);
-            this.showNotification('Ошибка создания заказа: ' + error.message, 'error');
+            this.showNotification('Ошибка создания: ' + error.message, 'error');
         }
     }
 
-    // ========== ОТПРАВКА УВЕДОМЛЕНИЙ ==========
-    async sendOrderNotification(userId, productName, status) {
-        try {
-            const statusMessages = {
-                'completed': `✅ Ваш заказ "${productName}" выполнен! Спасибо за покупку!`,
-                'cancelled': `❌ Ваш заказ "${productName}" был отменён администратором.`
-            };
-            
-            const message = statusMessages[status];
-            if (message && userId) {
-                // Отправляем уведомление в чат
-                await this.api.sendChatMessage(userId, message, true);
-            }
-        } catch (error) {
-            console.error('Ошибка отправки уведомления:', error);
-        }
-    }
-
-    // ========== УТИЛИТЫ ==========
     escapeHtml(unsafe) {
         if (!unsafe) return '';
-        return String(unsafe)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        return String(unsafe).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
     showNotification(message, type) {
         const notification = document.createElement('div');
         notification.style.cssText = `
             position: fixed; bottom: 20px; right: 20px; 
-            background: ${type === 'success' ? '#57F287' : type === 'warning' ? '#FEE75C' : '#ED4245'}; 
-            color: ${type === 'success' || type === 'warning' ? '#1e1f29' : 'white'}; 
+            background: ${type === 'success' ? '#57F287' : '#ED4245'}; 
+            color: ${type === 'success' ? '#1e1f29' : 'white'}; 
             padding: 12px 20px; border-radius: 8px; z-index: 10001; 
             animation: slideIn 0.3s ease; font-weight: 500;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         `;
-        notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-exclamation-circle'}"></i> ${message}`;
+        notification.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> ${message}`;
         document.body.appendChild(notification);
-        setTimeout(() => notification.remove(), 4000);
+        setTimeout(() => notification.remove(), 3000);
     }
 }
 

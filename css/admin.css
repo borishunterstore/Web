@@ -2265,3 +2265,40 @@ input:checked + .toggle-slider {
 input:checked + .toggle-slider:before {
     transform: translateX(26px);
 }
+
+/* Кнопки действий */
+.btn-icon {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+/* Модальные окна */
+.modal {
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Уведомления */
+.notification {
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

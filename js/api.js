@@ -55,6 +55,24 @@ class BHStoreAPI {
     }
 
     // ========== ПОЛЬЗОВАТЕЛИ (АДМИН) ==========
+
+async getAllOrders() {
+    return this.request('/admin/orders');
+}
+
+async updateOrder(orderId, orderData) {
+    return this.request(`/admin/orders/${orderId}`, {
+        method: 'PUT',
+        body: JSON.stringify(orderData)
+    });
+}
+
+async deleteOrder(orderId) {
+    return this.request(`/admin/orders/${orderId}`, {
+        method: 'DELETE'
+    });
+}
+
     async getAllUsers() {
         return this.request('/admin/users');
     }
