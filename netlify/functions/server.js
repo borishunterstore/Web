@@ -1,12 +1,28 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
-const path = require('path');
 const serverless = require('serverless-http');
 const { neon } = require('@neondatabase/serverless');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
+
+app.use((req, res, next) => {
+    req.setTimeout(8000, () => {
+        res.status(504).json({ success: false, error: 'Превышено время ожидания' });
+    });
+    res.setTimeout(8000, () => {
+        res.status(504).json({ success: false, error: 'Превышено время ожидания' });
+    });
+    next();
+});
+
+app.use((err, req, res, next) => {
+    console.error('❌ Серверная ошибка:', err);
+    res.status(500).json({ success: false, error: 'Внутренняя ошибка сервера' });
+});
+
 
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
