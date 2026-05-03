@@ -1,6 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
+const path = require('path');
 const serverless = require('serverless-http');
 const { neon } = require('@neondatabase/serverless');
 require('dotenv').config();
