@@ -2302,3 +2302,40 @@ input:checked + .toggle-slider:before {
         opacity: 1;
     }
 }
+
+/* Кнопки действий в таблице заказов */
+.btn-icon {
+    transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+/* Статистика */
+.stats-grid {
+    display: grid;
+    gap: 15px;
+}
+
+.stat-card {
+    background: #1e1f29;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: #72767d;
+    font-size: 0.8rem;
+}
