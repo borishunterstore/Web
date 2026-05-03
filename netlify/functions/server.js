@@ -11,6 +11,12 @@ const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'https://bhstore.netlify.app/auth/discord/callback';
 const BOT_API_URL = process.env.BOT_API_URL || 'https://bhstore.netlify.app';
+const jwt = require('jsonwebtoken');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'bhstore-super-secret-key-change-in-production-2024';
+const TOKEN_EXPIRY = '24h';
 
 let sql;
 try {
@@ -1946,6 +1952,258 @@ function getDemoNews() {
       created_at: new Date().toISOString()
     }
   ];
+}
+
+// ============================================
+// УПРАВЛЕНИЕ ЗАКАЗАМИ (FULL CRUD)
+// ============================================
+
+// Удалить заказ
+app.delete('/api/admin/orders/:orderId', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ success: false, error: 'Не авторизован' });
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    
+    if (!isAdminUser(decoded)) {
+      return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+    }
+
+    const orderId = req.params.orderId;
+    
+    // Находим пользователя, у которого есть этот заказ
+    const users = await sql`SELECT * FROM users`;
+    let found = false;
+    
+    for (const user of users) {
+      const orders = user.orders || [];
+      const orderIndex = orders.findIndex(o => o.id === orderId);
+      if (orderIndex !== -1) {
+        orders.splice(orderIndex, 1);
+        await sql`
+          UPDATE users 
+          SET orders = ${JSON.stringify(orders)}
+          WHERE discord_id = ${user.discord_id}
+        `;
+        found = true;
+        break;
+      }
+    }
+    
+    if (!found) {
+      return res.status(404).json({ success: false, error: 'Заказ не найден' });
+    }
+    
+    console.log(`✅ Заказ ${orderId} удалён администратором ${decoded.username}`);
+    res.json({ success: true, message: 'Заказ удалён' });
+    
+  } catch (error) {
+    console.error('❌ Ошибка удаления заказа:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Обновить заказ (полное редактирование)
+app.put('/api/admin/orders/:orderId', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ success: false, error: 'Не авторизован' });
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    
+    if (!isAdminUser(decoded)) {
+      return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+    }
+
+    const orderId = req.params.orderId;
+    const { productName, finalPrice, status, date } = req.body;
+    
+    const users = await sql`SELECT * FROM users`;
+    let found = false;
+    
+    for (const user of users) {
+      const orders = user.orders || [];
+      const orderIndex = orders.findIndex(o => o.id === orderId);
+      if (orderIndex !== -1) {
+        orders[orderIndex] = {
+          ...orders[orderIndex],
+          productName: productName || orders[orderIndex].productName,
+          price: finalPrice || orders[orderIndex].price,
+          finalPrice: finalPrice || orders[orderIndex].finalPrice || orders[orderIndex].price,
+          status: status || orders[orderIndex].status,
+          date: date || orders[orderIndex].date,
+          updatedAt: new Date().toISOString()
+        };
+        
+        await sql`
+          UPDATE users 
+          SET orders = ${JSON.stringify(orders)}
+          WHERE discord_id = ${user.discord_id}
+        `;
+        found = true;
+        break;
+      }
+    }
+    
+    if (!found) {
+      return res.status(404).json({ success: false, error: 'Заказ не найден' });
+    }
+    
+    console.log(`✅ Заказ ${orderId} обновлён администратором ${decoded.username}`);
+    res.json({ success: true, message: 'Заказ обновлён' });
+    
+  } catch (error) {
+    console.error('❌ Ошибка обновления заказа:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// ============================================
+// УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ (FULL CRUD)
+// ============================================
+
+// Удалить пользователя
+app.delete('/api/admin/users/:userId', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ success: false, error: 'Не авторизован' });
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    
+    if (!isAdminUser(decoded)) {
+      return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+    }
+
+    const userId = req.params.userId;
+    
+    // Удаляем связанные данные
+    await sql`DELETE FROM messages WHERE user_id = ${userId}`;
+    await sql`DELETE FROM reviews WHERE user_id = ${userId}`;
+    await sql`DELETE FROM notifications WHERE user_id = ${userId}`;
+    await sql`DELETE FROM transactions WHERE user_id = ${userId}`;
+    await sql`DELETE FROM users WHERE discord_id = ${userId}`;
+    
+    console.log(`✅ Пользователь ${userId} удалён администратором ${decoded.username}`);
+    res.json({ success: true, message: 'Пользователь удалён' });
+    
+  } catch (error) {
+    console.error('❌ Ошибка удаления пользователя:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Обновить пользователя
+app.put('/api/admin/users/:userId', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ success: false, error: 'Не авторизован' });
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    
+    if (!isAdminUser(decoded)) {
+      return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+    }
+
+    const userId = req.params.userId;
+    const { username, email, balance, badges, avatar } = req.body;
+    
+    const updateData = {};
+    if (username !== undefined) updateData.username = username;
+    if (email !== undefined) updateData.email = email;
+    if (balance !== undefined) updateData.balance = balance;
+    if (avatar !== undefined) updateData.avatar = avatar;
+    if (badges !== undefined) updateData.badges = JSON.stringify(badges);
+    
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ success: false, error: 'Нет данных для обновления' });
+    }
+    
+    const setClause = Object.entries(updateData)
+      .map(([key, value], i) => `${key} = $${i + 2}`)
+      .join(', ');
+    
+    const values = [userId, ...Object.values(updateData)];
+    
+    await sql`
+      UPDATE users 
+      SET ${sql(setClause)}
+      WHERE discord_id = ${userId}
+    `;
+    
+    console.log(`✅ Пользователь ${userId} обновлён администратором ${decoded.username}`);
+    res.json({ success: true, message: 'Пользователь обновлён' });
+    
+  } catch (error) {
+    console.error('❌ Ошибка обновления пользователя:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Назначить/снять бейджи
+app.post('/api/admin/users/:userId/badges', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ success: false, error: 'Не авторизован' });
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    
+    if (!isAdminUser(decoded)) {
+      return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+    }
+
+    const userId = req.params.userId;
+    const { badgeKey, value } = req.body;
+    
+    const [user] = await sql`SELECT badges FROM users WHERE discord_id = ${userId}`;
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'Пользователь не найден' });
+    }
+    
+    const badges = user.badges || {};
+    badges[badgeKey] = value;
+    
+    await sql`
+      UPDATE users 
+      SET badges = ${JSON.stringify(badges)}
+      WHERE discord_id = ${userId}
+    `;
+    
+    console.log(`✅ Бейдж ${badgeKey}=${value} для ${userId} администратором ${decoded.username}`);
+    res.json({ success: true, message: 'Бейдж обновлён', badges });
+    
+  } catch (error) {
+    console.error('❌ Ошибка обновления бейджа:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// ============================================
+// НАСТРОЙКИ МАГАЗИНА (ИНИЦИАЛИЗАЦИЯ ТАБЛИЦЫ)
+// ============================================
+
+// Добавить начальные настройки в БД
+async function initShopSettings() {
+  if (!sql) return;
+  
+  const settings = ['shop_closed', 'registration_enabled', 'site_access'];
+  for (const key of settings) {
+    const [exists] = await sql`
+      SELECT 1 FROM shop_settings WHERE setting_key = ${key}
+    `;
+    if (!exists) {
+      await sql`
+        INSERT INTO shop_settings (setting_key, setting_value)
+        VALUES (${key}, ${key === 'shop_closed' ? false : true})
+      `;
+    }
+  }
+  console.log('✅ Настройки магазина инициализированы');
 }
 
 // ============================================
