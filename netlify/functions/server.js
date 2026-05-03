@@ -2749,64 +2749,60 @@ app.get('/api/admin/balance-history/:userId', async (req, res) => {
 // Получение всех заказов
 app.get('/api/admin/orders', async (req, res) => {
   try {
-      const authHeader = req.headers.authorization;
-      
-      if (!authHeader) {
-          return res.status(401).json({ success: false, error: 'Не авторизован' });
-      }
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ success: false, error: 'Не авторизован' });
 
-      const token = authHeader.replace('Bearer ', '');
-      
-      try {
-          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-          
-          if (!isAdminUser(decoded)) {
-              return res.status(403).json({ success: false, error: 'Требуются права администратора' });
-          }
-          
-          const users = await sql`SELECT * FROM users`;
-          
-          const allOrders = [];
-          
-          users.forEach(user => {
-              const orders = user.orders || [];
-              orders.forEach(order => {
-                  allOrders.push({
-                      id: order.id,
-                      userId: user.discord_id,
-                      username: user.username,
-                      userDiscordId: user.discord_id,
-                      userAvatar: user.avatar ? `https://cdn.discordapp.com/avatars/${user.discord_id}/${user.avatar}.png` : null,
-                      productName: order.productName,
-                      productId: order.productId,
-                      amount: order.price,
-                      finalPrice: order.price,
-                      originalPrice: order.originalPrice || order.price,
-                      discount: order.discount,
-                      discountAmount: order.discountAmount,
-                      promocodes: order.promocodes || [],
-                      date: order.date,
-                      status: order.status || 'completed',
-                      createdAt: order.date
-                  });
-              });
-          });
-          
-          allOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
-          
-          res.json({
-              success: true,
-              orders: allOrders,
-              total: allOrders.length
-          });
-          
-      } catch (decodeError) {
-          return res.status(401).json({ success: false, error: 'Неверный токен' });
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    
+    const adminIds = ['992442453833547886'];
+    let isAdmin = adminIds.includes(decoded.id);
+    
+    if (!isAdmin && sql) {
+      const [user] = await sql`SELECT badges FROM users WHERE discord_id = ${decoded.id}`;
+      isAdmin = user?.badges?.admin === true;
+    }
+    
+    if (!isAdmin) {
+      return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+    }
+    
+    if (!sql) {
+      return res.json({ success: true, orders: [], total: 0 });
+    }
+    
+    const users = await sql`SELECT discord_id, username, avatar, orders FROM users`;
+    const allOrders = [];
+    
+    for (const user of users) {
+      const orders = user.orders || [];
+      for (const order of orders) {
+        allOrders.push({
+          id: order.id,
+          userId: user.discord_id,
+          username: user.username || 'Неизвестно',
+          userDiscordId: user.discord_id,
+          userAvatar: user.avatar ? `https://cdn.discordapp.com/avatars/${user.discord_id}/${user.avatar}.png` : null,
+          productName: order.productName,
+          productId: order.productId,
+          amount: order.price || order.finalPrice,
+          finalPrice: order.price || order.finalPrice,
+          originalPrice: order.originalPrice || order.price,
+          discount: order.discount || 0,
+          date: order.date || new Date().toISOString(),
+          status: order.status || 'completed',
+          createdAt: order.date || new Date().toISOString()
+        });
       }
-      
+    }
+    
+    allOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    res.json({ success: true, orders: allOrders, total: allOrders.length });
+    
   } catch (error) {
-      console.error('Ошибка получения заказов:', error.message);
-      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+    console.error('❌ Ошибка получения заказов:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера: ' + error.message });
   }
 });
 
@@ -3067,50 +3063,44 @@ app.delete('/api/admin/products/:id', async (req, res) => {
 app.get('/api/admin/users', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
-    
-    if (!authHeader) {
-      return res.status(401).json({ success: false, error: 'Не авторизован' });
-    }
+    if (!authHeader) return res.status(401).json({ success: false, error: 'Не авторизован' });
 
     const token = authHeader.replace('Bearer ', '');
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
     
-    try {
-      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-      
-      if (!isAdminUser(decoded)) {
-        return res.status(403).json({ success: false, error: 'Требуются права администратора' });
-      }
-      
-      const dbUsers = await sql`
-        SELECT * FROM users ORDER BY registered_at DESC
-      `;
-      
-      const allUsers = dbUsers.map(user => ({
-        discordId: user.discord_id,
-        username: user.username,
-        email: user.email,
-        avatar: user.avatar,
-        registeredAt: user.registered_at,
-        balance: user.balance,
-        orderCount: (user.orders || []).length,
-        lastOrder: (user.orders || []).length > 0 
-          ? user.orders[user.orders.length - 1].date 
-          : null,
-        badges: user.badges || {}
-      }));
-      
-      res.json({
-        success: true,
-        users: allUsers,
-        total: allUsers.length
-      });
-      
-    } catch (decodeError) {
-      return res.status(401).json({ success: false, error: 'Неверный токен' });
+    const adminIds = ['992442453833547886'];
+    let isAdmin = adminIds.includes(decoded.id);
+    
+    if (!isAdmin && sql) {
+      const [user] = await sql`SELECT badges FROM users WHERE discord_id = ${decoded.id}`;
+      isAdmin = user?.badges?.admin === true;
     }
     
+    if (!isAdmin) {
+      return res.status(403).json({ success: false, error: 'Требуются права администратора' });
+    }
+    
+    if (!sql) {
+      return res.json({ success: true, users: [], total: 0 });
+    }
+    
+    const dbUsers = await sql`SELECT * FROM users ORDER BY registered_at DESC`;
+    
+    const allUsers = dbUsers.map(user => ({
+      discordId: user.discord_id,
+      username: user.username || 'Без имени',
+      email: user.email || '',
+      avatar: user.avatar,
+      registeredAt: user.registered_at,
+      balance: user.balance || 0,
+      orderCount: (user.orders || []).length,
+      badges: user.badges || {}
+    }));
+    
+    res.json({ success: true, users: allUsers, total: allUsers.length });
+    
   } catch (error) {
-    console.error('Ошибка получения пользователей:', error.message);
+    console.error('❌ Ошибка получения пользователей:', error.message);
     res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
