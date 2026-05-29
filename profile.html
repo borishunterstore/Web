@@ -659,6 +659,11 @@ if (window.promocodeSystem && !window.promocodeSystem.applyPromocodeByCode) {
             if (!checkData.success) {
                 this.showMessage(checkData.error || 'Промокод недействителен', 'error');
                 this.setLoading(false);
+                
+                // Если промокод уже использован, показываем понятное сообщение
+                if (checkData.error === 'Вы уже использовали этот промокод') {
+                    alert('Этот промокод уже был активирован');
+                }
                 return;
             }
             
@@ -689,18 +694,36 @@ if (window.promocodeSystem && !window.promocodeSystem.applyPromocodeByCode) {
                         updateHomePagePrices();
                     }
                     
-                    // Обновляем баланс если нужно
-                    if (activateData.newBalance !== undefined && window.renderBalance) {
-                        window.renderBalance(activateData.newBalance);
-                    }
-                    
                 } else if (promo.type === 'balance') {
                     this.showMessage(`💰 Баланс пополнен на ${promo.value} ₽`, 'success');
                     
                     // Обновляем баланс на странице
-                    if (activateData.newBalance !== undefined) {
-                        if (window.renderBalance) window.renderBalance(activateData.newBalance);
-                        if (typeof loadProfile === 'function') await loadProfile();
+                    if (activateData.newBalance !== undefined && activateData.newBalance !== null) {
+                        // Обновляем через глобальную функцию
+                        if (window.renderBalance) {
+                            window.renderBalance(activateData.newBalance);
+                        }
+                        // Обновляем через loadProfile
+                        if (typeof loadProfile === 'function') {
+                            await loadProfile();
+                        }
+                        // Обновляем локальное хранилище
+                        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+                        authData.balance = activateData.newBalance;
+                        localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                        
+                        // Показываем модальное окно с информацией
+                        if (window.showPromocodeInfo) {
+                            window.showPromocodeInfo({
+                                ...activateData,
+                                message: `Баланс пополнен на ${promo.value}₽. Новый баланс: ${activateData.newBalance}₽`
+                            });
+                        }
+                    } else {
+                        // Если баланс не вернулся, просто перезагружаем страницу
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
                     }
                 }
                 
@@ -710,9 +733,9 @@ if (window.promocodeSystem && !window.promocodeSystem.applyPromocodeByCode) {
                 await this.loadFromAPI();
                 this.renderUI();
                 
-                // Показываем модальное окно с информацией
-                if (window.showPromocodeInfo) {
-                    window.showPromocodeInfo(activateData);
+                // Обновляем историю промокодов
+                if (typeof loadUserPromocodes === 'function') {
+                    await loadUserPromocodes();
                 }
                 
             } else {
@@ -720,7 +743,7 @@ if (window.promocodeSystem && !window.promocodeSystem.applyPromocodeByCode) {
             }
         } catch (e) {
             console.error('Ошибка применения промокода:', e);
-            this.showMessage('Ошибка сервера', 'error');
+            this.showMessage('Ошибка сервера: ' + (e.message || 'неизвестная ошибка'), 'error');
         } finally {
             this.setLoading(false);
         }

@@ -3276,12 +3276,11 @@ app.post('/api/promocodes/check', async (req, res) => {
     }
     
     const codeUpper = code.toUpperCase();
-    console.log(`🔍 Проверка промокода: ${codeUpper}`);
+    console.log(`🔍 Проверка промокода: ${codeUpper} для пользователя ${userId}`);
     
     let promocode = null;
     
     if (sql) {
-      // Пробуем найти промокод в БД (без учета регистра)
       const [result] = await sql`
         SELECT * FROM promocodes 
         WHERE UPPER(code) = ${codeUpper}
@@ -3292,7 +3291,7 @@ app.post('/api/promocodes/check', async (req, res) => {
     }
     
     if (!promocode) {
-      console.log(`❌ Промокод ${codeUpper} не найден в БД`);
+      console.log(`❌ Промокод ${codeUpper} не найден`);
       return res.status(404).json({ 
         success: false, 
         error: 'Промокод не найден' 
@@ -3306,7 +3305,6 @@ app.post('/api/promocodes/check', async (req, res) => {
       });
     }
     
-    // Проверяем лимит использований
     if (promocode.max_uses && promocode.used_count >= promocode.max_uses) {
       return res.status(400).json({ 
         success: false, 
@@ -3314,7 +3312,6 @@ app.post('/api/promocodes/check', async (req, res) => {
       });
     }
     
-    // Проверяем, использовал ли уже пользователь этот промокод
     const usedBy = promocode.used_by || [];
     if (usedBy.includes(userId)) {
       return res.status(400).json({ 
@@ -3343,7 +3340,7 @@ app.post('/api/promocodes/check', async (req, res) => {
   }
 });
 
-// Активация промокода (POST)
+// Активация промокода
 app.post('/api/promocodes/activate', async (req, res) => {
   try {
     const { userId, code } = req.body;
@@ -3432,6 +3429,9 @@ app.post('/api/promocodes/activate', async (req, res) => {
             SET balance = ${newBalance}
             WHERE discord_id = ${userId}
           `;
+          console.log(`✅ Баланс обновлен: ${userId} -> ${newBalance} ₽`);
+        } else {
+          console.log(`❌ Пользователь ${userId} не найден в БД`);
         }
       } else {
         if (users[userId]) {
@@ -3523,18 +3523,22 @@ app.get('/api/promocodes/user/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
     
-    const promocodes = await sql`
-      SELECT 
-        code, 
-        type, 
-        value, 
-        used_count,
-        used_by,
-        updated_at
-      FROM promocodes 
-      WHERE used_by ? ${userId}
-      ORDER BY updated_at DESC
-    `;
+    let promocodes = [];
+    
+    if (sql) {
+      promocodes = await sql`
+        SELECT 
+          code, 
+          type, 
+          value, 
+          used_count,
+          used_by,
+          updated_at
+        FROM promocodes 
+        WHERE used_by ? ${userId}
+        ORDER BY updated_at DESC
+      `;
+    }
     
     const formattedPromocodes = promocodes.map(promo => {
       const usedByList = promo.used_by || [];
@@ -3545,11 +3549,11 @@ app.get('/api/promocodes/user/:userId', async (req, res) => {
         type: promo.type,
         value: promo.value,
         usedAt: usedAt,
-        created_at: promo.updated_at // для совместимости с фронтендом
+        created_at: promo.updated_at
       };
     });
     
-    console.log(`Загружено ${formattedPromocodes.length} промокодов для ${userId}`);
+    console.log(`📜 Загружено ${formattedPromocodes.length} промокодов для ${userId}`);
     
     res.json({
       success: true,
