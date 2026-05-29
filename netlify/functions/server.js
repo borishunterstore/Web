@@ -3343,6 +3343,7 @@ app.post('/api/promocodes/check', async (req, res) => {
   }
 });
 
+// Активация промокода (POST)
 app.post('/api/promocodes/activate', async (req, res) => {
   try {
     const { userId, code } = req.body;
@@ -3354,10 +3355,21 @@ app.post('/api/promocodes/activate', async (req, res) => {
       });
     }
     
-    const [promocode] = await sql`
-      SELECT * FROM promocodes WHERE code = ${code.toUpperCase()}
-    `;
-
+    const codeUpper = code.toUpperCase();
+    console.log(`🎫 Активация промокода: ${codeUpper} для пользователя ${userId}`);
+    
+    let promocode = null;
+    
+    if (sql) {
+      const [result] = await sql`
+        SELECT * FROM promocodes 
+        WHERE UPPER(code) = ${codeUpper}
+      `;
+      promocode = result;
+    } else {
+      promocode = promocodes[codeUpper];
+    }
+    
     if (!promocode) {
       return res.status(404).json({ 
         success: false, 
@@ -3372,7 +3384,7 @@ app.post('/api/promocodes/activate', async (req, res) => {
       });
     }
     
-    if (promocode.used_count >= promocode.max_uses) {
+    if (promocode.max_uses && promocode.used_count >= promocode.max_uses) {
       return res.status(400).json({ 
         success: false, 
         error: 'Промокод больше недействителен' 
@@ -3387,63 +3399,65 @@ app.post('/api/promocodes/activate', async (req, res) => {
       });
     }
     
+    // Обновляем промокод
     usedBy.push(userId);
-    await sql`
-      UPDATE promocodes 
-      SET used_count = ${promocode.used_count + 1}, 
-          used_by = ${JSON.stringify(usedBy)},
-          updated_at = ${new Date().toISOString()}
-      WHERE code = ${promocode.code}
-    `;
+    const newUsedCount = (promocode.used_count || 0) + 1;
     
-    let newBalance = 0;
-    
-    if (promocode.type === 'balance') {
-      const [user] = await sql`
-        SELECT * FROM users WHERE discord_id = ${userId}
+    if (sql) {
+      await sql`
+        UPDATE promocodes 
+        SET used_count = ${newUsedCount}, 
+            used_by = ${JSON.stringify(usedBy)},
+            updated_at = NOW()
+        WHERE code = ${promocode.code}
       `;
-      
-      if (user) {
-        newBalance = (user.balance || 0) + promocode.value;
-        await sql`
-          UPDATE users 
-          SET balance = ${newBalance}
-          WHERE discord_id = ${userId}
+    } else {
+      promocode.used_count = newUsedCount;
+      promocode.used_by = usedBy;
+    }
+    
+    let newBalance = null;
+    
+    // Начисляем бонус если тип balance
+    if (promocode.type === 'balance') {
+      if (sql) {
+        const [user] = await sql`
+          SELECT balance FROM users WHERE discord_id = ${userId}
         `;
+        
+        if (user) {
+          newBalance = (user.balance || 0) + promocode.value;
+          await sql`
+            UPDATE users 
+            SET balance = ${newBalance}
+            WHERE discord_id = ${userId}
+          `;
+        }
+      } else {
+        if (users[userId]) {
+          newBalance = (users[userId].balance || 0) + promocode.value;
+          users[userId].balance = newBalance;
+        }
       }
     }
     
-    console.log(`Промокод активирован: ${userId} -> ${promocode.code}`);
-    
-    const webhookUrl = 'https://discord.com/api/webhooks/1475847787424776234/JH5b-8pfG3auhYIR2hQResaQv3EVtkbWAmXExkz6ssUQVddADgjrQ-YAGO5OI2s3oLuv';
-    
-    await axios.post(webhookUrl, {
-      embeds: [{
-        title: '<:Yes:1474931426951430225> Промокод активирован',
-        description: `<:User:1474931634804359433> <@${userId}> активировал промокод <:Premium:1474931599622803628> \`${promocode.code}\``,
-        color: 0xFEE75C,
-        fields: [
-          { name: '<:Wave:1386273780556496967> Тип', value: promocode.type === 'discount' ? 'Скидка' : 'Пополнение', inline: true },
-          { name: '<:Wave:1386273780556496967> Значение', value: promocode.type === 'discount' ? `${promocode.value}%` : `${promocode.value} ₽`, inline: true }
-        ],
-        timestamp: new Date().toISOString()
-      }]
-    });
+    console.log(`✅ Промокод ${promocode.code} активирован для ${userId}, новый баланс: ${newBalance}`);
     
     res.json({
       success: true,
       message: promocode.type === 'balance' ? 
-        `<:Money:1474931656610811966> Баланс пополнен на ${promocode.value}₽` :
-        `<:Yes:1474931426951430225> Промокод "${promocode.code}" активирован`,
+        `Баланс пополнен на ${promocode.value}₽` :
+        `Промокод "${promocode.code}" активирован`,
       newBalance: newBalance,
-      value: promocode.value
+      value: promocode.value,
+      type: promocode.type
     });
     
   } catch (error) {
     console.error('Ошибка активации промокода:', error.message);
     res.status(500).json({ 
       success: false, 
-      error: 'Ошибка активации промокода' 
+      error: 'Ошибка активации промокода: ' + error.message 
     });
   }
 });
@@ -3501,122 +3515,6 @@ app.post('/api/promocodes/remove-active', async (req, res) => {
       res.json({ success: true });
   } catch (error) {
       res.json({ success: false });
-  }
-});
-
-app.post('/api/promocodes/activate', async (req, res) => {
-  try {
-    const { userId, code } = req.body;
-    
-    if (!userId || !code) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Не указаны данные' 
-      });
-    }
-    
-    const codeUpper = code.toUpperCase();
-    
-    // Ищем промокод в БД или в памяти
-    let promocode = null;
-    
-    if (sql) {
-      const [result] = await sql`
-        SELECT * FROM promocodes WHERE code = ${codeUpper}
-      `;
-      promocode = result;
-    } else {
-      promocode = promocodes[codeUpper];
-    }
-    
-    if (!promocode) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Промокод не найден' 
-      });
-    }
-    
-    if (!promocode.active) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Промокод неактивен' 
-      });
-    }
-    
-    if (promocode.used_count >= promocode.max_uses) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Промокод больше недействителен' 
-      });
-    }
-    
-    const usedBy = promocode.used_by || [];
-    if (usedBy.includes(userId)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Вы уже использовали этот промокод' 
-      });
-    }
-    
-    // Обновляем промокод
-    usedBy.push(userId);
-    
-    if (sql) {
-      await sql`
-        UPDATE promocodes 
-        SET used_count = ${promocode.used_count + 1}, 
-            used_by = ${JSON.stringify(usedBy)},
-            updated_at = ${new Date().toISOString()}
-        WHERE code = ${promocode.code}
-      `;
-    } else {
-      promocode.used_count++;
-      promocode.used_by = usedBy;
-    }
-    
-    let newBalance = 0;
-    
-    // Начисляем бонус если тип balance
-    if (promocode.type === 'balance') {
-      if (sql) {
-        const [user] = await sql`
-          SELECT * FROM users WHERE discord_id = ${userId}
-        `;
-        
-        if (user) {
-          newBalance = (user.balance || 0) + promocode.value;
-          await sql`
-            UPDATE users 
-            SET balance = ${newBalance}
-            WHERE discord_id = ${userId}
-          `;
-        }
-      } else {
-        if (users[userId]) {
-          newBalance = (users[userId].balance || 0) + promocode.value;
-          users[userId].balance = newBalance;
-        }
-      }
-    }
-    
-    console.log(`✅ Промокод активирован: ${userId} -> ${promocode.code}`);
-    
-    res.json({
-      success: true,
-      message: promocode.type === 'balance' ? 
-        `Баланс пополнен на ${promocode.value}₽` :
-        `Промокод "${promocode.code}" активирован`,
-      newBalance: newBalance,
-      value: promocode.value,
-      type: promocode.type
-    });
-    
-  } catch (error) {
-    console.error('Ошибка активации промокода:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Ошибка активации промокода' 
-    });
   }
 });
 
