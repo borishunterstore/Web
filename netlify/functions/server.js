@@ -38,8 +38,8 @@ try {
 const app = express();
 
 app.use((err, req, res, next) => {
-    console.error('❌ Серверная ошибка:', err);
-    res.status(500).json({ success: false, error: 'Внутренняя ошибка сервера' });
+  console.error('❌ Серверная ошибка:', err);
+  res.status(500).json({ success: false, error: 'Внутренняя ошибка сервера' });
 });
 
 
