@@ -7,10 +7,8 @@ const path = require('path');
 require('dotenv').config();
 const fs = require('fs');
 
-// В самый верх файла, после require
 console.log('🚀 SERVER FUNCTION STARTED');
 
-// Глобальный обработчик ошибок
 process.on('uncaughtException', (err) => {
   console.error('❌ Uncaught Exception:', err);
 });
@@ -19,7 +17,6 @@ process.on('unhandledRejection', (err) => {
   console.error('❌ Unhandled Rejection:', err);
 });
 
-// Загрузка товаров из JSON файла
 let productsData = [];
 try {
   const productsPath = path.join(__dirname, '../../data/products.json');
@@ -85,58 +82,13 @@ let promocodes = {};
 
 // Тестовые данные
 const initTestData = () => {
-  users = {
-    "992442453833547886": {
-      discordId: "992442453833547886",
-      username: "borisonchik_yt",
-      email: "test@example.com",
-      avatar: null,
-      registeredAt: new Date().toISOString(),
-      balance: 1000,
-      orders: [],
-      badges: { verified: true, admin: true }
-    }
-  };
+  users = {};
   
   promocodes = {
-    "WELCOME10": {
-      code: "WELCOME10",
-      type: "discount",
-      value: 10,
-      active: true,
-      maxUses: 100,
-      usedCount: 0,
-      usedBy: []
-    },
-    "BALANCE100": {
-      code: "BALANCE100",
-      type: "balance",
-      value: 100,
-      active: true,
-      maxUses: 50,
-      usedCount: 0,
-      usedBy: []
-    }
   };
   
   reviewsData = {
-    reviews: [
-      {
-        id: "rev_1",
-        userId: "992442453833547886",
-        name: "borisonchik_yt",
-        avatar: "https://cdn.discordapp.com/embed/avatars/0.png",
-        rating: 5,
-        productId: "premium_month",
-        productName: "Премиум на 1 месяц",
-        text: "Отличный сервис!",
-        images: [],
-        verifiedPurchase: true,
-        verified: true,
-        helpful: 5,
-        createdAt: new Date().toISOString()
-      }
-    ],
+    reviews: [],
     stats: {
       totalReviews: 1,
       averageRating: 5,
@@ -3533,6 +3485,122 @@ app.post('/api/promocodes/remove-active', async (req, res) => {
       res.json({ success: true });
   } catch (error) {
       res.json({ success: false });
+  }
+});
+
+app.post('/api/promocodes/activate', async (req, res) => {
+  try {
+    const { userId, code } = req.body;
+    
+    if (!userId || !code) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Не указаны данные' 
+      });
+    }
+    
+    const codeUpper = code.toUpperCase();
+    
+    // Ищем промокод в БД или в памяти
+    let promocode = null;
+    
+    if (sql) {
+      const [result] = await sql`
+        SELECT * FROM promocodes WHERE code = ${codeUpper}
+      `;
+      promocode = result;
+    } else {
+      promocode = promocodes[codeUpper];
+    }
+    
+    if (!promocode) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Промокод не найден' 
+      });
+    }
+    
+    if (!promocode.active) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Промокод неактивен' 
+      });
+    }
+    
+    if (promocode.used_count >= promocode.max_uses) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Промокод больше недействителен' 
+      });
+    }
+    
+    const usedBy = promocode.used_by || [];
+    if (usedBy.includes(userId)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Вы уже использовали этот промокод' 
+      });
+    }
+    
+    // Обновляем промокод
+    usedBy.push(userId);
+    
+    if (sql) {
+      await sql`
+        UPDATE promocodes 
+        SET used_count = ${promocode.used_count + 1}, 
+            used_by = ${JSON.stringify(usedBy)},
+            updated_at = ${new Date().toISOString()}
+        WHERE code = ${promocode.code}
+      `;
+    } else {
+      promocode.used_count++;
+      promocode.used_by = usedBy;
+    }
+    
+    let newBalance = 0;
+    
+    // Начисляем бонус если тип balance
+    if (promocode.type === 'balance') {
+      if (sql) {
+        const [user] = await sql`
+          SELECT * FROM users WHERE discord_id = ${userId}
+        `;
+        
+        if (user) {
+          newBalance = (user.balance || 0) + promocode.value;
+          await sql`
+            UPDATE users 
+            SET balance = ${newBalance}
+            WHERE discord_id = ${userId}
+          `;
+        }
+      } else {
+        if (users[userId]) {
+          newBalance = (users[userId].balance || 0) + promocode.value;
+          users[userId].balance = newBalance;
+        }
+      }
+    }
+    
+    console.log(`✅ Промокод активирован: ${userId} -> ${promocode.code}`);
+    
+    res.json({
+      success: true,
+      message: promocode.type === 'balance' ? 
+        `Баланс пополнен на ${promocode.value}₽` :
+        `Промокод "${promocode.code}" активирован`,
+      newBalance: newBalance,
+      value: promocode.value,
+      type: promocode.type
+    });
+    
+  } catch (error) {
+    console.error('Ошибка активации промокода:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка активации промокода' 
+    });
   }
 });
 
