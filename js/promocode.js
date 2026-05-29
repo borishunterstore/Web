@@ -18,6 +18,8 @@ class PromocodeSystem {
         await this.loadFromAPI();
         this.initEventListeners();
         this.renderUI();
+        // Запускаем проверку истекших промокодов каждые 5 минут
+        setInterval(() => this.clearExpiredPromocodes(), 5 * 60 * 1000);
     }
 
     async loadFromAPI() {
@@ -34,6 +36,8 @@ class PromocodeSystem {
                 const activeData = await window.api.request(`/promocodes/active/${auth.id}`);
                 if (activeData.success) {
                     this.activeDiscounts = activeData.promocodes || [];
+                    // Проверяем истекшие промокоды при загрузке
+                    this.clearExpiredPromocodes();
                 }
             } else {
                 const historyRes = await fetch(`/.netlify/functions/server/promocodes/user/${auth.id}`);
@@ -46,6 +50,7 @@ class PromocodeSystem {
                 const activeData = await activeRes.json();
                 if (activeData.success) {
                     this.activeDiscounts = activeData.promocodes || [];
+                    this.clearExpiredPromocodes();
                 }
             }
         } catch (e) { 
@@ -103,11 +108,41 @@ class PromocodeSystem {
     initEventListeners() {
         if (this.elements.input) {
             this.elements.input.addEventListener('keypress', (e) => { 
-                if (e.key === 'Enter') this.applyPromocode(); 
+                if (e.key === 'Enter') this.applyPromocodeByCode(this.elements.input.value.trim().toUpperCase()); 
             });
         }
         if (this.elements.button) {
-            this.elements.button.addEventListener('click', () => this.applyPromocode());
+            this.elements.button.addEventListener('click', () => {
+                const code = this.elements.input?.value.trim().toUpperCase();
+                if (code) this.applyPromocodeByCode(code);
+            });
+        }
+    }
+
+    // Проверка срока действия промокода
+    isPromocodeExpired(promocode) {
+        if (!promocode.expires_at) return false;
+        
+        const now = new Date();
+        const expiresAt = new Date(promocode.expires_at);
+        
+        if (now > expiresAt) {
+            console.log(`⏰ Промокод ${promocode.code} истек ${expiresAt.toLocaleDateString()}`);
+            return true;
+        }
+        return false;
+    }
+
+    // Очистка истекших промокодов
+    async clearExpiredPromocodes() {
+        const expiredBefore = this.activeDiscounts.filter(p => this.isPromocodeExpired(p));
+        
+        if (expiredBefore.length > 0) {
+            console.log(`🗑️ Очищаем ${expiredBefore.length} истекших промокодов`);
+            for (const promo of expiredBefore) {
+                await this.removeDiscount(promo.code);
+            }
+            this.refreshShopDisplay();
         }
     }
 
@@ -115,8 +150,12 @@ class PromocodeSystem {
     getDiscountedPrice(originalPrice, productId = null) {
         if (!this.activeDiscounts || this.activeDiscounts.length === 0) return originalPrice;
         
+        // Фильтруем неистекшие промокоды
+        const validDiscounts = this.activeDiscounts.filter(d => !this.isPromocodeExpired(d));
+        if (validDiscounts.length === 0) return originalPrice;
+        
         // Фильтруем применимые промокоды (глобальные или на конкретный товар)
-        const applicable = this.activeDiscounts.filter(d => !d.productId || d.productId === productId);
+        const applicable = validDiscounts.filter(d => !d.productId || d.productId === productId);
         if (applicable.length === 0) return originalPrice;
         
         // Суммируем скидки (максимум 90%)
@@ -129,104 +168,110 @@ class PromocodeSystem {
     // Получение информации о применённых скидках
     getAppliedDiscounts(productId = null) {
         if (!this.activeDiscounts) return [];
+        const validDiscounts = this.activeDiscounts.filter(d => !this.isPromocodeExpired(d));
         return productId 
-            ? this.activeDiscounts.filter(d => !d.productId || d.productId === productId)
-            : this.activeDiscounts;
+            ? validDiscounts.filter(d => !d.productId || d.productId === productId)
+            : validDiscounts;
     }
 
-    async applyPromocode() {
+    // Основной метод активации промокода
+    async applyPromocodeByCode(code) {
         if (this.isProcessing) return;
         
-        const code = this.elements.input?.value.trim().toUpperCase();
-        if (!code) return this.showMessage('Введите код', 'error');
+        if (!code) {
+            this.showMessage('Введите промокод', 'error');
+            return;
+        }
 
         const auth = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-        if (!auth.id) return this.showMessage('Авторизуйтесь', 'error');
+        if (!auth.id) {
+            this.showMessage('Авторизуйтесь для активации промокода', 'error');
+            setTimeout(() => window.location.href = '/auth.html', 2000);
+            return;
+        }
 
         this.setLoading(true);
 
         try {
-            let checkData;
-            let activateData;
+            // Проверяем промокод
+            const checkData = await window.api.request('/promocodes/check', {
+                method: 'POST',
+                body: JSON.stringify({ userId: auth.id, code: code })
+            });
 
-            if (window.api) {
-                checkData = await window.api.request('/promocodes/check', {
-                    method: 'POST',
-                    body: JSON.stringify({ userId: auth.id, code: code })
-                });
-
-                if (!checkData.success) {
-                    return this.showMessage(checkData.error || 'Промокод недействителен', 'error');
-                }
-
-                activateData = await window.api.request('/promocodes/activate', {
-                    method: 'POST',
-                    body: JSON.stringify({ userId: auth.id, code: code })
-                });
-            } else {
-                const checkRes = await fetch('/.netlify/functions/server/promocodes/check', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: auth.id, code: code })
-                });
-                checkData = await checkRes.json();
-
-                if (!checkData.success) {
-                    return this.showMessage(checkData.error || 'Промокод недействителен', 'error');
-                }
-
-                const activateRes = await fetch('/.netlify/functions/server/promocodes/activate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: auth.id, code: code })
-                });
-                activateData = await activateRes.json();
+            if (!checkData.success) {
+                this.showMessage(checkData.error || 'Промокод недействителен', 'error');
+                this.setLoading(false);
+                return;
             }
+
+            // Активируем
+            const activateData = await window.api.request('/promocodes/activate', {
+                method: 'POST',
+                body: JSON.stringify({ userId: auth.id, code: code })
+            });
 
             if (activateData.success) {
                 const promo = checkData.promocode;
                 
                 if (promo.type === 'discount') {
-                    // Добавляем скидку
-                    this.activeDiscounts.push({
+                    const newPromo = {
                         code: promo.code,
                         value: promo.value,
                         type: 'discount',
-                        appliedAt: new Date().toISOString()
-                    });
-                    
+                        appliedAt: new Date().toISOString(),
+                        expires_at: activateData.expires_at,
+                        valid_days: activateData.valid_days
+                    };
+                    this.activeDiscounts.push(newPromo);
                     await this.saveToAPI();
                     
-                    this.showMessage(`✓ Промокод активирован! Скидка ${promo.value}%`, 'success');
-                    
-                    // 🔄 ОБНОВЛЯЕМ МАГАЗИН
-                    this.refreshShopDisplay();
+                    let message = `✓ Промокод активирован! Скидка ${promo.value}%`;
+                    if (activateData.expires_at) {
+                        const expireDate = new Date(activateData.expires_at).toLocaleDateString('ru-RU');
+                        message += ` (действует до ${expireDate})`;
+                    }
+                    this.showMessage(message, 'success');
                     
                 } else if (promo.type === 'balance') {
-                    this.showMessage(`💰 Баланс пополнен на ${promo.value} ₽`, 'success');
+                    let message = `💰 Баланс пополнен на ${promo.value} ₽`;
+                    if (activateData.newBalance !== undefined && activateData.newBalance !== null) {
+                        message += ` (новый баланс: ${activateData.newBalance} ₽)`;
+                    }
+                    this.showMessage(message, 'success');
                     
-                    if (typeof loadProfile === 'function') {
-                        await loadProfile();
+                    // Обновляем баланс на странице
+                    if (activateData.newBalance !== undefined && activateData.newBalance !== null) {
+                        if (window.renderBalance) window.renderBalance(activateData.newBalance);
+                        if (typeof loadProfile === 'function') await loadProfile();
+                        
+                        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+                        authData.balance = activateData.newBalance;
+                        localStorage.setItem('bhstore_auth', JSON.stringify(authData));
                     }
                 }
                 
                 if (this.elements.input) this.elements.input.value = '';
-                
                 await this.loadFromAPI();
                 this.renderUI();
+                this.refreshShopDisplay();
+                
+                // Показываем модальное окно с информацией
+                if (window.showPromocodeInfo) {
+                    window.showPromocodeInfo(activateData);
+                }
                 
             } else {
                 this.showMessage(activateData.error || 'Ошибка активации', 'error');
             }
         } catch (e) {
             console.error('Ошибка применения промокода:', e);
-            this.showMessage('Ошибка сервера', 'error');
+            this.showMessage('Ошибка сервера: ' + (e.message || 'неизвестная ошибка'), 'error');
         } finally {
             this.setLoading(false);
         }
     }
 
-    // Единый метод удаления промокода (без дублирования)
     async removeDiscount(code) {
         const auth = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
         if (!auth.id) return;
@@ -249,8 +294,6 @@ class PromocodeSystem {
             await this.saveToAPI();
             this.renderUI();
             this.showMessage('Промокод удален', 'info');
-            
-            // 🔄 ОБНОВЛЯЕМ МАГАЗИН
             this.refreshShopDisplay();
             
         } catch (e) {
@@ -259,69 +302,72 @@ class PromocodeSystem {
         }
     }
 
-    // Обновление отображения магазина
     refreshShopDisplay() {
-        // Способ 1: через глобальную функцию из shop.js
+        // Обновляем через глобальную функцию из shop.js
         if (typeof window.updateProductsDisplay === 'function') {
             console.log('🔄 Обновляем товары через updateProductsDisplay');
             window.updateProductsDisplay();
         }
         
-        // Способ 2: через shopSystem (для обратной совместимости)
-        if (window.shopSystem && typeof window.shopSystem.updatePrices === 'function') {
-            console.log('🔄 Обновляем товары через shopSystem');
-            window.shopSystem.updatePrices(this.activeDiscounts);
-        }
-        
-        // Способ 3: перезагружаем страницу товаров если есть глобальная функция renderProducts
+        // Перезагружаем страницу товаров если есть глобальная функция renderProducts
         if (typeof window.renderProducts === 'function' && window.allProducts) {
             console.log('🔄 Обновляем товары через renderProducts');
             const currentCategory = document.querySelector('.category-btn.active')?.dataset.category || 'all';
             window.renderProducts(window.allProducts, currentCategory);
         }
         
-        // Способ 4: обновляем цены на главной странице если есть
+        // Обновляем цены на главной странице если есть
         if (typeof updateHomePagePrices === 'function') {
             updateHomePagePrices();
         }
         
         // Обновляем UI промокодов в магазине
-        const shopPromoContainer = document.getElementById('shopActivePromocodes');
-        const promocodeSection = document.getElementById('promocodeSection');
-        
-        if (shopPromoContainer) {
-            if (this.activeDiscounts.length > 0) {
-                if (promocodeSection) promocodeSection.style.display = 'block';
-                
-                shopPromoContainer.innerHTML = this.activeDiscounts.map(promo => `
-                    <div class="promocode-item">
-                        <div class="promocode-info">
-                            <div class="promocode-icon">
-                                <i class="fas fa-ticket-alt"></i>
-                            </div>
-                            <div class="promocode-details">
-                                <h4>${this.escapeHtml(promo.code)}</h4>
-                                <p><i class="fas fa-percent"></i> Скидка: ${promo.value}%</p>
-                            </div>
-                        </div>
-                        <div class="promocode-value">-${promo.value}%</div>
-                        <button class="btn-remove-promocode" onclick="window.promocodeSystem?.removeDiscount('${this.escapeHtml(promo.code)}')">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                `).join('');
-            } else {
-                if (promocodeSection) promocodeSection.style.display = 'none';
-            }
-        }
+        this.updateShopPromocodeUI();
         
         // Обновляем счётчик промокодов
         const countEl = document.getElementById('promocodeCount');
-        if (countEl) countEl.textContent = this.activeDiscounts.length;
+        const validCount = this.activeDiscounts.filter(p => !this.isPromocodeExpired(p)).length;
+        if (countEl) countEl.textContent = validCount;
     }
 
-    getDiscountForProduct(productId, price) {
-        return this.getDiscountedPrice(price, productId);
+    updateShopPromocodeUI() {
+        const shopPromoContainer = document.getElementById('shopActivePromocodes');
+        const promocodeSection = document.getElementById('promocodeSection');
+        
+        if (!shopPromoContainer) return;
+        
+        const validDiscounts = this.activeDiscounts.filter(p => !this.isPromocodeExpired(p));
+        
+        if (validDiscounts.length > 0) {
+            if (promocodeSection) promocodeSection.style.display = 'block';
+            
+            shopPromoContainer.innerHTML = validDiscounts.map(promo => `
+                <div class="promocode-item">
+                    <div class="promocode-info">
+                        <div class="promocode-icon">
+                            <i class="fas fa-ticket-alt"></i>
+                        </div>
+                        <div class="promocode-details">
+                            <h4>${this.escapeHtml(promo.code)}</h4>
+                            <p><i class="fas fa-percent"></i> Скидка: ${promo.value}%</p>
+                            ${promo.expires_at ? `
+                                <p class="promocode-expires" style="font-size: 0.7rem; color: #FEE75C; margin-top: 4px;">
+                                    <i class="fas fa-clock"></i> 
+                                    Действует до: ${new Date(promo.expires_at).toLocaleDateString('ru-RU')}
+                                </p>
+                            ` : ''}
+                        </div>
+                    </div>
+                    <div class="promocode-value">-${promo.value}%</div>
+                    <button class="btn-remove-promocode" onclick="window.promocodeSystem?.removeDiscount('${this.escapeHtml(promo.code)}')">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        } else {
+            if (promocodeSection) promocodeSection.style.display = 'none';
+            shopPromoContainer.innerHTML = '';
+        }
     }
 
     setLoading(state) {
@@ -352,7 +398,7 @@ class PromocodeSystem {
         this.elements.message.innerHTML = `
             <div class="promo-msg-box promo-animate" style="background: ${bg[type]}; color: white;">
                 <i class="fas fa-${icons[type]}"></i>
-                <span>${text}</span>
+                <span>${this.escapeHtml(text)}</span>
             </div>
         `;
         
@@ -360,7 +406,7 @@ class PromocodeSystem {
             if (this.elements.message) {
                 this.elements.message.innerHTML = ''; 
             }
-        }, 4000);
+        }, 5000);
     }
 
     renderUI() {
@@ -373,7 +419,9 @@ class PromocodeSystem {
             this.elements.section.appendChild(wrapper);
         }
 
-        if (this.activeDiscounts.length === 0) {
+        const validDiscounts = this.activeDiscounts.filter(p => !this.isPromocodeExpired(p));
+
+        if (validDiscounts.length === 0) {
             wrapper.innerHTML = '';
             return;
         }
@@ -382,12 +430,17 @@ class PromocodeSystem {
             <div class="promo-title promo-animate">
                 <i class="fas fa-fire"></i> Активные скидки
             </div>
-            ${this.activeDiscounts.map(p => `
+            ${validDiscounts.map(p => `
                 <div class="active-promo-item promo-animate">
                     <div class="promo-info-text">
                         <span class="promo-code-name">${this.escapeHtml(p.code)}</span>
                         <span class="promo-value">Скидка ${p.value}%</span>
                         <span class="promo-date">${new Date(p.appliedAt).toLocaleDateString()}</span>
+                        ${p.expires_at ? `
+                            <span class="promo-expires" style="display: block; font-size: 0.7rem; color: #FEE75C;">
+                                Действует до: ${new Date(p.expires_at).toLocaleDateString('ru-RU')}
+                            </span>
+                        ` : ''}
                     </div>
                     <button class="btn-remove-promo" onclick="promocodeSystem.removeDiscount('${this.escapeHtml(p.code)}')">
                         <i class="fas fa-trash-alt"></i>
