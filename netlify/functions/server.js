@@ -3616,22 +3616,22 @@ app.get('/api/promocodes/user/:userId', async (req, res) => {
         value, 
         used_count,
         used_by,
-        created_at
+        updated_at
       FROM promocodes 
       WHERE used_by ? ${userId}
-      ORDER BY created_at DESC
+      ORDER BY updated_at DESC
     `;
     
     const formattedPromocodes = promocodes.map(promo => {
       const usedByList = promo.used_by || [];
-      const usedAt = usedByList.includes(userId) ? promo.updated_at || promo.created_at : null;
+      const usedAt = usedByList.includes(userId) ? promo.updated_at : null;
       
       return {
         code: promo.code,
         type: promo.type,
         value: promo.value,
-        usedAt: usedAt || promo.created_at,
-        created_at: promo.created_at
+        usedAt: usedAt,
+        created_at: promo.updated_at // для совместимости с фронтендом
       };
     });
     
