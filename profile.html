@@ -92,7 +92,23 @@
             }
             
             await loadProfile();
-            initPromocodeSystem();
+
+            // Инициализируем систему промокодов через глобальный класс
+            if (window.promocodeSystem) {
+                // Передаем функции из profile.html в promocodeSystem для обратной связи
+                window.promocodeSystem.onBalanceUpdate = (newBalance) => {
+                    renderBalance(newBalance);
+                };
+                window.promocodeSystem.onPromocodeActivated = (data) => {
+                    showPromocodeInfo(data);
+                    loadUserPromocodes(); // Обновляем историю
+                };
+                
+                // Рендерим историю промокодов через наш метод
+                await loadUserPromocodes();
+            } else {
+                console.error('Promocode system not loaded');
+            }
         });
     
         async function loadProfile() {
@@ -406,123 +422,12 @@
             }).join('');
         }
     
-        async function initPromocodeSystem() {
-            const applyBtn = document.getElementById('applyPromocodeBtn');
-            const input = document.getElementById('promocodeInput');
-            
-            if (applyBtn && input) {
-                applyBtn.addEventListener('click', applyPromocode);
-                input.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') {
-                        applyPromocode();
-                    }
-                });
-            }
-            
-            await loadUserPromocodes();
-        }
-    
-        async function applyPromocode() {
-            const input = document.getElementById('promocodeInput');
-            const code = input.value.trim().toUpperCase();
-            const messageDiv = document.getElementById('promocodeMessage');
-            
-            if (!code) {
-                showPromocodeMessage('Введите промокод', 'error');
-                return;
-            }
-            
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            try {
-                const response = await fetch('/api/promocodes/activate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: authData.id,
-                        code: code
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showPromocodeMessage(`Промокод ${code} успешно активирован!`, 'success');
-                    input.value = '';
-                    
-                    if (data.newBalance !== undefined) {
-                        await loadProfile();
-                    }
-                    await loadUserPromocodes();
-                    showPromocodeInfo(data);
-                } else {
-                    showPromocodeMessage(data.error || 'Не удалось активировать промокод', 'error');
-                }
-                
-            } catch (error) {
-                console.error('Error applying promocode:', error);
-                showPromocodeMessage('Ошибка при активации промокода', 'error');
-            }
-        }
-    
-        function showPromocodeMessage(message, type) {
-            const messageDiv = document.getElementById('promocodeMessage');
-            if (!messageDiv) return;
-            
-            messageDiv.innerHTML = `
-                <div class="promocode-message ${type}">
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-                    ${escapeHtml(message)}
-                </div>
-            `;
-            
-            setTimeout(() => {
-                messageDiv.innerHTML = '';
-            }, 5000);
-        }
-    
-        function showPromocodeInfo(data) {
-            const modal = document.getElementById('promocodeInfoModal');
-            const content = document.getElementById('promocodeInfoContent');
-            
-            if (!modal || !content) return;
-            
-            let message = '';
-            if (data.message) {
-                message = data.message;
-            } else if (data.newBalance !== undefined) {
-                message = `Баланс пополнен на ${data.value}₽`;
-            } else {
-                message = 'Промокод успешно активирован!';
-            }
-            
-            content.innerHTML = `
-                <div style="text-align: center; padding: 20px;">
-                    <div style="font-size: 3rem; color: #FEE75C; margin-bottom: 20px;">
-                        <i class="fas fa-ticket-alt"></i>
-                    </div>
-                    <h3 style="color: white; margin-bottom: 15px;">${escapeHtml(message)}</h3>
-                    ${data.newBalance !== undefined ? `
-                        <p style="color: #b9bbbe; font-size: 1.2rem;">
-                            Текущий баланс: <strong style="color: #57F287;">${data.newBalance}₽</strong>
-                        </p>
-                    ` : ''}
-                </div>
-            `;
-            
-            modal.style.display = 'flex';
-        }
-    
+        // Функция для загрузки истории промокодов
         async function loadUserPromocodes() {
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            if (!authData.id) {
-                console.log('');
-                return;
-            }
+            if (!authData.id) return;
             
             try {
-                console.log('');
                 const response = await fetch(`/api/promocodes/user/${authData.id}`);
                 const data = await response.json();
                 
@@ -531,7 +436,6 @@
                 } else {
                     renderUserPromocodes([]);
                 }
-                
             } catch (error) {
                 console.error('Ошибка загрузки промокодов:', error);
                 renderUserPromocodes([]);
@@ -643,27 +547,63 @@
                 </div>
             `;
             
-            const style = document.createElement('style');
-            style.textContent = `
-                .promocode-history-item:hover {
-                    background: #2a2b36 !important;
-                    transform: translateX(5px);
-                }
-                .user-promocodes-list {
-                    animation: fadeIn 0.3s ease;
-                }
-                @keyframes fadeIn {
-                    from {
-                        opacity: 0;
-                        transform: translateY(10px);
+            if (!document.getElementById('promocode-history-styles')) {
+                const style = document.createElement('style');
+                style.id = 'promocode-history-styles';
+                style.textContent = `
+                    .promocode-history-item:hover {
+                        background: #2a2b36 !important;
+                        transform: translateX(5px);
                     }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
+                    .user-promocodes-list {
+                        animation: fadeIn 0.3s ease;
                     }
-                }
+                    @keyframes fadeIn {
+                        from {
+                            opacity: 0;
+                            transform: translateY(10px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+    
+        // Функция для отображения информации после активации
+        function showPromocodeInfo(data) {
+            const modal = document.getElementById('promocodeInfoModal');
+            const content = document.getElementById('promocodeInfoContent');
+            
+            if (!modal || !content) return;
+            
+            let message = '';
+            if (data.message) {
+                message = data.message;
+            } else if (data.newBalance !== undefined) {
+                message = `Баланс пополнен на ${data.value}₽`;
+            } else {
+                message = 'Промокод успешно активирован!';
+            }
+            
+            content.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 3rem; color: #FEE75C; margin-bottom: 20px;">
+                        <i class="fas fa-ticket-alt"></i>
+                    </div>
+                    <h3 style="color: white; margin-bottom: 15px;">${escapeHtml(message)}</h3>
+                    ${data.newBalance !== undefined ? `
+                        <p style="color: #b9bbbe; font-size: 1.2rem;">
+                            Текущий баланс: <strong style="color: #57F287;">${data.newBalance}₽</strong>
+                        </p>
+                    ` : ''}
+                </div>
             `;
-            document.head.appendChild(style);
+            
+            modal.style.display = 'flex';
         }
     
         window.logout = function() {
