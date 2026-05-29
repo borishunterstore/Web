@@ -120,7 +120,7 @@
                         <h3 class="product-title">${escapeHtml(product.name)}</h3>
                         <p class="product-description">${escapeHtml(product.description || 'Описание отсутствует')}</p>
                         
-                        ${product.features && product.features.length > 0 ? `
+                        <!-- ${product.features && product.features.length > 0 ? `
                             <div class="product-features">
                                 ${product.features.slice(0, 3).map(f => `
                                     <div class="feature-item">
@@ -128,7 +128,7 @@
                                         <span>${escapeHtml(f)}</span>
                                     </div>
                                 `).join('')}
-                            </div>
+                            </div> -->
                         ` : ''}
                         
                         <div class="price-section">

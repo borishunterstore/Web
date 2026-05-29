@@ -18,12 +18,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ========== КОНФИГУРАЦИЯ БЕЙДЖЕЙ ==========
 const BADGE_CONFIG = {
-    admin: {name: 'Администратор',image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F976977194939203645.gif%3Fv%3D1&w=64&q=75',color: '#FFD700',bgColor: 'rgba(255, 215, 0, 0.15)',priority: 1},
+    admin: {name: 'Администратор',image: 'image\BADGE\admin.png',color: '#FFD700',bgColor: 'rgba(255, 215, 0, 0.15)',priority: 1},
     verified: {name: 'Верифицированный',image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F856587496154595348.gif%3Fv%3D1&w=64&q=75',color: '#57F287',bgColor: 'rgba(87, 242, 135, 0.15)',priority: 2},
     partner: {name: 'Партнёр',image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F935501408323645470.gif%3Fv%3D1&w=64&q=75',color: '#FF73FA',bgColor: 'rgba(255, 115, 250, 0.15)',priority: 3},
     buyer: {name: 'Покупатель',image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F915540288032886825.png%3Fv%3D1&w=64&q=75',color: '#FEE75C',bgColor: 'rgba(254, 231, 92, 0.15)',priority: 4},
     early: {name: 'Ранний сторонник',image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1085815477030092860.png%3Fv%3D1&w=64&q=75',color: '#5865F2',bgColor: 'rgba(88, 101, 242, 0.15)',priority: 5},
-    vip: {name: 'VIP',image: 'https://discords.com/_next/image?url=https%3A%2F%2Fcdn.discordapp.com%2Femojis%2F1074074255389896764.png%3Fv%3D1&w=64&q=75',color: '#9B59B6',bgColor: 'rgba(155, 89, 182, 0.15)',priority: 6}};
+    vip: {name: 'VIP',image: 'image\BADGE\vip.png',color: '#9B59B6',bgColor: 'rgba(155, 89, 182, 0.15)',priority: 6}};
 
 // ========== УТИЛИТЫ ==========
 function escapeHtml(unsafe) {
