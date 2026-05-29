@@ -10,10 +10,6 @@
 [functions]
   node_bundler = "esbuild"
 
-# Отключаем Edge Functions полностью
-[dev]
-  framework = "#static"
-
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/:splat"
