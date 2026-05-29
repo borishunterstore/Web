@@ -3276,38 +3276,54 @@ app.post('/api/promocodes/check', async (req, res) => {
     }
     
     const codeUpper = code.toUpperCase();
-    const [promocode] = await sql`
-      SELECT * FROM promocodes WHERE code = ${codeUpper}
-    `;
+    console.log(`🔍 Проверка промокода: ${codeUpper}`);
+    
+    let promocode = null;
+    
+    if (sql) {
+      // Пробуем найти промокод в БД (без учета регистра)
+      const [result] = await sql`
+        SELECT * FROM promocodes 
+        WHERE UPPER(code) = ${codeUpper}
+      `;
+      promocode = result;
+    } else {
+      promocode = promocodes[codeUpper];
+    }
     
     if (!promocode) {
-      return res.json({ 
+      console.log(`❌ Промокод ${codeUpper} не найден в БД`);
+      return res.status(404).json({ 
         success: false, 
         error: 'Промокод не найден' 
       });
     }
     
     if (!promocode.active) {
-      return res.json({ 
+      return res.status(400).json({ 
         success: false, 
         error: 'Промокод неактивен' 
       });
     }
     
-    if (promocode.used_count >= promocode.max_uses) {
-      return res.json({ 
+    // Проверяем лимит использований
+    if (promocode.max_uses && promocode.used_count >= promocode.max_uses) {
+      return res.status(400).json({ 
         success: false, 
         error: 'Промокод больше недействителен' 
       });
     }
     
+    // Проверяем, использовал ли уже пользователь этот промокод
     const usedBy = promocode.used_by || [];
     if (usedBy.includes(userId)) {
-      return res.json({ 
+      return res.status(400).json({ 
         success: false, 
         error: 'Вы уже использовали этот промокод' 
       });
     }
+    
+    console.log(`✅ Промокод ${codeUpper} найден, тип: ${promocode.type}, значение: ${promocode.value}`);
     
     res.json({
       success: true,
@@ -3322,7 +3338,7 @@ app.post('/api/promocodes/check', async (req, res) => {
     console.error('Ошибка проверки промокода:', error.message);
     res.status(500).json({ 
       success: false, 
-      error: 'Ошибка проверки промокода' 
+      error: 'Ошибка проверки промокода: ' + error.message 
     });
   }
 });
