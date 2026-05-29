@@ -5,6 +5,36 @@ const serverless = require('serverless-http');
 const { neon } = require('@neondatabase/serverless');
 const path = require('path');
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
+
+// В самый верх файла, после require
+console.log('🚀 SERVER FUNCTION STARTED');
+
+// Глобальный обработчик ошибок
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (err) => {
+  console.error('❌ Unhandled Rejection:', err);
+});
+
+// Загрузка товаров из JSON файла
+let productsData = [];
+try {
+  const productsPath = path.join(__dirname, '../../data/products.json');
+  if (fs.existsSync(productsPath)) {
+    productsData = JSON.parse(fs.readFileSync(productsPath, 'utf8'));
+    console.log(`✅ Загружено ${productsData.length} товаров из products.json`);
+  } else {
+    console.log('⚠️ Файл data/products.json не найден, использую тестовые товары');
+    productsData = getTestProducts();
+  }
+} catch (error) {
+  console.error('❌ Ошибка загрузки товаров:', error.message);
+  productsData = getTestProducts();
+}
 
 const app = express();
 
@@ -1657,43 +1687,15 @@ app.post('/api/create-order', async (req, res) => {
 // ============================================
 
 // Получение товаров из БД
-app.get('/api/products', async (req, res) => {
-  try {
-    console.log('Запрос товаров');
-    
-    let products = [];
-    
-    if (sql) {
-      try {
-        products = await sql`SELECT * FROM products ORDER BY created_at DESC`;
-        console.log(`Загружено ${products.length} товаров из БД`);
-        
-        if (products && products.length > 0) {
-          return res.json({
-            success: true,
-            products: products
-          });
-        }
-      } catch (dbError) {
-        console.error('Ошибка при работе с БД:', dbError.message);
-      }
-    }
-    
-    console.log('В БД нет товаров, используем тестовые данные');
-    products = getTestProducts();
-    
-    res.json({
-      success: true,
-      products: products
-    });
-    
-  } catch (error) {
-    console.error('Ошибка получения товаров:', error.message);
-    res.json({
-      success: true,
-      products: getTestProducts()
-    });
-  }
+app.get('/api/products', (req, res) => {
+  console.log('📦 GET /api/products');
+  
+  // Возвращаем товары из памяти
+  res.json({
+    success: true,
+    products: productsData,
+    total: productsData.length
+  });
 });
 
 function getTestProducts() {
