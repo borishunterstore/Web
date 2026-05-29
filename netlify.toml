@@ -1,14 +1,9 @@
 [build]
   command = "npm run build"
-  functions = "netlify/functions"
   publish = "."
 
 [build.environment]
   NODE_VERSION = "20"
-  NPM_FLAGS = "--no-audit --legacy-peer-deps"
-
-[functions]
-  node_bundler = "esbuild"
 
 [[redirects]]
   from = "/api/*"
@@ -26,10 +21,3 @@
   from = "/*"
   to = "/index.html"
   status = 404
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type, Authorization"
