@@ -1,388 +1,141 @@
 (function() {
     'use strict';
 
-    let products = [];
+    let allProducts = [];
     let currentCategory = 'all';
-    let currentUser = null;
-    let isApiReady = false;
-    let isShopClosed = false;
+    let currentProduct = null;
 
-    async function checkShopStatus() {
-        try {
-            const shopClosed = localStorage.getItem('bhstore_shop_closed') === 'true';
-            
-            if (shopClosed) {
-                const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-                const isAdmin = authData.badges?.admin === true || authData.id === '992442453833547886';
-                
-                if (!isAdmin) {
-                    const container = document.getElementById('productsContainer');
-                    if (container) {
-                        container.innerHTML = `
-                            <div class="shop-closed-message">
-                                <i class="fas fa-store-slash"></i>
-                                <h2>Магазин временно закрыт</h2>
-                                <p>Администрация проводит технические работы. Приносим извинения за неудобства!</p>
-                                <p class="small-text">Пожалуйста, зайдите позже</p>
-                            </div>
-                        `;
-                    }
-                    
-                    const categoryBtns = document.querySelectorAll('.category-btn');
-                    categoryBtns.forEach(btn => btn.disabled = true);
-                    
-                    return false;
-                } else {
-                    showNotification('⚠️ Магазин закрыт для пользователей. Вы видите товары как администратор.', 'warning');
-                    return true;
-                }
-            }
-            return true;
-        } catch (error) {
-            console.error('Ошибка проверки статуса магазина:', error);
-            return true;
-        }
-    }
+    // Конфигурация категорий
+    const CATEGORY_CONFIG = {
+        'montaz': { name: 'Монтаж видео', api: 'youtube', filter: p => p.name?.toLowerCase().includes('монтаж') || p.name?.toLowerCase().includes('видео') || p.category === 'youtube' },
+        'ava': { name: 'Аватарки', api: 'avatar', filter: p => p.name?.toLowerCase().includes('аватар') || p.category === 'avatar' },
+        'preview': { name: 'Превью', api: 'preview', filter: p => p.name?.toLowerCase().includes('превью') || p.category === 'preview' },
+        'discord': { name: 'Discord услуги', api: 'discord', filter: p => p.name?.toLowerCase().includes('discord') || p.category === 'discord' || p.category === 'discordbot' },
+        'tgbot': { name: 'Telegram боты', api: 'telegram', filter: p => p.name?.toLowerCase().includes('telegram') || p.name?.toLowerCase().includes('tg') || p.category === 'telegram' },
+        'website': { name: 'Сайты', api: 'website', filter: p => p.name?.toLowerCase().includes('сайт') || p.name?.toLowerCase().includes('website') || p.category === 'website' },
+        'minecraft': { name: 'Minecraft', api: 'minecraft', filter: p => p.name?.toLowerCase().includes('minecraft') || p.name?.toLowerCase().includes('майнкрафт') || p.category === 'minecraft' }
+    };
 
+    // Инициализация при загрузке страницы
     document.addEventListener('DOMContentLoaded', async function() {
-        console.log('SHOP Loading');
-
-        await waitForApi();
-
-        try {
-            await Promise.all([
-                loadUserData(),
-                loadProducts('all'),
-                initPromocodeSystem()
-            ]);
-
-            initCategories();
-            addAnimationStyles();
-            initMobileMenu();
-
-            console.log('Shop initialized successfully');
-        } catch (error) {
-            console.error('Error initializing shop:', error);
-            showError('Ошибка инициализации магазина');
-        }
+        console.log('🛒 Shop page initializing...');
+        
+        await loadProducts();
+        initCategories();
+        initURLHandling();
+        initPromocodeUI();
+        
+        console.log('✅ Shop page initialized');
     });
 
-    async function waitForApi(timeout = 5000) {
-        const startTime = Date.now();
-        while (!window.api && Date.now() - startTime < timeout) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
-        if (!window.api) {
-            console.error('API not loaded within timeout');
-            showError('Не удалось загрузить API. Обновите страницу.');
-            return false;
-        }
-        isApiReady = true;
-        console.log('API is ready');
-        return true;
-    }
-
-    async function loadUserData() {
-        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-
-        if (authData.id && !authData.verificationCode && window.api) {
-            try {
-                const data = await window.api.getUser(authData.id);
-                if (data?.success && data.user) {
-                    currentUser = data.user;
-
-                    authData.balance = data.user.balance;
-                    authData.badges = data.user.badges;
-                    localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-
-                    console.log('User data loaded:', currentUser);
-                }
-            } catch (error) {
-                console.warn('Failed to load user data:', error);
-            }
-        }
-    }
-
-    async function initPromocodeSystem() {
-        for (let i = 0; i < 10; i++) {
-            if (window.promocodeSystem) {
-                console.log('Promocode system loaded');
-                enhancePromocodeSystem();
-
-                if (typeof window.promocodeSystem.renderUI === 'function') {
-                    window.promocodeSystem.renderUI();
-                } else {
-                    window.promocodeSystem.renderUI = updateShopActivePromocodes;
-                    window.promocodeSystem.renderUI();
-                }
-                return;
-            }
-            await new Promise(resolve => setTimeout(resolve, 200));
-        }
-
-        console.warn('Promocode system not loaded, creating fallback');
-        createPromocodeFallback();
-    }
-
-    function enhancePromocodeSystem() {
-        const ps = window.promocodeSystem;
-
-        if (!ps.getDiscountedPrice) {
-            ps.getDiscountedPrice = function(originalPrice, productId = null) {
-                if (!this.activeDiscounts?.length) return originalPrice;
-
-                const applicable = this.activeDiscounts.filter(d => !d.productId || d.productId === productId);
-                if (!applicable.length) return originalPrice;
-
-                const totalDiscount = Math.min(applicable.reduce((sum, d) => sum + (d.value || 0), 0), 90);
-                return Math.round(originalPrice * (1 - totalDiscount / 100));
-            };
-        }
-
-        if (!ps.getAppliedDiscounts) {
-            ps.getAppliedDiscounts = function(productId = null) {
-                if (!this.activeDiscounts) return [];
-                return productId
-                    ? this.activeDiscounts.filter(d => !d.productId || d.productId === productId)
-                    : this.activeDiscounts;
-            };
-        }
-
-        if (!ps.removeDiscount) {
-            ps.removeDiscount = function(code) {
-                this.activeDiscounts = this.activeDiscounts.filter(d => d.code !== code);
-                this.saveToStorage?.();
-                this.renderUI?.();
-                loadProducts(currentCategory);
-            };
-        }
-
-        if (!ps.saveToStorage) {
-            ps.saveToStorage = function() {
-                localStorage.setItem('bhstore_active_promocodes', JSON.stringify({
-                    activeDiscounts: this.activeDiscounts || []
-                }));
-            };
-        }
-
-        if (!ps.loadFromStorage) {
-            ps.loadFromStorage = function() {
-                try {
-                    const saved = localStorage.getItem('bhstore_active_promocodes');
-                    this.activeDiscounts = saved ? (JSON.parse(saved).activeDiscounts || []) : [];
-                } catch (e) {
-                    console.error('Error loading promocodes:', e);
-                    this.activeDiscounts = [];
-                }
-            };
-        }
-
-        ps.loadFromStorage?.();
-    }
-
-    function createPromocodeFallback() {
-        window.promocodeSystem = {
-            activeDiscounts: [],
-            getDiscountedPrice(price) { return price; },
-            getAppliedDiscounts() { return []; },
-            removeDiscount(code) {
-                this.activeDiscounts = this.activeDiscounts.filter(d => d.code !== code);
-                this.saveToStorage();
-                this.renderUI();
-                loadProducts(currentCategory);
-            },
-            saveToStorage() {
-                localStorage.setItem('bhstore_active_promocodes', JSON.stringify({
-                    activeDiscounts: this.activeDiscounts
-                }));
-            },
-            loadFromStorage() {
-                try {
-                    const saved = localStorage.getItem('bhstore_active_promocodes');
-                    this.activeDiscounts = saved ? (JSON.parse(saved).activeDiscounts || []) : [];
-                } catch (e) {
-                    this.activeDiscounts = [];
-                }
-            },
-            renderUI() {
-                updateShopActivePromocodes();
-            }
-        };
-        window.promocodeSystem.loadFromStorage();
-        console.log('Promocode fallback created');
-    }
-
-    function initCategories() {
-        const categoryButtons = document.querySelectorAll('.category-btn');
-
-        categoryButtons.forEach(button => {
-            button.addEventListener('click', async function() {
-                const canView = await checkShopStatus();
-                if (!canView) return;
-                
-                categoryButtons.forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-                currentCategory = this.dataset.category;
-                loadProducts(currentCategory);
-
-                document.getElementById('productsContainer')?.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            });
-        });
-    }
-
-    async function loadProducts(category) {
+    // Загрузка товаров из API
+    async function loadProducts() {
         const container = document.getElementById('productsContainer');
-        if (!container) {
-            console.error('Products container not found');
+        if (!container) return;
+        
+        showLoading(container);
+        
+        try {
+            // Загружаем товары через API
+            const response = await fetch('/api/products');
+            const data = await response.json();
+            
+            if (data.success && data.products && data.products.length > 0) {
+                allProducts = data.products;
+                console.log(`📦 Loaded ${allProducts.length} products`);
+                
+                // Проверяем URL параметры
+                const urlParams = new URLSearchParams(window.location.search);
+                const categoryParam = urlParams.get('category');
+                const productParam = urlParams.get('product');
+                
+                if (productParam) {
+                    // Показываем детали товара
+                    const product = allProducts.find(p => p.id === productParam);
+                    if (product) {
+                        showProductModal(product);
+                        currentCategory = 'all';
+                        renderProducts(allProducts);
+                        activateCategoryButton('all');
+                    } else {
+                        renderProducts(allProducts);
+                    }
+                } else if (categoryParam && CATEGORY_CONFIG[categoryParam]) {
+                    const filtered = filterProductsByCategory(categoryParam);
+                    renderProducts(filtered);
+                    activateCategoryButton(categoryParam);
+                    currentCategory = categoryParam;
+                } else {
+                    renderProducts(allProducts);
+                    activateCategoryButton('all');
+                }
+            } else {
+                console.error('No products received from API');
+                renderEmptyState('Товары не найдены', 'В магазине пока нет товаров. Зайдите позже.');
+            }
+        } catch (error) {
+            console.error('❌ Error loading products:', error);
+            renderErrorState('Не удалось загрузить товары', error.message);
+        }
+    }
+
+    // Фильтрация товаров по категории
+    function filterProductsByCategory(category) {
+        if (category === 'all') return allProducts;
+        
+        const config = CATEGORY_CONFIG[category];
+        if (!config) return [];
+        
+        return allProducts.filter(config.filter);
+    }
+
+    // Отображение товаров
+    function renderProducts(products) {
+        const container = document.getElementById('productsContainer');
+        if (!container) return;
+        
+        if (!products || products.length === 0) {
+            renderEmptyState('Нет товаров', 'В этой категории пока нет товаров.');
             return;
         }
-
-        const canView = await checkShopStatus();
-        if (!canView) return;
-
-        currentCategory = category;
-        showLoading(container);
-        console.log(`Loading products for category: ${category}`);
-
-        try {
-            if (!window.api) {
-                console.error('API not available');
-                throw new Error('API not available');
-            }
-
-            console.log('📡 Fetching products via api.getProducts()...');
-            const data = await window.api.getProducts();
-            console.log('API Response:', data);
-
-            if (!data) {
-                console.error('No data received from API');
-                renderNoProducts(category, true);
-                return;
-            }
-
-            if (!data.success) {
-                console.error('API returned success: false', data);
-                renderNoProducts(category, true);
-                return;
-            }
-
-            if (!data.products || !Array.isArray(data.products)) {
-                console.error('Products is not an array:', data.products);
-                renderNoProducts(category, true);
-                return;
-            }
-
-            console.log(`Received ${data.products.length} products from API`);
-            products = data.products;
-
-            const filtered = category === 'all'
-                ? products
-                : products.filter(p => p.category?.toLowerCase() === category.toLowerCase());
-
-            console.log(`Filtered products: ${filtered.length} for category "${category}"`);
-
-            if (filtered.length === 0) {
-                console.log('No products found for this category');
-                renderNoProducts(category, false);
-            } else {
-                console.log('Rendering products...');
-                renderProducts(filtered);
-            }
-
-        } catch (error) {
-            console.error('Error in loadProducts:', error);
-            showError('Не удалось загрузить товары. Пожалуйста, проверьте консоль для деталей.');
-        }
-    }
-
-    function showLoading(container) {
-        container.innerHTML = `
-            <div class="loading-spinner">
-                <div class="spinner"></div>
-                <p>Загрузка товаров...</p>
-            </div>
-        `;
-    }
-
-    function renderNoProducts(category, isApiEmpty = false) {
-        const container = document.getElementById('productsContainer');
-        if (!container) return;
-
-        const categoryNames = {
-            'all': 'магазине',
-            'premium': 'премиум товаров',
-            'discord': 'Discord',
-            'discordbot': 'Discord бот',
-            'services': 'услуг',
-            'events': 'ивентов'
-        };
-
-        container.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-box-open"></i>
-                <h3>Товары не найдены</h3>
-                <p>${isApiEmpty
-                    ? 'В базе данных пока нет товаров. Добавьте их через админ-панель.'
-                    : `В категории "${categoryNames[category] || category}" пока нет товаров.`}</p>
-                ${category !== 'all' ? `
-                    <button onclick="window.loadProducts('all')" class="btn-primary">
-                        <i class="fas fa-store"></i> Показать все товары
-                    </button>
-                ` : ''}
-            </div>
-        `;
-    }
-
-    function renderProducts(productsToRender) {
-        const container = document.getElementById('productsContainer');
-        if (!container) return;
-
-        container.innerHTML = productsToRender.map((product, index) => {
+        
+        container.innerHTML = products.map((product, index) => {
             const discountInfo = getDiscountInfo(product.price, product.id);
             const finalPrice = discountInfo.finalPrice;
             const hasDiscount = discountInfo.discount > 0;
             
-            const safeProductId = escapeHtml(product.id);
-            const safeProductName = escapeHtml(product.name);
-            const safePrice = product.price;
-
             return `
-                <div class="product-card" style="animation-delay: ${index * 0.1}s">
+                <div class="product-card" data-product-id="${escapeHtml(product.id)}" style="animation-delay: ${index * 0.05}s">
                     ${hasDiscount ? `
                         <div class="product-discount-badge">
                             <i class="fas fa-tag"></i> -${discountInfo.discount}%
                         </div>
                     ` : ''}
-
                     <div class="product-image">
-                        <img src="${product.image || product.icon || '/image/default-product.png'}"
-                             alt="${escapeHtml(product.name)}"
+                        <img src="${product.image || product.icon || '/image/default-product.png'}" 
+                             alt="${escapeHtml(product.name)}" 
                              onerror="this.src='/image/default-product.png'">
                     </div>
-
                     <div class="product-info">
                         <h3 class="product-title">${escapeHtml(product.name)}</h3>
-                        <p class="product-description">${escapeHtml(product.description || '')}</p>
-
-                        ${product.features ? `
+                        <p class="product-description">${escapeHtml(product.description || 'Описание отсутствует')}</p>
+                        
+                        ${product.features && product.features.length > 0 ? `
                             <div class="product-features">
-                                ${Array.isArray(product.features) ? product.features.map(feature => `
+                                ${product.features.slice(0, 3).map(f => `
                                     <div class="feature-item">
                                         <i class="fas fa-check"></i>
-                                        <span>${escapeHtml(feature)}</span>
+                                        <span>${escapeHtml(f)}</span>
                                     </div>
-                                `).join('') : ''}
+                                `).join('')}
                             </div>
                         ` : ''}
-
+                        
                         <div class="price-section">
                             ${hasDiscount ? `
                                 <div class="original-price">
                                     <span><i class="fas fa-clock"></i> Обычная цена</span>
-                                    <span>${discountInfo.originalPrice} ₽</span>
+                                    <span>${product.price} ₽</span>
                                 </div>
                                 <div class="final-price">
                                     <span><i class="fas fa-tag"></i> Цена со скидкой</span>
@@ -394,37 +147,203 @@
                                 </div>
                             `}
                         </div>
-
-                        ${discountInfo.appliedPromocodes.length > 0 ? `
-                            <div class="applied-promocodes">
-                                <div class="applied-promocodes-title">
-                                    <i class="fas fa-ticket-alt"></i>
-                                    Применены промокоды:
-                                </div>
-                                <div class="applied-promocodes-list">
-                                    ${discountInfo.appliedPromocodes.map(p => `
-                                        <span class="promocode-tag">
-                                            <i class="fas fa-tag"></i> ${escapeHtml(p.code)}
-                                        </span>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        ` : ''}
-
-                        <button class="btn-buy"
-                                onclick="window.buyProduct('${safeProductId}', '${safeProductName}', ${safePrice})"
-                                data-product-id="${safeProductId}">
-                            <i class="fas fa-shopping-cart"></i>
-                            Купить сейчас
-                        </button>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button class="btn-buy" onclick="window.buyProduct('${escapeHtml(product.id)}', '${escapeHtml(product.name)}', ${product.price})">
+                                <i class="fas fa-shopping-cart"></i> Купить
+                            </button>
+                            <button class="btn-details" onclick="window.showProductDetails('${escapeHtml(product.id)}')">
+                                <i class="fas fa-info-circle"></i> Подробнее
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
         }).join('');
+        
+        // Обновляем URL при рендере
+        updateURL();
     }
 
+    // Показ деталей товара в модальном окне
+    window.showProductDetails = function(productId) {
+        const product = allProducts.find(p => p.id === productId);
+        if (!product) {
+            showToast('Товар не найден', 'error');
+            return;
+        }
+        
+        showProductModal(product);
+        
+        // Обновляем URL без перезагрузки
+        const url = new URL(window.location.href);
+        url.searchParams.set('product', productId);
+        window.history.pushState({}, '', url);
+    };
+    
+    function showProductModal(product) {
+        const modal = document.getElementById('productModal');
+        const modalTitle = document.getElementById('modalProductTitle');
+        const modalContent = document.getElementById('modalProductContent');
+        
+        if (!modal || !modalContent) return;
+        
+        const discountInfo = getDiscountInfo(product.price, product.id);
+        const finalPrice = discountInfo.finalPrice;
+        const hasDiscount = discountInfo.discount > 0;
+        
+        modalTitle.textContent = product.name;
+        
+        modalContent.innerHTML = `
+            <div class="product-detail">
+                <div class="product-detail-image">
+                    <img src="${product.image || product.icon || '/image/default-product.png'}" 
+                         alt="${escapeHtml(product.name)}"
+                         onerror="this.src='/image/default-product.png'">
+                </div>
+                
+                <div class="product-detail-info">
+                    <div class="product-detail-description">
+                        <h3><i class="fas fa-align-left"></i> Описание</h3>
+                        <p>${escapeHtml(product.description || 'Описание отсутствует')}</p>
+                    </div>
+                    
+                    ${product.features && product.features.length > 0 ? `
+                        <div class="product-detail-features">
+                            <h3><i class="fas fa-list-check"></i> Что входит в услугу:</h3>
+                            <ul>
+                                ${product.features.map(f => `<li><i class="fas fa-check-circle"></i> ${escapeHtml(f)}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="product-detail-price">
+                        ${hasDiscount ? `
+                            <div class="price-row">
+                                <span>Оригинальная цена:</span>
+                                <span class="old-price">${product.price} ₽</span>
+                            </div>
+                            <div class="price-row">
+                                <span>Скидка:</span>
+                                <span class="discount-badge">-${discountInfo.discount}%</span>
+                            </div>
+                        ` : ''}
+                        <div class="price-row final">
+                            <span>Итоговая цена:</span>
+                            <span class="final-price">${finalPrice} ₽</span>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-buy btn-buy-large" onclick="window.buyProduct('${escapeHtml(product.id)}', '${escapeHtml(product.name)}', ${product.price}); window.closeProductModal();">
+                        <i class="fas fa-shopping-cart"></i> Купить сейчас
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+    
+    window.closeProductModal = function() {
+        const modal = document.getElementById('productModal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+            
+            // Убираем product из URL если он там есть
+            const url = new URL(window.location.href);
+            if (url.searchParams.has('product')) {
+                url.searchParams.delete('product');
+                window.history.pushState({}, '', url);
+            }
+        }
+    };
+    
+    // Закрытие модального окна по клику вне его
+    document.addEventListener('click', function(e) {
+        const modal = document.getElementById('productModal');
+        if (modal && modal.style.display === 'flex') {
+            if (e.target === modal) {
+                window.closeProductModal();
+            }
+        }
+    });
+    
+    // Закрытие по Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            window.closeProductModal();
+        }
+    });
+
+    // Инициализация категорий
+    function initCategories() {
+        const categoryBtns = document.querySelectorAll('.category-btn');
+        
+        categoryBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const category = this.dataset.category;
+                currentCategory = category;
+                
+                const filtered = filterProductsByCategory(category);
+                renderProducts(filtered);
+                activateCategoryButton(category);
+                
+                // Прокрутка к товарам
+                document.getElementById('productsContainer')?.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            });
+        });
+    }
+    
+    function activateCategoryButton(category) {
+        document.querySelectorAll('.category-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.category === category);
+        });
+    }
+    
+    // Обработка URL параметров
+    function initURLHandling() {
+        window.addEventListener('popstate', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const categoryParam = urlParams.get('category');
+            const productParam = urlParams.get('product');
+            
+            if (productParam) {
+                const product = allProducts.find(p => p.id === productParam);
+                if (product) showProductModal(product);
+            } else if (categoryParam && CATEGORY_CONFIG[categoryParam]) {
+                const filtered = filterProductsByCategory(categoryParam);
+                renderProducts(filtered);
+                activateCategoryButton(categoryParam);
+                currentCategory = categoryParam;
+            } else {
+                renderProducts(allProducts);
+                activateCategoryButton('all');
+                currentCategory = 'all';
+            }
+        });
+    }
+    
+    function updateURL() {
+        const url = new URL(window.location.href);
+        if (currentCategory !== 'all') {
+            url.searchParams.set('category', currentCategory);
+        } else {
+            url.searchParams.delete('category');
+        }
+        // Не перезаписываем product если он есть
+        if (!url.searchParams.has('product')) {
+            window.history.replaceState({}, '', url);
+        }
+    }
+    
+    // Получение информации о скидке
     function getDiscountInfo(originalPrice, productId = null) {
-        if (!window.promocodeSystem) {
+        if (!window.promocodeSystem || !window.promocodeSystem.activeDiscounts?.length) {
             return {
                 originalPrice,
                 finalPrice: originalPrice,
@@ -433,15 +352,15 @@
                 appliedPromocodes: []
             };
         }
-
+        
         try {
             const finalPrice = window.promocodeSystem.getDiscountedPrice?.(originalPrice, productId) || originalPrice;
             const appliedPromocodes = window.promocodeSystem.getAppliedDiscounts?.(productId) || [];
-
+            
             const totalDiscount = appliedPromocodes.reduce((sum, d) => sum + (d.value || 0), 0);
             const cappedDiscount = Math.min(totalDiscount, 90);
-            const discountAmount = Math.round(originalPrice * (cappedDiscount / 100));
-
+            const discountAmount = originalPrice - finalPrice;
+            
             return {
                 originalPrice,
                 finalPrice,
@@ -460,326 +379,40 @@
             };
         }
     }
-
-    window.buyProduct = async function(productId, productName, originalPrice) {
-        console.log('buyProduct:', { productId, productName, originalPrice });
+    
+    // Инициализация UI промокодов
+    function initPromocodeUI() {
+        const promocodeSection = document.getElementById('promocodeSection');
+        if (!promocodeSection) return;
         
-        // Проверяем статус магазина
-        const shopClosed = localStorage.getItem('bhstore_shop_closed') === 'true';
-        if (shopClosed) {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            const isAdmin = authData.badges?.admin === true || authData.id === '992442453833547886';
-            if (!isAdmin) {
-                showNotification('Магазин временно закрыт. Покупки недоступны.', 'error');
-                return;
+        // Показываем секцию только если есть промокоды
+        const checkPromocodes = setInterval(() => {
+            if (window.promocodeSystem?.activeDiscounts?.length > 0) {
+                promocodeSection.style.display = 'block';
+                updateActivePromocodesUI();
+                clearInterval(checkPromocodes);
             }
-        }
+        }, 500);
         
-        if (!productId || !productName || originalPrice === undefined || originalPrice === null) {
-            console.error('Ошибка: отсутствуют параметры', { productId, productName, originalPrice });
-            showNotification('Ошибка: не удалось получить данные товара', 'error');
-            return;
-        }
-
-        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-
-        if (!authData.id) {
-            showNotification('Пожалуйста, авторизуйтесь для покупки', 'warning');
-            setTimeout(() => window.location.href = '/auth.html', 2000);
-            return;
-        }
-
-        if (authData.verificationCode) {
-            showNotification('Завершите регистрацию', 'warning');
-            setTimeout(() => window.location.href = '/verify.html', 2000);
-            return;
-        }
-
-        try {
-            if (!window.api) throw new Error('API not available');
-
-            const userData = await window.api.getUser(authData.id);
-            if (!userData?.success || !userData.user) {
-                throw new Error('Не удалось получить данные пользователя');
-            }
-
-            const userBalance = userData.user.balance || 0;
-            const discountInfo = getDiscountInfo(originalPrice, productId);
-            const finalPrice = discountInfo.finalPrice;
-
-            if (userBalance < finalPrice) {
-                showInsufficientFundsModal(finalPrice, userBalance, productName, productId);
-                return;
-            }
-
-            showPurchaseConfirmation(productName, finalPrice, productId, userBalance, discountInfo);
-
-        } catch (error) {
-            console.error('Error buying product:', error);
-            showNotification('Ошибка: ' + error.message, 'error');
-        }
-    };
-
-    function showPurchaseConfirmation(productName, finalPrice, productId, userBalance, discountInfo) {
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.id = 'purchaseConfirmationModal';
-
-        const orderId = 'BH-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-
-        modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Подтверждение покупки</h2>
-                    <button class="modal-close" onclick="closePurchaseModal()">×</button>
-                </div>
-
-                <div class="purchase-details">
-                    <div class="purchase-row">
-                        <span class="purchase-label"><i class="fas fa-box"></i> Товар:</span>
-                        <span class="purchase-value">${escapeHtml(productName)}</span>
-                    </div>
-
-                    ${discountInfo.discount > 0 ? `
-                        <div class="purchase-row">
-                            <span class="purchase-label"><i class="fas fa-tag"></i> Оригинальная цена:</span>
-                            <span class="purchase-value" style="text-decoration: line-through;">${discountInfo.originalPrice} ₽</span>
-                        </div>
-                        <div class="purchase-row">
-                            <span class="purchase-label"><i class="fas fa-percent"></i> Скидка (${discountInfo.discount}%):</span>
-                            <span class="purchase-value highlight">-${discountInfo.discountAmount} ₽</span>
-                        </div>
-                    ` : ''}
-
-                    <div class="purchase-row">
-                        <span class="purchase-label"><i class="fas fa-credit-card"></i> Итоговая сумма:</span>
-                        <span class="purchase-value highlight">${finalPrice} ₽</span>
-                    </div>
-
-                    <div class="purchase-row">
-                        <span class="purchase-label"><i class="fas fa-wallet"></i> Ваш баланс:</span>
-                        <span class="purchase-value ${userBalance >= finalPrice ? 'highlight' : 'warning'}">${userBalance} ₽</span>
-                    </div>
-
-                    <div class="purchase-row">
-                        <span class="purchase-label"><i class="fas fa-chart-line"></i> Останется:</span>
-                        <span class="purchase-value">${userBalance - finalPrice} ₽</span>
-                    </div>
-
-                    <div class="purchase-row">
-                        <span class="purchase-label"><i class="fas fa-hashtag"></i> Номер заказа:</span>
-                        <span class="purchase-value" style="color: var(--primary);">${orderId}</span>
-                    </div>
-                </div>
-
-                <div class="modal-actions">
-                    <button class="btn-primary" onclick="confirmPurchase('${orderId}', '${escapeHtml(productId)}', '${escapeHtml(productName)}', ${finalPrice}, ${discountInfo.originalPrice})">
-                        <i class="fas fa-check"></i> Подтвердить
-                    </button>
-                    <button class="btn-secondary" onclick="closePurchaseModal()">
-                        <i class="fas fa-times"></i> Отмена
-                    </button>
-                </div>
-
-                <div class="info-message">
-                    <i class="fas fa-info-circle"></i>
-                    После подтверждения средства будут списаны с баланса
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
+        // Слушаем обновления промокодов
+        window.updateProductsDisplay = function() {
+            const filtered = filterProductsByCategory(currentCategory);
+            renderProducts(filtered);
+            updateActivePromocodesUI();
+        };
     }
-
-    window.closePurchaseModal = function() {
-        const modal = document.getElementById('purchaseConfirmationModal');
-        if (modal) {
-            modal.style.animation = 'fadeOut 0.3s ease-out';
-            setTimeout(() => modal.remove(), 300);
-        }
-    };
-
-    window.confirmPurchase = async function(orderId, productId, productName, finalPrice, originalPrice) {
-        try {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            const discountInfo = getDiscountInfo(originalPrice, productId);
-
-            const confirmBtn = document.querySelector('.btn-primary');
-            if (confirmBtn) {
-                confirmBtn.disabled = true;
-                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Обработка...';
-            }
-
-            showNotification('Обработка покупки...', 'info');
-
-            const orderData = {
-                userId: authData.id,
-                productId,
-                productName,
-                price: finalPrice,
-                originalPrice,
-                username: authData.username,
-                orderId: orderId
-            };
-
-            if (discountInfo.appliedPromocodes.length > 0) {
-                orderData.promocodes = discountInfo.appliedPromocodes.map(p => p.code);
-                orderData.discount = discountInfo.discount;
-                orderData.discountAmount = discountInfo.discountAmount;
-            }
-
-            const result = await window.api.createOrder(orderData);
-
-            if (result?.success) {
-                authData.balance = result.newBalance;
-                if (!authData.badges) authData.badges = {};
-                authData.badges.buyer = true;
-                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-
-                currentUser = authData;
-
-                if (discountInfo.appliedPromocodes.length > 0 && window.promocodeSystem) {
-                    discountInfo.appliedPromocodes.forEach(p => {
-                        window.promocodeSystem.removeDiscount?.(p.code);
-                    });
-                }
-
-                closePurchaseModal();
-                showSuccessMessage(result.orderId || orderId, productName, result.newBalance);
-
-                if (window.checkAuth) {
-                    window.checkAuth();
-                }
-
-                window.promocodeSystem?.renderUI?.();
-
-            } else {
-                throw new Error(result?.error || 'Ошибка при создании заказа');
-            }
-
-        } catch (error) {
-            console.error('Purchase error:', error);
-            showNotification('Ошибка: ' + error.message, 'error');
-
-            const confirmBtn = document.querySelector('.btn-primary');
-            if (confirmBtn) {
-                confirmBtn.disabled = false;
-                confirmBtn.innerHTML = '<i class="fas fa-check"></i> Подтвердить';
-            }
-        }
-    };
-
-    function showSuccessMessage(orderId, productName, newBalance) {
-        const modal = document.createElement('div');
-        modal.className = 'success-message';
-        modal.innerHTML = `
-            <div class="success-content">
-                <div class="success-icon">
-                    <i class="fas fa-check"></i>
-                </div>
-                <h2 class="success-title">Покупка успешна!</h2>
-                <p>Заказ <strong>${escapeHtml(orderId)}</strong></p>
-                <p>Товар: <strong>${escapeHtml(productName)}</strong></p>
-                <div class="balance-info">
-                    <p>Остаток на балансе:</p>
-                    <p class="balance-amount">${newBalance} ₽</p>
-                </div>
-                <div class="modal-actions">
-                    <button class="btn-primary" onclick="location.reload()">
-                        <i class="fas fa-check"></i> Ок
-                    </button>
-                    <button class="btn-secondary" onclick="window.location.href='/profile.html#orders'">
-                        <i class="fas fa-shopping-bag"></i> Мои заказы
-                    </button>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-    }
-
-    function showInsufficientFundsModal(price, balance, productName) {
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <div class="insufficient-funds">
-                    <div class="insufficient-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <h2>Недостаточно средств</h2>
-                    <p>Для покупки товара не хватает <span class="insufficient-amount">${price - balance} ₽</span></p>
-
-                    <div class="purchase-details">
-                        <div class="purchase-row">
-                            <span>Стоимость товара:</span>
-                            <span class="warning">${price} ₽</span>
-                        </div>
-                        <div class="purchase-row">
-                            <span>Ваш баланс:</span>
-                            <span class="warning">${balance} ₽</span>
-                        </div>
-                    </div>
-
-                    <div class="modal-actions">
-                        <button class="btn-primary" onclick="window.location.href='/profile.html#balance'">
-                            <i class="fas fa-coins"></i> Пополнить баланс
-                        </button>
-                        <button class="btn-secondary" onclick="this.closest('.modal').remove()">
-                            <i class="fas fa-times"></i> Закрыть
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        document.body.appendChild(modal);
-    }
-
-    function showError(message) {
-        const container = document.getElementById('productsContainer');
-        if (!container) return;
-
-        container.innerHTML = `
-            <div class="error-state">
-                <i class="fas fa-exclamation-triangle"></i>
-                <p>${escapeHtml(message)}</p>
-                <button class="btn-primary" onclick="location.reload()">
-                    <i class="fas fa-sync-alt"></i> Попробовать снова
-                </button>
-            </div>
-        `;
-    }
-
-    function showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-            <span>${escapeHtml(message)}</span>
-        `;
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.style.animation = 'slideOutRight 0.3s ease-out';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
-
-    function updateShopActivePromocodes() {
+    
+    function updateActivePromocodesUI() {
         const container = document.getElementById('shopActivePromocodes');
         const countEl = document.getElementById('promocodeCount');
+        
         if (!container) return;
-
+        
         const activePromos = window.promocodeSystem?.activeDiscounts || [];
-
+        
         if (countEl) countEl.textContent = activePromos.length;
-
+        
         if (activePromos.length > 0) {
-            const globalDiscounts = activePromos.filter(p => !p.productId);
-            const totalGlobalDiscount = Math.min(globalDiscounts.reduce((sum, d) => sum + (d.value || 0), 0), 90);
-
             container.innerHTML = activePromos.map(promo => `
                 <div class="promocode-item">
                     <div class="promocode-info">
@@ -788,30 +421,15 @@
                         </div>
                         <div class="promocode-details">
                             <h4>${escapeHtml(promo.code)}</h4>
-                            <p>
-                                <i class="fas fa-percent"></i>
-                                Скидка: ${promo.value}%
-                                ${promo.productId ? ' (на конкретный товар)' : ' (на все товары)'}
-                            </p>
+                            <p><i class="fas fa-percent"></i> Скидка: ${promo.value}%</p>
                         </div>
                     </div>
-                    <div class="promocode-value">
-                        -${promo.value}%
-                    </div>
-                    <button class="btn-remove-promocode" onclick="removeShopPromocode('${escapeHtml(promo.code)}')">
+                    <div class="promocode-value">-${promo.value}%</div>
+                    <button class="btn-remove-promocode" onclick="window.removeShopPromocode('${escapeHtml(promo.code)}')">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
             `).join('');
-
-            if (totalGlobalDiscount > 0) {
-                container.innerHTML += `
-                    <div class="global-discount-info">
-                        <i class="fas fa-info-circle"></i>
-                        Общая скидка на все товары: <strong>${totalGlobalDiscount}%</strong>
-                    </div>
-                `;
-            }
         } else {
             container.innerHTML = `
                 <div class="empty-promocodes">
@@ -822,240 +440,284 @@
             `;
         }
     }
-
+    
     window.removeShopPromocode = function(code) {
         window.promocodeSystem?.removeDiscount?.(code);
+        setTimeout(() => {
+            const filtered = filterProductsByCategory(currentCategory);
+            renderProducts(filtered);
+            updateActivePromocodesUI();
+        }, 100);
     };
-
-    function addAnimationStyles() {
-        if (document.getElementById('shop-animation-styles')) return;
-
-        const styles = document.createElement('style');
-        styles.id = 'shop-animation-styles';
-        styles.textContent = `
-            @keyframes fadeOut {
-                from { opacity: 1; }
-                to { opacity: 0; }
+    
+    // Функция покупки (глобальная)
+    window.buyProduct = async function(productId, productName, originalPrice) {
+        console.log('🛒 Buying product:', { productId, productName, originalPrice });
+        
+        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+        
+        if (!authData.id) {
+            showToast('Пожалуйста, авторизуйтесь для покупки', 'warning');
+            setTimeout(() => window.location.href = '/auth.html', 2000);
+            return;
+        }
+        
+        if (authData.verificationCode) {
+            showToast('Завершите регистрацию', 'warning');
+            setTimeout(() => window.location.href = '/verify.html', 2000);
+            return;
+        }
+        
+        try {
+            const userData = await window.api?.getUser(authData.id);
+            const userBalance = userData?.user?.balance || 0;
+            const discountInfo = getDiscountInfo(originalPrice, productId);
+            const finalPrice = discountInfo.finalPrice;
+            
+            if (userBalance < finalPrice) {
+                showInsufficientFundsModal(finalPrice, userBalance, productName);
+                return;
             }
-
-            @keyframes slideOutRight {
-                from {
-                    transform: translateX(0);
-                    opacity: 1;
-                }
-                to {
-                    transform: translateX(100%);
-                    opacity: 0;
-                }
-            }
-
-            /* Сообщение о закрытии магазина */
-            .shop-closed-message {
-                grid-column: 1 / -1;
-                text-align: center;
-                padding: 80px 40px;
-                background: linear-gradient(135deg, #2a2b36, #1e1f29);
-                border-radius: 24px;
-                border: 2px solid #ED4245;
-                animation: fadeInUp 0.5s ease-out;
-            }
-
-            .shop-closed-message i {
-                font-size: 5rem;
-                color: #ED4245;
-                margin-bottom: 20px;
-            }
-
-            .shop-closed-message h2 {
-                color: #ED4245;
-                margin-bottom: 15px;
-                font-size: 2rem;
-            }
-
-            .shop-closed-message p {
-                color: var(--text-secondary);
-                margin-bottom: 10px;
-            }
-
-            .shop-closed-message .small-text {
-                font-size: 0.9rem;
-                color: var(--text-tertiary);
-                margin-top: 20px;
-            }
-
-            .notification {
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 16px 24px;
-                background: var(--bg-card);
-                border-left: 4px solid var(--primary);
-                border-radius: 8px;
-                box-shadow: var(--shadow-xl);
-                z-index: 10003;
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                animation: slideInRight 0.3s ease-out;
-            }
-
-            .notification.success { border-left-color: var(--accent); }
-            .notification.error { border-left-color: #ED4245; }
-            .notification.warning { border-left-color: #FEE75C; }
-
-            .loading-spinner {
-                grid-column: 1 / -1;
-                text-align: center;
-                padding: 60px;
-                color: var(--text-secondary);
-            }
-
-            .spinner {
-                width: 50px;
-                height: 50px;
-                border: 3px solid var(--border-light);
-                border-top-color: var(--primary);
-                border-radius: 50%;
-                margin: 0 auto 20px;
-                animation: spin 1s linear infinite;
-            }
-
-            .empty-state, .error-state {
-                grid-column: 1 / -1;
-                text-align: center;
-                padding: 60px;
-                color: var(--text-secondary);
-                background: var(--bg-card);
-                border-radius: var(--border-radius-lg);
-                border: 1px solid var(--border-light);
-            }
-
-            .empty-state i, .error-state i {
-                font-size: 4rem;
-                color: var(--text-tertiary);
-                margin-bottom: 20px;
-                opacity: 0.5;
-            }
-
-            .empty-state h3 {
-                color: var(--text-primary);
-                margin-bottom: 10px;
-            }
-
-            .empty-state p {
-                margin-bottom: 20px;
-            }
-
-            .error-state i {
-                color: #ED4245;
-                opacity: 1;
-            }
-
-            .global-discount-info {
-                margin-top: 15px;
-                padding: 12px;
-                background: rgba(87, 242, 135, 0.1);
-                border-radius: 8px;
-                color: var(--accent);
-                font-size: 0.95rem;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-
-            .info-message {
-                margin-top: 20px;
-                padding: 12px;
-                background: var(--gray-50);
-                border-radius: 8px;
-                color: var(--text-tertiary);
-                font-size: 0.9rem;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-
-            .balance-info {
-                background: var(--gray-50);
-                padding: 15px;
-                border-radius: 8px;
-                margin: 20px 0;
-            }
-
-            .balance-amount {
-                font-size: 2rem;
-                font-weight: 700;
-                color: var(--accent);
-                margin: 5px 0 0;
-            }
-
-            .product-image img {
-                width: 100%;
-                height: 200px;
-                object-fit: cover;
-                border-radius: var(--border-radius-lg);
-            }
-        `;
-
-        document.head.appendChild(styles);
-    }
-
-    function initMobileMenu() {
-        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-        const navMenu = document.querySelector('.nav-menu');
-        const navAuth = document.querySelector('.nav-auth');
-
-        if (!mobileMenuBtn || !navMenu) return;
-
-        let mobileNav = document.querySelector('.mobile-nav');
-        if (!mobileNav) {
-            mobileNav = document.createElement('div');
-            mobileNav.className = 'mobile-nav';
-            mobileNav.innerHTML = `
-                <div class="mobile-nav-header">
-                    <div class="mobile-nav-logo">
-                        <img src="image/logo.png" alt="BHStore">
-                        <span>BHStore</span>
+            
+            showPurchaseConfirmation(productName, finalPrice, productId, userBalance, discountInfo);
+            
+        } catch (error) {
+            console.error('Error buying product:', error);
+            showToast('Ошибка: ' + error.message, 'error');
+        }
+    };
+    
+    function showPurchaseConfirmation(productName, finalPrice, productId, userBalance, discountInfo) {
+        const orderId = 'BH-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        
+        const modalHtml = `
+            <div class="modal" id="purchaseModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2><i class="fas fa-shopping-cart"></i> Подтверждение покупки</h2>
+                        <button class="modal-close" onclick="closePurchaseModal()">×</button>
                     </div>
-                    <button class="mobile-nav-close">
-                        <i class="fas fa-times"></i>
+                    <div class="purchase-details">
+                        <div class="purchase-row">
+                            <span class="purchase-label"><i class="fas fa-box"></i> Товар:</span>
+                            <span class="purchase-value">${escapeHtml(productName)}</span>
+                        </div>
+                        ${discountInfo.discount > 0 ? `
+                            <div class="purchase-row">
+                                <span class="purchase-label"><i class="fas fa-tag"></i> Оригинальная цена:</span>
+                                <span class="purchase-value" style="text-decoration: line-through;">${discountInfo.originalPrice} ₽</span>
+                            </div>
+                            <div class="purchase-row">
+                                <span class="purchase-label"><i class="fas fa-percent"></i> Скидка (${discountInfo.discount}%):</span>
+                                <span class="purchase-value highlight">-${discountInfo.discountAmount} ₽</span>
+                            </div>
+                        ` : ''}
+                        <div class="purchase-row">
+                            <span class="purchase-label"><i class="fas fa-credit-card"></i> Итоговая сумма:</span>
+                            <span class="purchase-value highlight">${finalPrice} ₽</span>
+                        </div>
+                        <div class="purchase-row">
+                            <span class="purchase-label"><i class="fas fa-wallet"></i> Ваш баланс:</span>
+                            <span class="purchase-value ${userBalance >= finalPrice ? 'highlight' : 'warning'}">${userBalance} ₽</span>
+                        </div>
+                        <div class="purchase-row">
+                            <span class="purchase-label"><i class="fas fa-hashtag"></i> Номер заказа:</span>
+                            <span class="purchase-value" style="color: var(--primary);">${orderId}</span>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn-primary" onclick="confirmPurchase('${orderId}', '${escapeHtml(productId)}', '${escapeHtml(productName)}', ${finalPrice}, ${discountInfo.originalPrice})">
+                            <i class="fas fa-check"></i> Подтвердить
+                        </button>
+                        <button class="btn-secondary" onclick="closePurchaseModal()">
+                            <i class="fas fa-times"></i> Отмена
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+    
+    window.closePurchaseModal = function() {
+        const modal = document.getElementById('purchaseModal');
+        if (modal) modal.remove();
+    };
+    
+    window.confirmPurchase = async function(orderId, productId, productName, finalPrice, originalPrice) {
+        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+        const discountInfo = getDiscountInfo(originalPrice, productId);
+        
+        try {
+            showToast('Обработка покупки...', 'info');
+            
+            const orderData = {
+                userId: authData.id,
+                productId,
+                productName,
+                price: finalPrice,
+                originalPrice,
+                username: authData.username,
+                orderId: orderId
+            };
+            
+            if (discountInfo.appliedPromocodes.length > 0) {
+                orderData.promocodes = discountInfo.appliedPromocodes.map(p => p.code);
+                orderData.discount = discountInfo.discount;
+                orderData.discountAmount = discountInfo.discountAmount;
+            }
+            
+            const result = await window.api?.createOrder(orderData);
+            
+            if (result?.success) {
+                authData.balance = result.newBalance;
+                if (!authData.badges) authData.badges = {};
+                authData.badges.buyer = true;
+                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                
+                if (discountInfo.appliedPromocodes.length > 0 && window.promocodeSystem) {
+                    discountInfo.appliedPromocodes.forEach(p => {
+                        window.promocodeSystem.removeDiscount?.(p.code);
+                    });
+                }
+                
+                closePurchaseModal();
+                showSuccessMessage(result.orderId || orderId, productName, result.newBalance);
+                
+                if (window.checkAuth) window.checkAuth();
+                
+                setTimeout(() => {
+                    const filtered = filterProductsByCategory(currentCategory);
+                    renderProducts(filtered);
+                    updateActivePromocodesUI();
+                }, 500);
+                
+            } else {
+                throw new Error(result?.error || 'Ошибка при создании заказа');
+            }
+            
+        } catch (error) {
+            console.error('Purchase error:', error);
+            showToast('Ошибка: ' + error.message, 'error');
+        }
+    };
+    
+    function showSuccessMessage(orderId, productName, newBalance) {
+        const modalHtml = `
+            <div class="modal" id="successModal">
+                <div class="modal-content" style="text-align: center;">
+                    <div class="success-icon" style="width: 70px; height: 70px; background: #57F287; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                        <i class="fas fa-check" style="color: #1e1f29; font-size: 2rem;"></i>
+                    </div>
+                    <h2 style="color: #57F287;">Покупка успешна!</h2>
+                    <p>Заказ: <strong>${escapeHtml(orderId)}</strong></p>
+                    <p>Товар: <strong>${escapeHtml(productName)}</strong></p>
+                    <div style="background: var(--gray-50); padding: 15px; border-radius: 12px; margin: 20px 0;">
+                        <p style="margin: 0;">Остаток на балансе:</p>
+                        <p style="font-size: 1.5rem; color: #57F287; margin: 5px 0 0 0;">${newBalance} ₽</p>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn-primary" onclick="location.reload()">Ок</button>
+                        <button class="btn-secondary" onclick="window.location.href='/profile.html#orders'">Мои заказы</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        setTimeout(() => {
+            const modal = document.getElementById('successModal');
+            if (modal) modal.remove();
+        }, 5000);
+    }
+    
+    function showInsufficientFundsModal(price, balance, productName) {
+        const modalHtml = `
+            <div class="modal" id="insufficientModal">
+                <div class="modal-content" style="text-align: center;">
+                    <div style="width: 70px; height: 70px; background: #ED4245; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                        <i class="fas fa-exclamation-triangle" style="color: white; font-size: 2rem;"></i>
+                    </div>
+                    <h2 style="color: #ED4245;">Недостаточно средств</h2>
+                    <p>Для покупки "${escapeHtml(productName)}"</p>
+                    <div style="background: var(--gray-50); padding: 15px; border-radius: 12px; margin: 20px 0;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span>Стоимость:</span>
+                            <span style="color: #ED4245; font-weight: 600;">${price} ₽</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Ваш баланс:</span>
+                            <span style="color: #ED4245; font-weight: 600;">${balance} ₽</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-light);">
+                            <span>Не хватает:</span>
+                            <span style="color: #ED4245; font-weight: 600;">${price - balance} ₽</span>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn-primary" onclick="window.location.href='/profile.html#balance'">Пополнить баланс</button>
+                        <button class="btn-secondary" onclick="this.closest('.modal').remove()">Закрыть</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+    
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+        const icon = type === 'success' ? 'check-circle' : (type === 'error' ? 'exclamation-circle' : (type === 'warning' ? 'exclamation-triangle' : 'info-circle'));
+        toast.innerHTML = `<i class="fas fa-${icon}"></i> ${escapeHtml(message)}`;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
+    function showLoading(container) {
+        container.innerHTML = `
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Загрузка товаров...</p>
+            </div>
+        `;
+    }
+    
+    function renderEmptyState(title, message) {
+        const container = document.getElementById('productsContainer');
+        if (container) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <h3>${escapeHtml(title)}</h3>
+                    <p>${escapeHtml(message)}</p>
+                </div>
+            `;
+        }
+    }
+    
+    function renderErrorState(title, error) {
+        const container = document.getElementById('productsContainer');
+        if (container) {
+            container.innerHTML = `
+                <div class="error-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>${escapeHtml(title)}</h3>
+                    <p>${escapeHtml(error)}</p>
+                    <button class="btn-primary" onclick="location.reload()">
+                        <i class="fas fa-sync-alt"></i> Попробовать снова
                     </button>
                 </div>
-                <div class="mobile-nav-menu"></div>
-                <div class="mobile-nav-auth"></div>
             `;
-            document.body.appendChild(mobileNav);
         }
-
-        const mobileNavInstance = document.querySelector('.mobile-nav');
-        const closeBtn = mobileNavInstance.querySelector('.mobile-nav-close');
-
-        function updateMobileNav() {
-            const menuDiv = mobileNavInstance.querySelector('.mobile-nav-menu');
-            const authDiv = mobileNavInstance.querySelector('.mobile-nav-auth');
-            if (menuDiv) menuDiv.innerHTML = navMenu.innerHTML;
-            if (authDiv && navAuth) authDiv.innerHTML = navAuth.innerHTML;
-        }
-
-        mobileMenuBtn.addEventListener('click', () => {
-            updateMobileNav();
-            mobileNavInstance.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        });
-
-        closeBtn.addEventListener('click', () => {
-            mobileNavInstance.classList.remove('active');
-            document.body.style.overflow = '';
-        });
-
-        mobileNavInstance.addEventListener('click', (e) => {
-            if (e.target === mobileNavInstance) {
-                mobileNavInstance.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        });
     }
-
+    
     function escapeHtml(unsafe) {
         if (!unsafe) return '';
         return String(unsafe)
@@ -1065,11 +727,8 @@
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
     }
-
-    window.loadProducts = loadProducts;
+    
+    // Экспорт глобальных функций
+    window.showToast = showToast;
     window.getDiscountInfo = getDiscountInfo;
-    window.buyProduct = window.buyProduct;
-    window.closePurchaseModal = closePurchaseModal;
-    window.confirmPurchase = confirmPurchase;
-    window.removeShopPromocode = removeShopPromocode;
 })();
