@@ -225,7 +225,8 @@ class PromocodeSystem {
                         type: 'discount',
                         appliedAt: new Date().toISOString(),
                         expires_at: activateData.expires_at,
-                        valid_days: activateData.valid_days
+                        valid_days: activateData.valid_days,
+                        product_ids: promo.product_ids || [] // ID товаров, на которые действует скидка
                     };
                     this.activeDiscounts.push(newPromo);
                     await this.saveToAPI();
@@ -235,23 +236,24 @@ class PromocodeSystem {
                         const expireDate = new Date(activateData.expires_at).toLocaleDateString('ru-RU');
                         message += ` (действует до ${expireDate})`;
                     }
+                    if (promo.product_ids && promo.product_ids.length > 0) {
+                        message += ` на выбранные товары`;
+                    } else {
+                        message += ` на все товары`;
+                    }
                     this.showMessage(message, 'success');
                     
                 // ===== ДЛЯ БАЛАНСОВЫХ ПРОМОКОДОВ =====
                 } else if (promo.type === 'balance') {
-                    // Балансовый промокод - деньги уже зачислены на сервере
                     let message = `💰 Баланс пополнен на ${promo.value} ₽`;
                     
-                    // Обновляем баланс на странице
                     if (activateData.newBalance !== undefined && activateData.newBalance !== null) {
                         message += ` (новый баланс: ${activateData.newBalance} ₽)`;
                         
-                        // Обновляем через глобальную функцию
+                        // Обновляем баланс на странице
                         if (window.renderBalance) {
                             window.renderBalance(activateData.newBalance);
                         }
-                        
-                        // Обновляем через loadProfile
                         if (typeof loadProfile === 'function') {
                             await loadProfile();
                         }
@@ -268,17 +270,17 @@ class PromocodeSystem {
                 // Очищаем поле ввода
                 if (this.elements.input) this.elements.input.value = '';
                 
-                // ОБНОВЛЯЕМ ИСТОРИЮ ПРОМОКОДОВ (если функция существует на странице)
+                // Обновляем историю промокодов
                 if (typeof loadUserPromocodes === 'function') {
                     await loadUserPromocodes();
                 }
                 
-                // Обновляем данные из API
+                // Обновляем данные
                 await this.loadFromAPI();
                 this.renderUI();
                 this.refreshShopDisplay();
                 
-                // Показываем модальное окно с информацией (если функция существует)
+                // Показываем модальное окно
                 if (window.showPromocodeInfo) {
                     window.showPromocodeInfo({
                         ...activateData,

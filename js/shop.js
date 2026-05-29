@@ -354,19 +354,37 @@
         }
         
         try {
-            const finalPrice = window.promocodeSystem.getDiscountedPrice?.(originalPrice, productId) || originalPrice;
-            const appliedPromocodes = window.promocodeSystem.getAppliedDiscounts?.(productId) || [];
+            // Фильтруем промокоды, которые подходят для этого товара
+            const applicablePromocodes = window.promocodeSystem.activeDiscounts.filter(promo => {
+                // Если у промокода нет product_ids - скидка на все товары
+                if (!promo.product_ids || promo.product_ids.length === 0) return true;
+                // Если есть - проверяем, есть ли текущий товар в списке
+                return promo.product_ids.includes(productId);
+            });
             
-            const totalDiscount = appliedPromocodes.reduce((sum, d) => sum + (d.value || 0), 0);
-            const cappedDiscount = Math.min(totalDiscount, 90);
+            if (applicablePromocodes.length === 0) {
+                return {
+                    originalPrice,
+                    finalPrice: originalPrice,
+                    discount: 0,
+                    discountAmount: 0,
+                    appliedPromocodes: []
+                };
+            }
+            
+            const totalDiscount = Math.min(
+                applicablePromocodes.reduce((sum, d) => sum + (d.value || 0), 0),
+                90
+            );
+            const finalPrice = Math.round(originalPrice * (100 - totalDiscount) / 100);
             const discountAmount = originalPrice - finalPrice;
             
             return {
                 originalPrice,
                 finalPrice,
-                discount: cappedDiscount,
+                discount: totalDiscount,
                 discountAmount,
-                appliedPromocodes
+                appliedPromocodes: applicablePromocodes
             };
         } catch (error) {
             console.error('Error calculating discount:', error);
