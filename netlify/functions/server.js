@@ -37,16 +37,6 @@ try {
 
 const app = express();
 
-app.use((req, res, next) => {
-    req.setTimeout(8000, () => {
-        res.status(504).json({ success: false, error: 'Превышено время ожидания' });
-    });
-    res.setTimeout(8000, () => {
-        res.status(504).json({ success: false, error: 'Превышено время ожидания' });
-    });
-    next();
-});
-
 app.use((err, req, res, next) => {
     console.error('❌ Серверная ошибка:', err);
     res.status(500).json({ success: false, error: 'Внутренняя ошибка сервера' });
@@ -1828,6 +1818,9 @@ function getTestProducts() {
   }
   ];
 }
+
+productsData = getTestProducts();
+console.log(`✅ Загружено ${productsData.length} тестовых товаров`);
 
 // ============================================
 // Новости
