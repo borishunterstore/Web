@@ -5,6 +5,10 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Отключаем все расширения
+[plugins]
+  # Не устанавливаем никакие плагины
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/:splat"
