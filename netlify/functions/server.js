@@ -6,7 +6,6 @@ const { neon } = require('@neondatabase/serverless');
 const path = require('path');
 require('dotenv').config();
 const fs = require('fs');
-const path = require('path');
 
 // В самый верх файла, после require
 console.log('🚀 SERVER FUNCTION STARTED');
