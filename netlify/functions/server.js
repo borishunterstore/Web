@@ -177,16 +177,33 @@ async function initDatabase() {
     
     // БД PromoCodes
     await sql`
-      CREATE TABLE IF NOT EXISTS promocodes (
-        code TEXT PRIMARY KEY,
-        type TEXT,
-        value INTEGER,
-        active BOOLEAN DEFAULT TRUE,
-        max_uses INTEGER,
-        used_count INTEGER DEFAULT 0,
-        used_by JSONB DEFAULT '[]'
-      )
-    `;
+    CREATE TABLE IF NOT EXISTS promocodes (
+      code TEXT PRIMARY KEY,
+      type TEXT,
+      value INTEGER,
+      active BOOLEAN DEFAULT TRUE,
+      max_uses INTEGER,
+      used_count INTEGER DEFAULT 0,
+      used_by JSONB DEFAULT '[]',
+      valid_from TIMESTAMP,
+      valid_until TIMESTAMP,
+      expires_at TIMESTAMP,
+      valid_days INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
+  
+  // Добавляем новые колонки, если они отсутствуют (для существующей таблицы)
+  await sql`
+    ALTER TABLE promocodes 
+    ADD COLUMN IF NOT EXISTS valid_from TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS valid_until TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS valid_days INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  `;
 
     // Таблица уведомлений
     await sql`
@@ -3276,7 +3293,8 @@ app.post('/api/promocodes/check', async (req, res) => {
     }
     
     const codeUpper = code.toUpperCase();
-    console.log(`🔍 Проверка промокода: ${codeUpper} для пользователя ${userId}`);
+    const now = new Date();
+    console.log(`🔍 Проверка промокода: ${codeUpper} для пользователя ${userId} в ${now.toISOString()}`);
     
     let promocode = null;
     
@@ -3298,6 +3316,7 @@ app.post('/api/promocodes/check', async (req, res) => {
       });
     }
     
+    // Проверка активности
     if (!promocode.active) {
       return res.status(400).json({ 
         success: false, 
@@ -3305,13 +3324,38 @@ app.post('/api/promocodes/check', async (req, res) => {
       });
     }
     
+    // ПРОВЕРКА ПЕРИОДА ДЕЙСТВИЯ
+    if (promocode.valid_from) {
+      const validFrom = new Date(promocode.valid_from);
+      if (now < validFrom) {
+        const startDate = validFrom.toLocaleDateString('ru-RU');
+        return res.status(400).json({ 
+          success: false, 
+          error: `Промокод начнет действовать с ${startDate}` 
+        });
+      }
+    }
+    
+    if (promocode.valid_until) {
+      const validUntil = new Date(promocode.valid_until);
+      if (now > validUntil) {
+        const endDate = validUntil.toLocaleDateString('ru-RU');
+        return res.status(400).json({ 
+          success: false, 
+          error: `Период действия промокода истек ${endDate}` 
+        });
+      }
+    }
+    
+    // Проверка лимита использований
     if (promocode.max_uses && promocode.used_count >= promocode.max_uses) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Промокод больше недействителен' 
+        error: 'Промокод больше недействителен (достигнут лимит использований)' 
       });
     }
     
+    // Проверка, использовал ли уже пользователь этот промокод
     const usedBy = promocode.used_by || [];
     if (usedBy.includes(userId)) {
       return res.status(400).json({ 
@@ -3327,7 +3371,10 @@ app.post('/api/promocodes/check', async (req, res) => {
       promocode: {
         code: promocode.code,
         type: promocode.type,
-        value: promocode.value
+        value: promocode.value,
+        valid_from: promocode.valid_from,
+        valid_until: promocode.valid_until,
+        valid_days: promocode.valid_days
       }
     });
     
@@ -3353,7 +3400,8 @@ app.post('/api/promocodes/activate', async (req, res) => {
     }
     
     const codeUpper = code.toUpperCase();
-    console.log(`🎫 Активация промокода: ${codeUpper} для пользователя ${userId}`);
+    const now = new Date();
+    console.log(`🎫 Активация промокода: ${codeUpper} для пользователя ${userId} в ${now.toISOString()}`);
     
     let promocode = null;
     
@@ -3381,10 +3429,33 @@ app.post('/api/promocodes/activate', async (req, res) => {
       });
     }
     
+    // ПРОВЕРКА ПЕРИОДА ДЕЙСТВИЯ
+    if (promocode.valid_from) {
+      const validFrom = new Date(promocode.valid_from);
+      if (now < validFrom) {
+        const startDate = validFrom.toLocaleDateString('ru-RU');
+        return res.status(400).json({ 
+          success: false, 
+          error: `Промокод начнет действовать с ${startDate}` 
+        });
+      }
+    }
+    
+    if (promocode.valid_until) {
+      const validUntil = new Date(promocode.valid_until);
+      if (now > validUntil) {
+        const endDate = validUntil.toLocaleDateString('ru-RU');
+        return res.status(400).json({ 
+          success: false, 
+          error: `Период действия промокода истек ${endDate}` 
+        });
+      }
+    }
+    
     if (promocode.max_uses && promocode.used_count >= promocode.max_uses) {
       return res.status(400).json({ 
         success: false, 
-        error: 'Промокод больше недействителен' 
+        error: 'Промокод больше недействителен (достигнут лимит использований)' 
       });
     }
     
@@ -3394,6 +3465,16 @@ app.post('/api/promocodes/activate', async (req, res) => {
         success: false, 
         error: 'Вы уже использовали этот промокод' 
       });
+    }
+    
+    // РАСЧЕТ ДАТЫ ИСТЕЧЕНИЯ
+    let expiresAt = null;
+    if (promocode.valid_days && promocode.valid_days > 0) {
+      expiresAt = new Date(now);
+      expiresAt.setDate(expiresAt.getDate() + promocode.valid_days);
+      console.log(`⏰ Промокод будет активен до ${expiresAt.toISOString()}`);
+    } else if (promocode.valid_until) {
+      expiresAt = new Date(promocode.valid_until);
     }
     
     // Обновляем промокод
@@ -3430,8 +3511,6 @@ app.post('/api/promocodes/activate', async (req, res) => {
             WHERE discord_id = ${userId}
           `;
           console.log(`✅ Баланс обновлен: ${userId} -> ${newBalance} ₽`);
-        } else {
-          console.log(`❌ Пользователь ${userId} не найден в БД`);
         }
       } else {
         if (users[userId]) {
@@ -3441,7 +3520,10 @@ app.post('/api/promocodes/activate', async (req, res) => {
       }
     }
     
-    console.log(`✅ Промокод ${promocode.code} активирован для ${userId}, новый баланс: ${newBalance}`);
+    console.log(`✅ Промокод ${promocode.code} активирован для ${userId}`);
+    if (expiresAt) {
+      console.log(`⏰ Действует до: ${expiresAt.toISOString()}`);
+    }
     
     res.json({
       success: true,
@@ -3450,7 +3532,9 @@ app.post('/api/promocodes/activate', async (req, res) => {
         `Промокод "${promocode.code}" активирован`,
       newBalance: newBalance,
       value: promocode.value,
-      type: promocode.type
+      type: promocode.type,
+      expires_at: expiresAt,
+      valid_days: promocode.valid_days
     });
     
   } catch (error) {
