@@ -108,7 +108,10 @@ class PromocodeSystem {
     initEventListeners() {
         if (this.elements.input) {
             this.elements.input.addEventListener('keypress', (e) => { 
-                if (e.key === 'Enter') this.applyPromocodeByCode(this.elements.input.value.trim().toUpperCase()); 
+                if (e.key === 'Enter') {
+                    const code = this.elements.input.value.trim().toUpperCase();
+                    if (code) this.applyPromocodeByCode(code);
+                }
             });
         }
         if (this.elements.button) {
@@ -174,7 +177,7 @@ class PromocodeSystem {
             : validDiscounts;
     }
 
-    // Основной метод активации промокода
+    // ОСНОВНОЙ МЕТОД АКТИВАЦИИ ПРОМОКОДА
     async applyPromocodeByCode(code) {
         if (this.isProcessing) return;
         
@@ -214,6 +217,7 @@ class PromocodeSystem {
             if (activateData.success) {
                 const promo = checkData.promocode;
                 
+                // ===== ДЛЯ СКИДОЧНЫХ ПРОМОКОДОВ =====
                 if (promo.type === 'discount') {
                     const newPromo = {
                         code: promo.code,
@@ -233,32 +237,57 @@ class PromocodeSystem {
                     }
                     this.showMessage(message, 'success');
                     
+                // ===== ДЛЯ БАЛАНСОВЫХ ПРОМОКОДОВ =====
                 } else if (promo.type === 'balance') {
+                    // Балансовый промокод - деньги уже зачислены на сервере
                     let message = `💰 Баланс пополнен на ${promo.value} ₽`;
-                    if (activateData.newBalance !== undefined && activateData.newBalance !== null) {
-                        message += ` (новый баланс: ${activateData.newBalance} ₽)`;
-                    }
-                    this.showMessage(message, 'success');
                     
                     // Обновляем баланс на странице
                     if (activateData.newBalance !== undefined && activateData.newBalance !== null) {
-                        if (window.renderBalance) window.renderBalance(activateData.newBalance);
-                        if (typeof loadProfile === 'function') await loadProfile();
+                        message += ` (новый баланс: ${activateData.newBalance} ₽)`;
                         
+                        // Обновляем через глобальную функцию
+                        if (window.renderBalance) {
+                            window.renderBalance(activateData.newBalance);
+                        }
+                        
+                        // Обновляем через loadProfile
+                        if (typeof loadProfile === 'function') {
+                            await loadProfile();
+                        }
+                        
+                        // Обновляем локальное хранилище
                         const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
                         authData.balance = activateData.newBalance;
                         localStorage.setItem('bhstore_auth', JSON.stringify(authData));
                     }
+                    
+                    this.showMessage(message, 'success');
                 }
                 
+                // Очищаем поле ввода
                 if (this.elements.input) this.elements.input.value = '';
+                
+                // ОБНОВЛЯЕМ ИСТОРИЮ ПРОМОКОДОВ (если функция существует на странице)
+                if (typeof loadUserPromocodes === 'function') {
+                    await loadUserPromocodes();
+                }
+                
+                // Обновляем данные из API
                 await this.loadFromAPI();
                 this.renderUI();
                 this.refreshShopDisplay();
                 
-                // Показываем модальное окно с информацией
+                // Показываем модальное окно с информацией (если функция существует)
                 if (window.showPromocodeInfo) {
-                    window.showPromocodeInfo(activateData);
+                    window.showPromocodeInfo({
+                        ...activateData,
+                        message: activateData.message,
+                        newBalance: activateData.newBalance,
+                        value: promo.value,
+                        type: promo.type,
+                        code: promo.code
+                    });
                 }
                 
             } else {

@@ -443,135 +443,141 @@
         }
         
         function renderUserPromocodes(promocodes) {
-            const container = document.getElementById('userPromocodesList');
-            
-            let promocodesContainer = container;
-            if (!promocodesContainer) {
-                const promocodeSection = document.getElementById('promocodeSection');
-                if (promocodeSection) {
-                    const newContainer = document.createElement('div');
-                    newContainer.id = 'userPromocodesList';
-                    newContainer.className = 'user-promocodes-list';
-                    newContainer.style.marginTop = '20px';
-                    promocodeSection.appendChild(newContainer);
-                    promocodesContainer = newContainer;
-                }
-            }
-            
-            if (!promocodesContainer) return;
-            
-            if (!promocodes || promocodes.length === 0) {
-                promocodesContainer.innerHTML = `
-                    <div class="empty-promocodes" style="text-align: center; padding: 20px; color: #b9bbbe;">
-                        <i class="fas fa-ticket-alt"></i>
-                        <p>У вас пока нет использованных промокодов</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            const sortedPromocodes = [...promocodes].sort((a, b) => {
-                const dateA = new Date(a.usedAt || a.created_at || 0);
-                const dateB = new Date(b.usedAt || b.created_at || 0);
-                return dateB - dateA;
-            });
-            
-            promocodesContainer.innerHTML = `
-                <div class="promocodes-history-header" style="margin-bottom: 15px;">
-                    <h3 style="font-size: 1.1rem; color: #fff;">
-                        <i class="fas fa-history"></i> История использованных промокодов
-                    </h3>
-                </div>
-                <div class="promocodes-list">
-                    ${sortedPromocodes.map(promo => `
-                        <div class="promocode-history-item" style="
-                            background: #1e1f29;
-                            border-radius: 12px;
-                            padding: 12px 16px;
-                            margin-bottom: 10px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: space-between;
-                            transition: transform 0.2s, background 0.2s;
-                        ">
-                            <div class="promocode-info" style="display: flex; align-items: center; gap: 12px;">
-                                <div class="promocode-icon" style="
-                                    width: 40px;
-                                    height: 40px;
-                                    background: linear-gradient(135deg, #5865F2, #4752C4);
-                                    border-radius: 10px;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                ">
-                                    <i class="fas fa-ticket-alt" style="color: #fff; font-size: 1.2rem;"></i>
-                                </div>
-                                <div>
-                                    <div class="promocode-code" style="
-                                        font-weight: 600;
-                                        color: #FEE75C;
-                                        font-family: monospace;
-                                        font-size: 1rem;
-                                    ">
-                                        ${escapeHtml(promo.code)}
-                                    </div>
-                                    <div class="promocode-details" style="
-                                        display: flex;
-                                        gap: 15px;
-                                        margin-top: 4px;
-                                        font-size: 0.85rem;
-                                        color: #b9bbbe;
-                                    ">
-                                        <span>
-                                            <i class="fas fa-${promo.type === 'discount' ? 'percent' : 'coins'}"></i>
-                                            ${promo.type === 'discount' ? `${promo.value}% скидка` : `${promo.value}₽`}
-                                        </span>
-                                        <span>
-                                            <i class="fas fa-calendar-alt"></i>
-                                            ${new Date(promo.usedAt || promo.created_at || Date.now()).toLocaleDateString('ru-RU')}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="promocode-status" style="
-                                padding: 4px 12px;
-                                border-radius: 20px;
-                                font-size: 0.8rem;
-                                background: #2a2b36;
-                                color: #57F287;
+    const container = document.getElementById('userPromocodesList');
+    
+    let promocodesContainer = container;
+    if (!promocodesContainer) {
+        const promocodeSection = document.getElementById('promocodeSection');
+        if (promocodeSection) {
+            const newContainer = document.createElement('div');
+            newContainer.id = 'userPromocodesList';
+            newContainer.className = 'user-promocodes-list';
+            newContainer.style.marginTop = '20px';
+            promocodeSection.appendChild(newContainer);
+            promocodesContainer = newContainer;
+        }
+    }
+    
+    if (!promocodesContainer) return;
+    
+    if (!promocodes || promocodes.length === 0) {
+        promocodesContainer.innerHTML = `
+            <div class="empty-promocodes" style="text-align: center; padding: 20px; color: #b9bbbe;">
+                <i class="fas fa-ticket-alt"></i>
+                <p>У вас пока нет использованных промокодов</p>
+            </div>
+        `;
+        return;
+    }
+    
+    promocodesContainer.innerHTML = `
+        <div class="promocodes-history-header" style="margin-bottom: 15px;">
+            <h3 style="font-size: 1.1rem; color: #fff;">
+                <i class="fas fa-history"></i> История использованных промокодов
+            </h3>
+        </div>
+        <div class="promocodes-list">
+            ${promocodes.map(promo => `
+                <div class="promocode-history-item" style="
+                    background: #1e1f29;
+                    border-radius: 12px;
+                    padding: 12px 16px;
+                    margin-bottom: 10px;
+                    transition: transform 0.2s, background 0.2s;
+                ">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="
+                                width: 40px;
+                                height: 40px;
+                                background: linear-gradient(135deg, #5865F2, #4752C4);
+                                border-radius: 10px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
                             ">
-                                <i class="fas fa-check-circle"></i> Использован
+                                <i class="fas fa-ticket-alt" style="color: #fff; font-size: 1.2rem;"></i>
+                            </div>
+                            <div>
+                                <div style="
+                                    font-weight: 600;
+                                    color: #FEE75C;
+                                    font-family: monospace;
+                                    font-size: 1rem;
+                                ">
+                                    ${escapeHtml(promo.code)}
+                                </div>
+                                <div style="
+                                    display: flex;
+                                    gap: 15px;
+                                    margin-top: 4px;
+                                    font-size: 0.85rem;
+                                    color: #b9bbbe;
+                                    flex-wrap: wrap;
+                                ">
+                                    <span>
+                                        <i class="fas fa-${promo.type === 'discount' ? 'percent' : 'coins'}"></i>
+                                        ${promo.type === 'discount' ? `${promo.value}% скидка` : `${promo.value}₽`}
+                                    </span>
+                                    <span>
+                                        <i class="fas fa-calendar-alt"></i>
+                                        ${promo.usedAtFormatted || new Date(promo.usedAt).toLocaleString('ru-RU')}
+                                    </span>
+                                </div>
+                                ${promo.type === 'discount' && promo.valid_until ? `
+                                    <div style="font-size: 0.7rem; color: #FEE75C; margin-top: 4px;">
+                                        <i class="fas fa-clock"></i> 
+                                        Период действия: ${new Date(promo.valid_from).toLocaleDateString('ru-RU')} - ${new Date(promo.valid_until).toLocaleDateString('ru-RU')}
+                                    </div>
+                                ` : ''}
+                                ${promo.type === 'discount' && promo.valid_days ? `
+                                    <div style="font-size: 0.7rem; color: #57F287; margin-top: 4px;">
+                                        <i class="fas fa-hourglass-half"></i> 
+                                        Действует ${promo.valid_days} дней после активации
+                                    </div>
+                                ` : ''}
                             </div>
                         </div>
-                    `).join('')}
+                        <div style="
+                            padding: 4px 12px;
+                            border-radius: 20px;
+                            font-size: 0.8rem;
+                            background: #2a2b36;
+                            color: #57F287;
+                        ">
+                            <i class="fas fa-check-circle"></i> Использован
+                        </div>
+                    </div>
                 </div>
-            `;
-            
-            if (!document.getElementById('promocode-history-styles')) {
-                const style = document.createElement('style');
-                style.id = 'promocode-history-styles';
-                style.textContent = `
-                    .promocode-history-item:hover {
-                        background: #2a2b36 !important;
-                        transform: translateX(5px);
-                    }
-                    .user-promocodes-list {
-                        animation: fadeIn 0.3s ease;
-                    }
-                    @keyframes fadeIn {
-                        from {
-                            opacity: 0;
-                            transform: translateY(10px);
-                        }
-                        to {
-                            opacity: 1;
-                            transform: translateY(0);
-                        }
-                    }
-                `;
-                document.head.appendChild(style);
+            `).join('')}
+        </div>
+    `;
+    
+    if (!document.getElementById('promocode-history-styles')) {
+        const style = document.createElement('style');
+        style.id = 'promocode-history-styles';
+        style.textContent = `
+            .promocode-history-item:hover {
+                background: #2a2b36 !important;
+                transform: translateX(5px);
             }
-        }
+            .user-promocodes-list {
+                animation: fadeIn 0.3s ease;
+            }
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
     
         // Функция для отображения информации после активации
         function showPromocodeInfo(data) {

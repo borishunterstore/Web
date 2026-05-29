@@ -3429,29 +3429,32 @@ app.post('/api/promocodes/activate', async (req, res) => {
       });
     }
     
-    // ПРОВЕРКА ПЕРИОДА ДЕЙСТВИЯ
-    if (promocode.valid_from) {
-      const validFrom = new Date(promocode.valid_from);
-      if (now < validFrom) {
-        const startDate = validFrom.toLocaleDateString('ru-RU');
-        return res.status(400).json({ 
-          success: false, 
-          error: `Промокод начнет действовать с ${startDate}` 
-        });
+    // ПРОВЕРКА ПЕРИОДА ДЕЙСТВИЯ (только для скидочных промокодов)
+    if (promocode.type === 'discount') {
+      if (promocode.valid_from) {
+        const validFrom = new Date(promocode.valid_from);
+        if (now < validFrom) {
+          const startDate = validFrom.toLocaleDateString('ru-RU');
+          return res.status(400).json({ 
+            success: false, 
+            error: `Промокод начнет действовать с ${startDate}` 
+          });
+        }
+      }
+      
+      if (promocode.valid_until) {
+        const validUntil = new Date(promocode.valid_until);
+        if (now > validUntil) {
+          const endDate = validUntil.toLocaleDateString('ru-RU');
+          return res.status(400).json({ 
+            success: false, 
+            error: `Период действия промокода истек ${endDate}` 
+          });
+        }
       }
     }
     
-    if (promocode.valid_until) {
-      const validUntil = new Date(promocode.valid_until);
-      if (now > validUntil) {
-        const endDate = validUntil.toLocaleDateString('ru-RU');
-        return res.status(400).json({ 
-          success: false, 
-          error: `Период действия промокода истек ${endDate}` 
-        });
-      }
-    }
-    
+    // Для балансовых промокодов проверяем только максимальное количество использований
     if (promocode.max_uses && promocode.used_count >= promocode.max_uses) {
       return res.status(400).json({ 
         success: false, 
@@ -3467,14 +3470,12 @@ app.post('/api/promocodes/activate', async (req, res) => {
       });
     }
     
-    // РАСЧЕТ ДАТЫ ИСТЕЧЕНИЯ
+    // РАСЧЕТ ДАТЫ ИСТЕЧЕНИЯ (только для скидочных промокодов)
     let expiresAt = null;
-    if (promocode.valid_days && promocode.valid_days > 0) {
+    if (promocode.type === 'discount' && promocode.valid_days && promocode.valid_days > 0) {
       expiresAt = new Date(now);
       expiresAt.setDate(expiresAt.getDate() + promocode.valid_days);
-      console.log(`⏰ Промокод будет активен до ${expiresAt.toISOString()}`);
-    } else if (promocode.valid_until) {
-      expiresAt = new Date(promocode.valid_until);
+      console.log(`⏰ Скидочный промокод будет активен до ${expiresAt.toISOString()}`);
     }
     
     // Обновляем промокод
@@ -3496,7 +3497,7 @@ app.post('/api/promocodes/activate', async (req, res) => {
     
     let newBalance = null;
     
-    // Начисляем бонус если тип balance
+    // Начисляем бонус для балансовых промокодов (сразу зачисляем деньги)
     if (promocode.type === 'balance') {
       if (sql) {
         const [user] = await sql`
@@ -3510,7 +3511,9 @@ app.post('/api/promocodes/activate', async (req, res) => {
             SET balance = ${newBalance}
             WHERE discord_id = ${userId}
           `;
-          console.log(`✅ Баланс обновлен: ${userId} -> ${newBalance} ₽`);
+          console.log(`✅ Баланс обновлен: ${userId} -> ${newBalance} ₽ (пополнение на ${promocode.value}₽)`);
+        } else {
+          console.log(`❌ Пользователь ${userId} не найден в БД`);
         }
       } else {
         if (users[userId]) {
@@ -3520,22 +3523,30 @@ app.post('/api/promocodes/activate', async (req, res) => {
       }
     }
     
-    console.log(`✅ Промокод ${promocode.code} активирован для ${userId}`);
-    if (expiresAt) {
-      console.log(`⏰ Действует до: ${expiresAt.toISOString()}`);
-    }
+    console.log(`✅ Промокод ${promocode.code} активирован для ${userId}, тип: ${promocode.type}`);
     
-    res.json({
+    // Формируем ответ
+    const responseData = {
       success: true,
       message: promocode.type === 'balance' ? 
-        `Баланс пополнен на ${promocode.value}₽` :
+        `💰 Баланс пополнен на ${promocode.value}₽` :
         `Промокод "${promocode.code}" активирован`,
       newBalance: newBalance,
       value: promocode.value,
       type: promocode.type,
-      expires_at: expiresAt,
-      valid_days: promocode.valid_days
-    });
+      code: promocode.code,
+      used_at: now.toISOString()
+    };
+    
+    // Добавляем информацию о сроке действия только для скидочных
+    if (promocode.type === 'discount') {
+      responseData.expires_at = expiresAt;
+      responseData.valid_days = promocode.valid_days;
+      responseData.valid_from = promocode.valid_from;
+      responseData.valid_until = promocode.valid_until;
+    }
+    
+    res.json(responseData);
     
   } catch (error) {
     console.error('Ошибка активации промокода:', error.message);
@@ -3617,6 +3628,10 @@ app.get('/api/promocodes/user/:userId', async (req, res) => {
           value, 
           used_count,
           used_by,
+          valid_from,
+          valid_until,
+          valid_days,
+          created_at,
           updated_at
         FROM promocodes 
         WHERE used_by ? ${userId}
@@ -3626,14 +3641,23 @@ app.get('/api/promocodes/user/:userId', async (req, res) => {
     
     const formattedPromocodes = promocodes.map(promo => {
       const usedByList = promo.used_by || [];
-      const usedAt = usedByList.includes(userId) ? promo.updated_at : null;
+      const usedAt = usedByList.includes(userId) ? promo.updated_at : promo.created_at;
       
       return {
         code: promo.code,
         type: promo.type,
         value: promo.value,
         usedAt: usedAt,
-        created_at: promo.updated_at
+        usedAtFormatted: new Date(usedAt).toLocaleString('ru-RU', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        valid_from: promo.valid_from,
+        valid_until: promo.valid_until,
+        valid_days: promo.valid_days
       };
     });
     
