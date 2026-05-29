@@ -3285,7 +3285,10 @@ app.post('/api/promocodes/check', async (req, res) => {
   try {
     const { userId, code } = req.body;
     
+    console.log(`🔍 Проверка промокода: получен запрос:`, { userId, code });
+    
     if (!userId || !code) {
+      console.log(`❌ Ошибка: не указаны userId или code`);
       return res.status(400).json({ 
         success: false, 
         error: 'Не указаны userId или code' 
@@ -3304,6 +3307,7 @@ app.post('/api/promocodes/check', async (req, res) => {
         WHERE UPPER(code) = ${codeUpper}
       `;
       promocode = result;
+      console.log(`📊 Результат запроса к БД:`, promocode ? 'найден' : 'не найден');
     } else {
       promocode = promocodes[codeUpper];
     }
@@ -3318,24 +3322,27 @@ app.post('/api/promocodes/check', async (req, res) => {
     
     // Проверка активности
     if (!promocode.active) {
+      console.log(`❌ Промокод ${codeUpper} неактивен`);
       return res.status(400).json({ 
         success: false, 
         error: 'Промокод неактивен' 
       });
     }
     
-    // ===== ПРОВЕРКА ЛИМИТА ИСПОЛЬЗОВАНИЙ (ДЛЯ ВСЕХ ТИПОВ) =====
-    // Проверяем глобальный лимит
+    // ===== ПРОВЕРКА ЛИМИТА ИСПОЛЬЗОВАНИЙ =====
+    // Глобальный лимит
     if (promocode.max_uses && promocode.used_count >= promocode.max_uses) {
+      console.log(`❌ Промокод ${codeUpper}: достигнут общий лимит (${promocode.used_count}/${promocode.max_uses})`);
       return res.status(400).json({ 
         success: false, 
         error: 'Промокод больше недействителен (достигнут общий лимит использований)' 
       });
     }
     
-    // Проверяем, использовал ли уже пользователь этот промокод (личный лимит)
+    // Проверяем, использовал ли уже пользователь этот промокод
     const usedBy = promocode.used_by || [];
     if (usedBy.includes(userId)) {
+      console.log(`❌ Промокод ${codeUpper}: пользователь ${userId} уже использовал`);
       return res.status(400).json({ 
         success: false, 
         error: 'Вы уже использовали этот промокод (можно только 1 раз)' 
@@ -3348,6 +3355,7 @@ app.post('/api/promocodes/check', async (req, res) => {
         const validFrom = new Date(promocode.valid_from);
         if (now < validFrom) {
           const startDate = validFrom.toLocaleDateString('ru-RU');
+          console.log(`❌ Промокод ${codeUpper}: ещё не начал действовать (с ${startDate})`);
           return res.status(400).json({ 
             success: false, 
             error: `Промокод начнет действовать с ${startDate}` 
@@ -3359,6 +3367,7 @@ app.post('/api/promocodes/check', async (req, res) => {
         const validUntil = new Date(promocode.valid_until);
         if (now > validUntil) {
           const endDate = validUntil.toLocaleDateString('ru-RU');
+          console.log(`❌ Промокод ${codeUpper}: истек ${endDate}`);
           return res.status(400).json({ 
             success: false, 
             error: `Период действия промокода истек ${endDate}` 
@@ -3393,10 +3402,11 @@ app.post('/api/promocodes/check', async (req, res) => {
     res.json(responseData);
     
   } catch (error) {
-    console.error('Ошибка проверки промокода:', error.message);
+    console.error('❌ Ошибка проверки промокода:', error.message);
+    console.error(error.stack);
     res.status(500).json({ 
       success: false, 
-      error: 'Ошибка проверки промокода: ' + error.message 
+      error: 'Ошибка сервера при проверке промокода: ' + error.message 
     });
   }
 });
