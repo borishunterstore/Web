@@ -6,3 +6,9 @@
   to = "/.netlify/functions/server/:splat"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/auth/discord/callback"
+  to = "/.netlify/functions/server/auth/discord/callback"
+  status = 200
+  force = true
