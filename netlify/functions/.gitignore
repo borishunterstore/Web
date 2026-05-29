@@ -1,0 +1,4 @@
+# В файле netlify/functions/.gitignore
+node_modules/
+*.log
+.env

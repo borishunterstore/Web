@@ -111,6 +111,29 @@ class PromocodeSystem {
         }
     }
 
+    // Получение итоговой цены со скидкой
+    getDiscountedPrice(originalPrice, productId = null) {
+        if (!this.activeDiscounts || this.activeDiscounts.length === 0) return originalPrice;
+        
+        // Фильтруем применимые промокоды (глобальные или на конкретный товар)
+        const applicable = this.activeDiscounts.filter(d => !d.productId || d.productId === productId);
+        if (applicable.length === 0) return originalPrice;
+        
+        // Суммируем скидки (максимум 90%)
+        let totalDiscount = applicable.reduce((sum, d) => sum + (d.value || 0), 0);
+        totalDiscount = Math.min(totalDiscount, 90);
+        
+        return Math.round(originalPrice * (100 - totalDiscount) / 100);
+    }
+
+    // Получение информации о применённых скидках
+    getAppliedDiscounts(productId = null) {
+        if (!this.activeDiscounts) return [];
+        return productId 
+            ? this.activeDiscounts.filter(d => !d.productId || d.productId === productId)
+            : this.activeDiscounts;
+    }
+
     async applyPromocode() {
         if (this.isProcessing) return;
         
@@ -164,6 +187,7 @@ class PromocodeSystem {
                 const promo = checkData.promocode;
                 
                 if (promo.type === 'discount') {
+                    // Добавляем скидку
                     this.activeDiscounts.push({
                         code: promo.code,
                         value: promo.value,
@@ -175,13 +199,8 @@ class PromocodeSystem {
                     
                     this.showMessage(`✓ Промокод активирован! Скидка ${promo.value}%`, 'success');
                     
-                    if (window.shopSystem && window.shopSystem.updatePrices) {
-                        window.shopSystem.updatePrices(this.activeDiscounts);
-                    }
-                    
-                    if (typeof updateHomePagePrices === 'function') {
-                        updateHomePagePrices();
-                    }
+                    // 🔄 ОБНОВЛЯЕМ МАГАЗИН
+                    this.refreshShopDisplay();
                     
                 } else if (promo.type === 'balance') {
                     this.showMessage(`💰 Баланс пополнен на ${promo.value} ₽`, 'success');
@@ -207,6 +226,7 @@ class PromocodeSystem {
         }
     }
 
+    // Единый метод удаления промокода (без дублирования)
     async removeDiscount(code) {
         const auth = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
         if (!auth.id) return;
@@ -215,35 +235,23 @@ class PromocodeSystem {
             if (window.api) {
                 await window.api.request('/promocodes/remove-active', {
                     method: 'POST',
-                    body: JSON.stringify({ 
-                        userId: auth.id, 
-                        code: code 
-                    })
+                    body: JSON.stringify({ userId: auth.id, code: code })
                 });
             } else {
                 await fetch('/.netlify/functions/server/promocodes/remove-active', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        userId: auth.id, 
-                        code: code 
-                    })
+                    body: JSON.stringify({ userId: auth.id, code: code })
                 });
             }
             
             this.activeDiscounts = this.activeDiscounts.filter(p => p.code !== code);
             await this.saveToAPI();
-            
             this.renderUI();
             this.showMessage('Промокод удален', 'info');
             
-            if (window.shopSystem && window.shopSystem.updatePrices) {
-                window.shopSystem.updatePrices(this.activeDiscounts);
-            }
-            
-            if (typeof updateHomePagePrices === 'function') {
-                updateHomePagePrices();
-            }
+            // 🔄 ОБНОВЛЯЕМ МАГАЗИН
+            this.refreshShopDisplay();
             
         } catch (e) {
             console.error('Ошибка удаления промокода:', e);
@@ -251,14 +259,69 @@ class PromocodeSystem {
         }
     }
 
-    getDiscountForProduct(productId, price) {
-        if (!this.activeDiscounts || this.activeDiscounts.length === 0) return price;
-        
-        const maxDiscount = Math.max(...this.activeDiscounts.map(d => d.value || 0));
-        if (maxDiscount > 0) {
-            return Math.round(price * (100 - maxDiscount) / 100);
+    // Обновление отображения магазина
+    refreshShopDisplay() {
+        // Способ 1: через глобальную функцию из shop.js
+        if (typeof window.updateProductsDisplay === 'function') {
+            console.log('🔄 Обновляем товары через updateProductsDisplay');
+            window.updateProductsDisplay();
         }
-        return price;
+        
+        // Способ 2: через shopSystem (для обратной совместимости)
+        if (window.shopSystem && typeof window.shopSystem.updatePrices === 'function') {
+            console.log('🔄 Обновляем товары через shopSystem');
+            window.shopSystem.updatePrices(this.activeDiscounts);
+        }
+        
+        // Способ 3: перезагружаем страницу товаров если есть глобальная функция renderProducts
+        if (typeof window.renderProducts === 'function' && window.allProducts) {
+            console.log('🔄 Обновляем товары через renderProducts');
+            const currentCategory = document.querySelector('.category-btn.active')?.dataset.category || 'all';
+            window.renderProducts(window.allProducts, currentCategory);
+        }
+        
+        // Способ 4: обновляем цены на главной странице если есть
+        if (typeof updateHomePagePrices === 'function') {
+            updateHomePagePrices();
+        }
+        
+        // Обновляем UI промокодов в магазине
+        const shopPromoContainer = document.getElementById('shopActivePromocodes');
+        const promocodeSection = document.getElementById('promocodeSection');
+        
+        if (shopPromoContainer) {
+            if (this.activeDiscounts.length > 0) {
+                if (promocodeSection) promocodeSection.style.display = 'block';
+                
+                shopPromoContainer.innerHTML = this.activeDiscounts.map(promo => `
+                    <div class="promocode-item">
+                        <div class="promocode-info">
+                            <div class="promocode-icon">
+                                <i class="fas fa-ticket-alt"></i>
+                            </div>
+                            <div class="promocode-details">
+                                <h4>${this.escapeHtml(promo.code)}</h4>
+                                <p><i class="fas fa-percent"></i> Скидка: ${promo.value}%</p>
+                            </div>
+                        </div>
+                        <div class="promocode-value">-${promo.value}%</div>
+                        <button class="btn-remove-promocode" onclick="window.promocodeSystem?.removeDiscount('${this.escapeHtml(promo.code)}')">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `).join('');
+            } else {
+                if (promocodeSection) promocodeSection.style.display = 'none';
+            }
+        }
+        
+        // Обновляем счётчик промокодов
+        const countEl = document.getElementById('promocodeCount');
+        if (countEl) countEl.textContent = this.activeDiscounts.length;
+    }
+
+    getDiscountForProduct(productId, price) {
+        return this.getDiscountedPrice(price, productId);
     }
 
     setLoading(state) {
@@ -270,48 +333,6 @@ class PromocodeSystem {
             ? '<i class="fas fa-spinner fa-spin"></i> Проверка...' 
             : '<i class="fas fa-tag"></i> Активировать';
     }
-
-async removeDiscount(code) {
-    const auth = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-    if (!auth.id) return;
-
-    try {
-        if (window.api) {
-            await window.api.request('/promocodes/remove-active', {
-                method: 'POST',
-                body: JSON.stringify({ userId: auth.id, code: code })
-            });
-        } else {
-            await fetch('/.netlify/functions/server/promocodes/remove-active', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: auth.id, code: code })
-            });
-        }
-        
-        this.activeDiscounts = this.activeDiscounts.filter(p => p.code !== code);
-        await this.saveToAPI();
-        this.renderUI();
-        
-        if (window.shopSystem && window.shopSystem.updatePrices) {
-            window.shopSystem.updatePrices(this.activeDiscounts);
-        }
-        
-        if (typeof updateHomePagePrices === 'function') {
-            updateHomePagePrices();
-        }
-        
-        if (typeof window.renderProducts === 'function' && window.allProducts) {
-            const currentCategory = document.querySelector('.category-btn.active')?.dataset.category || 'all';
-            const filtered = currentCategory === 'all' ? window.allProducts : filterProductsByCategory(window.allProducts, currentCategory);
-            window.renderProducts(filtered, currentCategory);
-        }
-        
-    } catch (e) {
-        console.error('Ошибка удаления промокода:', e);
-        this.showMessage('Ошибка при удалении', 'error');
-    }
-}
 
     showMessage(text, type) {
         if (!this.elements.message) return;
@@ -364,18 +385,29 @@ async removeDiscount(code) {
             ${this.activeDiscounts.map(p => `
                 <div class="active-promo-item promo-animate">
                     <div class="promo-info-text">
-                        <span class="promo-code-name">${p.code}</span>
+                        <span class="promo-code-name">${this.escapeHtml(p.code)}</span>
                         <span class="promo-value">Скидка ${p.value}%</span>
                         <span class="promo-date">${new Date(p.appliedAt).toLocaleDateString()}</span>
                     </div>
-                    <button class="btn-remove-promo" onclick="promocodeSystem.removeDiscount('${p.code}')">
+                    <button class="btn-remove-promo" onclick="promocodeSystem.removeDiscount('${this.escapeHtml(p.code)}')">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
             `).join('')}
         `;
     }
+
+    escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return String(unsafe)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
 }
 
+// Создаём глобальный экземпляр
 const promocodeSystem = new PromocodeSystem();
 window.promocodeSystem = promocodeSystem;

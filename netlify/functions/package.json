@@ -1,13 +1,19 @@
 {
-    "name": "bhstore-functions",
-    "version": "1.0.0",
-    "private": true,
-    "dependencies": {
-      "@neondatabase/serverless": "^0.9.5",
-      "axios": "^1.7.9",
-      "cors": "^2.8.5",
-      "dotenv": "^16.4.7",
-      "express": "^4.21.2",
-      "serverless-http": "^3.2.0"
-    }
+  "name": "bhstore-functions",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "engines": {
+    "node": "20.x"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.9.0",
+    "axios": "^1.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.0",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.0",
+    "serverless-http": "^3.2.0"
   }
+}
