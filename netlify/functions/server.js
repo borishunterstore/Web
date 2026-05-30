@@ -480,6 +480,30 @@ if (sql) {
   })();
 }
 
+async function initShopSettings() {
+  if (!sql) return;
+  
+  const defaultSettings = [
+    { key: 'shop_open', value: true },
+    { key: 'auth_enabled', value: true },
+    { key: 'registration_enabled', value: true },
+    { key: 'site_access', value: true }
+  ];
+  
+  for (const setting of defaultSettings) {
+    const [exists] = await sql`
+      SELECT 1 FROM shop_settings WHERE setting_key = ${setting.key}
+    `;
+    if (!exists) {
+      await sql`
+        INSERT INTO shop_settings (setting_key, setting_value, updated_at)
+        VALUES (${setting.key}, ${setting.value}, CURRENT_TIMESTAMP)
+      `;
+    }
+  }
+  console.log('✅ Настройки магазина инициализированы');
+}
+
 // Обновите эндпоинт /api/products - проверка статуса магазина
 app.get('/api/products', async (req, res) => {
   console.log('📦 GET /api/products');
