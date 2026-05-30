@@ -196,13 +196,12 @@ async function initDatabase() {
   
   // Добавляем новые колонки, если они отсутствуют (для существующей таблицы)
   await sql`
-    ALTER TABLE promocodes 
-    ADD COLUMN IF NOT EXISTS valid_from TIMESTAMP,
-    ADD COLUMN IF NOT EXISTS valid_until TIMESTAMP,
-    ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP,
-    ADD COLUMN IF NOT EXISTS valid_days INTEGER DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  -- Добавляем колонку max_uses_per_user (сколько раз может активировать 1 пользователь)
+  ALTER TABLE promocodes 
+  ADD COLUMN IF NOT EXISTS max_uses_per_user INTEGER DEFAULT 1;
+  
+  -- Обновляем существующие промокоды (по умолчанию 1 раз на пользователя)
+  UPDATE promocodes SET max_uses_per_user = 1 WHERE max_uses_per_user IS NULL;
   `;
 
     // Таблица уведомлений
@@ -3359,13 +3358,16 @@ app.post('/api/promocodes/check', async (req, res) => {
       });
     }
     
-    // Проверка периода действия (для всех типов)
+    // ===== ПРОВЕРКА ПЕРИОДА ДЕЙСТВИЯ =====
     if (promocode.valid_from) {
       const validFrom = new Date(promocode.valid_from);
       if (now < validFrom) {
+        const startDate = validFrom.toLocaleDateString('ru-RU');
         return res.status(400).json({ 
           success: false, 
-          error: `Промокод начнет действовать с ${validFrom.toLocaleDateString('ru-RU')}` 
+          error: `❌ Промокод начнет действовать с ${startDate}`,
+          reason: 'not_started',
+          valid_from: validFrom
         });
       }
     }
@@ -3373,9 +3375,12 @@ app.post('/api/promocodes/check', async (req, res) => {
     if (promocode.valid_until) {
       const validUntil = new Date(promocode.valid_until);
       if (now > validUntil) {
+        const endDate = validUntil.toLocaleDateString('ru-RU');
         return res.status(400).json({ 
           success: false, 
-          error: `Период действия промокода истек ${validUntil.toLocaleDateString('ru-RU')}` 
+          error: `❌ Промокод истек ${endDate}`,
+          reason: 'expired',
+          valid_until: validUntil
         });
       }
     }

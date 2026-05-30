@@ -203,7 +203,22 @@ class PromocodeSystem {
             });
 
             if (!checkData.success) {
-                this.showMessage(checkData.error || 'Промокод недействителен', 'error');
+                // Определяем тип ошибки для красивого сообщения
+                let errorMessage = checkData.error || 'Промокод недействителен';
+                
+                if (checkData.reason === 'expired') {
+                    errorMessage = `⏰ ${errorMessage}`;
+                } else if (checkData.reason === 'not_started') {
+                    errorMessage = `📅 ${errorMessage}`;
+                } else if (errorMessage.includes('истек')) {
+                    errorMessage = `⏰ ${errorMessage}`;
+                } else if (errorMessage.includes('уже использовали')) {
+                    errorMessage = `⚠️ ${errorMessage}`;
+                } else if (errorMessage.includes('не найден')) {
+                    errorMessage = `🔍 ${errorMessage}`;
+                }
+                
+                this.showMessage(errorMessage, 'warning');
                 this.setLoading(false);
                 return;
             }
