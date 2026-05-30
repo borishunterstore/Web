@@ -1756,3 +1756,134 @@
     display: inline-block;
     vertical-align: middle;
 }
+
+/* Стили для новостей на главной странице */
+.latest-news {
+    padding: 60px 0;
+    background: var(--bg-section);
+}
+
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 30px;
+    margin-bottom: 40px;
+    max-width: var(--container-width);
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 24px;
+}
+
+.news-card {
+    background: var(--bg-card);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-light);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.news-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--primary);
+}
+
+.news-card .news-date {
+    padding: 16px 20px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.news-card .news-date i {
+    margin-right: 8px;
+    color: var(--primary);
+}
+
+.news-card .news-date span {
+    background: rgba(88, 101, 242, 0.15);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    color: var(--primary);
+}
+
+.news-card h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 15px 20px 10px;
+    line-height: 1.4;
+}
+
+.news-card p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0 20px 15px;
+    flex: 1;
+}
+
+.news-card .news-footer {
+    padding: 12px 20px 20px;
+    border-top: 1px solid var(--border-light);
+}
+
+.news-card .news-footer span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.news-card:hover .news-footer span {
+    gap: 12px;
+    color: var(--primary);
+}
+
+.btn-view-all {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 14px 32px;
+    border-radius: 40px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin: 0 auto;
+    width: fit-content;
+}
+
+.btn-view-all:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+    .news-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+        padding: 0 20px;
+    }
+    
+    .news-card h3 {
+        font-size: 1.1rem;
+    }
+    
+    .btn-view-all {
+        padding: 12px 24px;
+        font-size: 0.9rem;
+    }
+}
