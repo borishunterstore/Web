@@ -1129,3 +1129,33 @@
     color: var(--text-secondary);
     font-size: 0.85rem;
 }
+
+/* Активные промокоды */
+.active-promocode-item {
+    transition: all 0.2s ease;
+}
+
+.active-promocode-item:hover {
+    transform: translateX(5px);
+    background: linear-gradient(135deg, rgba(254, 231, 92, 0.15), rgba(254, 231, 92, 0.05)) !important;
+}
+
+.btn-remove-promo {
+    transition: all 0.2s ease;
+}
+
+.btn-remove-promo:hover {
+    transform: scale(1.1);
+}
+
+/* Адаптация для мобильных */
+@media (max-width: 768px) {
+    .active-promocode-item {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    
+    .btn-remove-promo {
+        align-self: flex-end;
+    }
+}

@@ -50,7 +50,20 @@
                 <div class="stat-icon"><i class="fas fa-calendar"></i></div><div class="stat-value" id="memberSinceStat">...</div><div class="stat-label">С нами</div></div></div>
 
         <div class="profile-section"><h2><i class="fas"><img src="image/bhstore.png" style="height: 50px;"></i></h2><div id="supportChat" class="chat-container"><div style="text-align: center; padding: 40px; color: #b9bbbe;"><i class="fas fa-spinner fa-spin"></i><p>Загрузка чата...</p></div></div></div>
-        <div class="promocode-section" id="promocodeSection"><h2><i class="fas fa-ticket-alt"></i>Промокоды</h2><div class="promocode-input-container"><input type="text" id="promocodeInput" placeholder="Введите промокод" autocomplete="off"> <button id="applyPromocodeBtn" class="btn-promocode"> <i class="fas fa-check"></i> Активировать</button></div><div id="promocodeMessage"></div><div id="userActivePromocodes" style="margin-top: 20px;"></div></div>
+        <div class="promocode-section" id="promocodeSection">
+            <h2><i class="fas fa-ticket-alt"></i> Промокоды</h2>
+            <div class="promocode-input-container">
+                <input type="text" id="promocodeInput" placeholder="Введите промокод" autocomplete="off">
+                <button id="applyPromocodeBtn" class="btn-promocode">
+                    <i class="fas fa-check"></i> Активировать
+                </button>
+            </div>
+            <div id="promocodeMessage"></div>
+            
+            <div id="userActivePromocodes" style="margin-top: 20px;"></div>
+            
+            <div id="userPromocodesList" style="margin-top: 20px;"></div>
+        </div>
         <div class="orders-list"><h2><i class="fas fa-shopping-bag"></i>Мои заказы</h2><div id="ordersList"></div></div></div>
 
     <div id="addBalanceModal" class="modal" style="display: none;"><div class="modal-content"><h2><i class="fas fa-coins"></i>Пополнение баланса</h2><p>Для пополнения баланса обратитесь к администратору через чат с поддержкой или Discord.</p><div class="modal-actions"><button class="btn-primary" onclick="window.location.href='#supportChat'"><i class="fas fa-headset"></i> Написать в поддержку</button><button class="btn-admin" onclick="closeModal('addBalanceModal')"><i class="fas fa-times"></i> Закрыть</button></div></div></div>
@@ -83,34 +96,35 @@
         });
     
         document.addEventListener('DOMContentLoaded', async function() {
-            console.log('Loading profile...');
-            
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            if (!authData.id) {
-                window.location.href = '/auth.html';
-                return;
-            }
-            
-            await loadProfile();
-
-            // Инициализируем систему промокодов через глобальный класс
-            if (window.promocodeSystem) {
-                // Передаем функции из profile.html в promocodeSystem для обратной связи
-                window.promocodeSystem.onBalanceUpdate = (newBalance) => {
-                    renderBalance(newBalance);
-                };
-                window.promocodeSystem.onPromocodeActivated = (data) => {
-                    showPromocodeInfo(data);
-                    loadUserPromocodes(); // Обновляем историю
-                };
-                
-                // Рендерим историю промокодов через наш метод
-                await loadUserPromocodes();
-            } else {
-                console.error('Promocode system not loaded');
-            }
-        });
+    console.log('Loading profile...');
     
+    const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+    if (!authData.id) {
+        window.location.href = '/auth.html';
+        return;
+    }
+    
+    await loadProfile();
+
+    // Инициализируем систему промокодов
+    if (window.promocodeSystem) {
+        window.promocodeSystem.onBalanceUpdate = (newBalance) => {
+            renderBalance(newBalance);
+        };
+        window.promocodeSystem.onPromocodeActivated = (data) => {
+            showPromocodeInfo(data);
+            loadUserPromocodes();     // Обновляем историю
+            loadActivePromocodes();   // Обновляем активные промокоды
+        };
+        
+        // Загружаем оба списка
+        await loadActivePromocodes();  // Активные скидки
+        await loadUserPromocodes();    // История использованных
+    } else {
+        console.error('Promocode system not loaded');
+    }
+});
+
         async function loadProfile() {
             const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             
@@ -717,6 +731,133 @@ if (window.promocodeSystem && !window.promocodeSystem.applyPromocodeByCode) {
             this.setLoading(false);
         }
     };
+}
+
+
+// Функция для отображения АКТИВНЫХ промокодов (скидок)
+function renderActivePromocodes(promocodes) {
+    const container = document.getElementById('userActivePromocodes');
+    
+    if (!container) {
+        console.error('Контейнер userActivePromocodes не найден');
+        return;
+    }
+    
+    if (!promocodes || promocodes.length === 0) {
+        container.innerHTML = `
+            <div class="empty-promocodes" style="text-align: center; padding: 20px; background: #1e1f29; border-radius: 16px;">
+                <i class="fas fa-ticket-alt" style="font-size: 2rem; color: #4a4b5e; margin-bottom: 10px; display: block;"></i>
+                <p style="color: #b9bbbe; margin: 0;">Нет активных промокодов</p>
+                <p style="color: #72767d; font-size: 0.8rem; margin-top: 5px;">Активируйте промокод, чтобы получить скидку</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="active-promocodes-header" style="margin-bottom: 15px;">
+            <h3 style="font-size: 1.1rem; color: #fff; display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-fire" style="color: #FEE75C;"></i> 
+                Активные промокоды (скидки)
+                <span style="font-size: 0.8rem; background: #2a2b36; padding: 2px 10px; border-radius: 20px; color: #FEE75C;">${promocodes.length} шт.</span>
+            </h3>
+        </div>
+        <div class="active-promocodes-list" style="display: flex; flex-direction: column; gap: 10px;">
+            ${promocodes.map(promo => `
+                <div class="active-promocode-item" style="
+                    background: linear-gradient(135deg, rgba(254, 231, 92, 0.1), rgba(254, 231, 92, 0.05));
+                    border-radius: 16px;
+                    padding: 12px 16px;
+                    border: 1px solid rgba(254, 231, 92, 0.3);
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                ">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="
+                            width: 40px;
+                            height: 40px;
+                            background: linear-gradient(135deg, #FEE75C, #FEE75C);
+                            border-radius: 10px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        ">
+                            <i class="fas fa-percent" style="color: #1e1f29; font-size: 1.2rem;"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; color: #FEE75C; font-family: monospace; font-size: 1rem;">
+                                ${escapeHtml(promo.code)}
+                            </div>
+                            <div style="font-size: 0.8rem; color: #b9bbbe;">
+                                Скидка ${promo.value}% ${promo.product_ids && promo.product_ids.length > 0 ? 'на выбранные товары' : 'на все товары'}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        ${promo.expires_at ? `
+                            <div style="font-size: 0.7rem; color: #FEE75C;">
+                                <i class="fas fa-clock"></i> до ${new Date(promo.expires_at).toLocaleDateString('ru-RU')}
+                            </div>
+                        ` : ''}
+                        <button class="btn-remove-promo" onclick="window.promocodeSystem?.removeDiscount('${escapeHtml(promo.code)}')" style="
+                            background: none;
+                            border: none;
+                            color: #ED4245;
+                            cursor: pointer;
+                            padding: 5px 10px;
+                            border-radius: 8px;
+                            transition: all 0.2s;
+                        " onmouseover="this.style.background='rgba(237, 66, 69, 0.2)'" onmouseout="this.style.background='none'">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+// Обновленная функция загрузки активных промокодов
+async function loadActivePromocodes() {
+    const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+    if (!authData.id) return;
+    
+    try {
+        const response = await fetch(`/api/promocodes/active/${authData.id}`);
+        const data = await response.json();
+        
+        if (data.success && data.promocodes) {
+            renderActivePromocodes(data.promocodes);
+        } else {
+            renderActivePromocodes([]);
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки активных промокодов:', error);
+        renderActivePromocodes([]);
+    }
+}
+
+// Обновите функцию loadUserPromocodes (история)
+async function loadUserPromocodes() {
+    const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+    if (!authData.id) return;
+    
+    try {
+        const response = await fetch(`/api/promocodes/user/${authData.id}`);
+        const data = await response.json();
+        
+        if (data.success && data.promocodes) {
+            renderUserPromocodes(data.promocodes);
+        } else {
+            renderUserPromocodes([]);
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки истории промокодов:', error);
+        renderUserPromocodes([]);
+    }
 }
 
         window.logout = function() {
