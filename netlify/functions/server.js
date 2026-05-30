@@ -3320,7 +3320,7 @@ app.post('/api/promocodes/check', async (req, res) => {
     if (!promocode) {
       return res.status(404).json({ 
         success: false, 
-        error: 'Промокод не найден' 
+        error: '🔍 Промокод не найден' 
       });
     }
     
@@ -3332,15 +3332,16 @@ app.post('/api/promocodes/check', async (req, res) => {
       });
     }
     
-    // Проверка общего лимита использований (max_uses)
+    // Проверка общего лимита использований
     if (promocode.max_uses && promocode.used_count >= promocode.max_uses) {
       return res.status(400).json({ 
         success: false, 
-        error: `❌ Промокод больше недействителен (достигнут общий лимит: ${promocode.used_count}/${promocode.max_uses})` 
+        error: `❌ Промокод больше недействителен (достигнут общий лимит: ${promocode.used_count}/${promocode.max_uses})`,
+        reason: 'expired'
       });
     }
     
-    // Проверка лимита использований на пользователя (max_uses_per_user)
+    // Проверка лимита использований на пользователя
     const usedBy = promocode.used_by || [];
     const userUseCount = usedBy.filter(id => id === userId).length;
     const maxPerUser = promocode.max_uses_per_user || 1;
@@ -3348,11 +3349,12 @@ app.post('/api/promocodes/check', async (req, res) => {
     if (userUseCount >= maxPerUser) {
       return res.status(400).json({ 
         success: false, 
-        error: `❌ Вы уже использовали этот промокод ${userUseCount} раз(а). Максимум: ${maxPerUser}`
+        error: `⚠️ Вы уже использовали этот промокод ${userUseCount} раз(а). Максимум: ${maxPerUser}`,
+        reason: 'already_used'
       });
     }
     
-    // Проверка периода действия (для всех типов промокодов)
+    // Проверка периода действия
     if (promocode.valid_from) {
       const validFrom = new Date(promocode.valid_from);
       if (now < validFrom) {
@@ -3450,7 +3452,7 @@ app.post('/api/promocodes/activate', async (req, res) => {
     }
     
     // Проверка лимита использований на пользователя
-    const usedBy = promocode.used_by || [];
+    let usedBy = promocode.used_by || [];
     const userUseCount = usedBy.filter(id => id === userId).length;
     const maxPerUser = promocode.max_uses_per_user || 1;
     
@@ -3484,19 +3486,19 @@ app.post('/api/promocodes/activate', async (req, res) => {
       }
     }
     
-    // Обновляем промокод (добавляем userId в used_by)
-    const updatedUsedBy = [...usedBy, userId];
+    // ===== ОБНОВЛЯЕМ ПРОМОКОД (ДОБАВЛЯЕМ userId В used_by) =====
+    usedBy.push(userId);
     const newUsedCount = (promocode.used_count || 0) + 1;
     
     if (sql) {
       await sql`
         UPDATE promocodes 
         SET used_count = ${newUsedCount}, 
-            used_by = ${JSON.stringify(updatedUsedBy)},
+            used_by = ${JSON.stringify(usedBy)},
             updated_at = NOW()
         WHERE code = ${promocode.code}
       `;
-      console.log(`📊 Обновлена статистика: использован ${newUsedCount} раз(а) из ${promocode.max_uses || '∞'}`);
+      console.log(`📊 Обновлена статистика: использован ${newUsedCount} раз(а) из ${promocode.max_uses || '∞'}, used_by: ${JSON.stringify(usedBy)}`);
     }
     
     let newBalance = null;
@@ -3709,13 +3711,13 @@ app.get('/api/promocodes/user/:userId', async (req, res) => {
         type: promo.type,
         value: promo.value,
         usedAt: usedAt,
-        usedAtFormatted: new Date(usedAt).toLocaleString('ru-RU', {
+        usedAtFormatted: usedAt ? new Date(usedAt).toLocaleString('ru-RU', {
           day: 'numeric',
           month: 'long',
           year: 'numeric',
           hour: '2-digit',
           minute: '2-digit'
-        }),
+        }) : 'Дата неизвестна',
         valid_from: promo.valid_from,
         valid_until: promo.valid_until,
         valid_days: promo.valid_days,
