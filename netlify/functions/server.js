@@ -1751,7 +1751,7 @@ function getTestProducts() {
   {
     "id": "video_montaz_easy",
     "name": "Монтаж",
-    "description": "Уровень: <img src=\"image/emoji/news_orange.png\" style=\"width: 70px;\"> Easy",
+    "description": "Уровень: Easy",
     "price": 499,
     "category": "youtube",
     "icon": "image/emoji/montaz.png",
@@ -1799,7 +1799,7 @@ function getTestProducts() {
     "description": "",
     "price": 1099,
     "category": "ava",
-    "icon": "image/emoji/montaz.png",
+    "icon": "image/emoji/ava.png",
     "features": [
       "Скоро"
     ]
