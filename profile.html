@@ -445,23 +445,13 @@
         function renderUserPromocodes(promocodes) {
     const container = document.getElementById('userPromocodesList');
     
-    let promocodesContainer = container;
-    if (!promocodesContainer) {
-        const promocodeSection = document.getElementById('promocodeSection');
-        if (promocodeSection) {
-            const newContainer = document.createElement('div');
-            newContainer.id = 'userPromocodesList';
-            newContainer.className = 'user-promocodes-list';
-            newContainer.style.marginTop = '20px';
-            promocodeSection.appendChild(newContainer);
-            promocodesContainer = newContainer;
-        }
+    if (!container) {
+        console.error('Контейнер userPromocodesList не найден');
+        return;
     }
     
-    if (!promocodesContainer) return;
-    
     if (!promocodes || promocodes.length === 0) {
-        promocodesContainer.innerHTML = `
+        container.innerHTML = `
             <div class="empty-promocodes" style="text-align: center; padding: 30px; background: #1e1f29; border-radius: 16px;">
                 <i class="fas fa-ticket-alt" style="font-size: 3rem; color: #4a4b5e; margin-bottom: 15px; display: block;"></i>
                 <p style="color: #b9bbbe; margin: 0;">У вас пока нет использованных промокодов</p>
@@ -471,7 +461,7 @@
         return;
     }
     
-    promocodesContainer.innerHTML = `
+    container.innerHTML = `
         <div class="promocodes-history-header" style="margin-bottom: 20px;">
             <h3 style="font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 10px;">
                 <i class="fas fa-history" style="color: #5865F2;"></i> 
@@ -487,11 +477,8 @@
                     padding: 16px 20px;
                     transition: all 0.2s ease;
                     border: 1px solid #2a2b36;
-                    cursor: pointer;
-                " onmouseenter="this.style.borderColor='#5865F2'; this.style.transform='translateX(5px)'" 
-                   onmouseleave="this.style.borderColor='#2a2b36'; this.style.transform='translateX(0)'">
+                ">
                     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
-                        <!-- Левая часть: иконка и информация -->
                         <div style="display: flex; align-items: center; gap: 15px; flex: 2;">
                             <div style="
                                 width: 50px;
@@ -532,32 +519,8 @@
                                         ${promo.usedAtFormatted || new Date(promo.usedAt).toLocaleString('ru-RU')}
                                     </span>
                                 </div>
-                                <!-- Дополнительная информация о сроках для скидочных промокодов -->
-                                ${promo.type === 'discount' ? `
-                                    <div style="display: flex; gap: 15px; margin-top: 8px; font-size: 0.7rem; flex-wrap: wrap;">
-                                        ${promo.valid_from ? `
-                                            <span style="display: flex; align-items: center; gap: 4px; color: #72767d;">
-                                                <i class="fas fa-play"></i>
-                                                Начало: ${new Date(promo.valid_from).toLocaleDateString('ru-RU')}
-                                            </span>
-                                        ` : ''}
-                                        ${promo.valid_until ? `
-                                            <span style="display: flex; align-items: center; gap: 4px; color: #72767d;">
-                                                <i class="fas fa-stop"></i>
-                                                Окончание активации: ${new Date(promo.valid_until).toLocaleDateString('ru-RU')}
-                                            </span>
-                                        ` : ''}
-                                        ${promo.valid_days ? `
-                                            <span style="display: flex; align-items: center; gap: 4px; color: #FEE75C;">
-                                                <i class="fas fa-hourglass-half"></i>
-                                                Действует ${promo.valid_days} дней после активации
-                                            </span>
-                                        ` : ''}
-                                    </div>
-                                ` : ''}
                             </div>
                         </div>
-                        <!-- Правая часть: статус -->
                         <div style="
                             padding: 6px 16px;
                             border-radius: 30px;
@@ -570,39 +533,13 @@
                             gap: 6px;
                             white-space: nowrap;
                         ">
-                            <i class="fas fa-check-circle"></i> 
-                            Использован
+                            <i class="fas fa-check-circle"></i> Использован
                         </div>
                     </div>
                 </div>
             `).join('')}
         </div>
     `;
-    
-    // Добавляем стили, если ещё нет
-    if (!document.getElementById('promocode-history-styles')) {
-        const style = document.createElement('style');
-        style.id = 'promocode-history-styles';
-        style.textContent = `
-            .promocode-history-item {
-                transition: all 0.2s ease;
-            }
-            .user-promocodes-list {
-                animation: fadeInUp 0.3s ease;
-            }
-            @keyframes fadeInUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
 }
 
         // Функция для отображения информации после активации
