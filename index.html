@@ -157,9 +157,9 @@
         </a>
     </section>
 
-    <section class="latest-news" style="justify-content: center; align-items: center; padding: 60px 0;">
-        <div class="news-header" style="justify-content: center; align-items: center;">
-            <h2 class="section-title" style="justify-content: center; align-items: center;">
+    <section class="latest-news" style="padding: 60px 0;">
+        <div class="news-header" style="text-align: center;">
+            <h2 class="section-title" style="justify-content: center; align-items: center; display: flex; justify-content: center;">
                 <img src="image/emoji/news_orange.png" style="width: 70px;"> Последние новости
             </h2>
         </div>
@@ -260,22 +260,52 @@
             }
         }
         
-async function loadLatestNews() {
+        async function loadLatestNews() {
     const container = document.getElementById('latestNews');
+    if (!container) {
+        console.error('Container #latestNews not found');
+        return;
+    }
+    
     try {
+        console.log('Загрузка новостей...');
         const response = await fetch('/api/news');
         const data = await response.json();
-        if (data.success && data.news) {
+        console.log('Ответ API:', data);
+        
+        if (data.success && data.news && data.news.length > 0) {
             container.innerHTML = data.news.slice(0, 3).map(news => `
                 <div class="news-card" onclick="window.location.href='/news.html?id=${news.id}'" style="cursor: pointer;">
                     <div class="news-date">
                         <i class="fas fa-calendar-alt"></i> ${news.date}
-                        <span style="margin-left: auto;">${news.category}</span>
+                        <span>${news.category || 'Новость'}</span>
+                    </div>
+                    <h3>${escapeHtml(news.title)}</h3>
+                    <p>${escapeHtml((news.content || '').substring(0, 100))}...</p>
+                    <div class="news-footer">
+                        <span>Читать далее →</span>
+                    </div>
+                </div>
+            `).join('');
+            console.log('Новости загружены:', data.news.length);
+        } else {
+            console.warn('Новости не найдены, используем демо-новости');
+            // Демо-новости если API вернул пустой результат
+            const demoNews = [
+                { id: 1, title: 'Добро пожаловать в BHStore!', content: 'Мы рады приветствовать вас в нашем магазине!', date: new Date().toLocaleDateString('ru-RU'), category: 'announcement' },
+                { id: 2, title: 'Новые услуги доступны!', content: 'Добавлены новые тарифы Discord ботов.', date: new Date().toLocaleDateString('ru-RU'), category: 'updates' },
+                { id: 3, title: 'Весенняя распродажа!', content: 'Скидка 15% на все услуги.', date: new Date().toLocaleDateString('ru-RU'), category: 'promo' }
+            ];
+            container.innerHTML = demoNews.map(news => `
+                <div class="news-card" onclick="window.location.href='/news.html?id=${news.id}'" style="cursor: pointer;">
+                    <div class="news-date">
+                        <i class="fas fa-calendar-alt"></i> ${news.date}
+                        <span>${news.category}</span>
                     </div>
                     <h3>${escapeHtml(news.title)}</h3>
                     <p>${escapeHtml(news.content.substring(0, 100))}...</p>
                     <div class="news-footer">
-                        <span style="color: var(--primary);">Читать далее →</span>
+                        <span>Читать далее →</span>
                     </div>
                 </div>
             `).join('');
@@ -285,6 +315,6 @@ async function loadLatestNews() {
         container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Не удалось загрузить новости</p>';
     }
 }
-    </script>
+</script>
 </body>
 </html>
