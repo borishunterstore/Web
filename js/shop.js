@@ -90,52 +90,59 @@
     }
 
     // Отображение товаров
-    function renderProducts(products) {
+    function renderProducts(productsToRender) {
         const container = document.getElementById('productsContainer');
         if (!container) return;
-        
-        if (!products || products.length === 0) {
-            renderEmptyState('Нет товаров', 'В этой категории пока нет товаров.');
-            return;
-        }
-        
-        container.innerHTML = products.map((product, index) => {
+    
+        container.innerHTML = productsToRender.map((product, index) => {
             const discountInfo = getDiscountInfo(product.price, product.id);
             const finalPrice = discountInfo.finalPrice;
             const hasDiscount = discountInfo.discount > 0;
             
+            const safeProductId = escapeHtml(product.id);
+            const safeProductName = escapeHtml(product.name);
+            const safePrice = product.price;
+            
+            // Обработка описания: если есть HTML-теги, не экранируем
+            let descriptionHtml = product.description || '';
+            // Проверяем, содержит ли описание HTML-теги
+            const hasHtmlTags = /<[^>]*>/.test(descriptionHtml);
+            const descriptionDisplay = hasHtmlTags ? descriptionHtml : escapeHtml(descriptionHtml);
+    
             return `
-                <div class="product-card" data-product-id="${escapeHtml(product.id)}" style="animation-delay: ${index * 0.05}s">
+                <div class="product-card" data-product-id="${safeProductId}" style="animation-delay: ${index * 0.1}s">
                     ${hasDiscount ? `
                         <div class="product-discount-badge">
                             <i class="fas fa-tag"></i> -${discountInfo.discount}%
                         </div>
                     ` : ''}
+    
                     <div class="product-image">
-                        <img src="${product.image || product.icon || '/image/default-product.png'}" 
-                             alt="${escapeHtml(product.name)}" 
+                        <img src="${product.image || product.icon || '/image/default-product.png'}"
+                             alt="${safeProductName}"
                              onerror="this.src='/image/default-product.png'">
                     </div>
+    
                     <div class="product-info">
-                        <h3 class="product-title">${escapeHtml(product.name)}</h3>
-                        <p class="product-description">${escapeHtml(product.description || 'Описание отсутствует')}</p>
-                        
-                        <!-- ${product.features && product.features.length > 0 ? `
+                        <h3 class="product-title">${safeProductName}</h3>
+                        <div class="product-description">${descriptionDisplay}</div>
+    
+                        ${product.features ? `
                             <div class="product-features">
-                                ${product.features.slice(0, 3).map(f => `
+                                ${Array.isArray(product.features) ? product.features.map(feature => `
                                     <div class="feature-item">
                                         <i class="fas fa-check"></i>
-                                        <span>${escapeHtml(f)}</span>
+                                        <span>${escapeHtml(feature)}</span>
                                     </div>
-                                `).join('')}
-                            </div> -->
+                                `).join('') : ''}
+                            </div>
                         ` : ''}
-                        
+    
                         <div class="price-section">
                             ${hasDiscount ? `
                                 <div class="original-price">
                                     <span><i class="fas fa-clock"></i> Обычная цена</span>
-                                    <span>${product.price} ₽</span>
+                                    <span>${discountInfo.originalPrice} ₽</span>
                                 </div>
                                 <div class="final-price">
                                     <span><i class="fas fa-tag"></i> Цена со скидкой</span>
@@ -147,12 +154,28 @@
                                 </div>
                             `}
                         </div>
-                        
+    
+                        ${discountInfo.appliedPromocodes.length > 0 ? `
+                            <div class="applied-promocodes">
+                                <div class="applied-promocodes-title">
+                                    <i class="fas fa-ticket-alt"></i>
+                                    Применены промокоды:
+                                </div>
+                                <div class="applied-promocodes-list">
+                                    ${discountInfo.appliedPromocodes.map(p => `
+                                        <span class="promocode-tag">
+                                            <i class="fas fa-tag"></i> ${escapeHtml(p.code)}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+    
                         <div style="display: flex; gap: 10px; margin-top: 10px;">
-                            <button class="btn-buy" onclick="window.buyProduct('${escapeHtml(product.id)}', '${escapeHtml(product.name)}', ${product.price})">
+                            <button class="btn-buy" onclick="window.buyProduct('${safeProductId}', '${safeProductName}', ${safePrice})">
                                 <i class="fas fa-shopping-cart"></i> Купить
                             </button>
-                            <button class="btn-details" onclick="window.showProductDetails('${escapeHtml(product.id)}')">
+                            <button class="btn-details" onclick="window.showProductDetails('${safeProductId}')">
                                 <i class="fas fa-info-circle"></i> Подробнее
                             </button>
                         </div>
@@ -160,9 +183,6 @@
                 </div>
             `;
         }).join('');
-        
-        // Обновляем URL при рендере
-        updateURL();
     }
 
     // Показ деталей товара в модальном окне
@@ -194,6 +214,11 @@
         
         modalTitle.textContent = product.name;
         
+        // Обработка описания с HTML
+        let descriptionHtml = product.description || '';
+        const hasHtmlTags = /<[^>]*>/.test(descriptionHtml);
+        const descriptionDisplay = hasHtmlTags ? descriptionHtml : escapeHtml(descriptionHtml);
+        
         modalContent.innerHTML = `
             <div class="product-detail">
                 <div class="product-detail-image">
@@ -205,7 +230,7 @@
                 <div class="product-detail-info">
                     <div class="product-detail-description">
                         <h3><i class="fas fa-align-left"></i> Описание</h3>
-                        <p>${escapeHtml(product.description || 'Описание отсутствует')}</p>
+                        <div>${descriptionDisplay}</div>
                     </div>
                     
                     ${product.features && product.features.length > 0 ? `
@@ -240,9 +265,6 @@
                 </div>
             </div>
         `;
-        
-        modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
     }
     
     window.closeProductModal = function() {

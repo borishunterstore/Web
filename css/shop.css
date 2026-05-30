@@ -1737,3 +1737,22 @@
         font-size: 1.2rem;
     }
 }
+
+/* Стили для HTML-контента в описании товара */
+.product-description img {
+    max-width: 100%;
+    height: auto;
+    vertical-align: middle;
+}
+
+.product-description {
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.product-description img.emoji-icon {
+    width: 24px;
+    height: 24px;
+    display: inline-block;
+    vertical-align: middle;
+}
