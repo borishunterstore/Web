@@ -161,10 +161,10 @@
         <div class="news-header" style="justify-content: center; align-items: center;">
             <h2 class="section-title" style="justify-content: center; align-items: center;"><img src="image/emoji/news_orange.png" style="width: 70px;"> Последние новости</h2>
         </div>
-        <div id="latestNews" class="news-grid">
-        </div>
+        <div id="latestNews" class="news-grid"></div>
         <a href="news.html" class="btn-view-all"><i class="fas" style="justify-content: center; align-items: center"></i> Все новости</a>
     </section>
+
     <section class="cta-section" style="padding: 80px 0; background: linear-gradient(135deg, var(--primary), var(--secondary)); text-align: center;">
         <div class="container" style="max-width: var(--container-width); margin: 0 auto; padding: 0 24px;">
             <h2 style="font-size: 2.5rem; color: white; margin-bottom: 20px;">Готовы начать? <img src="image/emoji/ready.png" class="ready"></h2>
@@ -254,29 +254,31 @@
             }
         }
         
-        async function loadLatestNews() {
-            const container = document.getElementById('latestNews');
-            try {
-                const response = await fetch('/api/news');
-                const data = await response.json();
-                if (data.success && data.news) {
-                    container.innerHTML = data.news.slice(0, 2).map(news => `
-                        <div class="news-card">
-                            <div class="news-date">
-                                <i class="fas fa-calendar-alt"></i> ${news.date}
-                                <span style="margin-left: auto;">${news.category}</span>
-                            </div>
-                            <h3>${escapeHtml(news.title)}</h3>
-                            <p>${escapeHtml(news.content.substring(0, 120))}...</p>
-                            <a href="news.html" style="color: var(--primary);">Читать далее →</a>
-                        </div>
-                    `).join('');
-                }
-            } catch (error) {
-                console.error('Error loading news:', error);
-                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Не удалось загрузить новости</p>';
-            }
+async function loadLatestNews() {
+    const container = document.getElementById('latestNews');
+    try {
+        const response = await fetch('/api/news');
+        const data = await response.json();
+        if (data.success && data.news) {
+            container.innerHTML = data.news.slice(0, 3).map(news => `
+                <div class="news-card" onclick="window.location.href='/news.html?id=${news.id}'" style="cursor: pointer;">
+                    <div class="news-date">
+                        <i class="fas fa-calendar-alt"></i> ${news.date}
+                        <span style="margin-left: auto;">${news.category}</span>
+                    </div>
+                    <h3>${escapeHtml(news.title)}</h3>
+                    <p>${escapeHtml(news.content.substring(0, 100))}...</p>
+                    <div class="news-footer">
+                        <span style="color: var(--primary);">Читать далее →</span>
+                    </div>
+                </div>
+            `).join('');
         }
+    } catch (error) {
+        console.error('Error loading news:', error);
+        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">Не удалось загрузить новости</p>';
+    }
+}
     </script>
 </body>
 </html>
