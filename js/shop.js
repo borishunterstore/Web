@@ -36,7 +36,6 @@
         showLoading(container);
         
         try {
-            // Загружаем товары через API
             const response = await fetch('/api/products');
             const data = await response.json();
             
@@ -44,13 +43,11 @@
                 allProducts = data.products;
                 console.log(`📦 Loaded ${allProducts.length} products`);
                 
-                // Проверяем URL параметры
                 const urlParams = new URLSearchParams(window.location.search);
                 const categoryParam = urlParams.get('category');
                 const productParam = urlParams.get('product');
                 
                 if (productParam) {
-                    // Показываем детали товара
                     const product = allProducts.find(p => p.id === productParam);
                     if (product) {
                         showProductModal(product);
@@ -103,9 +100,7 @@
             const safeProductName = escapeHtml(product.name);
             const safePrice = product.price;
             
-            // Обработка описания: если есть HTML-теги, не экранируем
             let descriptionHtml = product.description || '';
-            // Проверяем, содержит ли описание HTML-теги
             const hasHtmlTags = /<[^>]*>/.test(descriptionHtml);
             const descriptionDisplay = hasHtmlTags ? descriptionHtml : escapeHtml(descriptionHtml);
     
@@ -126,8 +121,6 @@
                     <div class="product-info">
                         <h3 class="product-title">${safeProductName}</h3>
                         <div class="product-description">${descriptionDisplay}</div>
-    
-
     
                         <div class="price-section">
                             ${hasDiscount ? `
@@ -174,6 +167,9 @@
                 </div>
             `;
         }).join('');
+        
+        // Обновляем URL после рендера
+        updateURL();
     }
 
     // Показ деталей товара в модальном окне
@@ -205,7 +201,6 @@
         
         modalTitle.textContent = product.name;
         
-        // Обработка описания с HTML
         let descriptionHtml = product.description || '';
         const hasHtmlTags = /<[^>]*>/.test(descriptionHtml);
         const descriptionDisplay = hasHtmlTags ? descriptionHtml : escapeHtml(descriptionHtml);
@@ -256,6 +251,9 @@
                 </div>
             </div>
         `;
+        
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
     }
     
     window.closeProductModal = function() {
@@ -264,7 +262,6 @@
             modal.style.display = 'none';
             document.body.style.overflow = '';
             
-            // Убираем product из URL если он там есть
             const url = new URL(window.location.href);
             if (url.searchParams.has('product')) {
                 url.searchParams.delete('product');
@@ -273,7 +270,6 @@
         }
     };
     
-    // Закрытие модального окна по клику вне его
     document.addEventListener('click', function(e) {
         const modal = document.getElementById('productModal');
         if (modal && modal.style.display === 'flex') {
@@ -283,7 +279,6 @@
         }
     });
     
-    // Закрытие по Escape
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             window.closeProductModal();
@@ -303,7 +298,9 @@
                 renderProducts(filtered);
                 activateCategoryButton(category);
                 
-                // Прокрутка к товарам
+                // Обновляем URL
+                updateURL();
+                
                 document.getElementById('productsContainer')?.scrollIntoView({ 
                     behavior: 'smooth', 
                     block: 'start' 
@@ -318,7 +315,6 @@
         });
     }
     
-    // Обработка URL параметров
     function initURLHandling() {
         window.addEventListener('popstate', function() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -348,7 +344,6 @@
         } else {
             url.searchParams.delete('category');
         }
-        // Не перезаписываем product если он есть
         if (!url.searchParams.has('product')) {
             window.history.replaceState({}, '', url);
         }
@@ -367,11 +362,8 @@
         }
         
         try {
-            // Фильтруем промокоды, которые подходят для этого товара
             const applicablePromocodes = window.promocodeSystem.activeDiscounts.filter(promo => {
-                // Если у промокода нет product_ids - скидка на все товары
                 if (!promo.product_ids || promo.product_ids.length === 0) return true;
-                // Если есть - проверяем, есть ли текущий товар в списке
                 return promo.product_ids.includes(productId);
             });
             
@@ -411,12 +403,10 @@
         }
     }
     
-    // Инициализация UI промокодов
     function initPromocodeUI() {
         const promocodeSection = document.getElementById('promocodeSection');
         if (!promocodeSection) return;
         
-        // Показываем секцию только если есть промокоды
         const checkPromocodes = setInterval(() => {
             if (window.promocodeSystem?.activeDiscounts?.length > 0) {
                 promocodeSection.style.display = 'block';
@@ -425,7 +415,6 @@
             }
         }, 500);
         
-        // Слушаем обновления промокодов
         window.updateProductsDisplay = function() {
             const filtered = filterProductsByCategory(currentCategory);
             renderProducts(filtered);
@@ -453,6 +442,11 @@
                         <div class="promocode-details">
                             <h4>${escapeHtml(promo.code)}</h4>
                             <p><i class="fas fa-percent"></i> Скидка: ${promo.value}%</p>
+                            ${promo.expires_at ? `
+                                <p class="promocode-expires" style="font-size: 0.7rem; color: #FEE75C;">
+                                    <i class="fas fa-clock"></i> Действует до: ${new Date(promo.expires_at).toLocaleDateString('ru-RU')}
+                                </p>
+                            ` : ''}
                         </div>
                     </div>
                     <div class="promocode-value">-${promo.value}%</div>
@@ -762,4 +756,7 @@
     // Экспорт глобальных функций
     window.showToast = showToast;
     window.getDiscountInfo = getDiscountInfo;
+    window.filterProductsByCategory = filterProductsByCategory;
+    window.renderProducts = renderProducts;
+    window.updateURL = updateURL;
 })();
