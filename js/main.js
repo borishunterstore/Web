@@ -9,6 +9,16 @@ document.addEventListener('DOMContentLoaded', function() {
         mobileMenuBtn.addEventListener('click', toggleMobileMenu);
     }
     
+    // Закрываем меню при клике вне его
+    document.addEventListener('click', function(e) {
+        const menu = document.querySelector('.user-menu');
+        const authBtn = document.getElementById('authBtn');
+        if (menu && !menu.contains(e.target) && e.target !== authBtn && !authBtn?.contains(e.target)) {
+            menu.classList.remove('user-menu-visible');
+            setTimeout(() => menu.remove(), 300);
+        }
+    });
+    
     setTimeout(() => {
         if (window.promocodeSystem?.updateActivePromocodesUI) {
             window.promocodeSystem.updateActivePromocodesUI();
@@ -34,16 +44,19 @@ function escapeHtml(unsafe) {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");}
+        .replace(/'/g, "&#039;");
+}
 
 function normalizeBadges(badgesData) {
-    if (!badgesData) {return { admin: false, verified: false, partner: false, buyer: false, early: false, vip: false };}
+    if (!badgesData) return { admin: false, verified: false, partner: false, buyer: false, early: false, vip: false };
     
     if (typeof badgesData === 'string') {
         return {
             admin: badgesData === 'admin',
             verified: badgesData === 'verified',
-            partner: false, buyer: false, early: false, vip: false};}
+            partner: false, buyer: false, early: false, vip: false
+        };
+    }
     
     if (typeof badgesData === 'object') {
         return {
@@ -52,9 +65,12 @@ function normalizeBadges(badgesData) {
             partner: !!badgesData.partner,
             buyer: !!badgesData.buyer,
             early: !!badgesData.early,
-            vip: !!badgesData.vip};}
+            vip: !!badgesData.vip
+        };
+    }
     
-    return { admin: false, verified: false, partner: false, buyer: false, early: false, vip: false };}
+    return { admin: false, verified: false, partner: false, buyer: false, early: false, vip: false };
+}
 
 // ========== АВТОРИЗАЦИЯ ==========
 async function checkAuth() {
@@ -72,21 +88,34 @@ async function checkAuth() {
                     balance: data.user.balance,
                     badges: data.user.badges || {},
                     discordId: data.user.discordId,
-                    registeredAt: data.user.registeredAt});
-                localStorage.setItem('bhstore_auth', JSON.stringify(authData));}} catch (error) {
-            console.error('❌ Ошибка обновления пользователя:', error);}}
+                    registeredAt: data.user.registeredAt
+                });
+                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+            }
+        } catch (error) {
+            console.error('❌ Ошибка обновления пользователя:', error);
+        }
+    }
 
     if (authData.username && !authData.verificationCode) {
         try {
             const balanceData = await window.api?.getUserBalance(authData.id);
             if (balanceData?.success) {
                 authData.balance = balanceData.balance;
-                localStorage.setItem('bhstore_auth', JSON.stringify(authData));}} catch (error) {
-            console.error('❌ Ошибка загрузки баланса:', error);}
+                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+            }
+        } catch (error) {
+            console.error('❌ Ошибка загрузки баланса:', error);
+        }
 
         let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
         if (authData.avatar) {
-            if (authData.avatar.startsWith('a_')) {avatarUrl = `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.gif?size=64`;} else {avatarUrl = `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=64`;}}
+            if (authData.avatar.startsWith('a_')) {
+                avatarUrl = `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.gif?size=64`;
+            } else {
+                avatarUrl = `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=64`;
+            }
+        }
 
         const badges = normalizeBadges(authData.badges);
         const mainBadge = getMainBadgeHTML(badges);
@@ -114,7 +143,8 @@ async function checkAuth() {
         authBtn.classList.add('auth-authenticated');
         authBtn.onclick = (e) => {
             e.stopPropagation();
-            showUserMenu(e);};
+            showUserMenu(e);
+        };
         
     } else if (authData.username && authData.verificationCode) {
         authBtn.innerHTML = `
@@ -170,7 +200,7 @@ function getUserBadgesHTML(badges) {
     return html;
 }
 
-// ========== МЕНЮ ПОЛЬЗОВАТЕЛЯ ==========
+// ========== МЕНЮ ПОЛЬЗОВАТЕЛЯ (ФИКСИРОВАННОЕ ПОЛОЖЕНИЕ) ==========
 async function showUserMenu(event) {
     const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
     if (!authData.id) return;
@@ -204,9 +234,12 @@ async function showUserMenu(event) {
     menu.className = 'user-menu';
     if (isMobile) menu.classList.add('user-menu-mobile');
 
+    // ФИКС: Привязываем меню к кнопке, а не к позиции на экране
     if (!isMobile) {
-        menu.style.top = `${btnRect.bottom + window.scrollY + 5}px`;
+        menu.style.position = 'fixed';
+        menu.style.top = `${btnRect.bottom + 5}px`;
         menu.style.left = `${btnRect.left + (btnRect.width / 2)}px`;
+        menu.style.transform = 'translateX(-50%)';
     }
 
     let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
@@ -290,14 +323,28 @@ async function showUserMenu(event) {
     document.body.appendChild(menu);
     setTimeout(() => menu.classList.add('user-menu-visible'), 10);
 
-    const closeMenu = (e) => {
-        if (!menu.contains(e.target) && e.target !== authBtn && !authBtn.contains(e.target)) {
+    // Закрытие при клике вне меню
+    const closeMenuHandler = (e) => {
+        if (!menu.contains(e.target) && e.target !== authBtn && !authBtn?.contains(e.target)) {
             menu.classList.remove('user-menu-visible');
             setTimeout(() => menu.remove(), 300);
-            document.removeEventListener('click', closeMenu);
+            document.removeEventListener('click', closeMenuHandler);
+            document.removeEventListener('scroll', closeMenuOnScroll);
         }
     };
-    setTimeout(() => document.addEventListener('click', closeMenu), 100);
+    
+    // Закрытие при скролле
+    const closeMenuOnScroll = () => {
+        menu.classList.remove('user-menu-visible');
+        setTimeout(() => menu.remove(), 300);
+        document.removeEventListener('click', closeMenuHandler);
+        document.removeEventListener('scroll', closeMenuOnScroll);
+    };
+    
+    setTimeout(() => {
+        document.addEventListener('click', closeMenuHandler);
+        document.addEventListener('scroll', closeMenuOnScroll);
+    }, 100);
 
     const escHandler = (e) => {
         if (e.key === 'Escape') {

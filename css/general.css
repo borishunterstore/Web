@@ -2158,3 +2158,66 @@ body {
     margin-right: 8px;
     width: 20px;
 }
+
+/* Мобильное меню пользователя */
+@media (max-width: 768px) {
+    .user-menu.user-menu-mobile {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 90% !important;
+        max-width: 350px !important;
+        height: auto !important;
+        max-height: 80vh !important;
+        overflow-y: auto !important;
+        border-radius: 20px !important;
+        background: #2a2b36 !important;
+        z-index: 10001 !important;
+    }
+    
+    .user-menu.user-menu-mobile .user-menu-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .user-menu.user-menu-mobile .user-menu-avatar-wrapper {
+        margin: 0 auto 10px;
+    }
+    
+    .user-menu.user-menu-mobile .user-menu-nav {
+        max-height: 50vh;
+        overflow-y: auto;
+    }
+    
+    .user-menu.user-menu-mobile .user-menu-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+}
+
+/* Фиксированное меню для десктопа */
+.user-menu {
+    position: fixed !important;
+    z-index: 10000;
+    background: var(--bg-card);
+    border-radius: 16px;
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--border-light);
+    width: 300px;
+    animation: slideInDown 0.2s ease-out;
+}
+
+/* Анимация появления */
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -10px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
