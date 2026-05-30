@@ -1804,125 +1804,119 @@ console.log(`✅ Загружено ${productsData.length} тестовых то
 // Новости
 // ============================================
 
-// Получение новостей
+// Получение новостей ТОЛЬКО из БД
 app.get('/api/news', async (req, res) => {
   try {
-    console.log('Запрос новостей');
+    console.log('📰 Запрос новостей из БД...');
     
-    let news = [];
-    
-    if (sql) {
-      try {
-        news = await sql`
-          SELECT * FROM news 
-          ORDER BY created_at DESC 
-          LIMIT 20
-        `;
-        
-        console.log(`Загружено ${news.length} новостей из БД`);
-        
-        const formattedNews = news.map(item => ({
-          id: item.id,
-          title: item.title,
-          content: item.content,
-          date: item.date ? new Date(item.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          category: item.category,
-          views: item.views || 0,
-          author: item.author || 'BHStore',
-          tags: item.tags || [],
-          image: item.image || null,
-          created_at: item.created_at
-        }));
-        
-        return res.json({
-          success: true,
-          news: formattedNews,
-          total: formattedNews.length
-        });
-        
-      } catch (dbError) {
-        console.error('Ошибка при работе с БД новостей:', dbError.message);
-      }
+    if (!sql) {
+      console.error('❌ БД не подключена, новости недоступны');
+      return res.status(503).json({
+        success: false,
+        error: 'База данных недоступна',
+        news: [],
+        total: 0
+      });
     }
     
-    console.log('БД не доступна или нет новостей, используем демо-данные');
-    const demoNews = getDemoNews();
+    const news = await sql`
+      SELECT * FROM news 
+      ORDER BY created_at DESC 
+      LIMIT 50
+    `;
+    
+    console.log(`✅ Загружено ${news.length} новостей из БД`);
+    
+    const formattedNews = news.map(item => ({
+      id: item.id,
+      title: item.title,
+      content: item.content,
+      date: item.date ? new Date(item.date).toISOString().split('T')[0] : new Date(item.created_at).toISOString().split('T')[0],
+      category: item.category || 'announcement',
+      views: item.views || 0,
+      author: item.author || 'BHStore',
+      tags: item.tags || [],
+      image: item.image || null,
+      created_at: item.created_at
+    }));
     
     res.json({
       success: true,
-      news: demoNews,
-      total: demoNews.length,
-      notice: 'Используются демо-новости. Добавьте новости в БД через админ-панель.'
+      news: formattedNews,
+      total: formattedNews.length,
+      source: 'database'
     });
     
   } catch (error) {
-    console.error('Ошибка получения новостей:', error.message);
-    res.json({
-      success: true,
-      news: getDemoNews(),
-      total: getDemoNews().length
+    console.error('❌ Ошибка получения новостей из БД:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Ошибка загрузки новостей: ' + error.message,
+      news: [],
+      total: 0
     });
   }
 });
 
+// Получение одной новости по ID (ТОЛЬКО из БД)
 app.get('/api/news/:id', async (req, res) => {
   try {
     const newsId = parseInt(req.params.id);
     
-    if (sql) {
-      try {
-        const [newsItem] = await sql`
-          SELECT * FROM news WHERE id = ${newsId}
-        `;
-        
-        if (newsItem) {
-          await sql`
-            UPDATE news 
-            SET views = views + 1 
-            WHERE id = ${newsId}
-          `;
-          
-          return res.json({
-            success: true,
-            news: {
-              id: newsItem.id,
-              title: newsItem.title,
-              content: newsItem.content,
-              date: newsItem.date ? new Date(newsItem.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-              category: newsItem.category,
-              views: (newsItem.views || 0) + 1,
-              author: newsItem.author || 'BHStore',
-              tags: newsItem.tags || [],
-              image: newsItem.image || null,
-              created_at: newsItem.created_at
-            }
-          });
-        }
-      } catch (dbError) {
-        console.error('Ошибка БД:', dbError.message);
-      }
-    }
-    
-    const demoNews = getDemoNews();
-    const article = demoNews.find(n => n.id === newsId);
-    
-    if (article) {
-      return res.json({
-        success: true,
-        news: article
+    if (isNaN(newsId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Неверный ID новости'
       });
     }
     
-    return res.status(404).json({
-      success: false,
-      error: 'Новость не найдена'
+    if (!sql) {
+      console.error('❌ БД не подключена');
+      return res.status(503).json({
+        success: false,
+        error: 'База данных недоступна'
+      });
+    }
+    
+    const [newsItem] = await sql`
+      SELECT * FROM news WHERE id = ${newsId}
+    `;
+    
+    if (!newsItem) {
+      return res.status(404).json({
+        success: false,
+        error: 'Новость не найдена'
+      });
+    }
+    
+    // Увеличиваем счётчик просмотров
+    await sql`
+      UPDATE news 
+      SET views = views + 1 
+      WHERE id = ${newsId}
+    `;
+    
+    res.json({
+      success: true,
+      news: {
+        id: newsItem.id,
+        title: newsItem.title,
+        content: newsItem.content,
+        date: newsItem.date ? new Date(newsItem.date).toISOString().split('T')[0] : new Date(newsItem.created_at).toISOString().split('T')[0],
+        category: newsItem.category || 'announcement',
+        views: (newsItem.views || 0) + 1,
+        author: newsItem.author || 'BHStore',
+        tags: newsItem.tags || [],
+        image: newsItem.image || null,
+        created_at: newsItem.created_at
+      }
     });
     
   } catch (error) {
-    console.error('Ошибка получения новости:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Ошибка загрузки новости' 
+    console.error('❌ Ошибка получения новости:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Ошибка загрузки новости: ' + error.message
     });
   }
 });

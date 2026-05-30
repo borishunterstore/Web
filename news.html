@@ -99,73 +99,76 @@
             }
         });
 
-        // Загрузка списка новостей
-        async function loadNewsList() {
-            const container = document.getElementById('newsContainer');
-            
-            try {
-                const response = await fetch('/api/news');
-                const data = await response.json();
-                
-                if (data.success && data.news && data.news.length > 0) {
-                    allNews = data.news;
-                } else {
-                    allNews = getDemoNews();
-                }
-                
-                renderNewsList();
-                
-            } catch (error) {
-                console.error('Ошибка загрузки новостей:', error);
-                allNews = getDemoNews();
-                renderNewsList();
-            }
+// Загрузка списка новостей ТОЛЬКО из БД
+async function loadNewsList() {
+    const container = document.getElementById('newsContainer');
+    container.innerHTML = '<div class="news-loading"><i class="fas fa-circle-notch fa-spin"></i><p>Загрузка новостей...</p></div>';
+    
+    try {
+        const response = await fetch('/api/news');
+        const data = await response.json();
+        
+        if (data.success && data.news && data.news.length > 0) {
+            allNews = data.news;
+            renderNewsList();
+        } else {
+            // Если нет новостей в БД, показываем сообщение
+            container.innerHTML = `
+                <div class="news-empty">
+                    <i class="fas fa-newspaper"></i>
+                    <h3>Новостей пока нет</h3>
+                    <p>В базе данных пока нет новостей. Добавьте их через админ-панель.</p>
+                    <button class="btn-primary" onclick="location.reload()">Обновить</button>
+                </div>
+            `;
         }
+    } catch (error) {
+        console.error('Ошибка загрузки новостей:', error);
+        container.innerHTML = `
+            <div class="news-empty">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Ошибка загрузки</h3>
+                <p>Не удалось загрузить новости из базы данных</p>
+                <button class="btn-primary" onclick="location.reload()">Попробовать снова</button>
+            </div>
+        `;
+    }
+}
 
-        // Загрузка одной новости
-        async function loadSingleNews(newsId) {
-            const container = document.getElementById('newsContainer');
-            
-            try {
-                const response = await fetch('/api/news');
-                const data = await response.json();
-                
-                let news = null;
-                if (data.success && data.news) {
-                    news = data.news.find(n => n.id === newsId);
-                }
-                
-                if (!news) {
-                    const demoNews = getDemoNews();
-                    news = demoNews.find(n => n.id === newsId);
-                }
-                
-                if (news) {
-                    renderSingleNews(news);
-                    // Обновляем заголовок страницы
-                    document.title = `${news.title} | BHStore`;
-                } else {
-                    container.innerHTML = `
-                        <div class="news-empty">
-                            <i class="fas fa-newspaper"></i>
-                            <h3>Новость не найдена</h3>
-                            <p>Запрошенная новость не существует или была удалена</p>
-                            <a href="/news.html" class="btn-primary">← Вернуться к новостям</a>
-                        </div>
-                    `;
-                }
-            } catch (error) {
-                console.error('Ошибка загрузки новости:', error);
-                container.innerHTML = `
-                    <div class="news-empty">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h3>Ошибка загрузки</h3>
-                        <p>Не удалось загрузить новость</p>
-                        <a href="/news.html" class="btn-primary">← Вернуться к новостям</a>
-                    </div>
-                `;
-            }
+// Загрузка одной новости ТОЛЬКО из БД
+async function loadSingleNews(newsId) {
+    const container = document.getElementById('newsContainer');
+    container.innerHTML = '<div class="news-loading"><i class="fas fa-circle-notch fa-spin"></i><p>Загрузка новости...</p></div>';
+    
+    try {
+        const response = await fetch(`/api/news/${newsId}`);
+        const data = await response.json();
+        
+        if (data.success && data.news) {
+            renderSingleNews(data.news);
+            document.title = `${data.news.title} | BHStore`;
+        } else {
+            container.innerHTML = `
+                <div class="news-empty">
+                    <i class="fas fa-newspaper"></i>
+                    <h3>Новость не найдена</h3>
+                    <p>Запрошенная новость не существует или была удалена из базы данных</p>
+                    <a href="/news.html" class="btn-primary">← Вернуться к новостям</a>
+                </div>
+            `;
         }
+    } catch (error) {
+        console.error('Ошибка загрузки новости:', error);
+        container.innerHTML = `
+            <div class="news-empty">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Ошибка загрузки</h3>
+                <p>Не удалось загрузить новость из базы данных</p>
+                <a href="/news.html" class="btn-primary">← Вернуться к новостям</a>
+            </div>
+        `;
+    }
+}
 
         // Рендер списка новостей
         function renderNewsList() {
