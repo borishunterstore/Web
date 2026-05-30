@@ -1,12 +1,15 @@
 class DiscordAuth {
     constructor() {
         this.apiBase = '/api';
+        this.authEnabled = true;
+        this.registrationEnabled = true;
         this.init();
     }
 
     init() {
         console.log('AUTH Загружен');
         
+        this.checkAuthStatus();
         this.checkUrlForToken();
         
         if (window.location.pathname === '/verify.html') {
@@ -21,6 +24,38 @@ class DiscordAuth {
         });
         this.refreshUserBalance();
         this.updateAuthButton();
+    }
+
+    async checkAuthStatus() {
+        try {
+            const response = await fetch('/api/auth-status');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.authEnabled = data.auth_enabled !== false;
+                localStorage.setItem('bhstore_auth_enabled', this.authEnabled);
+            }
+            return this.authEnabled;
+        } catch (error) {
+            console.error('Ошибка проверки статуса авторизации:', error);
+            return true;
+        }
+    }
+
+    async checkRegistrationStatus() {
+        try {
+            const response = await fetch('/api/shop-settings');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.registrationEnabled = data.settings.registration_enabled !== false;
+                localStorage.setItem('bhstore_registration_enabled', this.registrationEnabled);
+            }
+            return this.registrationEnabled;
+        } catch (error) {
+            console.error('Ошибка проверки статуса регистрации:', error);
+            return true;
+        }
     }
 
     checkUrlForToken() {
@@ -95,6 +130,15 @@ class DiscordAuth {
 
     async handleCallback(code, state) {
         try {
+            // Проверяем включена ли авторизация
+            const authEnabled = await this.checkAuthStatus();
+            
+            if (!authEnabled) {
+                alert('Авторизация временно недоступна. Пожалуйста, зайдите позже.');
+                window.location.href = '/';
+                return;
+            }
+            
             console.log('🔄 Processing Discord callback...');
             
             const savedState = localStorage.getItem('discord_oauth_state');
@@ -269,6 +313,13 @@ class DiscordAuth {
 
     async verifyCode(inputCode) {
         try {
+            // Проверяем включена ли регистрация
+            const registrationEnabled = await this.checkRegistrationStatus();
+            
+            if (!registrationEnabled) {
+                throw new Error('Регистрация временно недоступна');
+            }
+            
             const authData = this.getAuthData();
             
             if (!authData?.id) {

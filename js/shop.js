@@ -16,6 +16,37 @@
         'minecraft': { name: 'Minecraft', api: 'minecraft', filter: p => p.name?.toLowerCase().includes('minecraft') || p.name?.toLowerCase().includes('майнкрафт') || p.category === 'minecraft' }
     };
 
+    async function checkShopStatus() {
+        try {
+            const response = await fetch('/api/shop-status');
+            const data = await response.json();
+            
+            if (!data.success || data.shop_open === false) {
+                const container = document.getElementById('productsContainer');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="shop-closed-state" style="text-align: center; padding: 60px;">
+                            <i class="fas fa-store-slash" style="font-size: 4rem; color: #ED4245; margin-bottom: 20px;"></i>
+                            <h2 style="color: white;">Магазин временно закрыт</h2>
+                            <p style="color: #b9bbbe;">Зайдите позже, администрация проводит технические работы</p>
+                        </div>
+                    `;
+                }
+                
+                // Скрываем кнопки покупки
+                document.querySelectorAll('.btn-buy').forEach(btn => {
+                    btn.style.display = 'none';
+                });
+                
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error('Ошибка проверки статуса магазина:', error);
+            return true;
+        }
+    }
+
     // Инициализация при загрузке страницы
     document.addEventListener('DOMContentLoaded', async function() {
         console.log('🛒 Shop page initializing...');
@@ -29,52 +60,64 @@
     });
 
     // Загрузка товаров из API
-    async function loadProducts() {
-        const container = document.getElementById('productsContainer');
-        if (!container) return;
+async function loadProducts() {
+    const container = document.getElementById('productsContainer');
+    if (!container) return;
+    
+    // Проверяем статус магазина
+    const isOpen = await checkShopStatus();
+    if (!isOpen) return;
+    
+    showLoading(container);
+    
+    try {
+        const response = await fetch('/api/products');
+        const data = await response.json();
         
-        showLoading(container);
-        
-        try {
-            const response = await fetch('/api/products');
-            const data = await response.json();
+        if (data.success && data.products && data.products.length > 0) {
+            allProducts = data.products;
+            console.log(`📦 Loaded ${allProducts.length} products`);
             
-            if (data.success && data.products && data.products.length > 0) {
-                allProducts = data.products;
-                console.log(`📦 Loaded ${allProducts.length} products`);
-                
-                const urlParams = new URLSearchParams(window.location.search);
-                const categoryParam = urlParams.get('category');
-                const productParam = urlParams.get('product');
-                
-                if (productParam) {
-                    const product = allProducts.find(p => p.id === productParam);
-                    if (product) {
-                        showProductModal(product);
-                        currentCategory = 'all';
-                        renderProducts(allProducts);
-                        activateCategoryButton('all');
-                    } else {
-                        renderProducts(allProducts);
-                    }
-                } else if (categoryParam && CATEGORY_CONFIG[categoryParam]) {
-                    const filtered = filterProductsByCategory(categoryParam);
-                    renderProducts(filtered);
-                    activateCategoryButton(categoryParam);
-                    currentCategory = categoryParam;
-                } else {
+            const urlParams = new URLSearchParams(window.location.search);
+            const categoryParam = urlParams.get('category');
+            const productParam = urlParams.get('product');
+            
+            if (productParam) {
+                const product = allProducts.find(p => p.id === productParam);
+                if (product) {
+                    showProductModal(product);
+                    currentCategory = 'all';
                     renderProducts(allProducts);
                     activateCategoryButton('all');
+                } else {
+                    renderProducts(allProducts);
                 }
+            } else if (categoryParam && CATEGORY_CONFIG[categoryParam]) {
+                const filtered = filterProductsByCategory(categoryParam);
+                renderProducts(filtered);
+                activateCategoryButton(categoryParam);
+                currentCategory = categoryParam;
             } else {
-                console.error('No products received from API');
-                renderEmptyState('Товары не найдены', 'В магазине пока нет товаров. Зайдите позже.');
+                renderProducts(allProducts);
+                activateCategoryButton('all');
             }
-        } catch (error) {
-            console.error('❌ Error loading products:', error);
-            renderErrorState('Не удалось загрузить товары', error.message);
+        } else if (data.shop_closed) {
+            container.innerHTML = `
+                <div class="shop-closed-state" style="text-align: center; padding: 60px;">
+                    <i class="fas fa-store-slash" style="font-size: 4rem; color: #ED4245; margin-bottom: 20px;"></i>
+                    <h2 style="color: white;">Магазин временно закрыт</h2>
+                    <p style="color: #b9bbbe;">Зайдите позже, администрация проводит технические работы</p>
+                </div>
+            `;
+        } else {
+            console.error('No products received from API');
+            renderEmptyState('Товары не найдены', 'В магазине пока нет товаров. Зайдите позже.');
         }
+    } catch (error) {
+        console.error('❌ Error loading products:', error);
+        renderErrorState('Не удалось загрузить товары', error.message);
     }
+}
 
     // Фильтрация товаров по категории
     function filterProductsByCategory(category) {
@@ -479,11 +522,18 @@
     window.buyProduct = async function(productId, productName, originalPrice) {
         console.log('🛒 Buying product:', { productId, productName, originalPrice });
         
+        // Проверяем статус магазина
+        const isOpen = await checkShopStatus();
+        if (!isOpen) {
+            showToast('Магазин временно закрыт. Покупки недоступны.', 'error');
+            return;
+        }
+        
         const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
         
         if (!authData.id) {
             showToast('Пожалуйста, авторизуйтесь для покупки', 'warning');
-            setTimeout(() => window.location.href = '/auth.html', 2000);
+            setTimeout(() => window.location.href = '/profile.html', 2000);
             return;
         }
         

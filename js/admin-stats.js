@@ -2,7 +2,8 @@ class AdminStats {
     constructor() {
         this.api = window.api; 
         this.baseUrl = 'https://bhstore.netlify.app/.netlify/functions';
-        this.shopClosed = false;
+        this.shopOpen = true;
+        this.authEnabled = true;
         this.registrationEnabled = true;
         this.siteAccess = true;
     }
@@ -34,18 +35,23 @@ class AdminStats {
             const data = await response.json();
             
             if (data.success) {
-                this.shopClosed = data.settings.shop_closed || false;
+                this.shopOpen = data.settings.shop_open !== false;
+                this.authEnabled = data.settings.auth_enabled !== false;
                 this.registrationEnabled = data.settings.registration_enabled !== false;
                 this.siteAccess = data.settings.site_access !== false;
                 
                 // Сохраняем в localStorage для синхронизации с фронтендом
-                localStorage.setItem('bhstore_shop_closed', this.shopClosed);
+                localStorage.setItem('bhstore_shop_open', this.shopOpen);
+                localStorage.setItem('bhstore_auth_enabled', this.authEnabled);
                 localStorage.setItem('bhstore_registration_enabled', this.registrationEnabled);
                 localStorage.setItem('bhstore_site_access', this.siteAccess);
                 
                 // Обновляем чекбоксы
-                const shopCheckbox = document.getElementById('shopClosedToggle');
-                if (shopCheckbox) shopCheckbox.checked = this.shopClosed;
+                const shopCheckbox = document.getElementById('shopOpenToggle');
+                if (shopCheckbox) shopCheckbox.checked = !this.shopOpen; // Инвертируем для UX (чекбокс "Закрыт")
+                
+                const authCheckbox = document.getElementById('authEnabledToggle');
+                if (authCheckbox) authCheckbox.checked = !this.authEnabled;
                 
                 const registrationCheckbox = document.getElementById('registrationEnabledToggle');
                 if (registrationCheckbox) registrationCheckbox.checked = this.registrationEnabled;
@@ -58,13 +64,14 @@ class AdminStats {
         }
     }
 
-    async toggleShopClosed(closed) {
+    async toggleShopOpen(closed) {
         const token = this.getAuthToken();
+        const open = !closed;
         
         if (!token) {
             this.showNotification('Ошибка авторизации. Пожалуйста, войдите заново.', 'error');
-            const checkbox = document.getElementById('shopClosedToggle');
-            if (checkbox) checkbox.checked = !closed;
+            const checkbox = document.getElementById('shopOpenToggle');
+            if (checkbox) checkbox.checked = closed;
             return;
         }
         
@@ -76,8 +83,8 @@ class AdminStats {
                     'Authorization': 'Bearer ' + token
                 },
                 body: JSON.stringify({
-                    setting_key: 'shop_closed',
-                    setting_value: closed
+                    setting_key: 'shop_open',
+                    setting_value: open
                 })
             });
             
@@ -90,18 +97,65 @@ class AdminStats {
             const result = await response.json();
             
             if (result.success) {
-                this.shopClosed = closed;
-                localStorage.setItem('bhstore_shop_closed', closed);
-                this.updateShopStatusDisplay(closed);
-                this.showNotification(`Магазин ${closed ? 'закрыт' : 'открыт'}`, closed ? 'warning' : 'success');
+                this.shopOpen = open;
+                localStorage.setItem('bhstore_shop_open', open);
+                this.updateShopStatusDisplay(open);
+                // Убираем уведомление
             } else {
                 throw new Error(result.error || 'Ошибка при изменении статуса');
             }
         } catch (error) {
             console.error('Ошибка:', error);
             this.showNotification('Ошибка при изменении статуса: ' + error.message, 'error');
-            const checkbox = document.getElementById('shopClosedToggle');
-            if (checkbox) checkbox.checked = !closed;
+            const checkbox = document.getElementById('shopOpenToggle');
+            if (checkbox) checkbox.checked = closed;
+        }
+    }
+
+    async toggleAuthEnabled(disabled) {
+        const token = this.getAuthToken();
+        const enabled = !disabled;
+        
+        if (!token) {
+            this.showNotification('Ошибка авторизации. Пожалуйста, войдите заново.', 'error');
+            const checkbox = document.getElementById('authEnabledToggle');
+            if (checkbox) checkbox.checked = disabled;
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/admin/shop-settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({
+                    setting_key: 'auth_enabled',
+                    setting_value: enabled
+                })
+            });
+            
+            if (response.status === 401) {
+                this.showNotification('Сессия истекла. Пожалуйста, войдите заново.', 'error');
+                setTimeout(() => window.location.href = '/profile.html', 2000);
+                return;
+            }
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                this.authEnabled = enabled;
+                localStorage.setItem('bhstore_auth_enabled', enabled);
+                // Убираем уведомление
+            } else {
+                throw new Error(result.error || 'Ошибка при изменении статуса');
+            }
+        } catch (error) {
+            console.error('Ошибка:', error);
+            this.showNotification('Ошибка при изменении статуса авторизации: ' + error.message, 'error');
+            const checkbox = document.getElementById('authEnabledToggle');
+            if (checkbox) checkbox.checked = disabled;
         }
     }
 
@@ -139,7 +193,7 @@ class AdminStats {
             if (result.success) {
                 this.registrationEnabled = enabled;
                 localStorage.setItem('bhstore_registration_enabled', enabled);
-                this.showNotification(`Регистрация ${enabled ? 'включена' : 'отключена'}`, enabled ? 'success' : 'warning');
+                // Убираем уведомление
             } else {
                 throw new Error(result.error || 'Ошибка при изменении статуса');
             }
@@ -185,7 +239,7 @@ class AdminStats {
             if (result.success) {
                 this.siteAccess = enabled;
                 localStorage.setItem('bhstore_site_access', enabled);
-                this.showNotification(`Доступ к сайту ${enabled ? 'включен' : 'отключен'}`, enabled ? 'success' : 'warning');
+                // Убираем уведомление
             } else {
                 throw new Error(result.error || 'Ошибка при изменении статуса');
             }
@@ -197,17 +251,26 @@ class AdminStats {
         }
     }
 
-    updateShopStatusDisplay(closed) {
+    updateShopStatusDisplay(open) {
         const statusElement = document.getElementById('shopStatus');
         if (statusElement) {
-            statusElement.innerHTML = closed 
+            statusElement.innerHTML = !open 
                 ? '<span style="color: #ED4245;"><i class="fas fa-ban"></i> Закрыт</span>'
                 : '<span style="color: #57F287;"><i class="fas fa-check-circle"></i> Открыт</span>';
         }
         
         const borderElement = document.querySelector('.shop-settings-panel');
         if (borderElement) {
-            borderElement.style.border = closed ? '2px solid #ED4245' : '2px solid #57F287';
+            borderElement.style.border = !open ? '2px solid #ED4245' : '2px solid #57F287';
+        }
+    }
+
+    updateAuthStatusDisplay(enabled) {
+        const statusElement = document.getElementById('authStatus');
+        if (statusElement) {
+            statusElement.innerHTML = !enabled 
+                ? '<span style="color: #ED4245;"><i class="fas fa-ban"></i> Отключена</span>'
+                : '<span style="color: #57F287;"><i class="fas fa-check-circle"></i> Включена</span>';
         }
     }
 
@@ -225,7 +288,7 @@ class AdminStats {
 
         statsContent.innerHTML = `
             <!-- Панель управления магазином -->
-            <div class="shop-settings-panel" style="background: linear-gradient(135deg, #2a2b36, #1e1f29); border-radius: 16px; padding: 25px; margin-bottom: 30px; border: 2px solid ${this.shopClosed ? '#ED4245' : '#57F287'};">
+            <div class="shop-settings-panel" style="background: linear-gradient(135deg, #2a2b36, #1e1f29); border-radius: 16px; padding: 25px; margin-bottom: 30px; border: 2px solid ${!this.shopOpen ? '#ED4245' : '#57F287'};">
                 <h3 style="color: white; margin-bottom: 20px;">
                     <i class="fas fa-cog"></i> Управление магазином
                 </h3>
@@ -239,18 +302,41 @@ class AdminStats {
                                 <span style="color: white; margin-left: 8px;">Магазин</span>
                             </div>
                             <div id="shopStatus" style="font-size: 0.9rem;">
-                                ${this.shopClosed ? '<span style="color: #ED4245;">❌ Закрыт</span>' : '<span style="color: #57F287;">✅ Открыт</span>'}
+                                ${!this.shopOpen ? '<span style="color: #ED4245;">❌ Закрыт</span>' : '<span style="color: #57F287;">✅ Открыт</span>'}
                             </div>
                         </div>
                         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 10px;">
                             <div class="toggle-switch">
-                                <input type="checkbox" id="shopClosedToggle" ${this.shopClosed ? 'checked' : ''}>
+                                <input type="checkbox" id="shopOpenToggle" ${!this.shopOpen ? 'checked' : ''}>
                                 <span class="toggle-slider"></span>
                             </div>
                             <span style="color: #b9bbbe;">Магазин закрыт</span>
                         </label>
                         <p style="color: #72767d; font-size: 0.8rem; margin-top: 10px;">
-                            При закрытии обычные пользователи не видят товары
+                            При закрытии магазина пользователи не смогут оформлять заказы
+                        </p>
+                    </div>
+                    
+                    <!-- Настройка: Авторизация -->
+                    <div style="background: #202225; border-radius: 12px; padding: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <div>
+                                <i class="fab fa-discord" style="color: #5865F2;"></i>
+                                <span style="color: white; margin-left: 8px;">Авторизация</span>
+                            </div>
+                            <div id="authStatus" style="font-size: 0.9rem;">
+                                ${!this.authEnabled ? '<span style="color: #ED4245;">❌ Отключена</span>' : '<span style="color: #57F287;">✅ Включена</span>'}
+                            </div>
+                        </div>
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; margin-top: 10px;">
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="authEnabledToggle" ${!this.authEnabled ? 'checked' : ''}>
+                                <span class="toggle-slider"></span>
+                            </div>
+                            <span style="color: #b9bbbe;">Авторизация отключена</span>
+                        </label>
+                        <p style="color: #72767d; font-size: 0.8rem; margin-top: 10px;">
+                            При отключении новые пользователи не смогут войти
                         </p>
                     </div>
                     
@@ -273,7 +359,7 @@ class AdminStats {
                             <span style="color: #b9bbbe;">Регистрация включена</span>
                         </label>
                         <p style="color: #72767d; font-size: 0.8rem; margin-top: 10px;">
-                            Новые пользователи не смогут зарегистрироваться
+                            При отключении новые пользователи не смогут зарегистрироваться
                         </p>
                     </div>
                     
@@ -408,10 +494,17 @@ class AdminStats {
         `;
 
         // Добавляем обработчики для переключателей
-        const shopToggle = document.getElementById('shopClosedToggle');
+        const shopToggle = document.getElementById('shopOpenToggle');
         if (shopToggle) {
             shopToggle.addEventListener('change', (e) => {
-                this.toggleShopClosed(e.target.checked);
+                this.toggleShopOpen(e.target.checked);
+            });
+        }
+        
+        const authToggle = document.getElementById('authEnabledToggle');
+        if (authToggle) {
+            authToggle.addEventListener('change', (e) => {
+                this.toggleAuthEnabled(e.target.checked);
             });
         }
         
