@@ -1,4 +1,3 @@
-// admin-orders.js - Полностью рабочий
 class AdminOrders {
     constructor() {
         this.api = window.api;
@@ -11,9 +10,10 @@ class AdminOrders {
 
     async loadOrders() {
         try {
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             const response = await fetch('/api/admin/orders', {
                 headers: {
-                    'Authorization': 'Bearer ' + (localStorage.getItem('bhstore_auth') ? JSON.parse(localStorage.getItem('bhstore_auth')).token : '')
+                    'Authorization': 'Bearer ' + (authData.token || '')
                 }
             });
             const data = await response.json();
@@ -118,14 +118,14 @@ class AdminOrders {
                         <td style="padding:12px;"><code style="color:#5865F2;">${order.id}</code></td>
                         <td style="padding:12px;">
                             <div style="display:flex; align-items:center; gap:8px;">
-                                <img src="${order.userAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}" style="width:32px; height:32px; border-radius:50%;">
+                                <img src="${order.userAvatar || 'https://cdn.discordapp.com/embed/avatars/0.png'}" style="width:32px; height:32px; border-radius:50%;" onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                                 <div>
-                                    <div style="color:white;">${order.username || 'Неизвестно'}</div>
+                                    <div style="color:white;">${this.escapeHtml(order.username || 'Неизвестно')}</div>
                                     <div style="color:#72767d; font-size:11px;">${order.userDiscordId}</div>
                                 </div>
                             </div>
                         </td>
-                        <td style="padding:12px;"><strong>${order.productName}</strong></td>
+                        <td style="padding:12px;"><strong>${this.escapeHtml(order.productName)}</strong></td>
                         <td style="padding:12px;"><span style="color:#57F287; font-weight:700;">${order.finalPrice || order.amount} ₽</span></td>
                         <td style="padding:12px; color:#72767d;">${new Date(order.date || order.createdAt).toLocaleString()}</td>
                         <td style="padding:12px;">
@@ -270,7 +270,11 @@ class AdminOrders {
             alert('Ошибка: ' + error.message);
         }
     }
+
+    escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return String(unsafe).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
 }
 
-// Глобальная инициализация
 window.adminOrders = new AdminOrders();

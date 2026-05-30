@@ -42,15 +42,15 @@ class AdminProducts {
             </div>
             
             <div class="table-container">
-                <table>
+                <table style="width: 100%; border-collapse: collapse;">
                     <thead>
-                        <tr>
-                            <th>Товар</th>
-                            <th>ID</th>
-                            <th>Категория</th>
-                            <th>Цена</th>
-                            <th>Статус</th>
-                            <th>Действия</th>
+                        <tr style="background: #2a2b36;">
+                            <th style="padding: 12px; text-align: left;">Товар</th>
+                            <th style="padding: 12px; text-align: left;">ID</th>
+                            <th style="padding: 12px; text-align: left;">Категория</th>
+                            <th style="padding: 12px; text-align: left;">Цена</th>
+                            <th style="padding: 12px; text-align: left;">Статус</th>
+                            <th style="padding: 12px; text-align: left;">Действия</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -118,62 +118,63 @@ class AdminProducts {
         const modal = document.createElement('div');
         modal.className = 'modal';
         modal.id = 'addProductModal';
-        modal.style.display = 'flex';
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 10000;';
         
         modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2><i class="fas fa-plus-circle"></i> Добавить товар</h2>
-                    <button class="modal-close" onclick="this.closest('.modal').remove()">×</button>
+            <div style="background: #2a2b36; border-radius: 16px; padding: 30px; max-width: 600px; width: 90%;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;"><i class="fas fa-plus-circle"></i> Добавить товар</h2>
+                    <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
                 </div>
                 
                 <form id="addProductForm">
-                    <div class="form-group">
+                    <div class="form-group" style="margin-bottom: 15px;">
                         <label>Название товара</label>
-                        <input type="text" id="productName" required placeholder="Введите название">
+                        <input type="text" id="productName" required placeholder="Введите название" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
                     
-                    <div class="form-group">
+                    <div class="form-group" style="margin-bottom: 15px;">
                         <label>Описание</label>
-                        <textarea id="productDescription" required placeholder="Введите описание"></textarea>
+                        <textarea id="productDescription" required placeholder="Введите описание" rows="3" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;"></textarea>
                     </div>
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 15px;">
                             <label>Цена (₽)</label>
-                            <input type="number" id="productPrice" required min="0" step="1" placeholder="0">
+                            <input type="number" id="productPrice" required min="0" step="1" placeholder="0" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 15px;">
                             <label>Категория</label>
-                            <select id="productCategory">
-                                <option value="premium">Премиум</option>
-                                <option value="services">Услуги</option>
-                                <option value="events">Ивенты</option>
+                            <select id="productCategory" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
+                                <option value="discordbot">Discord Bot</option>
+                                <option value="discord">Discord</option>
+                                <option value="youtube">YouTube</option>
+                                <option value="ava">Аватарки</option>
                                 <option value="other">Другое</option>
                             </select>
                         </div>
                     </div>
                     
-                    <div class="form-group">
+                    <div class="form-group" style="margin-bottom: 15px;">
                         <label>Иконка (Font Awesome класс)</label>
-                        <input type="text" id="productIcon" value="fas fa-box" placeholder="fas fa-box">
+                        <input type="text" id="productIcon" value="fas fa-box" placeholder="fas fa-box" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
                     
-                    <div class="form-group">
+                    <div class="form-group" style="margin-bottom: 15px;">
                         <label>Особенности (каждая с новой строки)</label>
-                        <textarea id="productFeatures" rows="4" placeholder="Функция 1&#10;Функция 2&#10;Функция 3"></textarea>
+                        <textarea id="productFeatures" rows="4" placeholder="Функция 1&#10;Функция 2&#10;Функция 3" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;"></textarea>
                     </div>
                     
-                    <div class="form-group">
+                    <div class="form-group" style="margin-bottom: 15px;">
                         <label style="display: flex; align-items: center; gap: 10px;">
                             <input type="checkbox" id="productPopular"> 
                             <i class="fas fa-star" style="color: var(--warning);"></i> Популярный товар
                         </label>
                     </div>
                     
-                    <div class="form-actions">
-                        <button type="button" class="btn-admin" onclick="this.closest('.modal').remove()">Отмена</button>
-                        <button type="submit" class="btn-admin success">Добавить товар</button>
+                    <div style="display: flex; gap: 10px; margin-top: 20px;">
+                        <button type="button" onclick="this.closest('.modal').remove()" class="btn-admin" style="flex: 1;">Отмена</button>
+                        <button type="submit" class="btn-admin success" style="flex: 1;">Добавить товар</button>
                     </div>
                 </form>
             </div>
@@ -236,64 +237,65 @@ class AdminProducts {
             
             const modal = document.createElement('div');
             modal.className = 'modal';
-            modal.style.display = 'flex';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 10000;';
             
             const featuresText = product.features ? product.features.join('\n') : '';
             
             modal.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2><i class="fas fa-edit"></i> Редактировать товар</h2>
-                        <button class="modal-close" onclick="this.closest('.modal').remove()">×</button>
+                <div style="background: #2a2b36; border-radius: 16px; padding: 30px; max-width: 600px; width: 90%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0;"><i class="fas fa-edit"></i> Редактировать товар</h2>
+                        <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
                     </div>
                     
                     <form id="editProductForm">
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 15px;">
                             <label>Название товара</label>
-                            <input type="text" id="editProductName" value="${this.escapeHtml(product.name)}" required>
+                            <input type="text" id="editProductName" value="${this.escapeHtml(product.name)}" required style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                         </div>
                         
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 15px;">
                             <label>Описание</label>
-                            <textarea id="editProductDescription" required>${this.escapeHtml(product.description)}</textarea>
+                            <textarea id="editProductDescription" required rows="3" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">${this.escapeHtml(product.description)}</textarea>
                         </div>
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                            <div class="form-group">
+                            <div class="form-group" style="margin-bottom: 15px;">
                                 <label>Цена (₽)</label>
-                                <input type="number" id="editProductPrice" value="${product.price}" required min="0">
+                                <input type="number" id="editProductPrice" value="${product.price}" required min="0" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                             </div>
-                            <div class="form-group">
+                            <div class="form-group" style="margin-bottom: 15px;">
                                 <label>Категория</label>
-                                <select id="editProductCategory">
-                                    <option value="premium" ${product.category === 'premium' ? 'selected' : ''}>Премиум</option>
-                                    <option value="services" ${product.category === 'services' ? 'selected' : ''}>Услуги</option>
-                                    <option value="events" ${product.category === 'events' ? 'selected' : ''}>Ивенты</option>
+                                <select id="editProductCategory" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
+                                    <option value="discordbot" ${product.category === 'discordbot' ? 'selected' : ''}>Discord Bot</option>
+                                    <option value="discord" ${product.category === 'discord' ? 'selected' : ''}>Discord</option>
+                                    <option value="youtube" ${product.category === 'youtube' ? 'selected' : ''}>YouTube</option>
+                                    <option value="ava" ${product.category === 'ava' ? 'selected' : ''}>Аватарки</option>
                                     <option value="other" ${product.category === 'other' ? 'selected' : ''}>Другое</option>
                                 </select>
                             </div>
                         </div>
                         
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 15px;">
                             <label>Иконка</label>
-                            <input type="text" id="editProductIcon" value="${product.icon || 'fas fa-box'}">
+                            <input type="text" id="editProductIcon" value="${product.icon || 'fas fa-box'}" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                         </div>
                         
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 15px;">
                             <label>Особенности</label>
-                            <textarea id="editProductFeatures" rows="4">${this.escapeHtml(featuresText)}</textarea>
+                            <textarea id="editProductFeatures" rows="4" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">${this.escapeHtml(featuresText)}</textarea>
                         </div>
                         
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 15px;">
                             <label style="display: flex; align-items: center; gap: 10px;">
                                 <input type="checkbox" id="editProductPopular" ${product.popular ? 'checked' : ''}> 
                                 <i class="fas fa-star" style="color: var(--warning);"></i> Популярный товар
                             </label>
                         </div>
                         
-                        <div class="form-actions">
-                            <button type="button" class="btn-admin" onclick="this.closest('.modal').remove()">Отмена</button>
-                            <button type="submit" class="btn-admin success">Сохранить</button>
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button type="button" onclick="this.closest('.modal').remove()" class="btn-admin" style="flex: 1;">Отмена</button>
+                            <button type="submit" class="btn-admin success" style="flex: 1;">Сохранить</button>
                         </div>
                     </form>
                 </div>
@@ -357,7 +359,7 @@ class AdminProducts {
 
     showNotification(message, type) {
         const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
+        notification.style.cssText = `position: fixed; bottom: 20px; right: 20px; background: ${type === 'success' ? '#57F287' : '#ED4245'}; color: white; padding: 12px 20px; border-radius: 8px; z-index: 10001; animation: slideIn 0.3s ease;`;
         notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 3000);

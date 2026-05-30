@@ -100,7 +100,7 @@ class AdminChat {
                         ${unreadCount > 0 ? `<span style="position: absolute; top: -5px; right: -5px; background: #ED4245; color: white; border-radius: 50%; padding: 2px 6px; font-size: 11px;">${unreadCount}</span>` : ''}
                     </div>
                     <div style="flex: 1;">
-                        <div style="font-weight: 600; ${isSelected ? 'color: white;' : 'color: #b9bbbe;'}">${user.username || 'Без имени'}</div>
+                        <div style="font-weight: 600; ${isSelected ? 'color: white;' : 'color: #b9bbbe;'}">${this.escapeHtml(user.username || 'Без имени')}</div>
                         <div style="font-size: 12px; color: #72767d;">${user.discordId}</div>
                         ${lastMsg ? `<div style="font-size: 11px; color: #72767d; margin-top: 4px;">${lastMsg}</div>` : ''}
                     </div>
@@ -143,7 +143,7 @@ class AdminChat {
                          style="width: 40px; height: 40px; border-radius: 50%;"
                          onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                     <div>
-                        <h3 style="margin: 0;">${user.username || 'Без имени'}</h3>
+                        <h3 style="margin: 0;">${this.escapeHtml(user.username || 'Без имени')}</h3>
                         <p style="margin: 0; font-size: 12px; color: #72767d;">ID: ${user.discordId}</p>
                     </div>
                 </div>
@@ -285,7 +285,7 @@ class AdminChat {
                 this.scrollToBottom();
             }
         } catch (error) {
-            // Ошибку не выводим, чтобы не заспамливать консоль
+            // Ошибку не выводим
         }
     }
 
@@ -383,7 +383,7 @@ class AdminChat {
                 <div style="text-align: center; margin-bottom: 20px;">
                     <img src="${user.avatar ? `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png?size=128` : 'https://cdn.discordapp.com/embed/avatars/0.png'}" 
                          style="width: 80px; height: 80px; border-radius: 50%;">
-                    <h3 style="margin: 10px 0 5px;">${user.username || 'Без имени'}</h3>
+                    <h3 style="margin: 10px 0 5px;">${this.escapeHtml(user.username || 'Без имени')}</h3>
                     <code style="color: #5865F2;">${user.discordId}</code>
                 </div>
                 <div style="background: #1e1f29; border-radius: 12px; padding: 15px;">
@@ -393,7 +393,7 @@ class AdminChat {
                     <p><i class="fas fa-calendar"></i> Регистрация: ${user.registeredAt ? new Date(user.registeredAt).toLocaleDateString() : 'Неизвестно'}</p>
                 </div>
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button onclick="window.addBalance('${user.discordId}', '${user.username}'); this.closest('.modal').remove();" class="btn-admin success" style="flex: 1;">Пополнить</button>
+                    <button onclick="window.addBalance('${user.discordId}', '${this.escapeHtml(user.username)}'); this.closest('.modal').remove();" class="btn-admin success" style="flex: 1;">Пополнить</button>
                     <button onclick="window.openUserChat('${user.discordId}'); this.closest('.modal').remove();" class="btn-admin" style="flex: 1;">Открыть чат</button>
                 </div>
             </div>

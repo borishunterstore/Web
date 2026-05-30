@@ -71,9 +71,9 @@ class AdminNews {
                 </button>
             </div>
             
-            <div class="search-bar" style="margin-bottom: 20px;">
-                <input type="text" id="searchNews" class="search-input" placeholder="Поиск по заголовку или содержимому...">
-                <select id="filterCategory" class="search-input" style="width: auto;">
+            <div class="search-bar" style="margin-bottom: 20px; display: flex; gap: 10px;">
+                <input type="text" id="searchNews" class="search-input" placeholder="Поиск по заголовку..." style="flex: 1; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
+                <select id="filterCategory" class="search-input" style="padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     <option value="all">Все категории</option>
                     <option value="announcement">📢 Объявления</option>
                     <option value="updates">🚀 Обновления</option>
@@ -82,7 +82,7 @@ class AdminNews {
                 </select>
             </div>
             
-            <div class="table-container">
+            <div class="table-container" style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr style="background: #2a2b36;">
@@ -135,7 +135,7 @@ class AdminNews {
                             </span>
                         </td>
                         <td style="padding: 12px;">
-                            <div class="table-actions">
+                            <div style="display: flex; gap: 5px;">
                                 <button class="btn-icon" onclick="window.adminNews.editNews(${news.id})" title="Редактировать">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -169,38 +169,19 @@ class AdminNews {
         
         if (totalPages <= 1) return '';
         
-        let paginationHtml = `
-            <div style="display: flex; justify-content: center; gap: 8px; margin-top: 30px;">
-        `;
+        let paginationHtml = `<div style="display: flex; justify-content: center; gap: 8px; margin-top: 30px;">`;
         
-        paginationHtml += `
-            <button class="btn-admin small" ${this.currentPage === 1 ? 'disabled' : ''} 
-                    onclick="window.adminNews.changePage(${this.currentPage - 1})">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-        `;
+        paginationHtml += `<button class="btn-admin small" ${this.currentPage === 1 ? 'disabled' : ''} onclick="window.adminNews.changePage(${this.currentPage - 1})"><i class="fas fa-chevron-left"></i></button>`;
         
         for (let i = 1; i <= totalPages; i++) {
             if (i === 1 || i === totalPages || (i >= this.currentPage - 2 && i <= this.currentPage + 2)) {
-                paginationHtml += `
-                    <button class="btn-admin ${i === this.currentPage ? 'active' : ''}" 
-                            onclick="window.adminNews.changePage(${i})"
-                            style="${i === this.currentPage ? 'background: #5865F2;' : ''}">
-                        ${i}
-                    </button>
-                `;
+                paginationHtml += `<button class="btn-admin ${i === this.currentPage ? 'active' : ''}" onclick="window.adminNews.changePage(${i})">${i}</button>`;
             } else if (i === this.currentPage - 3 || i === this.currentPage + 3) {
                 paginationHtml += `<span style="color: #b9bbbe;">...</span>`;
             }
         }
         
-        paginationHtml += `
-            <button class="btn-admin small" ${this.currentPage === totalPages ? 'disabled' : ''} 
-                    onclick="window.adminNews.changePage(${this.currentPage + 1})">
-                <i class="fas fa-chevron-right"></i>
-            </button>
-        `;
-        
+        paginationHtml += `<button class="btn-admin small" ${this.currentPage === totalPages ? 'disabled' : ''} onclick="window.adminNews.changePage(${this.currentPage + 1})"><i class="fas fa-chevron-right"></i></button>`;
         paginationHtml += `</div>`;
         
         return paginationHtml;
@@ -235,15 +216,12 @@ class AdminNews {
 
     filterNews(searchTerm = '', category = 'all') {
         this.filteredNews = this.news.filter(news => {
-            // Фильтр по категории
             if (category !== 'all' && news.category !== category) return false;
             
-            // Фильтр по поиску
             if (searchTerm) {
                 const term = searchTerm.toLowerCase();
                 return news.title.toLowerCase().includes(term) ||
-                       news.content.toLowerCase().includes(term) ||
-                       (news.tags && news.tags.some(tag => tag.toLowerCase().includes(term)));
+                       news.content.toLowerCase().includes(term);
             }
             
             return true;
@@ -274,56 +252,35 @@ class AdminNews {
     }
 
     showAddNewsForm() {
-        // Удаляем старый модал если есть
         const existingModal = document.querySelector('.modal');
         if (existingModal) existingModal.remove();
         
         const modal = document.createElement('div');
         modal.className = 'modal';
-        modal.id = 'addNewsModal';
-        modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            backdrop-filter: blur(5px);
-        `;
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 10000; backdrop-filter: blur(5px);';
         
         modal.innerHTML = `
-            <div class="modal-content" style="max-width: 600px; width: 90%; background: #2a2b36; border-radius: 16px; padding: 0; overflow: hidden;">
-                <div class="modal-header" style="padding: 20px; background: #1e1f29; border-bottom: 1px solid #40444b;">
-                    <h2 style="margin: 0; color: white;">
-                        <i class="fas fa-plus-circle" style="color: #57F287;"></i> 
-                        Добавить новость
-                    </h2>
-                    <button class="modal-close" onclick="this.closest('.modal').remove()" 
-                            style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
+            <div style="background: #2a2b36; border-radius: 16px; padding: 0; max-width: 600px; width: 90%; overflow: hidden;">
+                <div style="padding: 20px; background: #1e1f29; border-bottom: 1px solid #40444b; display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="margin: 0; color: white;"><i class="fas fa-plus-circle" style="color: #57F287;"></i> Добавить новость</h2>
+                    <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
                 </div>
                 
                 <form id="addNewsForm" style="padding: 20px;">
                     <div class="form-group" style="margin-bottom: 15px;">
-                        <label style="display: block; margin-bottom: 8px; color: #b9bbbe;">Заголовок новости *</label>
-                        <input type="text" id="newsTitle" required 
-                               style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
+                        <label style="display: block; margin-bottom: 8px; color: #b9bbbe;">Заголовок *</label>
+                        <input type="text" id="newsTitle" required style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
                     
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 8px; color: #b9bbbe;">Содержание *</label>
-                        <textarea id="newsContent" required rows="8" 
-                                  style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white; resize: vertical;"></textarea>
+                        <textarea id="newsContent" required rows="8" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white; resize: vertical;"></textarea>
                     </div>
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                         <div class="form-group">
                             <label style="display: block; margin-bottom: 8px; color: #b9bbbe;">Категория</label>
-                            <select id="newsCategory" 
-                                    style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
+                            <select id="newsCategory" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                                 <option value="announcement">📢 Объявление</option>
                                 <option value="updates">🚀 Обновление</option>
                                 <option value="events">🎉 Событие</option>
@@ -331,33 +288,24 @@ class AdminNews {
                             </select>
                         </div>
                         <div class="form-group">
-                            <label style="display: block; margin-bottom: 8px; color: #b9bbbe;">Дата публикации</label>
-                            <input type="date" id="newsDate" value="${new Date().toISOString().split('T')[0]}" 
-                                   style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
+                            <label style="display: block; margin-bottom: 8px; color: #b9bbbe;">Дата</label>
+                            <input type="date" id="newsDate" value="${new Date().toISOString().split('T')[0]}" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                         </div>
                     </div>
                     
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label style="display: block; margin-bottom: 8px; color: #b9bbbe;">Теги (через запятую)</label>
-                        <input type="text" id="newsTags" placeholder="новость, обновление, акция" 
-                               style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
+                        <input type="text" id="newsTags" placeholder="новость, обновление" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
                     
                     <div class="form-group" style="margin-bottom: 20px;">
-                        <label style="display: block; margin-bottom: 8px; color: #b9bbbe;">Изображение (URL, опционально)</label>
-                        <input type="url" id="newsImage" placeholder="https://example.com/image.jpg" 
-                               style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
+                        <label style="display: block; margin-bottom: 8px; color: #b9bbbe;">Изображение (URL)</label>
+                        <input type="url" id="newsImage" placeholder="https://example.com/image.jpg" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                     </div>
                     
-                    <div class="form-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
-                        <button type="button" class="btn-admin" onclick="this.closest('.modal').remove()"
-                                style="padding: 10px 20px; background: #40444b; color: white; border: none; border-radius: 8px; cursor: pointer;">
-                            Отмена
-                        </button>
-                        <button type="submit" class="btn-admin success" 
-                                style="padding: 10px 20px; background: #57F287; color: #1e1f29; border: none; border-radius: 8px; cursor: pointer;">
-                            <i class="fas fa-plus"></i> Добавить новость
-                        </button>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" onclick="this.closest('.modal').remove()" class="btn-admin" style="padding: 10px 20px;">Отмена</button>
+                        <button type="submit" class="btn-admin success" style="padding: 10px 20px;"><i class="fas fa-plus"></i> Добавить</button>
                     </div>
                 </form>
             </div>
@@ -373,49 +321,28 @@ class AdminNews {
             });
         }
         
-        // Фокус на поле заголовка
         setTimeout(() => {
             const titleInput = document.getElementById('newsTitle');
             if (titleInput) titleInput.focus();
         }, 100);
     }
 
-
     async saveNews() {
         try {
-            // Получаем значения с проверкой
             const title = document.getElementById('newsTitle')?.value?.trim() || '';
             const content = document.getElementById('newsContent')?.value?.trim() || '';
             const category = document.getElementById('newsCategory')?.value || 'announcement';
             const date = document.getElementById('newsDate')?.value || new Date().toISOString().split('T')[0];
             const image = document.getElementById('newsImage')?.value || null;
             
-            // Получаем теги
             let tags = [];
             const tagsInput = document.getElementById('newsTags')?.value;
             if (tagsInput) {
-                tags = tagsInput.split(',')
-                    .map(t => t.trim())
-                    .filter(t => t.length > 0);
+                tags = tagsInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
             }
             
-            console.log('📝 Данные формы:', {
-                title: title,
-                contentLength: content.length,
-                category: category,
-                date: date,
-                tags: tags,
-                image: image
-            });
-            
-            // Проверка обязательных полей
-            if (!title) {
-                this.showNotification('Введите заголовок новости', 'error');
-                return;
-            }
-            
-            if (!content) {
-                this.showNotification('Введите содержание новости', 'error');
+            if (!title || !content) {
+                this.showNotification('Заполните заголовок и содержание', 'error');
                 return;
             }
             
@@ -428,20 +355,9 @@ class AdminNews {
             const token = authData.token;
             
             if (!token) {
-                this.showNotification('Ошибка авторизации. Пожалуйста, войдите снова.', 'error');
+                this.showNotification('Ошибка авторизации', 'error');
                 return;
             }
-            
-            const newsData = {
-                title: title,
-                content: content,
-                category: category,
-                date: date,
-                tags: tags,
-                image: image
-            };
-            
-            console.log('📤 Отправка данных на сервер:', JSON.stringify(newsData, null, 2));
             
             const response = await fetch('/api/admin/news', {
                 method: 'POST',
@@ -449,68 +365,22 @@ class AdminNews {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(newsData)
+                body: JSON.stringify({ title, content, category, date, tags, image })
             });
             
-            console.log('📥 Статус ответа:', response.status);
-            
             const result = await response.json();
-            console.log('📥 Ответ сервера:', result);
             
             if (response.ok && result.success) {
-                // Закрываем модальное окно
-                const modal = document.querySelector('.modal');
-                if (modal) modal.remove();
-                
-                this.showNotification('Новость успешно добавлена!', 'success');
+                document.querySelector('.modal').remove();
+                this.showNotification('Новость добавлена!', 'success');
                 await this.loadNews();
             } else {
-                throw new Error(result.error || `Ошибка сервера: ${response.status}`);
+                throw new Error(result.error || 'Ошибка сервера');
             }
             
         } catch (error) {
             console.error('❌ Ошибка сохранения новости:', error);
-            this.showNotification('Ошибка при сохранении новости: ' + error.message, 'error');
-        }
-    }
-    
-    async saveNews() {
-        try {
-            const tags = document.getElementById('newsTags').value
-                .split(',')
-                .map(t => t.trim())
-                .filter(t => t.length > 0);
-            
-            const newsData = {
-                title: document.getElementById('newsTitle').value,
-                content: document.getElementById('newsContent').value,
-                category: document.getElementById('newsCategory').value,
-                date: document.getElementById('newsDate').value,
-                tags: tags,
-                image: document.getElementById('newsImage').value || null
-            };
-            
-            const response = await fetch('/api/admin/news', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('bhstore_auth') ? JSON.parse(localStorage.getItem('bhstore_auth')).token : ''}`
-                },
-                body: JSON.stringify(newsData)
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                document.querySelector('.modal').remove();
-                this.showNotification('Новость успешно добавлена', 'success');
-                await this.loadNews();
-            } else {
-                throw new Error(result.error || 'Ошибка при сохранении');
-            }
-        } catch (error) {
-            console.error('Ошибка сохранения новости:', error);
-            this.showNotification('Ошибка при сохранении новости: ' + error.message, 'error');
+            this.showNotification('Ошибка: ' + error.message, 'error');
         }
     }
 
@@ -521,34 +391,33 @@ class AdminNews {
             
             const modal = document.createElement('div');
             modal.className = 'modal';
-            modal.id = 'editNewsModal';
-            modal.style.display = 'flex';
+            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 10000;';
             
             const tagsString = news.tags ? news.tags.join(', ') : '';
             const dateValue = news.date ? news.date.split('T')[0] : new Date().toISOString().split('T')[0];
             
             modal.innerHTML = `
-                <div class="modal-content" style="max-width: 600px;">
-                    <div class="modal-header">
-                        <h2><i class="fas fa-edit"></i> Редактировать новость</h2>
-                        <button class="modal-close" onclick="this.closest('.modal').remove()">×</button>
+                <div style="background: #2a2b36; border-radius: 16px; padding: 30px; max-width: 600px; width: 90%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0;"><i class="fas fa-edit"></i> Редактировать</h2>
+                        <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
                     </div>
                     
                     <form id="editNewsForm">
-                        <div class="form-group">
-                            <label>Заголовок новости</label>
-                            <input type="text" id="editNewsTitle" value="${this.escapeHtml(news.title)}" required>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label>Заголовок</label>
+                            <input type="text" id="editNewsTitle" value="${this.escapeHtml(news.title)}" required style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                         </div>
                         
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 15px;">
                             <label>Содержание</label>
-                            <textarea id="editNewsContent" required rows="8">${this.escapeHtml(news.content)}</textarea>
+                            <textarea id="editNewsContent" required rows="8" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">${this.escapeHtml(news.content)}</textarea>
                         </div>
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                             <div class="form-group">
                                 <label>Категория</label>
-                                <select id="editNewsCategory">
+                                <select id="editNewsCategory" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                                     <option value="announcement" ${news.category === 'announcement' ? 'selected' : ''}>📢 Объявление</option>
                                     <option value="updates" ${news.category === 'updates' ? 'selected' : ''}>🚀 Обновление</option>
                                     <option value="events" ${news.category === 'events' ? 'selected' : ''}>🎉 Событие</option>
@@ -556,24 +425,24 @@ class AdminNews {
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Дата публикации</label>
-                                <input type="date" id="editNewsDate" value="${dateValue}">
+                                <label>Дата</label>
+                                <input type="date" id="editNewsDate" value="${dateValue}" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                             </div>
                         </div>
                         
                         <div class="form-group">
-                            <label>Теги (через запятую)</label>
-                            <input type="text" id="editNewsTags" value="${this.escapeHtml(tagsString)}">
+                            <label>Теги</label>
+                            <input type="text" id="editNewsTags" value="${this.escapeHtml(tagsString)}" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                         </div>
                         
                         <div class="form-group">
-                            <label>Изображение (URL)</label>
-                            <input type="url" id="editNewsImage" value="${news.image || ''}">
+                            <label>Изображение URL</label>
+                            <input type="url" id="editNewsImage" value="${news.image || ''}" style="width: 100%; padding: 10px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                         </div>
                         
-                        <div class="form-actions">
-                            <button type="button" class="btn-admin" onclick="this.closest('.modal').remove()">Отмена</button>
-                            <button type="submit" class="btn-admin success">Сохранить изменения</button>
+                        <div style="display: flex; gap: 10px; margin-top: 20px;">
+                            <button type="button" onclick="this.closest('.modal').remove()" class="btn-admin" style="flex: 1;">Отмена</button>
+                            <button type="submit" class="btn-admin success" style="flex: 1;">Сохранить</button>
                         </div>
                     </form>
                 </div>
@@ -588,7 +457,7 @@ class AdminNews {
             
         } catch (error) {
             console.error('Ошибка загрузки новости:', error);
-            this.showNotification('Ошибка загрузки данных новости', 'error');
+            this.showNotification('Ошибка загрузки данных', 'error');
         }
     }
 
@@ -599,61 +468,63 @@ class AdminNews {
                 .map(t => t.trim())
                 .filter(t => t.length > 0);
             
-            const newsData = {
-                title: document.getElementById('editNewsTitle').value,
-                content: document.getElementById('editNewsContent').value,
-                category: document.getElementById('editNewsCategory').value,
-                date: document.getElementById('editNewsDate').value,
-                tags: tags,
-                image: document.getElementById('editNewsImage').value || null
-            };
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
             
             const response = await fetch(`/api/admin/news/${newsId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('bhstore_auth') ? JSON.parse(localStorage.getItem('bhstore_auth')).token : ''}`
+                    'Authorization': `Bearer ${authData.token}`
                 },
-                body: JSON.stringify(newsData)
+                body: JSON.stringify({
+                    title: document.getElementById('editNewsTitle').value,
+                    content: document.getElementById('editNewsContent').value,
+                    category: document.getElementById('editNewsCategory').value,
+                    date: document.getElementById('editNewsDate').value,
+                    tags: tags,
+                    image: document.getElementById('editNewsImage').value || null
+                })
             });
             
             const result = await response.json();
             
             if (result.success) {
                 document.querySelector('.modal').remove();
-                this.showNotification('Новость успешно обновлена', 'success');
+                this.showNotification('Новость обновлена', 'success');
                 await this.loadNews();
             } else {
-                throw new Error(result.error || 'Ошибка при обновлении');
+                throw new Error(result.error || 'Ошибка обновления');
             }
         } catch (error) {
             console.error('Ошибка обновления новости:', error);
-            this.showNotification('Ошибка при обновлении новости: ' + error.message, 'error');
+            this.showNotification('Ошибка: ' + error.message, 'error');
         }
     }
 
     async deleteNews(newsId) {
-        if (!confirm('Вы уверены, что хотите удалить эту новость?')) return;
+        if (!confirm('Удалить новость?')) return;
         
         try {
+            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+            
             const response = await fetch(`/api/admin/news/${newsId}`, {
                 method: 'DELETE',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('bhstore_auth') ? JSON.parse(localStorage.getItem('bhstore_auth')).token : ''}`
+                    'Authorization': `Bearer ${authData.token}`
                 }
             });
             
             const result = await response.json();
             
             if (result.success) {
-                this.showNotification('Новость успешно удалена', 'success');
+                this.showNotification('Новость удалена', 'success');
                 await this.loadNews();
             } else {
-                throw new Error(result.error || 'Ошибка при удалении');
+                throw new Error(result.error || 'Ошибка удаления');
             }
         } catch (error) {
             console.error('Ошибка удаления новости:', error);
-            this.showNotification('Ошибка при удалении новости: ' + error.message, 'error');
+            this.showNotification('Ошибка: ' + error.message, 'error');
         }
     }
 
@@ -667,11 +538,9 @@ class AdminNews {
             container.innerHTML = `
                 <div style="text-align: center; padding: 60px;">
                     <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ED4245; margin-bottom: 20px;"></i>
-                    <h3 style="color: white;">Ошибка загрузки новостей</h3>
-                    <p style="color: #b9bbbe;">Не удалось загрузить список новостей</p>
-                    <button class="btn-admin" onclick="window.adminNews.loadNews()">
-                        <i class="fas fa-sync-alt"></i> Повторить
-                    </button>
+                    <h3 style="color: white;">Ошибка загрузки</h3>
+                    <p style="color: #b9bbbe;">Не удалось загрузить новости</p>
+                    <button class="btn-admin" onclick="window.adminNews.loadNews()"><i class="fas fa-sync-alt"></i> Повторить</button>
                 </div>
             `;
         }
@@ -679,17 +548,12 @@ class AdminNews {
 
     escapeHtml(unsafe) {
         if (!unsafe) return '';
-        return String(unsafe)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+        return String(unsafe).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
     showNotification(message, type) {
         const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
+        notification.style.cssText = `position: fixed; bottom: 20px; right: 20px; background: ${type === 'success' ? '#57F287' : '#ED4245'}; color: white; padding: 12px 20px; border-radius: 8px; z-index: 10001; animation: slideIn 0.3s ease;`;
         notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
         document.body.appendChild(notification);
         setTimeout(() => notification.remove(), 3000);
