@@ -17,10 +17,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Новости | BHStore</title>
+    <meta name="description" content="Новости, обновления и акции BHStore. Следите за последними событиями!" />
     <link rel="stylesheet" href="css/general.css">
     <link rel="stylesheet" href="css/news.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="/image/logo.png">
 </head>
 <body>
@@ -52,7 +53,7 @@
         <img src="image/banner.jpg" alt="News Banner" class="news-banner-image">
         <div class="news-banner-overlay">
             <div class="news-banner-title">
-                <img src="image/emoji/news_orange.png" style="width: 70px;"> Новости
+                <img src="image/emoji/news_orange.png" style="width: 70px; vertical-align: middle;"> Новости
                 <span>Будьте в курсе последних обновлений</span>
             </div>
         </div>
@@ -122,104 +123,151 @@
     <script src="js/mobile-nav.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async function() {
-            const newsContainer = document.getElementById('newsArticles');
-            const totalNewsEl = document.getElementById('totalNews');
-            const weeklyNewsEl = document.getElementById('weeklyNews');
-            const searchInput = document.getElementById('newsSearch');
-            const filterButtons = document.querySelectorAll('.news-filter-btn');
-            
-            let allNews = [];
-            let currentFilter = 'all';
-            let searchTerm = '';
-            let currentPage = 1;
-            const newsPerPage = 6;
+        // Глобальные переменные
+        let allNews = [];
+        let currentFilter = 'all';
+        let searchTerm = '';
+        let currentPage = 1;
+        const newsPerPage = 6;
 
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadNews();
+            setupEventListeners();
+        });
+
+        // Загрузка новостей с API
+        async function loadNews() {
+            const newsContainer = document.getElementById('newsArticles');
+            
             try {
                 newsContainer.innerHTML = `
                     <div class="news-loading">
-                        <i class="fas fa-circle-notch fa-spin"><p>Загрузка новостей...</p></i>
+                        <i class="fas fa-circle-notch fa-spin"></i>
+                        <p>Загрузка новостей...</p>
                     </div>
                 `;
 
                 const response = await fetch('/api/news');
                 const data = await response.json();
                 
-                console.log('Загружено новостей:', data);
-                
                 if (data.success && data.news && data.news.length > 0) {
                     allNews = data.news;
-                    totalNewsEl.textContent = allNews.length;
-                    const oneWeekAgo = new Date();
-                    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-                    const weeklyNews = allNews.filter(article => {
-                        const articleDate = new Date(article.date);
-                        return articleDate >= oneWeekAgo;
-                    }).length;
-                    weeklyNewsEl.textContent = weeklyNews;
-
-                    renderNews();
                 } else {
+                    // Демо-новости если API вернул пустой результат
                     allNews = getDemoNews();
-                    totalNewsEl.textContent = allNews.length;
-                    weeklyNewsEl.textContent = allNews.filter(a => {
-                        const date = new Date(a.date);
-                        const weekAgo = new Date();
-                        weekAgo.setDate(weekAgo.getDate() - 7);
-                        return date >= weekAgo;
-                    }).length;
-                    renderNews();
                 }
+                
+                updateStats();
+                renderNews();
+                
             } catch (error) {
                 console.error('Ошибка загрузки новостей:', error);
                 allNews = getDemoNews();
-                totalNewsEl.textContent = allNews.length;
-                weeklyNewsEl.textContent = allNews.filter(a => {
-                    const date = new Date(a.date);
-                    const weekAgo = new Date();
-                    weekAgo.setDate(weekAgo.getDate() - 7);
-                    return date >= weekAgo;
-                }).length;
+                updateStats();
                 renderNews();
             }
+        }
 
-            function getDemoNews() {
-                return [
-                    {
-                        id: 1,
-                        title: 'Добро пожаловать в BHStore!',
-                        content: 'Мы рады приветствовать вас в нашем магазине!',
-                        date: '03-01-2026',
-                        category: 'announcement',
-                        tags: ['welcome', 'new', 'bhstore']
-                    }
-                ];
-            }
-
-            function formatDate(dateString) {
-                if (!dateString) return 'Дата неизвестна';
-                try {
-                    const date = new Date(dateString);
-                    return date.toLocaleDateString('ru-RU', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                    });
-                } catch {
-                    return dateString;
+        // Демо-новости для тестирования
+        function getDemoNews() {
+            return [
+                {
+                    id: 1,
+                    title: '🎉 Добро пожаловать в BHStore!',
+                    content: 'Мы рады приветствовать вас в нашем магазине! Здесь вы найдете лучшие услуги по разработке Discord ботов, монтажу видео и многое другое. Следите за обновлениями!',
+                    date: new Date().toISOString().split('T')[0],
+                    category: 'announcement',
+                    tags: ['welcome', 'новости', 'bhstore'],
+                    image: null
+                },
+                {
+                    id: 2,
+                    title: '🚀 Новые Discord боты в магазине!',
+                    content: 'Добавлены новые тарифы Discord ботов: Экономический, Модераторский и Уровневый бот. Успейте приобрести по выгодной цене!',
+                    date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    category: 'updates',
+                    tags: ['discord', 'боты', 'новинки'],
+                    image: null
+                },
+                {
+                    id: 3,
+                    title: '🎁 Весенняя распродажа!',
+                    content: 'Скидка 15% на все услуги до конца месяца. Активируйте промокод SPRING15 при покупке!',
+                    date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    category: 'promo',
+                    tags: ['скидка', 'акция', 'промокод'],
+                    image: null
                 }
-            }
+            ];
+        }
 
-            function getCategoryName(category) {
-                const categories = {
-                    'announcement': 'Объявление',
-                    'updates': 'Обновление',
-                    'events': 'Событие',
-                    'promo': 'Акция'
-                };
-                return categories[category] || category;
-            }
+        // Обновление статистики
+        function updateStats() {
+            const totalNewsEl = document.getElementById('totalNews');
+            const weeklyNewsEl = document.getElementById('weeklyNews');
+            
+            totalNewsEl.textContent = allNews.length;
+            
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            const weeklyNews = allNews.filter(article => {
+                const articleDate = new Date(article.date);
+                return articleDate >= oneWeekAgo;
+            }).length;
+            weeklyNewsEl.textContent = weeklyNews;
+        }
 
+        // Форматирование даты
+        function formatDate(dateString) {
+            if (!dateString) return 'Дата неизвестна';
+            try {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffTime = Math.abs(now - date);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 0) return 'Сегодня';
+                if (diffDays === 1) return 'Вчера';
+                if (diffDays < 7) return `${diffDays} дня(ей) назад`;
+                
+                return date.toLocaleDateString('ru-RU', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                });
+            } catch {
+                return dateString;
+            }
+        }
+
+        // Получение названия категории
+        function getCategoryName(category) {
+            const categories = {
+                'announcement': '📢 Объявление',
+                'updates': '🚀 Обновление',
+                'events': '🎉 Событие',
+                'promo': '🎁 Акция'
+            };
+            return categories[category] || category;
+        }
+
+        // Получение цвета категории
+        function getCategoryColor(category) {
+            const colors = {
+                'announcement': '#5865F2',
+                'updates': '#57F287',
+                'events': '#FEE75C',
+                'promo': '#FF73FA'
+            };
+            return colors[category] || '#5865F2';
+        }
+
+        // Настройка обработчиков событий
+        function setupEventListeners() {
+            const filterButtons = document.querySelectorAll('.news-filter-btn');
+            const searchInput = document.getElementById('newsSearch');
+            
             filterButtons.forEach(btn => {
                 btn.addEventListener('click', () => {
                     filterButtons.forEach(b => b.classList.remove('active'));
@@ -229,150 +277,171 @@
                     renderNews();
                 });
             });
-
+            
             searchInput.addEventListener('input', (e) => {
                 searchTerm = e.target.value.toLowerCase();
                 currentPage = 1;
                 renderNews();
             });
+        }
 
-            function renderNews() {
-                let filteredNews = allNews.filter(article => {
-                    if (currentFilter !== 'all') {
-                        const categoryMap = {
-                            'updates': 'updates',
-                            'events': 'events',
-                            'promo': 'promo'
-                        };
-                        const targetCategory = categoryMap[currentFilter] || currentFilter;
-                        if (article.category !== targetCategory) {
-                            return false;
-                        }
-                    }
-                    
-                    if (searchTerm) {
-                        return article.title.toLowerCase().includes(searchTerm) || 
-                               article.content.toLowerCase().includes(searchTerm) ||
-                               (article.tags && article.tags.some(tag => tag.toLowerCase().includes(searchTerm)));
-                    }
-                    
-                    return true;
-                });
-
-                const totalPages = Math.ceil(filteredNews.length / newsPerPage);
-                const startIndex = (currentPage - 1) * newsPerPage;
-                const paginatedNews = filteredNews.slice(startIndex, startIndex + newsPerPage);
-
-                if (paginatedNews.length === 0) {
-                    newsContainer.innerHTML = `
-                        <div class="news-empty txtcta">
-                            <h3><i class="fas fa-newspaper" style="color: #fff;"> Новости не найдены</i></h3>
-                            <button class="btn-primary" onclick="resetFilters()" style="margin-top: 1rem;"><i class="fas fa-undo" > Сбросить фильтры</i></button>
+        // Рендер новостей
+        function renderNews() {
+            const newsContainer = document.getElementById('newsArticles');
+            
+            // Фильтрация
+            let filteredNews = allNews.filter(article => {
+                // Фильтр по категории
+                if (currentFilter !== 'all' && article.category !== currentFilter) {
+                    return false;
+                }
+                // Поиск по тексту
+                if (searchTerm) {
+                    return article.title.toLowerCase().includes(searchTerm) || 
+                           article.content.toLowerCase().includes(searchTerm) ||
+                           (article.tags && article.tags.some(tag => tag.toLowerCase().includes(searchTerm)));
+                }
+                return true;
+            });
+            
+            // Пагинация
+            const totalPages = Math.ceil(filteredNews.length / newsPerPage);
+            const startIndex = (currentPage - 1) * newsPerPage;
+            const paginatedNews = filteredNews.slice(startIndex, startIndex + newsPerPage);
+            
+            if (paginatedNews.length === 0) {
+                newsContainer.innerHTML = `
+                    <div class="news-empty">
+                        <i class="fas fa-newspaper"></i>
+                        <h3>Новости не найдены</h3>
+                        <p>Попробуйте изменить параметры поиска или фильтра</p>
+                        <button class="btn-primary" onclick="resetFilters()">
+                            <i class="fas fa-undo-alt"></i> Сбросить фильтры
+                        </button>
+                    </div>
+                `;
+            } else {
+                newsContainer.innerHTML = paginatedNews.map((article, index) => `
+                    <div class="news-article" style="animation-delay: ${index * 0.05}s" data-news-id="${article.id}">
+                        <div class="news-category-badge ${article.category}" style="background: ${getCategoryColor(article.category)}20; color: ${getCategoryColor(article.category)};">
+                            ${getCategoryName(article.category)}
                         </div>
-                    `;
-                } else {
-                    newsContainer.innerHTML = paginatedNews.map((article, index) => `
-                        <div class="news-article" style="animation-delay: ${index * 0.05}s">
-                            <div class="news-category-badge ${article.category}">
-                                ${getCategoryName(article.category)}
-                            </div>
-                            <h2>${escapeHtml(article.title)}</h2>
-                            <div class="news-meta">
-                                <span><i class="fas fa-calendar-alt"></i> ${formatDate(article.date)}</span>
-                                <span><i class="fas fa-tag"></i> ${article.category}</span>
-                            </div>
+                        <h2>${escapeHtml(article.title)}</h2>
+                        <div class="news-meta">
+                            <span><i class="fas fa-calendar-alt"></i> ${formatDate(article.date)}</span>
+                            <span><i class="fas fa-eye"></i> ${article.views || 0} просмотров</span>
+                        </div>
+                        <div class="news-content">
                             <p>${escapeHtml(article.content)}</p>
-                            ${article.tags && article.tags.length ? `
-                                <div class="news-tags">
-                                    ${article.tags.map(tag => `
-                                        <span class="news-tag" onclick="searchByTag('${escapeHtml(tag)}')">
-                                            <i class="fas fa-hashtag"></i>${escapeHtml(tag)}
-                                        </span>
-                                    `).join('')}
-                                </div>
-                            ` : ''}
                         </div>
-                    `).join('');
-                }
-
-                renderPagination(totalPages);
-            }
-
-            function renderPagination(totalPages) {
-                const paginationEl = document.getElementById('pagination');
-                
-                if (totalPages <= 1) {
-                    paginationEl.innerHTML = '';
-                    return;
-                }
-
-                let paginationHtml = '<div class="pagination-wrapper">';
-                paginationHtml += `
-                    <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                `;
-
-                for (let i = 1; i <= totalPages; i++) {
-                    if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                        paginationHtml += `
-                            <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
-                                ${i}
+                        ${article.tags && article.tags.length ? `
+                            <div class="news-tags">
+                                ${article.tags.map(tag => `
+                                    <span class="news-tag" onclick="searchByTag('${escapeHtml(tag)}')">
+                                        <i class="fas fa-hashtag"></i> ${escapeHtml(tag)}
+                                    </span>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                        <div class="news-footer">
+                            <button class="btn-read-more" onclick="window.location.href='/news.html?id=${article.id}'">
+                                Читать подробнее <i class="fas fa-arrow-right"></i>
                             </button>
-                        `;
-                    } else if (i === currentPage - 3 || i === currentPage + 3) {
-                        paginationHtml += `<span class="pagination-dots">...</span>`;
-                    }
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            renderPagination(totalPages);
+        }
+
+        // Рендер пагинации
+        function renderPagination(totalPages) {
+            const paginationEl = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                paginationEl.innerHTML = '';
+                return;
+            }
+            
+            let paginationHtml = '<div class="pagination-wrapper">';
+            
+            // Previous button
+            paginationHtml += `
+                <button class="pagination-btn" ${currentPage === 1 ? 'disabled' : ''} onclick="changePage(${currentPage - 1})">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            `;
+            
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    paginationHtml += `
+                        <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">
+                            ${i}
+                        </button>
+                    `;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    paginationHtml += `<span class="pagination-dots">...</span>`;
                 }
-
-                paginationHtml += `
-                    <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                `;
-                paginationHtml += '</div>';
-
-                paginationEl.innerHTML = paginationHtml;
             }
+            
+            // Next button
+            paginationHtml += `
+                <button class="pagination-btn" ${currentPage === totalPages ? 'disabled' : ''} onclick="changePage(${currentPage + 1})">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+            paginationHtml += '</div>';
+            
+            paginationEl.innerHTML = paginationHtml;
+        }
 
-            window.changePage = function(page) {
-                currentPage = page;
-                renderNews();
-                document.querySelector('.news-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            };
-
-            window.resetFilters = function() {
-                searchInput.value = '';
-                searchTerm = '';
-                currentFilter = 'all';
-                filterButtons.forEach(btn => {
-                    if (btn.dataset.filter === 'all') {
-                        btn.classList.add('active');
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                });
-                currentPage = 1;
-                renderNews();
-            };
-
-            window.searchByTag = function(tag) {
-                searchInput.value = tag;
-                searchTerm = tag.toLowerCase();
-                currentPage = 1;
-                renderNews();
-            };
-
-            function escapeHtml(unsafe) {
-                if (!unsafe) return '';
-                return String(unsafe)
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;");
-            }
-        });
+        // Смена страницы
+        window.changePage = function(page) {
+            currentPage = page;
+            renderNews();
+            document.querySelector('.news-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+        
+        // Сброс фильтров
+        window.resetFilters = function() {
+            const searchInput = document.getElementById('newsSearch');
+            const filterButtons = document.querySelectorAll('.news-filter-btn');
+            
+            searchInput.value = '';
+            searchTerm = '';
+            currentFilter = 'all';
+            filterButtons.forEach(btn => {
+                if (btn.dataset.filter === 'all') {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            currentPage = 1;
+            renderNews();
+        };
+        
+        // Поиск по тегу
+        window.searchByTag = function(tag) {
+            const searchInput = document.getElementById('newsSearch');
+            searchInput.value = tag;
+            searchTerm = tag.toLowerCase();
+            currentPage = 1;
+            renderNews();
+        };
+        
+        // Экранирование HTML
+        function escapeHtml(unsafe) {
+            if (!unsafe) return '';
+            return String(unsafe)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
     </script>
 
     <div class="custom-cursor"></div>
