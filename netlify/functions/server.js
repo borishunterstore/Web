@@ -369,7 +369,6 @@ if (sql) {
   await initShopSettings();
 }
 
-// Обновите эндпоинт /api/shop-settings
 app.get('/api/shop-settings', async (req, res) => {
   try {
     if (!sql) {
@@ -407,7 +406,6 @@ app.get('/api/shop-settings', async (req, res) => {
   }
 });
 
-// Обновите эндпоинт для обновления настроек
 app.post('/api/admin/shop-settings', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -483,7 +481,6 @@ app.post('/api/admin/shop-settings', async (req, res) => {
   }
 });
 
-// Добавьте эндпоинт для проверки статуса магазина
 app.get('/api/shop-status', async (req, res) => {
   try {
     if (!sql) {
@@ -511,7 +508,6 @@ app.get('/api/shop-status', async (req, res) => {
   }
 });
 
-// Добавьте эндпоинт для проверки статуса авторизации
 app.get('/api/auth-status', async (req, res) => {
   try {
     if (!sql) {
@@ -564,184 +560,12 @@ app.get('/api/products', async (req, res) => {
     }
   }
   
-  // Возвращаем товары из памяти
   res.json({
     success: true,
     products: productsData,
     total: productsData.length,
     shop_open: true
   });
-});
-
-// ============================================
-// API для работы с настройками магазина
-// ============================================
-
-app.get('/api/shop-settings', async (req, res) => {
-  try {
-    if (!sql) {
-      return res.json({
-        success: true,
-        settings: {
-          shop_closed: false,
-          registration_enabled: true,
-          site_access: true
-        }
-      });
-    }
-    
-    const settings = await sql`
-      SELECT setting_key, setting_value FROM shop_settings
-    `;
-    
-    const settingsObj = {};
-    settings.forEach(setting => {
-      settingsObj[setting.setting_key] = setting.setting_value;
-    });
-    
-    res.json({
-      success: true,
-      settings: settingsObj
-    });
-    
-  } catch (error) {
-    console.error('❌ Ошибка получения настроек:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Ошибка получения настроек' 
-    });
-  }
-});
-
-// Обновить настройку магазина
-app.post('/api/admin/shop-settings', async (req, res) => {
-  try {
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader) {
-      return res.status(401).json({ success: false, error: 'Не авторизован' });
-    }
-
-    const token = authHeader.replace('Bearer ', '');
-    
-    try {
-      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-      
-      const isAdmin = decoded.id === '992442453833547886';
-      
-      if (!isAdmin) {
-        if (sql) {
-          const [user] = await sql`
-            SELECT badges FROM users WHERE discord_id = ${decoded.id}
-          `;
-          if (!user?.badges?.admin) {
-            return res.status(403).json({ success: false, error: 'Требуются права администратора' });
-          }
-        } else {
-          return res.status(403).json({ success: false, error: 'Требуются права администратора' });
-        }
-      }
-      
-      const { setting_key, setting_value } = req.body;
-      
-      if (!setting_key || setting_value === undefined) {
-        return res.status(400).json({ success: false, error: 'Не указаны параметры' });
-      }
-      
-      const allowedKeys = ['shop_closed', 'registration_enabled', 'site_access'];
-      if (!allowedKeys.includes(setting_key)) {
-        return res.status(400).json({ success: false, error: 'Недопустимый ключ настройки' });
-      }
-      
-      if (sql) {
-        await sql`
-          UPDATE shop_settings 
-          SET setting_value = ${setting_value === true || setting_value === 'true'},
-              updated_at = CURRENT_TIMESTAMP,
-              updated_by = ${decoded.username || decoded.id}
-          WHERE setting_key = ${setting_key}
-        `;
-        
-        console.log(`✅ Настройка ${setting_key} изменена на ${setting_value} администратором ${decoded.username || decoded.id}`);
-      }
-      
-      try {
-        const webhookUrl = process.env.DISCORD_WEBHOOK_ADMIN || 'https://discord.com/api/webhooks/1475843665921576960/dzWLdmiJOrsOH_Lnvj7I3DVB69UaAiCg4b-Leiu7-LlhiZZzVYL2thbjvXdXvwtVTw89';
-        
-        const settingNames = {
-          'shop_closed': '🏪 Магазин',
-          'registration_enabled': '📝 Регистрация',
-          'site_access': '🌐 Доступ к сайту'
-        };
-        
-        const statusText = setting_value ? '❌ ЗАКРЫТ' : '✅ ОТКРЫТ';
-        
-        await axios.post(webhookUrl, {
-          embeds: [{
-            title: '⚙️ Изменение настройки',
-            description: `${settingNames[setting_key]} теперь **${statusText}**`,
-            color: setting_value ? 0xED4245 : 0x57F287,
-            fields: [
-              { name: '👤 Администратор', value: decoded.username || decoded.id, inline: true },
-              { name: '🕐 Время', value: new Date().toLocaleString('ru-RU'), inline: true }
-            ],
-            timestamp: new Date().toISOString()
-          }]
-        }).catch(console.error);
-      } catch (webhookError) {
-        console.error('Ошибка отправки вебхука:', webhookError.message);
-      }
-      
-      res.json({
-        success: true,
-        message: `Настройка "${setting_key}" обновлена`,
-        setting: {
-          key: setting_key,
-          value: setting_value
-        }
-      });
-      
-    } catch (decodeError) {
-      return res.status(401).json({ success: false, error: 'Неверный токен' });
-    }
-    
-  } catch (error) {
-    console.error('❌ Ошибка обновления настроек:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Ошибка обновления настроек' 
-    });
-  }
-});
-
-// Получить статус магазина
-app.get('/api/shop-status', async (req, res) => {
-  try {
-    if (!sql) {
-      return res.json({
-        success: true,
-        shop_closed: false
-      });
-    }
-    
-    const [setting] = await sql`
-      SELECT setting_value FROM shop_settings WHERE setting_key = 'shop_closed'
-    `;
-    
-    console.log('📡 Запрос статуса магазина:', setting?.setting_value);
-    
-    res.json({
-      success: true,
-      shop_closed: setting?.setting_value || false
-    });
-    
-  } catch (error) {
-    console.error('❌ Ошибка получения статуса магазина:', error.message);
-    res.json({
-      success: true,
-      shop_closed: false
-    });
-  }
 });
 
 // ============================================
@@ -2500,29 +2324,6 @@ app.post('/api/admin/users/:userId/badges', async (req, res) => {
     res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
-
-// ============================================
-// НАСТРОЙКИ МАГАЗИНА (ИНИЦИАЛИЗАЦИЯ ТАБЛИЦЫ)
-// ============================================
-
-// Добавить начальные настройки в БД
-async function initShopSettings() {
-  if (!sql) return;
-  
-  const settings = ['shop_closed', 'registration_enabled', 'site_access'];
-  for (const key of settings) {
-    const [exists] = await sql`
-      SELECT 1 FROM shop_settings WHERE setting_key = ${key}
-    `;
-    if (!exists) {
-      await sql`
-        INSERT INTO shop_settings (setting_key, setting_value)
-        VALUES (${key}, ${key === 'shop_closed' ? false : true})
-      `;
-    }
-  }
-  console.log('✅ Настройки магазина инициализированы');
-}
 
 // ============================================
 // Админ маршруты
