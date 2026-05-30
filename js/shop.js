@@ -127,16 +127,7 @@
                         <h3 class="product-title">${safeProductName}</h3>
                         <div class="product-description">${descriptionDisplay}</div>
     
-                        ${product.features ? `
-                            <div class="product-features">
-                                ${Array.isArray(product.features) ? product.features.map(feature => `
-                                    <div class="feature-item">
-                                        <i class="fas fa-check"></i>
-                                        <span>${escapeHtml(feature)}</span>
-                                    </div>
-                                `).join('') : ''}
-                            </div>
-                        ` : ''}
+
     
                         <div class="price-section">
                             ${hasDiscount ? `
