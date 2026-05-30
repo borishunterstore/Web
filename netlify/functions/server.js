@@ -339,36 +339,35 @@ if (sql) {
   initDatabase();
 }
 
-async function initShopSettings() {
-  if (!sql) return;
-  
-  const defaultSettings = [
-    { key: 'shop_open', value: true },
-    { key: 'auth_enabled', value: true },
-    { key: 'registration_enabled', value: true },
-    { key: 'site_access', value: true }
-  ];
-  
-  for (const setting of defaultSettings) {
-    const [exists] = await sql`
-      SELECT 1 FROM shop_settings WHERE setting_key = ${setting.key}
-    `;
-    if (!exists) {
-      await sql`
-        INSERT INTO shop_settings (setting_key, setting_value, updated_at)
-        VALUES (${setting.key}, ${setting.value}, CURRENT_TIMESTAMP)
-      `;
+// Статус авторизации
+app.get('/api/auth-status', async (req, res) => {
+  try {
+    if (!sql) {
+      return res.json({
+        success: true,
+        auth_enabled: true
+      });
     }
+    
+    const [setting] = await sql`
+      SELECT setting_value FROM shop_settings WHERE setting_key = 'auth_enabled'
+    `;
+    
+    res.json({
+      success: true,
+      auth_enabled: setting?.setting_value !== false
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка получения статуса авторизации:', error.message);
+    res.json({
+      success: true,
+      auth_enabled: true
+    });
   }
-  console.log('✅ Настройки магазина инициализированы');
-}
+});
 
-// Вызовите её после initDatabase()
-if (sql) {
-  await initDatabase();
-  await initShopSettings();
-}
-
+// ОСТАВИТЬ - получение настроек
 app.get('/api/shop-settings', async (req, res) => {
   try {
     if (!sql) {
@@ -406,71 +405,63 @@ app.get('/api/shop-settings', async (req, res) => {
   }
 });
 
+// ОСТАВИТЬ - правильный POST
 app.post('/api/admin/shop-settings', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
-    
     if (!authHeader) {
       return res.status(401).json({ success: false, error: 'Не авторизован' });
     }
 
     const token = authHeader.replace('Bearer ', '');
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
     
-    try {
-      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-      
-      const isAdmin = decoded.id === '992442453833547886';
-      
-      if (!isAdmin) {
-        if (sql) {
-          const [user] = await sql`
-            SELECT badges FROM users WHERE discord_id = ${decoded.id}
-          `;
-          if (!user?.badges?.admin) {
-            return res.status(403).json({ success: false, error: 'Требуются права администратора' });
-          }
-        } else {
+    const isAdmin = decoded.id === '992442453833547886';
+    
+    if (!isAdmin) {
+      if (sql) {
+        const [user] = await sql`
+          SELECT badges FROM users WHERE discord_id = ${decoded.id}
+        `;
+        if (!user?.badges?.admin) {
           return res.status(403).json({ success: false, error: 'Требуются права администратора' });
         }
+      } else {
+        return res.status(403).json({ success: false, error: 'Требуются права администратора' });
       }
-      
-      const { setting_key, setting_value } = req.body;
-      
-      if (!setting_key || setting_value === undefined) {
-        return res.status(400).json({ success: false, error: 'Не указаны параметры' });
-      }
-      
-      const allowedKeys = ['shop_open', 'auth_enabled', 'registration_enabled', 'site_access'];
-      if (!allowedKeys.includes(setting_key)) {
-        return res.status(400).json({ success: false, error: 'Недопустимый ключ настройки' });
-      }
-      
-      if (sql) {
-        await sql`
-          UPDATE shop_settings 
-          SET setting_value = ${setting_value === true || setting_value === 'true'},
-              updated_at = CURRENT_TIMESTAMP,
-              updated_by = ${decoded.username || decoded.id}
-          WHERE setting_key = ${setting_key}
-        `;
-        
-        console.log(`✅ Настройка ${setting_key} изменена на ${setting_value} администратором ${decoded.username || decoded.id}`);
-      }
-      
-      // Без уведомлений в Discord
-      
-      res.json({
-        success: true,
-        message: `Настройка "${setting_key}" обновлена`,
-        setting: {
-          key: setting_key,
-          value: setting_value
-        }
-      });
-      
-    } catch (decodeError) {
-      return res.status(401).json({ success: false, error: 'Неверный токен' });
     }
+    
+    const { setting_key, setting_value } = req.body;
+    
+    if (!setting_key || setting_value === undefined) {
+      return res.status(400).json({ success: false, error: 'Не указаны параметры' });
+    }
+    
+    const allowedKeys = ['shop_open', 'auth_enabled', 'registration_enabled', 'site_access'];
+    if (!allowedKeys.includes(setting_key)) {
+      return res.status(400).json({ success: false, error: 'Недопустимый ключ настройки' });
+    }
+    
+    if (sql) {
+      await sql`
+        UPDATE shop_settings 
+        SET setting_value = ${setting_value === true || setting_value === 'true'},
+            updated_at = CURRENT_TIMESTAMP,
+            updated_by = ${decoded.username || decoded.id}
+        WHERE setting_key = ${setting_key}
+      `;
+      
+      console.log(`✅ Настройка ${setting_key} изменена на ${setting_value} администратором ${decoded.username || decoded.id}`);
+    }
+    
+    res.json({
+      success: true,
+      message: `Настройка "${setting_key}" обновлена`,
+      setting: {
+        key: setting_key,
+        value: setting_value
+      }
+    });
     
   } catch (error) {
     console.error('❌ Ошибка обновления настроек:', error.message);
@@ -481,59 +472,13 @@ app.post('/api/admin/shop-settings', async (req, res) => {
   }
 });
 
-app.get('/api/shop-status', async (req, res) => {
-  try {
-    if (!sql) {
-      return res.json({
-        success: true,
-        shop_open: true
-      });
-    }
-    
-    const [setting] = await sql`
-      SELECT setting_value FROM shop_settings WHERE setting_key = 'shop_open'
-    `;
-    
-    res.json({
-      success: true,
-      shop_open: setting?.setting_value !== false
-    });
-    
-  } catch (error) {
-    console.error('❌ Ошибка получения статуса магазина:', error.message);
-    res.json({
-      success: true,
-      shop_open: true
-    });
-  }
-});
-
-app.get('/api/auth-status', async (req, res) => {
-  try {
-    if (!sql) {
-      return res.json({
-        success: true,
-        auth_enabled: true
-      });
-    }
-    
-    const [setting] = await sql`
-      SELECT setting_value FROM shop_settings WHERE setting_key = 'auth_enabled'
-    `;
-    
-    res.json({
-      success: true,
-      auth_enabled: setting?.setting_value !== false
-    });
-    
-  } catch (error) {
-    console.error('❌ Ошибка получения статуса авторизации:', error.message);
-    res.json({
-      success: true,
-      auth_enabled: true
-    });
-  }
-});
+// Запускаем инициализацию БД
+if (sql) {
+  (async () => {
+    await initDatabase();
+    await initShopSettings();
+  })();
+}
 
 // Обновите эндпоинт /api/products - проверка статуса магазина
 app.get('/api/products', async (req, res) => {
@@ -2333,10 +2278,6 @@ function isAdminUser(decodedToken) {
   const adminIds = ['992442453833547886'];
   return adminIds.includes(decodedToken.id);
 }
-
-// ============================================
-// Админ маршруты для управления пользователями
-// ============================================
 
 app.post('/api/admin/news', async (req, res) => {
   try {
