@@ -231,18 +231,11 @@ class AdminUsers {
             };
             
             try {
-                await this.api.request(`/admin/users/${userId}/badges`, {
-                    method: 'POST',
-                    body: JSON.stringify({ badgeKey: 'admin', value: newBadges.admin })
-                });
-                
                 for (const [key, value] of Object.entries(newBadges)) {
-                    if (key !== 'admin') {
-                        await this.api.request(`/admin/users/${userId}/badges`, {
-                            method: 'POST',
-                            body: JSON.stringify({ badgeKey: key, value })
-                        });
-                    }
+                    await this.api.request(`/admin/users/${userId}/badges`, {
+                        method: 'POST',
+                        body: JSON.stringify({ badgeKey: key, value })
+                    });
                 }
                 
                 modal.remove();

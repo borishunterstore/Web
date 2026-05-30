@@ -40,28 +40,30 @@ class AdminStats {
                 this.registrationEnabled = data.settings.registration_enabled !== false;
                 this.siteAccess = data.settings.site_access !== false;
                 
-                // Сохраняем в localStorage для синхронизации с фронтендом
                 localStorage.setItem('bhstore_shop_open', this.shopOpen);
                 localStorage.setItem('bhstore_auth_enabled', this.authEnabled);
                 localStorage.setItem('bhstore_registration_enabled', this.registrationEnabled);
                 localStorage.setItem('bhstore_site_access', this.siteAccess);
                 
-                // Обновляем чекбоксы
-                const shopCheckbox = document.getElementById('shopOpenToggle');
-                if (shopCheckbox) shopCheckbox.checked = !this.shopOpen; // Инвертируем для UX (чекбокс "Закрыт")
-                
-                const authCheckbox = document.getElementById('authEnabledToggle');
-                if (authCheckbox) authCheckbox.checked = !this.authEnabled;
-                
-                const registrationCheckbox = document.getElementById('registrationEnabledToggle');
-                if (registrationCheckbox) registrationCheckbox.checked = this.registrationEnabled;
-                
-                const siteAccessCheckbox = document.getElementById('siteAccessToggle');
-                if (siteAccessCheckbox) siteAccessCheckbox.checked = this.siteAccess;
+                this.updateCheckboxes();
             }
         } catch (error) {
             console.error('Ошибка загрузки настроек:', error);
         }
+    }
+
+    updateCheckboxes() {
+        const shopCheckbox = document.getElementById('shopOpenToggle');
+        if (shopCheckbox) shopCheckbox.checked = !this.shopOpen;
+        
+        const authCheckbox = document.getElementById('authEnabledToggle');
+        if (authCheckbox) authCheckbox.checked = !this.authEnabled;
+        
+        const registrationCheckbox = document.getElementById('registrationEnabledToggle');
+        if (registrationCheckbox) registrationCheckbox.checked = this.registrationEnabled;
+        
+        const siteAccessCheckbox = document.getElementById('siteAccessToggle');
+        if (siteAccessCheckbox) siteAccessCheckbox.checked = this.siteAccess;
     }
 
     async toggleShopOpen(closed) {
@@ -70,8 +72,7 @@ class AdminStats {
         
         if (!token) {
             this.showNotification('Ошибка авторизации. Пожалуйста, войдите заново.', 'error');
-            const checkbox = document.getElementById('shopOpenToggle');
-            if (checkbox) checkbox.checked = closed;
+            this.updateCheckboxes();
             return;
         }
         
@@ -100,15 +101,13 @@ class AdminStats {
                 this.shopOpen = open;
                 localStorage.setItem('bhstore_shop_open', open);
                 this.updateShopStatusDisplay(open);
-                // Убираем уведомление
             } else {
                 throw new Error(result.error || 'Ошибка при изменении статуса');
             }
         } catch (error) {
             console.error('Ошибка:', error);
             this.showNotification('Ошибка при изменении статуса: ' + error.message, 'error');
-            const checkbox = document.getElementById('shopOpenToggle');
-            if (checkbox) checkbox.checked = closed;
+            this.updateCheckboxes();
         }
     }
 
@@ -117,9 +116,8 @@ class AdminStats {
         const enabled = !disabled;
         
         if (!token) {
-            this.showNotification('Ошибка авторизации. Пожалуйста, войдите заново.', 'error');
-            const checkbox = document.getElementById('authEnabledToggle');
-            if (checkbox) checkbox.checked = disabled;
+            this.showNotification('Ошибка авторизации.', 'error');
+            this.updateCheckboxes();
             return;
         }
         
@@ -137,7 +135,7 @@ class AdminStats {
             });
             
             if (response.status === 401) {
-                this.showNotification('Сессия истекла. Пожалуйста, войдите заново.', 'error');
+                this.showNotification('Сессия истекла.', 'error');
                 setTimeout(() => window.location.href = '/profile.html', 2000);
                 return;
             }
@@ -147,15 +145,14 @@ class AdminStats {
             if (result.success) {
                 this.authEnabled = enabled;
                 localStorage.setItem('bhstore_auth_enabled', enabled);
-                // Убираем уведомление
+                this.updateAuthStatusDisplay(enabled);
             } else {
                 throw new Error(result.error || 'Ошибка при изменении статуса');
             }
         } catch (error) {
             console.error('Ошибка:', error);
-            this.showNotification('Ошибка при изменении статуса авторизации: ' + error.message, 'error');
-            const checkbox = document.getElementById('authEnabledToggle');
-            if (checkbox) checkbox.checked = disabled;
+            this.showNotification('Ошибка: ' + error.message, 'error');
+            this.updateCheckboxes();
         }
     }
 
@@ -163,9 +160,8 @@ class AdminStats {
         const token = this.getAuthToken();
         
         if (!token) {
-            this.showNotification('Ошибка авторизации. Пожалуйста, войдите заново.', 'error');
-            const checkbox = document.getElementById('registrationEnabledToggle');
-            if (checkbox) checkbox.checked = !enabled;
+            this.showNotification('Ошибка авторизации.', 'error');
+            this.updateCheckboxes();
             return;
         }
         
@@ -183,7 +179,7 @@ class AdminStats {
             });
             
             if (response.status === 401) {
-                this.showNotification('Сессия истекла. Пожалуйста, войдите заново.', 'error');
+                this.showNotification('Сессия истекла.', 'error');
                 setTimeout(() => window.location.href = '/profile.html', 2000);
                 return;
             }
@@ -193,15 +189,13 @@ class AdminStats {
             if (result.success) {
                 this.registrationEnabled = enabled;
                 localStorage.setItem('bhstore_registration_enabled', enabled);
-                // Убираем уведомление
             } else {
                 throw new Error(result.error || 'Ошибка при изменении статуса');
             }
         } catch (error) {
             console.error('Ошибка:', error);
-            this.showNotification('Ошибка при изменении статуса регистрации: ' + error.message, 'error');
-            const checkbox = document.getElementById('registrationEnabledToggle');
-            if (checkbox) checkbox.checked = !enabled;
+            this.showNotification('Ошибка: ' + error.message, 'error');
+            this.updateCheckboxes();
         }
     }
 
@@ -209,9 +203,8 @@ class AdminStats {
         const token = this.getAuthToken();
         
         if (!token) {
-            this.showNotification('Ошибка авторизации. Пожалуйста, войдите заново.', 'error');
-            const checkbox = document.getElementById('siteAccessToggle');
-            if (checkbox) checkbox.checked = !enabled;
+            this.showNotification('Ошибка авторизации.', 'error');
+            this.updateCheckboxes();
             return;
         }
         
@@ -229,7 +222,7 @@ class AdminStats {
             });
             
             if (response.status === 401) {
-                this.showNotification('Сессия истекла. Пожалуйста, войдите заново.', 'error');
+                this.showNotification('Сессия истекла.', 'error');
                 setTimeout(() => window.location.href = '/profile.html', 2000);
                 return;
             }
@@ -239,15 +232,13 @@ class AdminStats {
             if (result.success) {
                 this.siteAccess = enabled;
                 localStorage.setItem('bhstore_site_access', enabled);
-                // Убираем уведомление
             } else {
                 throw new Error(result.error || 'Ошибка при изменении статуса');
             }
         } catch (error) {
             console.error('Ошибка:', error);
-            this.showNotification('Ошибка при изменении доступа: ' + error.message, 'error');
-            const checkbox = document.getElementById('siteAccessToggle');
-            if (checkbox) checkbox.checked = !enabled;
+            this.showNotification('Ошибка: ' + error.message, 'error');
+            this.updateCheckboxes();
         }
     }
 
@@ -287,14 +278,12 @@ class AdminStats {
         const conversion = stats.conversion || 0;
 
         statsContent.innerHTML = `
-            <!-- Панель управления магазином -->
             <div class="shop-settings-panel" style="background: linear-gradient(135deg, #2a2b36, #1e1f29); border-radius: 16px; padding: 25px; margin-bottom: 30px; border: 2px solid ${!this.shopOpen ? '#ED4245' : '#57F287'};">
                 <h3 style="color: white; margin-bottom: 20px;">
                     <i class="fas fa-cog"></i> Управление магазином
                 </h3>
                 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                    <!-- Настройка: Магазин -->
                     <div style="background: #202225; border-radius: 12px; padding: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <div>
@@ -313,11 +302,10 @@ class AdminStats {
                             <span style="color: #b9bbbe;">Магазин закрыт</span>
                         </label>
                         <p style="color: #72767d; font-size: 0.8rem; margin-top: 10px;">
-                            При закрытии магазина пользователи не смогут оформлять заказы
+                            При закрытии пользователи не смогут оформлять заказы
                         </p>
                     </div>
                     
-                    <!-- Настройка: Авторизация -->
                     <div style="background: #202225; border-radius: 12px; padding: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <div>
@@ -340,7 +328,6 @@ class AdminStats {
                         </p>
                     </div>
                     
-                    <!-- Настройка: Регистрация -->
                     <div style="background: #202225; border-radius: 12px; padding: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <div>
@@ -363,7 +350,6 @@ class AdminStats {
                         </p>
                     </div>
                     
-                    <!-- Настройка: Доступ к сайту -->
                     <div style="background: #202225; border-radius: 12px; padding: 15px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                             <div>
@@ -388,7 +374,6 @@ class AdminStats {
                 </div>
             </div>
             
-            <!-- Карточки статистики -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
                 <div class="stat-card" style="background: linear-gradient(135deg, #5865F2, #4752c4); padding: 25px; border-radius: 16px;">
                     <div style="display: flex; align-items: center; gap: 15px;">
@@ -437,13 +422,12 @@ class AdminStats {
                         <div>
                             <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">Конверсия</div>
                             <div style="color: white; font-size: 2.5rem; font-weight: 700;">${conversion}%</div>
-                            <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">${stats.totalOrders} заказов</div>
+                            <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem;">${totalOrders} заказов</div>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Детальная статистика -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
                 <div style="background: #2a2b36; border-radius: 16px; padding: 20px; border: 1px solid #40444b;">
                     <h3 style="color: white; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
@@ -493,33 +477,24 @@ class AdminStats {
             </div>
         `;
 
-        // Добавляем обработчики для переключателей
         const shopToggle = document.getElementById('shopOpenToggle');
         if (shopToggle) {
-            shopToggle.addEventListener('change', (e) => {
-                this.toggleShopOpen(e.target.checked);
-            });
+            shopToggle.addEventListener('change', (e) => this.toggleShopOpen(e.target.checked));
         }
         
         const authToggle = document.getElementById('authEnabledToggle');
         if (authToggle) {
-            authToggle.addEventListener('change', (e) => {
-                this.toggleAuthEnabled(e.target.checked);
-            });
+            authToggle.addEventListener('change', (e) => this.toggleAuthEnabled(e.target.checked));
         }
         
         const regToggle = document.getElementById('registrationEnabledToggle');
         if (regToggle) {
-            regToggle.addEventListener('change', (e) => {
-                this.toggleRegistration(e.target.checked);
-            });
+            regToggle.addEventListener('change', (e) => this.toggleRegistration(e.target.checked));
         }
         
         const siteToggle = document.getElementById('siteAccessToggle');
         if (siteToggle) {
-            siteToggle.addEventListener('change', (e) => {
-                this.toggleSiteAccess(e.target.checked);
-            });
+            siteToggle.addEventListener('change', (e) => this.toggleSiteAccess(e.target.checked));
         }
     }
 
@@ -542,24 +517,12 @@ class AdminStats {
             animation: slideIn 0.3s ease;
         `;
         
-        notification.innerHTML = `
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'exclamation-circle'}"></i>
-            <span>${message}</span>
-        `;
-        
+        notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'exclamation-circle'}"></i><span>${message}</span>`;
         document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
+        setTimeout(() => notification.remove(), 3000);
     }
 }
 
-// Инициализация
 window.AdminStats = AdminStats;
 window.adminStats = new AdminStats();
-
-// Глобальная функция
-window.loadStats = async function() {
-    await window.adminStats.loadStats();
-};
+window.loadStats = async function() { await window.adminStats.loadStats(); };
