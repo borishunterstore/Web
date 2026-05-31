@@ -1406,10 +1406,32 @@ app.get('/api/user/:id', async (req, res) => {
     if (sql) {
       try {
         const [user] = await sql`
-          SELECT * FROM users WHERE discord_id = ${userId}
+          SELECT discord_id, username, email, avatar, registered_at, balance, badges, orders, privacy, frozen 
+          FROM users WHERE discord_id = ${userId}
         `;
         
         if (user) {
+          // Проверяем, не заморожен ли аккаунт (для чужих профилей)
+          const authHeader = req.headers.authorization;
+          let isOwner = false;
+          
+          if (authHeader) {
+            try {
+              const token = authHeader.replace('Bearer ', '');
+              const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+              isOwner = decoded.id === userId;
+            } catch (e) {}
+          }
+          
+          // Если аккаунт заморожен и это не владелец - показываем ошибку
+          if (user.frozen === true && !isOwner) {
+            return res.status(403).json({ 
+              success: false, 
+              error: 'Аккаунт заморожен',
+              frozen: true
+            });
+          }
+          
           return res.json({
             success: true,
             user: {
@@ -1420,7 +1442,17 @@ app.get('/api/user/:id', async (req, res) => {
               registeredAt: user.registered_at,
               balance: user.balance || 0,
               badges: user.badges || {},
-              orders: user.orders || []
+              orders: user.orders || [],
+              privacy: user.privacy || {
+                show_avatar: true,
+                show_orders: true,
+                show_badges: true,
+                show_spent: true,
+                show_orders_count: true,
+                show_registered: true,
+                hide_profile: false
+              },
+              frozen: user.frozen || false
             }
           });
         }
@@ -1430,12 +1462,8 @@ app.get('/api/user/:id', async (req, res) => {
     }
     
     const user = users[userId];
-    
     if (!user) {
-      return res.json({ 
-        success: true, 
-        user: null 
-      });
+      return res.json({ success: true, user: null });
     }
     
     res.json({
@@ -1448,16 +1476,23 @@ app.get('/api/user/:id', async (req, res) => {
         registeredAt: user.registeredAt,
         balance: user.balance || 0,
         badges: user.badges || {},
-        orders: (user.orders || []).slice(-10)
+        orders: (user.orders || []).slice(-10),
+        privacy: user.privacy || {
+          show_avatar: true,
+          show_orders: true,
+          show_badges: true,
+          show_spent: true,
+          show_orders_count: true,
+          show_registered: true,
+          hide_profile: false
+        },
+        frozen: user.frozen || false
       }
     });
 
   } catch (error) {
     console.error('Ошибка получения пользователя:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Ошибка сервера' 
-    });
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
 
