@@ -1400,9 +1400,25 @@ app.post('/api/chat/typing', async (req, res) => {
 // ============================================
 
 // Получение информации о пользователе по ID
+// Получение информации о пользователе по ID (с проверкой приватности)
 app.get('/api/user/:id', async (req, res) => {
   try {
     const userId = req.params.id;
+    
+    // Определяем, кто запрашивает
+    const authHeader = req.headers.authorization;
+    let requesterId = null;
+    let isOwner = false;
+    
+    if (authHeader) {
+      try {
+        const token = authHeader.replace('Bearer ', '');
+        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+        requesterId = decoded.id;
+        isOwner = requesterId === userId;
+      } catch (e) {}
+    }
+    
     if (sql) {
       try {
         const [user] = await sql`
@@ -1411,49 +1427,64 @@ app.get('/api/user/:id', async (req, res) => {
         `;
         
         if (user) {
-          // Проверяем, не заморожен ли аккаунт (для чужих профилей)
-          const authHeader = req.headers.authorization;
-          let isOwner = false;
+          const privacy = user.privacy || {
+            show_avatar: true,
+            show_orders: true,
+            show_badges: true,
+            show_spent: true,
+            show_orders_count: true,
+            show_registered: true,
+            hide_profile: false
+          };
           
-          if (authHeader) {
-            try {
-              const token = authHeader.replace('Bearer ', '');
-              const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-              isOwner = decoded.id === userId;
-            } catch (e) {}
+          // Если профиль скрыт или заморожен - возвращаем минимум информации (только для владельца)
+          if ((privacy.hide_profile === true || user.frozen === true) && !isOwner) {
+            return res.json({
+              success: true,
+              user: {
+                discordId: user.discord_id,
+                username: null,
+                email: null,
+                avatar: null,
+                registeredAt: null,
+                balance: null,
+                badges: null,
+                orders: null,
+                privacy: privacy,
+                frozen: user.frozen,
+                hidden: true
+              }
+            });
           }
           
-          // Если аккаунт заморожен и это не владелец - показываем ошибку
-          if (user.frozen === true && !isOwner) {
-            return res.status(403).json({ 
-              success: false, 
-              error: 'Аккаунт заморожен',
-              frozen: true
-            });
+          // Формируем ответ с учетом настроек приватности
+          const responseUser = {
+            discordId: user.discord_id,
+            username: user.username,
+            email: isOwner ? (user.email || null) : null,
+            registeredAt: user.registered_at,
+            balance: isOwner ? (user.balance || 0) : null,
+            orders: isOwner ? (user.orders || []) : null,
+            badges: isOwner ? (user.badges || {}) : null,
+            privacy: privacy,
+            frozen: user.frozen || false
+          };
+          
+          // Аватарка - только если разрешено или владелец
+          if (isOwner || (privacy.show_avatar !== false && user.avatar)) {
+            responseUser.avatar = user.avatar;
+          } else {
+            responseUser.avatar = null;
+          }
+          
+          // Бейджи - только если разрешено или владелец
+          if (!isOwner && privacy.show_badges === false) {
+            responseUser.badges = null;
           }
           
           return res.json({
             success: true,
-            user: {
-              discordId: user.discord_id,
-              username: user.username,
-              email: user.email,
-              avatar: user.avatar,
-              registeredAt: user.registered_at,
-              balance: user.balance || 0,
-              badges: user.badges || {},
-              orders: user.orders || [],
-              privacy: user.privacy || {
-                show_avatar: true,
-                show_orders: true,
-                show_badges: true,
-                show_spent: true,
-                show_orders_count: true,
-                show_registered: true,
-                hide_profile: false
-              },
-              frozen: user.frozen || false
-            }
+            user: responseUser
           });
         }
       } catch (dbError) {
@@ -1461,6 +1492,7 @@ app.get('/api/user/:id', async (req, res) => {
       }
     }
     
+    // Fallback для in-memory
     const user = users[userId];
     if (!user) {
       return res.json({ success: true, user: null });
@@ -1471,22 +1503,12 @@ app.get('/api/user/:id', async (req, res) => {
       user: {
         discordId: user.discordId,
         username: user.username,
-        email: user.email,
+        email: isOwner ? user.email : null,
         avatar: user.avatar,
         registeredAt: user.registeredAt,
-        balance: user.balance || 0,
-        badges: user.badges || {},
-        orders: (user.orders || []).slice(-10),
-        privacy: user.privacy || {
-          show_avatar: true,
-          show_orders: true,
-          show_badges: true,
-          show_spent: true,
-          show_orders_count: true,
-          show_registered: true,
-          hide_profile: false
-        },
-        frozen: user.frozen || false
+        balance: isOwner ? (user.balance || 0) : null,
+        badges: isOwner ? (user.badges || {}) : null,
+        orders: isOwner ? (user.orders || []).slice(-10) : null
       }
     });
 
@@ -1547,6 +1569,28 @@ app.get('/api/user/:id/balance', async (req, res) => {
   try {
     const userId = req.params.id;
     
+    // Определяем, кто запрашивает
+    const authHeader = req.headers.authorization;
+    let isOwner = false;
+    
+    if (authHeader) {
+      try {
+        const token = authHeader.replace('Bearer ', '');
+        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+        isOwner = decoded.id === userId;
+      } catch (e) {}
+    }
+    
+    // Баланс видит только владелец
+    if (!isOwner) {
+      return res.json({
+        success: true,
+        balance: null,
+        hidden: true,
+        currency: 'RUB'
+      });
+    }
+    
     if (sql) {
       try {
         const [user] = await sql`
@@ -1583,10 +1627,39 @@ app.get('/api/user/:id/balance', async (req, res) => {
 });
 
 // Получение заказов пользователя
+// Получение заказов пользователя (с проверкой приватности)
 app.get('/api/user/:id/orders', async (req, res) => {
   try {
     const userId = req.params.id;
     const { status } = req.query;
+    
+    // Определяем, кто запрашивает
+    const authHeader = req.headers.authorization;
+    let requesterId = null;
+    let isOwner = false;
+    
+    if (authHeader) {
+      try {
+        const token = authHeader.replace('Bearer ', '');
+        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+        requesterId = decoded.id;
+        isOwner = requesterId === userId;
+      } catch (e) {}
+    }
+    
+    // Если не владелец и профиль скрыт/заморожен - не показываем заказы
+    if (!isOwner) {
+      const [user] = await sql`
+        SELECT privacy, frozen FROM users WHERE discord_id = ${userId}
+      `;
+      
+      if (user) {
+        const privacy = user.privacy || {};
+        if (privacy.hide_profile === true || user.frozen === true || privacy.show_orders === false) {
+          return res.json({ success: true, orders: [] });
+        }
+      }
+    }
     
     let orders = [];
     
@@ -1597,6 +1670,11 @@ app.get('/api/user/:id/orders', async (req, res) => {
       
       if (user && user.orders) {
         orders = user.orders;
+        
+        // Для чужих профилей показываем только выполненные заказы
+        if (!isOwner) {
+          orders = orders.filter(o => o.status === 'completed');
+        }
         
         // Фильтрация по статусу
         if (status && status !== 'all') {

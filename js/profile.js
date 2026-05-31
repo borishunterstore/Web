@@ -112,6 +112,58 @@
         }
     }
 
+    function renderForeignProfileWithPrivacy(user, privacy) {
+        let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
+        
+        // Аватарка - только если разрешено и есть данные
+        if (privacy.show_avatar !== false && user.avatar) {
+            if (user.avatar.startsWith('a_')) {
+                avatarUrl = `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.gif?size=256`;
+            } else {
+                avatarUrl = `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png?size=256`;
+            }
+        } else if (privacy.show_avatar === false) {
+            avatarUrl = 'image/avatar-hidden.png'; // Серая аватарка по умолчанию
+        }
+        
+        // Бейджи - только если разрешено
+        let badgesHTML = '';
+        let mainBadge = '';
+        
+        if (privacy.show_badges !== false && user.badges) {
+            const badges = normalizeBadges(user.badges);
+            mainBadge = getMainBadge(badges);
+            badgesHTML = generateBadgesHTML(badges);
+        }
+        
+        const profileHeader = document.getElementById('profileHeader');
+        if (profileHeader) {
+            profileHeader.innerHTML = `
+                <div class="profile-avatar-wrapper">
+                    <img src="${avatarUrl}" 
+                         class="profile-avatar"
+                         alt="Avatar"
+                         onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                    ${mainBadge}
+                </div>
+                <div class="profile-info">
+                    <h2>
+                        <i class="fas fa-user-circle"></i>
+                        ${escapeHtml(user.username || 'Пользователь')}
+                    </h2>
+                    <div class="badges-container">
+                        ${badgesHTML}
+                    </div>
+                    <p><i class="fas fa-hashtag"></i> Discord ID: ${escapeHtml(user.discordId)}</p>
+                    ${privacy.show_registered !== false && user.registeredAt ? 
+                        `<p><i class="fas fa-calendar-alt"></i> Зарегистрирован: ${new Date(user.registeredAt).toLocaleDateString('ru-RU')}</p>` : 
+                        privacy.show_registered === false ? '<p><i class="fas fa-lock"></i> Дата регистрации скрыта</p>' : ''
+                    }
+                </div>
+            `;
+        }
+    }
+    
     // Загрузка чужого профиля с проверкой приватности
     async function loadForeignProfile(userId) {
         try {
@@ -120,21 +172,20 @@
             
             if (data.success && data.user) {
                 const user = data.user;
-                const privacy = user.privacy || getDefaultPrivacy();
                 
-                // ПРОВЕРКА: если профиль заморожен
-                if (user.frozen === true) {
-                    showFrozenError();
+                // Если профиль скрыт или заморожен
+                if (user.hidden === true || user.frozen === true) {
+                    if (user.frozen === true) {
+                        showFrozenError();
+                    } else {
+                        showProfileHiddenError();
+                    }
                     return;
                 }
                 
-                // ПРОВЕРКА: если профиль скрыт
-                if (privacy.hide_profile === true) {
-                    showProfileHiddenError();
-                    return;
-                }
+                const privacy = user.privacy || {};
                 
-                // Остальной код загрузки чужого профиля...
+                // Скрываем секции
                 const balanceSection = document.getElementById('balanceSection');
                 const promocodeSection = document.getElementById('promocodeSection');
                 const supportSection = document.getElementById('supportChat')?.parentElement;
@@ -146,13 +197,15 @@
                 const settingsBtn = document.getElementById('settingsBtn');
                 if (settingsBtn) settingsBtn.style.display = 'none';
                 
-                renderForeignProfile(user, privacy);
+                // Рендерим профиль с учетом скрытых данных
+                renderForeignProfileWithPrivacy(user, privacy);
                 
+                // Загружаем заказы только если разрешено
                 let orders = [];
                 let totalSpent = 0;
                 let ordersCount = 0;
                 
-                if (!privacy.hide_orders) {
+                if (privacy.show_orders !== false) {
                     const ordersResponse = await fetch(`/api/user/${userId}/orders`);
                     const ordersData = await ordersResponse.json();
                     if (ordersData.success) {
