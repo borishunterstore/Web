@@ -32,14 +32,17 @@
         }
 
         // Проверяем URL на наличие ID пользователя
-        const pathParts = window.location.pathname.split('/');
-        const userIdFromUrl = pathParts[pathParts.length - 1];
+        const urlParams = new URLSearchParams(window.location.search);
+        const userIdFromUrl = urlParams.get('id');
         
-        if (userIdFromUrl && userIdFromUrl !== 'profile.html' && userIdFromUrl !== 'profile') {
+        if (userIdFromUrl) {
             // Просмотр чужого профиля
             currentViewingUserId = userIdFromUrl;
             isOwnProfile = false;
             await loadForeignProfile(userIdFromUrl);
+            
+            // Обновляем заголовок страницы
+            document.title = `Просмотр профиля | BHStore`;
         } else {
             // Свой профиль
             currentViewingUserId = authData.id;
