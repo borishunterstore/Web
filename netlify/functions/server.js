@@ -1496,6 +1496,52 @@ app.get('/api/user/:id', async (req, res) => {
   }
 });
 
+// Разморозка аккаунта при входе
+app.post('/api/user/unfreeze', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      const { userId } = req.body;
+      
+      if (decoded.id !== userId) {
+          return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+      }
+      
+      if (sql) {
+          // Получаем текущие настройки приватности
+          const [user] = await sql`
+              SELECT privacy FROM users WHERE discord_id = ${userId}
+          `;
+          
+          let currentPrivacy = user?.privacy || {};
+          
+          // Снимаем заморозку и открываем профиль
+          await sql`
+              UPDATE users 
+              SET frozen = false,
+                  privacy = ${JSON.stringify({
+                    ...currentPrivacy,
+                    hide_profile: false
+                  })}
+              WHERE discord_id = ${userId}
+          `;
+      }
+      
+      console.log(`✅ Аккаунт ${userId} разморожен при входе`);
+      
+      res.json({ success: true, message: 'Аккаунт разморожен' });
+      
+  } catch (error) {
+      console.error('❌ Ошибка разморозки:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
 // Получение баланса пользователя
 app.get('/api/user/:id/balance', async (req, res) => {
   try {
@@ -1731,27 +1777,47 @@ app.post('/api/auth/discord', async (req, res) => {
         `;
         
         if (!existingUser) {
+          // Новый пользователь - создаём с настройками по умолчанию
           await sql`
-            INSERT INTO users (discord_id, username, email, avatar, balance, badges)
-            VALUES (
+            INSERT INTO users (
+              discord_id, username, email, avatar, balance, badges, frozen, privacy
+            ) VALUES (
               ${userData.id}, 
               ${userData.username}, 
               ${userData.email || ''}, 
               ${userData.avatar}, 
               0,
-              ${JSON.stringify({})}
+              ${JSON.stringify({})},
+              false,
+              ${JSON.stringify({
+                show_avatar: true,
+                show_orders: true,
+                show_badges: true,
+                show_spent: true,
+                show_orders_count: true,
+                show_registered: true,
+                hide_profile: false
+              })}
             )
           `;
-          console.log('Пользователь сохранен в БД');
+          console.log('Новый пользователь сохранен в БД');
         } else {
+          // Существующий пользователь - РАЗМОРАЖИВАЕМ и ОТКРЫВАЕМ ПРОФИЛЬ
+          let currentPrivacy = existingUser.privacy || {};
+          
           await sql`
             UPDATE users 
             SET username = ${userData.username}, 
                 email = ${userData.email || ''}, 
-                avatar = ${userData.avatar}
+                avatar = ${userData.avatar},
+                frozen = false,
+                privacy = ${JSON.stringify({
+                  ...currentPrivacy,
+                  hide_profile: false
+                })}
             WHERE discord_id = ${userData.id}
           `;
-          console.log('Данные пользователя обновлены в БД');
+          console.log(`✅ Пользователь ${userData.id} разморожен и профиль открыт при входе`);
         }
       } catch (dbError) {
         console.error('Ошибка сохранения в БД (используем память):', dbError.message);
