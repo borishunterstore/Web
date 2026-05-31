@@ -861,6 +861,115 @@ app.get('/api/orders/:orderId', async (req, res) => {
 });
 
 // ============================================
+// API для настроек приватности и управления аккаунтом
+// ============================================
+
+// Сохранение настроек приватности
+app.put('/api/user/:userId/privacy', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      const userId = req.params.userId;
+      
+      if (decoded.id !== userId) {
+          return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+      }
+      
+      const { privacy } = req.body;
+      
+      if (sql) {
+          await sql`
+              UPDATE users 
+              SET privacy = ${JSON.stringify(privacy)}
+              WHERE discord_id = ${userId}
+          `;
+      }
+      
+      console.log(`✅ Настройки приватности пользователя ${userId} обновлены`);
+      
+      res.json({ success: true, message: 'Настройки сохранены' });
+      
+  } catch (error) {
+      console.error('❌ Ошибка сохранения настроек приватности:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Заморозка аккаунта
+app.post('/api/user/freeze', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      const { userId } = req.body;
+      
+      if (decoded.id !== userId) {
+          return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+      }
+      
+      if (sql) {
+          await sql`
+              UPDATE users 
+              SET frozen = true
+              WHERE discord_id = ${userId}
+          `;
+      }
+      
+      console.log(`❄️ Аккаунт ${userId} заморожен`);
+      
+      res.json({ success: true, message: 'Аккаунт заморожен' });
+      
+  } catch (error) {
+      console.error('❌ Ошибка заморозки аккаунта:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Удаление аккаунта
+app.delete('/api/user/delete', async (req, res) => {
+  try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+          return res.status(401).json({ success: false, error: 'Не авторизован' });
+      }
+
+      const token = authHeader.replace('Bearer ', '');
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+      const { userId } = req.body;
+      
+      if (decoded.id !== userId) {
+          return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+      }
+      
+      if (sql) {
+          // Удаляем связанные данные
+          await sql`DELETE FROM messages WHERE user_id = ${userId}`;
+          await sql`DELETE FROM reviews WHERE user_id = ${userId}`;
+          await sql`DELETE FROM notifications WHERE user_id = ${userId}`;
+          await sql`DELETE FROM transactions WHERE user_id = ${userId}`;
+          await sql`DELETE FROM users WHERE discord_id = ${userId}`;
+      }
+      
+      console.log(`🗑️ Аккаунт ${userId} удалён`);
+      
+      res.json({ success: true, message: 'Аккаунт удалён' });
+      
+  } catch (error) {
+      console.error('❌ Ошибка удаления аккаунта:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// ============================================
 // Админ маршруты для чата
 // ============================================
 

@@ -1,4 +1,4 @@
-// profile.js - Полноценный профиль с просмотром чужих профилей через ?id=
+// profile.js - Полноценный профиль с настройками приватности
 (function() {
     'use strict';
 
@@ -15,6 +15,7 @@
     // Текущий просматриваемый пользователь
     let currentViewingUserId = null;
     let isOwnProfile = true;
+    let currentUserPrivacy = null;
 
     // Инициализация
     document.addEventListener('DOMContentLoaded', async () => {
@@ -31,17 +32,14 @@
             return;
         }
 
-        // Проверяем URL на наличие параметра id
         const urlParams = new URLSearchParams(window.location.search);
         const userIdFromUrl = urlParams.get('id');
         
         if (userIdFromUrl && userIdFromUrl !== authData.id) {
-            // Просмотр чужого профиля
             currentViewingUserId = userIdFromUrl;
             isOwnProfile = false;
             await loadForeignProfile(userIdFromUrl);
         } else {
-            // Свой профиль
             currentViewingUserId = authData.id;
             isOwnProfile = true;
             await loadOwnProfile();
@@ -59,15 +57,15 @@
             if (data.success && data.user) {
                 const user = data.user;
                 
-                // Обновляем auth данные
                 authData.balance = user.balance;
                 authData.badges = user.badges || {};
+                authData.privacy = user.privacy || getDefaultPrivacy();
                 localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                currentUserPrivacy = authData.privacy;
                 
                 renderProfile(user, true);
                 renderBalance(user.balance || 0);
                 
-                // Загружаем заказы
                 const ordersResponse = await fetch(`/api/user/${authData.id}/orders`);
                 const ordersData = await ordersResponse.json();
                 
@@ -79,11 +77,9 @@
                     updateStats([], user);
                 }
                 
-                // Загружаем промокоды
                 await loadUserPromocodes();
                 await loadActivePromocodes();
                 
-                // Инициализируем чат для своего профиля
                 if (window.ChatSystem) {
                     window.chatSystem = new ChatSystem();
                     await window.chatSystem.init();
@@ -100,7 +96,7 @@
         }
     }
 
-    // Загрузка чужого профиля
+    // Загрузка чужого профиля с проверкой приватности
     async function loadForeignProfile(userId) {
         try {
             const response = await fetch(`/api/user/${userId}`);
@@ -108,8 +104,15 @@
             
             if (data.success && data.user) {
                 const user = data.user;
+                const privacy = user.privacy || getDefaultPrivacy();
                 
-                // Скрываем секции, которые не должны быть видны в чужом профиле
+                // Проверка на скрытый профиль
+                if (privacy.hide_profile === true) {
+                    showProfileHiddenError();
+                    return;
+                }
+                
+                // Скрываем секции для чужих профилей
                 const balanceSection = document.getElementById('balanceSection');
                 const promocodeSection = document.getElementById('promocodeSection');
                 const supportSection = document.getElementById('supportChat')?.parentElement;
@@ -118,33 +121,32 @@
                 if (promocodeSection) promocodeSection.classList.add('hidden');
                 if (supportSection) supportSection.classList.add('hidden');
                 
-                // Скрываем кнопку настроек
                 const settingsBtn = document.getElementById('settingsBtn');
                 if (settingsBtn) settingsBtn.style.display = 'none';
                 
-                renderProfile(user, false);
+                renderForeignProfile(user, privacy);
                 
-                // Загружаем заказы (только выполненные, без sensitive данных)
-                const ordersResponse = await fetch(`/api/user/${userId}/orders`);
-                const ordersData = await ordersResponse.json();
+                // Загружаем заказы с учетом приватности
+                let orders = [];
+                let totalSpent = 0;
+                let ordersCount = 0;
                 
-                if (ordersData.success) {
-                    // Показываем только выполненные заказы для чужих профилей
-                    const completedOrders = (ordersData.orders || []).filter(o => o.status === 'completed');
-                    renderOrders(completedOrders, false);
-                    updateStats(completedOrders, user);
-                } else {
-                    renderOrders([], false);
-                    updateStats([], user);
+                if (!privacy.hide_orders) {
+                    const ordersResponse = await fetch(`/api/user/${userId}/orders`);
+                    const ordersData = await ordersResponse.json();
+                    if (ordersData.success) {
+                        orders = (ordersData.orders || []).filter(o => o.status === 'completed');
+                        ordersCount = orders.length;
+                        totalSpent = orders.reduce((sum, o) => sum + (o.price || 0), 0);
+                    }
                 }
                 
-                // Меняем заголовок страницы
-                document.title = `${user.username || 'Пользователь'} | BHStore`;
+                renderForeignOrders(orders, privacy);
+                updateForeignStats(ordersCount, totalSpent, user, privacy);
                 
-                // Добавляем кнопку "Написать в чат"
+                document.title = `${user.username || 'Пользователь'} | BHStore`;
                 addChatButton(userId, user.username);
                 
-                // Обновляем URL без перезагрузки
                 const url = new URL(window.location.href);
                 url.searchParams.set('id', userId);
                 window.history.pushState({}, '', url);
@@ -157,7 +159,766 @@
         }
     }
 
-    // Добавление кнопки чата для чужого профиля
+    // Получение настроек приватности по умолчанию
+    function getDefaultPrivacy() {
+        return {
+            show_avatar: true,
+            show_orders: true,
+            show_badges: true,
+            show_spent: true,
+            show_orders_count: true,
+            show_registered: true,
+            hide_profile: false,
+            frozen: false
+        };
+    }
+
+    // Рендер чужого профиля с учетом приватности
+    function renderForeignProfile(user, privacy) {
+        let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
+        
+        if (privacy.show_avatar !== false && user.avatar) {
+            if (user.avatar.startsWith('a_')) {
+                avatarUrl = `https://cdn.discordapp.com/avatars/${user.discordId || user.id}/${user.avatar}.gif?size=256`;
+            } else {
+                avatarUrl = `https://cdn.discordapp.com/avatars/${user.discordId || user.id}/${user.avatar}.png?size=256`;
+            }
+        }
+        
+        const badges = privacy.show_badges !== false ? normalizeBadges(user.badges) : {};
+        const mainBadge = (privacy.show_badges !== false) ? getMainBadge(badges) : '';
+        const badgesHTML = (privacy.show_badges !== false) ? generateBadgesHTML(badges) : '';
+        
+        const profileHeader = document.getElementById('profileHeader');
+        if (profileHeader) {
+            profileHeader.innerHTML = `
+                <div class="profile-avatar-wrapper">
+                    <img src="${avatarUrl}" 
+                         class="profile-avatar"
+                         alt="Avatar"
+                         onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                    ${mainBadge}
+                </div>
+                <div class="profile-info">
+                    <h2>
+                        <i class="fas fa-user-circle"></i>
+                        ${escapeHtml(user.username || 'Пользователь')}
+                    </h2>
+                    <div class="badges-container">
+                        ${badgesHTML}
+                    </div>
+                    <p><i class="fas fa-hashtag"></i> Discord ID: ${escapeHtml(user.discordId || user.id || 'Не указан')}</p>
+                    ${privacy.show_registered !== false ? `<p><i class="fas fa-calendar-alt"></i> Зарегистрирован: ${new Date(user.registeredAt || Date.now()).toLocaleDateString('ru-RU')}</p>` : ''}
+                </div>
+            `;
+        }
+    }
+
+    // Рендер заказов для чужого профиля с учетом приватности
+    function renderForeignOrders(orders, privacy) {
+        const ordersList = document.getElementById('ordersList');
+        if (!ordersList) return;
+        
+        if (privacy.hide_orders === true) {
+            ordersList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-lock"></i>
+                    <p>Пользователь скрыл свои заказы</p>
+                </div>
+            `;
+            return;
+        }
+        
+        if (!orders || orders.length === 0) {
+            ordersList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>У пользователя пока нет выполненных заказов</p>
+                </div>
+            `;
+            return;
+        }
+        
+        orders.sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
+        
+        ordersList.innerHTML = orders.map(order => `
+            <div class="order-item">
+                <div class="order-id">
+                    <i class="fas fa-hashtag"></i>
+                    ${escapeHtml(order.id)}
+                </div>
+                <div class="order-product">
+                    <strong>${escapeHtml(order.productName)}</strong>
+                    <div class="order-price">
+                        <i class="fas fa-tag"></i>
+                        ${order.price || 0}₽
+                    </div>
+                </div>
+                <div class="order-date">
+                    <span>
+                        <i class="fas fa-calendar-alt"></i>
+                        ${new Date(order.date || order.createdAt).toLocaleString('ru-RU')}
+                    </span>
+                    <span class="status-badge status-completed">
+                        <i class="fas fa-check-circle"></i>
+                        Выполнено
+                    </span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Обновление статистики для чужого профиля
+    function updateForeignStats(ordersCount, totalSpent, user, privacy) {
+        const totalOrdersElem = document.getElementById('totalOrdersStat');
+        const totalSpentElem = document.getElementById('totalSpentStat');
+        const memberSinceElem = document.getElementById('memberSinceStat');
+        
+        if (totalOrdersElem) {
+            totalOrdersElem.textContent = (privacy.show_orders_count !== false) ? ordersCount : '🔒';
+        }
+        
+        if (totalSpentElem) {
+            totalSpentElem.textContent = (privacy.show_spent !== false) ? `${totalSpent}₽` : '🔒';
+        }
+        
+        if (memberSinceElem) {
+            if (privacy.show_registered !== false) {
+                const registeredDate = new Date(user.registeredAt || Date.now());
+                const now = new Date();
+                const diffDays = Math.ceil(Math.abs(now - registeredDate) / (1000 * 60 * 60 * 24));
+                
+                if (diffDays < 30) {
+                    memberSinceElem.textContent = `${diffDays} дн.`;
+                } else if (diffDays < 365) {
+                    memberSinceElem.textContent = `${Math.floor(diffDays / 30)} мес.`;
+                } else {
+                    memberSinceElem.textContent = `${Math.floor(diffDays / 365)} г.`;
+                }
+            } else {
+                memberSinceElem.textContent = '🔒';
+            }
+        }
+    }
+
+    // Рендер профиля (свой)
+    function renderProfile(user, isOwn) {
+        let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
+        
+        if (user.avatar) {
+            if (user.avatar.startsWith('a_')) {
+                avatarUrl = `https://cdn.discordapp.com/avatars/${user.discordId || user.id}/${user.avatar}.gif?size=256`;
+            } else {
+                avatarUrl = `https://cdn.discordapp.com/avatars/${user.discordId || user.id}/${user.avatar}.png?size=256`;
+            }
+        }
+        
+        const badges = normalizeBadges(user.badges);
+        const mainBadge = getMainBadge(badges);
+        const badgesHTML = generateBadgesHTML(badges);
+        
+        const settingsButton = isOwn ? `
+            <button id="settingsBtn" class="btn-settings" onclick="window.showSettingsModal()">
+                <i class="fas fa-cog"></i> Настройки
+            </button>
+        ` : '';
+        
+        const profileHeader = document.getElementById('profileHeader');
+        if (profileHeader) {
+            profileHeader.innerHTML = `
+                <div class="profile-avatar-wrapper">
+                    <img src="${avatarUrl}" 
+                         class="profile-avatar"
+                         alt="Avatar"
+                         onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                    ${mainBadge}
+                </div>
+                <div class="profile-info">
+                    <h2>
+                        <i class="fas fa-user-circle"></i>
+                        ${escapeHtml(user.username || 'Пользователь')}
+                        ${settingsButton}
+                    </h2>
+                    <div class="badges-container">
+                        ${badgesHTML}
+                    </div>
+                    <p><i class="fas fa-hashtag"></i> Discord ID: ${escapeHtml(user.discordId || user.id || 'Не указан')}</p>
+                    <p><i class="fas fa-calendar-alt"></i> Зарегистрирован: ${new Date(user.registeredAt || Date.now()).toLocaleDateString('ru-RU')}</p>
+                    ${isOwn ? `<p><i class="fas fa-envelope"></i> Gmail: ${escapeHtml(user.email || 'Не указан')}</p>` : ''}
+                </div>
+            `;
+        }
+    }
+
+    // Рендер баланса
+    function renderBalance(balance) {
+        const balanceElement = document.getElementById('balanceAmount');
+        if (balanceElement) {
+            balanceElement.textContent = `${balance}₽`;
+        }
+    }
+
+    // Рендер заказов (свой профиль)
+    function renderOrders(orders, showCancelButton = true) {
+        const ordersList = document.getElementById('ordersList');
+        if (!ordersList) return;
+        
+        if (!orders || orders.length === 0) {
+            ordersList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>У вас пока нет заказов</p>
+                    ${showCancelButton ? '<a href="/shop.html" class="btn-primary"><i class="fas fa-store"></i> Перейти в магазин</a>' : ''}
+                </div>
+            `;
+            return;
+        }
+        
+        orders.sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
+        
+        ordersList.innerHTML = orders.map(order => {
+            const statusClass = {
+                'pending': 'status-pending',
+                'completed': 'status-completed',
+                'cancelled': 'status-cancelled'
+            }[order.status] || 'status-pending';
+            
+            const statusText = {
+                'pending': 'Ожидание',
+                'completed': 'Выполнено',
+                'cancelled': 'Отменено'
+            }[order.status] || order.status;
+            
+            const statusIcon = {
+                'pending': 'fa-clock',
+                'completed': 'fa-check-circle',
+                'cancelled': 'fa-times-circle'
+            }[order.status] || 'fa-clock';
+            
+            const detailsButton = showCancelButton ? `
+                <button class="btn-order-details" onclick="window.showOrderDetails('${escapeHtml(order.id)}')">
+                    <i class="fas fa-info-circle"></i> Подробнее
+                </button>
+            ` : '';
+            
+            const cancelButton = (showCancelButton && order.status === 'pending') ? `
+                <button class="btn-order-cancel" onclick="window.cancelOrder('${escapeHtml(order.id)}')">
+                    <i class="fas fa-times"></i> Отменить
+                </button>
+            ` : '';
+            
+            return `
+                <div class="order-item" data-order-id="${escapeHtml(order.id)}">
+                    <div class="order-id">
+                        <i class="fas fa-hashtag"></i>
+                        ${escapeHtml(order.id)}
+                    </div>
+                    <div class="order-product">
+                        <strong>${escapeHtml(order.productName)}</strong>
+                        <div class="order-price">
+                            <i class="fas fa-tag"></i>
+                            ${order.price || 0}₽
+                        </div>
+                    </div>
+                    <div class="order-date">
+                        <span>
+                            <i class="fas fa-calendar-alt"></i>
+                            ${new Date(order.date || order.createdAt).toLocaleString('ru-RU')}
+                        </span>
+                        <span class="status-badge ${statusClass}">
+                            <i class="fas ${statusIcon}"></i>
+                            ${statusText}
+                        </span>
+                    </div>
+                    <div class="order-actions">
+                        ${detailsButton}
+                        ${cancelButton}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Обновление статистики (свой профиль)
+    function updateStats(orders, user) {
+        const totalOrdersElem = document.getElementById('totalOrdersStat');
+        const totalSpentElem = document.getElementById('totalSpentStat');
+        const memberSinceElem = document.getElementById('memberSinceStat');
+        
+        if (totalOrdersElem) totalOrdersElem.textContent = orders.length;
+        
+        const totalSpent = orders.reduce((sum, order) => sum + (order.price || 0), 0);
+        if (totalSpentElem) totalSpentElem.textContent = `${totalSpent}₽`;
+        
+        const registeredDate = new Date(user.registeredAt || Date.now());
+        const now = new Date();
+        const diffDays = Math.ceil(Math.abs(now - registeredDate) / (1000 * 60 * 60 * 24));
+        
+        if (memberSinceElem) {
+            if (diffDays < 30) {
+                memberSinceElem.textContent = `${diffDays} дн.`;
+            } else if (diffDays < 365) {
+                memberSinceElem.textContent = `${Math.floor(diffDays / 30)} мес.`;
+            } else {
+                memberSinceElem.textContent = `${Math.floor(diffDays / 365)} г.`;
+            }
+        }
+    }
+
+    // Ошибка - профиль скрыт
+    function showProfileHiddenError() {
+        const container = document.querySelector('.profile-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="error-page" style="text-align: center; padding: 100px 20px;">
+                    <i class="fas fa-user-secret" style="font-size: 5rem; color: #ED4245; margin-bottom: 20px;"></i>
+                    <h2>Профиль скрыт</h2>
+                    <p>Пользователь скрыл свой профиль.</p>
+                    <a href="/profile.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">
+                        <i class="fas fa-arrow-left"></i> Вернуться
+                    </a>
+                </div>
+            `;
+        }
+    }
+
+    // Ошибка - пользователь не найден
+    function showNotFoundError() {
+        const container = document.querySelector('.profile-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="error-page" style="text-align: center; padding: 100px 20px;">
+                    <i class="fas fa-user-slash" style="font-size: 5rem; color: #ED4245; margin-bottom: 20px;"></i>
+                    <h2>Пользователь не найден</h2>
+                    <p>Пользователь с таким ID не существует или удалил аккаунт.</p>
+                    <a href="/profile.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">
+                        <i class="fas fa-arrow-left"></i> Вернуться в свой профиль
+                    </a>
+                </div>
+            `;
+        }
+    }
+
+    // ========== НАСТРОЙКИ - ТРИ КАТЕГОРИИ ==========
+    window.showSettingsModal = function() {
+        const authData = getAuthData();
+        const privacy = authData.privacy || getDefaultPrivacy();
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.id = 'settingsModal';
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; justify-content: center; align-items: center; z-index: 10000; backdrop-filter: blur(8px);';
+        
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 550px; width: 90%; background: #2a2b36; border-radius: 20px; padding: 0; overflow: hidden; max-height: 85vh; overflow-y: auto;">
+                <div style="padding: 20px; background: #1e1f29; border-bottom: 1px solid #40444b; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10;">
+                    <h2 style="margin: 0; color: white;"><i class="fas fa-cog"></i> Настройки профиля</h2>
+                    <button onclick="window.closeCurrentModal()" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
+                </div>
+                
+                <div style="padding: 20px;">
+                    <!-- КАТЕГОРИЯ 1: ОСНОВНЫЕ -->
+                    <div class="settings-category" style="margin-bottom: 30px;">
+                        <h3 style="color: #5865F2; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #5865F2;">
+                            <i class="fas fa-user-circle"></i> Основные
+                        </h3>
+                        
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="color: #b9bbbe;">Электронная почта</label>
+                            <input type="email" id="currentEmail" value="${escapeHtml(authData.email || '')}" readonly style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: #72767d;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label style="color: #b9bbbe;">Новый email</label>
+                            <input type="email" id="newEmail" placeholder="Введите новый email" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
+                        </div>
+                        <button class="btn-save-email" onclick="window.updateEmail()" style="background: #5865F2; border: none; padding: 10px 20px; border-radius: 8px; color: white; cursor: pointer; width: 100%; margin-bottom: 15px;">
+                            <i class="fas fa-save"></i> Обновить email
+                        </button>
+                        
+                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                            <img src="${authData.avatar ? `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=128` : 'https://cdn.discordapp.com/embed/avatars/0.png'}" 
+                                 style="width: 64px; height: 64px; border-radius: 50%;" 
+                                 onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                            <span style="color: #b9bbbe;">Текущая аватарка</span>
+                        </div>
+                        <button class="btn-refresh-avatar" onclick="window.refreshAvatar()" style="background: #57F287; border: none; padding: 10px 20px; border-radius: 8px; color: #1e1f29; cursor: pointer; width: 100%;">
+                            <i class="fas fa-sync-alt"></i> Обновить аватарку из Discord
+                        </button>
+                    </div>
+                    
+                    <!-- КАТЕГОРИЯ 2: КОНФИДЕНЦИАЛЬНОСТЬ -->
+                    <div class="settings-category" style="margin-bottom: 30px;">
+                        <h3 style="color: #FEE75C; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #FEE75C;">
+                            <i class="fas fa-lock"></i> Конфиденциальность
+                        </h3>
+                        
+                        <div class="privacy-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #40444b;">
+                            <span style="color: white;"><i class="fas fa-image"></i> Показывать аватарку</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="privacy_show_avatar" ${privacy.show_avatar !== false ? 'checked' : ''}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="privacy-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #40444b;">
+                            <span style="color: white;"><i class="fas fa-shopping-bag"></i> Показывать купленные услуги</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="privacy_show_orders" ${privacy.show_orders !== false ? 'checked' : ''}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="privacy-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #40444b;">
+                            <span style="color: white;"><i class="fas fa-medal"></i> Показывать бейджики</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="privacy_show_badges" ${privacy.show_badges !== false ? 'checked' : ''}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="privacy-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #40444b;">
+                            <span style="color: white;"><i class="fas fa-coins"></i> Показывать сколько потрачено денег</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="privacy_show_spent" ${privacy.show_spent !== false ? 'checked' : ''}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="privacy-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #40444b;">
+                            <span style="color: white;"><i class="fas fa-chart-line"></i> Показывать количество заказов</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="privacy_show_orders_count" ${privacy.show_orders_count !== false ? 'checked' : ''}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="privacy-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #40444b;">
+                            <span style="color: white;"><i class="fas fa-calendar-alt"></i> Показывать дату регистрации</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="privacy_show_registered" ${privacy.show_registered !== false ? 'checked' : ''}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="privacy-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; margin-top: 10px; background: rgba(237, 66, 69, 0.1); border-radius: 8px;">
+                            <span style="color: #ED4245;"><i class="fas fa-user-secret"></i> <strong>СКРЫТЬ ПРОФИЛЬ ПОЛНОСТЬЮ</strong><br><small style="color: #b9bbbe;">При включении ваш профиль будет недоступен для просмотра</small></span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="privacy_hide_profile" ${privacy.hide_profile === true ? 'checked' : ''}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        
+                        <button id="savePrivacyBtn" class="btn-save-privacy" style="background: #FEE75C; border: none; padding: 12px 20px; border-radius: 8px; color: #1e1f29; cursor: pointer; width: 100%; margin-top: 20px; font-weight: 600;">
+                            <i class="fas fa-save"></i> Сохранить настройки конфиденциальности
+                        </button>
+                    </div>
+                    
+                    <!-- КАТЕГОРИЯ 3: ОПАСНАЯ ЗОНА -->
+                    <div class="settings-category" style="margin-bottom: 20px;">
+                        <h3 style="color: #ED4245; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #ED4245;">
+                            <i class="fas fa-exclamation-triangle"></i> Опасная зона
+                        </h3>
+                        
+                        <div style="background: rgba(237, 66, 69, 0.1); border-radius: 12px; padding: 15px; margin-bottom: 15px;">
+                            <p style="color: #ED4245; margin-bottom: 15px;"><i class="fas fa-snowflake"></i> <strong>Заморозка профиля</strong><br><small>При заморозке вы не сможете заходить в аккаунт до разморозки через Discord</small></p>
+                            <button id="freezeAccountBtn" class="btn-danger" style="background: #ED4245; border: none; padding: 12px 20px; border-radius: 8px; color: white; cursor: pointer; width: 100%;">
+                                <i class="fas fa-snowflake"></i> Заморозить профиль
+                            </button>
+                        </div>
+                        
+                        <div style="background: rgba(237, 66, 69, 0.15); border-radius: 12px; padding: 15px;">
+                            <p style="color: #ED4245; margin-bottom: 15px;"><i class="fas fa-trash-alt"></i> <strong>Удаление аккаунта</strong><br><small>Это действие необратимо. Все данные будут удалены навсегда.</small></p>
+                            <button id="deleteAccountBtn" class="btn-danger" style="background: #ED4245; border: none; padding: 12px 20px; border-radius: 8px; color: white; cursor: pointer; width: 100%;">
+                                <i class="fas fa-trash-alt"></i> Удалить аккаунт
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Обработчик сохранения приватности
+        document.getElementById('savePrivacyBtn').addEventListener('click', () => savePrivacySettings());
+        
+        // Обработчик заморозки
+        document.getElementById('freezeAccountBtn').addEventListener('click', () => freezeAccount());
+        
+        // Обработчик удаления
+        document.getElementById('deleteAccountBtn').addEventListener('click', () => showDeleteConfirmModal());
+    };
+
+    // Сохранение настроек приватности
+    async function savePrivacySettings() {
+        const authData = getAuthData();
+        
+        const newPrivacy = {
+            show_avatar: document.getElementById('privacy_show_avatar').checked,
+            show_orders: document.getElementById('privacy_show_orders').checked,
+            show_badges: document.getElementById('privacy_show_badges').checked,
+            show_spent: document.getElementById('privacy_show_spent').checked,
+            show_orders_count: document.getElementById('privacy_show_orders_count').checked,
+            show_registered: document.getElementById('privacy_show_registered').checked,
+            hide_profile: document.getElementById('privacy_hide_profile').checked,
+            frozen: authData.privacy?.frozen || false
+        };
+        
+        try {
+            const response = await fetch(`/api/user/${authData.id}/privacy`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authData.token}`
+                },
+                body: JSON.stringify({ privacy: newPrivacy })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                authData.privacy = newPrivacy;
+                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                alert('Настройки конфиденциальности сохранены!');
+                document.getElementById('settingsModal')?.remove();
+                await loadOwnProfile();
+            } else {
+                alert('Ошибка сохранения: ' + (data.error || 'Неизвестная ошибка'));
+            }
+        } catch (error) {
+            console.error('Error saving privacy:', error);
+            alert('Ошибка при сохранении настроек');
+        }
+    }
+
+    // Заморозка аккаунта
+    async function freezeAccount() {
+        if (!confirm('⚠️ ВНИМАНИЕ!\n\nВы действительно хотите заморозить свой аккаунт?\n\nПосле заморозки вы не сможете войти в аккаунт до его разморозки.\n\nРазморозить аккаунт можно будет только через Discord с подтверждением кода.')) {
+            return;
+        }
+        
+        const authData = getAuthData();
+        
+        try {
+            const response = await fetch('/api/user/freeze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authData.token}`
+                },
+                body: JSON.stringify({ userId: authData.id })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                alert('Аккаунт заморожен! Вы будете выведены из системы.');
+                localStorage.removeItem('bhstore_auth');
+                localStorage.removeItem('bhstore_active_promocodes');
+                window.location.href = '/';
+            } else {
+                alert('Ошибка заморозки: ' + (data.error || 'Неизвестная ошибка'));
+            }
+        } catch (error) {
+            console.error('Error freezing account:', error);
+            alert('Ошибка при заморозке аккаунта');
+        }
+    }
+
+    // Подтверждение удаления аккаунта
+    let deleteVerificationCode = null;
+    
+    async function showDeleteConfirmModal() {
+        const authData = getAuthData();
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; justify-content: center; align-items: center; z-index: 10001; backdrop-filter: blur(8px);';
+        
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 450px; width: 90%; background: #2a2b36; border-radius: 20px; padding: 25px;">
+                <h2 style="color: #ED4245; margin-bottom: 20px;"><i class="fas fa-trash-alt"></i> Удаление аккаунта</h2>
+                <p style="color: #b9bbbe; margin-bottom: 20px;">Это действие необратимо. Все ваши данные будут удалены.</p>
+                
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="color: #b9bbbe;">Ваш Discord ID</label>
+                    <input type="text" id="deleteConfirmId" placeholder="Введите ваш Discord ID" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label style="color: #b9bbbe;">Ваш никнейм</label>
+                    <input type="text" id="deleteConfirmUsername" placeholder="Введите ваш никнейм" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="color: #b9bbbe;">Код подтверждения</label>
+                    <input type="text" id="deleteConfirmCode" placeholder="Введите код из Discord" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
+                    <button id="sendDeleteCodeBtn" style="margin-top: 10px; background: #5865F2; border: none; padding: 8px 16px; border-radius: 8px; color: white; cursor: pointer;">Отправить код</button>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button onclick="this.closest('.modal').remove()" class="btn-admin" style="flex: 1;">Отмена</button>
+                    <button id="confirmDeleteBtn" class="btn-danger" style="flex: 1; background: #ED4245; border: none; padding: 12px; border-radius: 8px; color: white; cursor: pointer;">Удалить навсегда</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        document.getElementById('sendDeleteCodeBtn').addEventListener('click', async () => {
+            const code = Math.floor(100000 + Math.random() * 900000).toString();
+            deleteVerificationCode = code;
+            
+            try {
+                const response = await fetch('/api/send-verification', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: authData.id, code: code })
+                });
+                
+                if (response.ok) {
+                    alert('Код подтверждения отправлен в Discord!');
+                } else {
+                    alert('Ошибка отправки кода');
+                }
+            } catch (error) {
+                alert('Ошибка: ' + error.message);
+            }
+        });
+        
+        document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+            const confirmId = document.getElementById('deleteConfirmId').value;
+            const confirmUsername = document.getElementById('deleteConfirmUsername').value;
+            const confirmCode = document.getElementById('deleteConfirmCode').value;
+            
+            if (confirmId !== authData.id) {
+                alert('Неверный Discord ID');
+                return;
+            }
+            
+            if (confirmUsername !== authData.username) {
+                alert('Неверный никнейм');
+                return;
+            }
+            
+            if (confirmCode !== deleteVerificationCode) {
+                alert('Неверный код подтверждения');
+                return;
+            }
+            
+            if (!confirm('ПОСЛЕДНЕЕ ПРЕДУПРЕЖДЕНИЕ!\n\nВы уверены, что хотите УДАЛИТЬ свой аккаунт?\n\nЭто действие НЕОБРАТИМО!')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/user/delete', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authData.token}`
+                    },
+                    body: JSON.stringify({ userId: authData.id })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Аккаунт успешно удалён.');
+                    localStorage.removeItem('bhstore_auth');
+                    localStorage.removeItem('bhstore_active_promocodes');
+                    window.location.href = '/';
+                } else {
+                    alert('Ошибка удаления: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            } catch (error) {
+                console.error('Error deleting account:', error);
+                alert('Ошибка при удалении аккаунта');
+            }
+        });
+    }
+
+    // Обновление email
+    window.updateEmail = async function() {
+        const newEmail = document.getElementById('newEmail')?.value.trim();
+        if (!newEmail) {
+            alert('Введите новый email');
+            return;
+        }
+        
+        if (!newEmail.includes('@')) {
+            alert('Введите корректный email');
+            return;
+        }
+        
+        const authData = getAuthData();
+        
+        try {
+            const response = await fetch(`/api/user/${authData.id}/email`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authData.token}`
+                },
+                body: JSON.stringify({ email: newEmail })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                authData.email = newEmail;
+                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                alert('Email успешно обновлён!');
+                document.getElementById('settingsModal')?.remove();
+                await loadOwnProfile();
+            } else {
+                alert('Ошибка обновления email: ' + (data.error || 'Неизвестная ошибка'));
+            }
+        } catch (error) {
+            console.error('Error updating email:', error);
+            alert('Ошибка при обновлении email');
+        }
+    };
+
+    // Обновление аватарки
+    window.refreshAvatar = async function() {
+        const authData = getAuthData();
+        
+        try {
+            const response = await fetch('/api/auth/discord/refresh', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authData.token}`
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.success && data.user) {
+                await fetch(`/api/user/${authData.id}/avatar`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authData.token}`
+                    },
+                    body: JSON.stringify({ avatar: data.user.avatar })
+                });
+                
+                authData.avatar = data.user.avatar;
+                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                alert('Аватарка обновлена!');
+                document.getElementById('settingsModal')?.remove();
+                await loadOwnProfile();
+            } else {
+                alert('Не удалось обновить аватарку');
+            }
+        } catch (error) {
+            console.error('Error refreshing avatar:', error);
+            alert('Ошибка при обновлении аватарки');
+        }
+    };
+
+    // Добавление кнопки чата
     function addChatButton(userId, username) {
         const profileHeader = document.getElementById('profileHeader');
         if (profileHeader && !document.getElementById('foreignChatBtn')) {
@@ -211,359 +972,7 @@
         }
     }
 
-    // Рендер профиля
-    function renderProfile(user, isOwn) {
-        let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
-        
-        if (user.avatar) {
-            if (user.avatar.startsWith('a_')) {
-                avatarUrl = `https://cdn.discordapp.com/avatars/${user.discordId || user.id}/${user.avatar}.gif?size=256`;
-            } else {
-                avatarUrl = `https://cdn.discordapp.com/avatars/${user.discordId || user.id}/${user.avatar}.png?size=256`;
-            }
-        }
-        
-        const badges = normalizeBadges(user.badges);
-        const mainBadge = getMainBadge(badges);
-        const badgesHTML = generateBadgesHTML(badges);
-        
-        const settingsButton = isOwn ? `
-            <button id="settingsBtn" class="btn-settings" onclick="window.showSettingsModal()">
-                <i class="fas fa-cog"></i> Настройки
-            </button>
-        ` : '';
-        
-        const profileHeader = document.getElementById('profileHeader');
-        if (profileHeader) {
-            profileHeader.innerHTML = `
-                <div class="profile-avatar-wrapper">
-                    <img src="${avatarUrl}" 
-                         class="profile-avatar"
-                         alt="Avatar"
-                         onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                    ${mainBadge}
-                </div>
-                <div class="profile-info">
-                    <h2>
-                        <i class="fas fa-user-circle"></i>
-                        ${escapeHtml(user.username || 'Пользователь')}
-                        ${settingsButton}
-                    </h2>
-                    <div class="badges-container">
-                        ${badgesHTML}
-                    </div>
-                    <p><i class="fas fa-hashtag"></i> Discord ID: ${escapeHtml(user.discordId || user.id || 'Не указан')}</p>
-                    <p><i class="fas fa-calendar-alt"></i> Зарегистрирован: ${new Date(user.registeredAt || Date.now()).toLocaleDateString('ru-RU', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                    })}</p>
-                    ${isOwn ? `<p><i class="fas fa-envelope"></i> Gmail: ${escapeHtml(user.email || 'Не указан')}</p>` : ''}
-                </div>
-            `;
-        }
-    }
-
-    // Рендер баланса
-    function renderBalance(balance) {
-        const balanceElement = document.getElementById('balanceAmount');
-        if (balanceElement) {
-            balanceElement.textContent = `${balance}₽`;
-        }
-    }
-
-    // Рендер заказов
-    function renderOrders(orders, showCancelButton = true) {
-        const ordersList = document.getElementById('ordersList');
-        
-        if (!ordersList) return;
-        
-        if (!orders || orders.length === 0) {
-            ordersList.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-shopping-cart"></i>
-                    <p>У пользователя пока нет заказов</p>
-                    ${showCancelButton ? '<a href="/shop.html" class="btn-primary"><i class="fas fa-store"></i> Перейти в магазин</a>' : ''}
-                </div>
-            `;
-            return;
-        }
-        
-        orders.sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
-        
-        ordersList.innerHTML = orders.map(order => {
-            const statusClass = {
-                'pending': 'status-pending',
-                'completed': 'status-completed',
-                'cancelled': 'status-cancelled'
-            }[order.status] || 'status-pending';
-            
-            const statusText = {
-                'pending': 'Ожидание',
-                'completed': 'Выполнено',
-                'cancelled': 'Отменено'
-            }[order.status] || order.status;
-            
-            const statusIcon = {
-                'pending': 'fa-clock',
-                'completed': 'fa-check-circle',
-                'cancelled': 'fa-times-circle'
-            }[order.status] || 'fa-clock';
-            
-            // Кнопка подробнее (только для своих заказов)
-            const detailsButton = showCancelButton ? `
-                <button class="btn-order-details" onclick="window.showOrderDetails('${escapeHtml(order.id)}')">
-                    <i class="fas fa-info-circle"></i> Подробнее
-                </button>
-            ` : '';
-            
-            // Кнопка отмены (только для ожидающих заказов и своих)
-            const cancelButton = (showCancelButton && order.status === 'pending') ? `
-                <button class="btn-order-cancel" onclick="window.cancelOrder('${escapeHtml(order.id)}')">
-                    <i class="fas fa-times"></i> Отменить
-                </button>
-            ` : '';
-            
-            return `
-                <div class="order-item" data-order-id="${escapeHtml(order.id)}">
-                    <div class="order-id">
-                        <i class="fas fa-hashtag"></i>
-                        ${escapeHtml(order.id)}
-                    </div>
-                    <div class="order-product">
-                        <strong>${escapeHtml(order.productName)}</strong>
-                        <div class="order-price">
-                            <i class="fas fa-tag"></i>
-                            ${order.price || 0}₽
-                        </div>
-                    </div>
-                    <div class="order-date">
-                        <span>
-                            <i class="fas fa-calendar-alt"></i>
-                            ${new Date(order.date || order.createdAt).toLocaleString('ru-RU', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}
-                        </span>
-                        <span class="status-badge ${statusClass}">
-                            <i class="fas ${statusIcon}"></i>
-                            ${statusText}
-                        </span>
-                    </div>
-                    <div class="order-actions">
-                        ${detailsButton}
-                        ${cancelButton}
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    // Обновление статистики
-    function updateStats(orders, user) {
-        const totalOrdersElem = document.getElementById('totalOrdersStat');
-        const totalSpentElem = document.getElementById('totalSpentStat');
-        const memberSinceElem = document.getElementById('memberSinceStat');
-        
-        if (totalOrdersElem) totalOrdersElem.textContent = orders.length;
-        
-        const totalSpent = orders.reduce((sum, order) => sum + (order.price || 0), 0);
-        if (totalSpentElem) totalSpentElem.textContent = `${totalSpent}₽`;
-        
-        const registeredDate = new Date(user.registeredAt || Date.now());
-        const now = new Date();
-        const diffTime = Math.abs(now - registeredDate);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (memberSinceElem) {
-            if (diffDays < 30) {
-                memberSinceElem.textContent = `${diffDays} дн.`;
-            } else if (diffDays < 365) {
-                const months = Math.floor(diffDays / 30);
-                memberSinceElem.textContent = `${months} мес.`;
-            } else {
-                const years = Math.floor(diffDays / 365);
-                memberSinceElem.textContent = `${years} г.`;
-            }
-        }
-    }
-
-    // Показ ошибки "пользователь не найден"
-    function showNotFoundError() {
-        const container = document.querySelector('.profile-container');
-        if (container) {
-            container.innerHTML = `
-                <div class="error-page" style="text-align: center; padding: 100px 20px;">
-                    <i class="fas fa-user-slash" style="font-size: 5rem; color: #ED4245; margin-bottom: 20px;"></i>
-                    <h2>Пользователь не найден</h2>
-                    <p>Пользователь с таким ID не существует или удалил аккаунт.</p>
-                    <a href="/profile.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">
-                        <i class="fas fa-arrow-left"></i> Вернуться в свой профиль
-                    </a>
-                </div>
-            `;
-        }
-    }
-
-    // ========== МОДАЛЬНОЕ ОКНО НАСТРОЕК ==========
-    window.showSettingsModal = function() {
-        const authData = getAuthData();
-        
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.id = 'settingsModal';
-        modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 10000; backdrop-filter: blur(8px);';
-        
-        modal.innerHTML = `
-            <div class="modal-content" style="max-width: 450px; width: 90%; background: #2a2b36; border-radius: 20px; padding: 0; overflow: hidden;">
-                <div style="padding: 20px; background: #1e1f29; border-bottom: 1px solid #40444b; display: flex; justify-content: space-between; align-items: center;">
-                    <h2 style="margin: 0; color: white;"><i class="fas fa-cog"></i> Настройки профиля</h2>
-                    <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
-                </div>
-                
-                <div style="padding: 20px;">
-                    <!-- Изменение email -->
-                    <div class="settings-section" style="margin-bottom: 25px;">
-                        <h3 style="color: #5865F2; margin-bottom: 15px;"><i class="fas fa-envelope"></i> Электронная почта</h3>
-                        <div class="form-group">
-                            <label style="color: #b9bbbe;">Текущий email</label>
-                            <input type="email" id="currentEmail" value="${escapeHtml(authData.email || '')}" readonly style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: #72767d;">
-                        </div>
-                        <div class="form-group">
-                            <label style="color: #b9bbbe;">Новый email</label>
-                            <input type="email" id="newEmail" placeholder="Введите новый email" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
-                        </div>
-                        <button class="btn-save-email" onclick="window.updateEmail()" style="background: #5865F2; border: none; padding: 10px 20px; border-radius: 8px; color: white; cursor: pointer; width: 100%; margin-top: 10px;">
-                            <i class="fas fa-save"></i> Обновить email
-                        </button>
-                    </div>
-                    
-                    <!-- Обновление аватарки -->
-                    <div class="settings-section" style="margin-bottom: 25px;">
-                        <h3 style="color: #5865F2; margin-bottom: 15px;"><i class="fas fa-image"></i> Аватарка</h3>
-                        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                            <img src="${authData.avatar ? `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.png?size=128` : 'https://cdn.discordapp.com/embed/avatars/0.png'}" 
-                                 style="width: 64px; height: 64px; border-radius: 50%;" 
-                                 onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                            <span style="color: #b9bbbe;">Текущая аватарка из Discord</span>
-                        </div>
-                        <button class="btn-refresh-avatar" onclick="window.refreshAvatar()" style="background: #57F287; border: none; padding: 10px 20px; border-radius: 8px; color: #1e1f29; cursor: pointer; width: 100%;">
-                            <i class="fas fa-sync-alt"></i> Обновить аватарку из Discord
-                        </button>
-                    </div>
-                    
-                    <!-- Запрос бейджа -->
-                    <div class="settings-section">
-                        <h3 style="color: #5865F2; margin-bottom: 15px;"><i class="fas fa-medal"></i> Бейджи</h3>
-                        <p style="color: #b9bbbe; margin-bottom: 15px;">Хотите получить особый бейдж? Свяжитесь с администрацией через чат поддержки.</p>
-                        <button class="btn-request-badge" onclick="window.requestBadge()" style="background: #FEE75C; border: none; padding: 10px 20px; border-radius: 8px; color: #1e1f29; cursor: pointer; width: 100%;">
-                            <i class="fas fa-ticket-alt"></i> Запросить бейдж
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-    };
-
-    // Обновление email
-    window.updateEmail = async function() {
-        const newEmail = document.getElementById('newEmail')?.value.trim();
-        if (!newEmail) {
-            alert('Введите новый email');
-            return;
-        }
-        
-        if (!newEmail.includes('@')) {
-            alert('Введите корректный email');
-            return;
-        }
-        
-        const authData = getAuthData();
-        
-        try {
-            const response = await fetch(`/api/user/${authData.id}/email`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authData.token}`
-                },
-                body: JSON.stringify({ email: newEmail })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                authData.email = newEmail;
-                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-                alert('Email успешно обновлён!');
-                document.querySelector('.modal')?.remove();
-                await loadOwnProfile();
-            } else {
-                alert('Ошибка обновления email: ' + (data.error || 'Неизвестная ошибка'));
-            }
-        } catch (error) {
-            console.error('Error updating email:', error);
-            alert('Ошибка при обновлении email');
-        }
-    };
-
-    // Обновление аватарки
-    window.refreshAvatar = async function() {
-        const authData = getAuthData();
-        
-        try {
-            const response = await fetch('/api/auth/discord/refresh', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authData.token}`
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success && data.user) {
-                await fetch(`/api/user/${authData.id}/avatar`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authData.token}`
-                    },
-                    body: JSON.stringify({ avatar: data.user.avatar })
-                });
-                
-                authData.avatar = data.user.avatar;
-                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-                alert('Аватарка обновлена!');
-                document.querySelector('.modal')?.remove();
-                await loadOwnProfile();
-            } else {
-                alert('Не удалось обновить аватарку');
-            }
-        } catch (error) {
-            console.error('Error refreshing avatar:', error);
-            alert('Ошибка при обновлении аватарки');
-        }
-    };
-
-    // Запрос бейджа
-    window.requestBadge = function() {
-        document.querySelector('.modal')?.remove();
-        const chatSection = document.getElementById('supportChat');
-        if (chatSection) {
-            chatSection.scrollIntoView({ behavior: 'smooth' });
-            alert('Напишите в чат поддержки, какой бейдж вы хотите получить, и причину');
-        } else {
-            window.location.href = '/profile.html#supportChat';
-        }
-    };
-
-    // ========== ДЕТАЛИ ЗАКАЗА ==========
+    // Детали заказа
     window.showOrderDetails = function(orderId) {
         const authData = getAuthData();
         
@@ -584,7 +993,7 @@
                     <div class="modal-content" style="max-width: 500px; width: 90%; background: #2a2b36; border-radius: 20px; padding: 0; overflow: hidden;">
                         <div style="padding: 20px; background: #1e1f29; border-bottom: 1px solid #40444b; display: flex; justify-content: space-between; align-items: center;">
                             <h2 style="margin: 0; color: white;"><i class="fas fa-info-circle"></i> Детали заказа</h2>
-                            <button onclick="this.closest('.modal').remove()" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
+                            <button onclick="window.closeCurrentModal()" style="background: none; border: none; color: #b9bbbe; font-size: 1.5rem; cursor: pointer;">×</button>
                         </div>
                         <div style="padding: 20px;">
                             <div style="margin-bottom: 15px;">
@@ -621,7 +1030,7 @@
                             ` : ''}
                         </div>
                         <div style="padding: 20px; border-top: 1px solid #40444b; display: flex; justify-content: flex-end;">
-                            <button onclick="this.closest('.modal').remove()" class="btn-primary">Закрыть</button>
+                            <button onclick="window.closeCurrentModal()" class="btn-primary">Закрыть</button>
                         </div>
                     </div>
                 `;
@@ -634,7 +1043,7 @@
             });
     };
 
-    // ========== ОТМЕНА ЗАКАЗА ==========
+    // Отмена заказа
     window.cancelOrder = async function(orderId) {
         if (!confirm('⚠️ ВНИМАНИЕ!\n\nВы действительно хотите отменить заказ?\n\nОтмена возможна только для заказов в статусе "Ожидание".\n\nСредства будут возвращены на ваш баланс.')) {
             return;
@@ -665,7 +1074,7 @@
         }
     };
 
-    // ========== ПРОМОКОДЫ ==========
+    // Промокоды
     async function loadUserPromocodes() {
         const authData = getAuthData();
         if (!authData.id) return;
@@ -798,7 +1207,7 @@
         `;
     }
 
-    // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+    // Вспомогательные функции
     function getAuthData() {
         try {
             return JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
@@ -873,7 +1282,6 @@
     }
 
     function setupEventListeners() {
-        // Кнопка промокода
         const applyBtn = document.getElementById('applyPromocodeBtn');
         const promocodeInput = document.getElementById('promocodeInput');
         
@@ -901,7 +1309,12 @@
         }
     }
 
-    // Экспорт глобальных функций
+    // Глобальные функции
+    window.closeCurrentModal = function() {
+        const modal = document.querySelector('.modal');
+        if (modal) modal.remove();
+    };
+    
     window.showAddBalanceModal = function() {
         const modal = document.getElementById('addBalanceModal');
         if (modal) modal.style.display = 'flex';
