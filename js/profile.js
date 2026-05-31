@@ -96,6 +96,22 @@
         }
     }
 
+    function showFrozenError() {
+        const container = document.querySelector('.profile-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="error-page" style="text-align: center; padding: 100px 20px;">
+                    <i class="fas fa-snowflake" style="font-size: 5rem; color: #5865F2; margin-bottom: 20px;"></i>
+                    <h2>Аккаунт заморожен</h2>
+                    <p>Этот аккаунт временно заморожен владельцем.</p>
+                    <a href="/profile.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">
+                        <i class="fas fa-arrow-left"></i> Вернуться
+                    </a>
+                </div>
+            `;
+        }
+    }
+
     // Загрузка чужого профиля с проверкой приватности
     async function loadForeignProfile(userId) {
         try {
@@ -106,13 +122,19 @@
                 const user = data.user;
                 const privacy = user.privacy || getDefaultPrivacy();
                 
-                // Проверка на скрытый профиль
+                // ПРОВЕРКА: если профиль заморожен
+                if (user.frozen === true) {
+                    showFrozenError();
+                    return;
+                }
+                
+                // ПРОВЕРКА: если профиль скрыт
                 if (privacy.hide_profile === true) {
                     showProfileHiddenError();
                     return;
                 }
                 
-                // Скрываем секции для чужих профилей
+                // Остальной код загрузки чужого профиля...
                 const balanceSection = document.getElementById('balanceSection');
                 const promocodeSection = document.getElementById('promocodeSection');
                 const supportSection = document.getElementById('supportChat')?.parentElement;
@@ -126,7 +148,6 @@
                 
                 renderForeignProfile(user, privacy);
                 
-                // Загружаем заказы с учетом приватности
                 let orders = [];
                 let totalSpent = 0;
                 let ordersCount = 0;
@@ -466,21 +487,21 @@
     }
 
     // Ошибка - профиль скрыт
-    function showProfileHiddenError() {
-        const container = document.querySelector('.profile-container');
-        if (container) {
-            container.innerHTML = `
-                <div class="error-page" style="text-align: center; padding: 100px 20px;">
-                    <i class="fas fa-user-secret" style="font-size: 5rem; color: #ED4245; margin-bottom: 20px;"></i>
-                    <h2>Профиль скрыт</h2>
-                    <p>Пользователь скрыл свой профиль.</p>
-                    <a href="/profile.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">
-                        <i class="fas fa-arrow-left"></i> Вернуться
-                    </a>
-                </div>
-            `;
-        }
+function showProfileHiddenError() {
+    const container = document.querySelector('.profile-container');
+    if (container) {
+        container.innerHTML = `
+            <div class="error-page" style="text-align: center; padding: 100px 20px;">
+                <i class="fas fa-user-secret" style="font-size: 5rem; color: #ED4245; margin-bottom: 20px;"></i>
+                <h2>Профиль скрыт</h2>
+                <p>Пользователь скрыл свой профиль.</p>
+                <a href="/profile.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">
+                    <i class="fas fa-arrow-left"></i> Вернуться
+                </a>
+            </div>
+        `;
     }
+}
 
     // Ошибка - пользователь не найден
     function showNotFoundError() {
