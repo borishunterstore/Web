@@ -1,4 +1,4 @@
-// profile.js - Полноценный профиль с просмотром чужих профилей и настройками
+// profile.js - Полноценный профиль с просмотром чужих профилей через ?id=
 (function() {
     'use strict';
 
@@ -31,18 +31,15 @@
             return;
         }
 
-        // Проверяем URL на наличие ID пользователя
+        // Проверяем URL на наличие параметра id
         const urlParams = new URLSearchParams(window.location.search);
         const userIdFromUrl = urlParams.get('id');
         
-        if (userIdFromUrl) {
+        if (userIdFromUrl && userIdFromUrl !== authData.id) {
             // Просмотр чужого профиля
             currentViewingUserId = userIdFromUrl;
             isOwnProfile = false;
             await loadForeignProfile(userIdFromUrl);
-            
-            // Обновляем заголовок страницы
-            document.title = `Просмотр профиля | BHStore`;
         } else {
             // Свой профиль
             currentViewingUserId = authData.id;
@@ -113,9 +110,13 @@
                 const user = data.user;
                 
                 // Скрываем секции, которые не должны быть видны в чужом профиле
-                document.getElementById('balanceSection')?.classList.add('hidden');
-                document.getElementById('promocodeSection')?.classList.add('hidden');
-                document.getElementById('supportChat')?.parentElement?.classList.add('hidden');
+                const balanceSection = document.getElementById('balanceSection');
+                const promocodeSection = document.getElementById('promocodeSection');
+                const supportSection = document.getElementById('supportChat')?.parentElement;
+                
+                if (balanceSection) balanceSection.classList.add('hidden');
+                if (promocodeSection) promocodeSection.classList.add('hidden');
+                if (supportSection) supportSection.classList.add('hidden');
                 
                 // Скрываем кнопку настроек
                 const settingsBtn = document.getElementById('settingsBtn');
@@ -142,6 +143,11 @@
                 
                 // Добавляем кнопку "Написать в чат"
                 addChatButton(userId, user.username);
+                
+                // Обновляем URL без перезагрузки
+                const url = new URL(window.location.href);
+                url.searchParams.set('id', userId);
+                window.history.pushState({}, '', url);
             } else {
                 showNotFoundError();
             }
@@ -227,32 +233,35 @@
             </button>
         ` : '';
         
-        document.getElementById('profileHeader').innerHTML = `
-            <div class="profile-avatar-wrapper">
-                <img src="${avatarUrl}" 
-                     class="profile-avatar"
-                     alt="Avatar"
-                     onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                ${mainBadge}
-            </div>
-            <div class="profile-info">
-                <h2>
-                    <i class="fas fa-user-circle"></i>
-                    ${escapeHtml(user.username || 'Пользователь')}
-                    ${settingsButton}
-                </h2>
-                <div class="badges-container">
-                    ${badgesHTML}
+        const profileHeader = document.getElementById('profileHeader');
+        if (profileHeader) {
+            profileHeader.innerHTML = `
+                <div class="profile-avatar-wrapper">
+                    <img src="${avatarUrl}" 
+                         class="profile-avatar"
+                         alt="Avatar"
+                         onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                    ${mainBadge}
                 </div>
-                <p><i class="fas fa-hashtag"></i> Discord ID: ${escapeHtml(user.discordId || user.id || 'Не указан')}</p>
-                <p><i class="fas fa-calendar-alt"></i> Зарегистрирован: ${new Date(user.registeredAt || Date.now()).toLocaleDateString('ru-RU', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric'
-                })}</p>
-                ${isOwn ? `<p><i class="fas fa-envelope"></i> Gmail: ${escapeHtml(user.email || 'Не указан')}</p>` : ''}
-            </div>
-        `;
+                <div class="profile-info">
+                    <h2>
+                        <i class="fas fa-user-circle"></i>
+                        ${escapeHtml(user.username || 'Пользователь')}
+                        ${settingsButton}
+                    </h2>
+                    <div class="badges-container">
+                        ${badgesHTML}
+                    </div>
+                    <p><i class="fas fa-hashtag"></i> Discord ID: ${escapeHtml(user.discordId || user.id || 'Не указан')}</p>
+                    <p><i class="fas fa-calendar-alt"></i> Зарегистрирован: ${new Date(user.registeredAt || Date.now()).toLocaleDateString('ru-RU', {
+                        day: 'numeric',
+                        month: 'long',
+                        year: 'numeric'
+                    })}</p>
+                    ${isOwn ? `<p><i class="fas fa-envelope"></i> Gmail: ${escapeHtml(user.email || 'Не указан')}</p>` : ''}
+                </div>
+            `;
+        }
     }
 
     // Рендер баланса
@@ -477,7 +486,7 @@
         const authData = getAuthData();
         
         try {
-            const response = await fetch(`/api/admin/users/${authData.id}`, {
+            const response = await fetch(`/api/user/${authData.id}/email`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -508,7 +517,6 @@
         const authData = getAuthData();
         
         try {
-            // Получаем свежие данные из Discord через API
             const response = await fetch('/api/auth/discord/refresh', {
                 method: 'POST',
                 headers: {
@@ -520,8 +528,8 @@
             const data = await response.json();
             
             if (data.success && data.user) {
-                await fetch(`/api/admin/users/${authData.id}`, {
-                    method: 'PUT',
+                await fetch(`/api/user/${authData.id}/avatar`, {
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${authData.token}`
@@ -635,48 +643,18 @@
         const authData = getAuthData();
         
         try {
-            // Получаем заказ
-            const ordersRes = await fetch(`/api/user/${authData.id}/orders`);
-            const ordersData = await ordersRes.json();
-            const order = (ordersData.orders || []).find(o => o.id === orderId);
-            
-            if (!order) {
-                alert('Заказ не найден');
-                return;
-            }
-            
-            if (order.status !== 'pending') {
-                alert('Отменить можно только заказы в статусе "Ожидание"');
-                return;
-            }
-            
-            // Обновляем статус заказа
-            const response = await fetch(`/api/admin/orders/${orderId}`, {
-                method: 'PUT',
+            const response = await fetch(`/api/orders/${orderId}/cancel`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${authData.token}`
-                },
-                body: JSON.stringify({ status: 'cancelled' })
+                }
             });
             
             const data = await response.json();
             
             if (data.success) {
-                // Возвращаем средства на баланс
-                const balanceRes = await fetch('/api/update-balance', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        userId: authData.id,
-                        amount: order.price,
-                        reason: `Возврат средств за отменённый заказ ${orderId}`
-                    })
-                });
-                
-                await balanceRes.json();
-                
-                alert(`Заказ ${orderId} отменён. Средства возвращены на баланс.`);
+                alert(`Заказ ${orderId} отменён. Средства возвращены на баланс: ${data.refundAmount}₽`);
                 await loadOwnProfile();
             } else {
                 alert('Ошибка отмены заказа: ' + (data.error || 'Неизвестная ошибка'));
@@ -925,11 +903,13 @@
 
     // Экспорт глобальных функций
     window.showAddBalanceModal = function() {
-        document.getElementById('addBalanceModal').style.display = 'flex';
+        const modal = document.getElementById('addBalanceModal');
+        if (modal) modal.style.display = 'flex';
     };
     
     window.closeModal = function(modalId) {
-        document.getElementById(modalId).style.display = 'none';
+        const modal = document.getElementById(modalId);
+        if (modal) modal.style.display = 'none';
     };
     
     window.logout = function() {
