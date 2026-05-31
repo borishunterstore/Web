@@ -538,6 +538,329 @@ app.get('/api/products', async (req, res) => {
 });
 
 // ============================================
+// API для обновления данных пользователя (настройки профиля)
+// ============================================
+
+// Обновление email пользователя
+app.put('/api/user/:userId/email', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    const userId = req.params.userId;
+    
+    // Проверяем, что пользователь обновляет свой email
+    if (decoded.id !== userId) {
+      return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+    }
+    
+    const { email } = req.body;
+    
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ success: false, error: 'Неверный формат email' });
+    }
+    
+    if (sql) {
+      await sql`
+        UPDATE users 
+        SET email = ${email}
+        WHERE discord_id = ${userId}
+      `;
+    }
+    
+    console.log(`✅ Email пользователя ${userId} обновлён на ${email}`);
+    
+    res.json({
+      success: true,
+      message: 'Email успешно обновлён'
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка обновления email:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Обновление аватарки пользователя
+app.post('/api/user/:userId/avatar', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    const userId = req.params.userId;
+    
+    // Проверяем, что пользователь обновляет свой аватар
+    if (decoded.id !== userId) {
+      return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+    }
+    
+    const { avatar } = req.body;
+    
+    if (sql) {
+      await sql`
+        UPDATE users 
+        SET avatar = ${avatar}
+        WHERE discord_id = ${userId}
+      `;
+    }
+    
+    console.log(`✅ Аватар пользователя ${userId} обновлён`);
+    
+    res.json({
+      success: true,
+      message: 'Аватар успешно обновлён'
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка обновления аватарки:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Обновление данных пользователя (общий эндпоинт)
+app.put('/api/user/:userId', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    const userId = req.params.userId;
+    
+    // Проверяем, что пользователь обновляет свои данные
+    if (decoded.id !== userId) {
+      return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+    }
+    
+    const { username, email, avatar } = req.body;
+    
+    if (sql) {
+      const updates = [];
+      const values = [];
+      
+      if (username !== undefined) {
+        updates.push(`username = $${values.length + 2}`);
+        values.push(username);
+      }
+      if (email !== undefined) {
+        updates.push(`email = $${values.length + 2}`);
+        values.push(email);
+      }
+      if (avatar !== undefined) {
+        updates.push(`avatar = $${values.length + 2}`);
+        values.push(avatar);
+      }
+      
+      if (updates.length > 0) {
+        await sql`
+          UPDATE users 
+          SET ${sql(updates.join(', '))}
+          WHERE discord_id = ${userId}
+        `;
+      }
+    }
+    
+    console.log(`✅ Данные пользователя ${userId} обновлены`);
+    
+    res.json({
+      success: true,
+      message: 'Данные успешно обновлены'
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка обновления пользователя:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Обновление токена и получение свежих данных из Discord
+app.post('/api/auth/discord/refresh', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    let decoded;
+    
+    try {
+      decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    } catch (e) {
+      return res.status(401).json({ success: false, error: 'Неверный токен' });
+    }
+    
+    const userId = decoded.id;
+    
+    // Здесь нужно получить свежие данные из Discord
+    // Для этого нужен refresh_token, но так как у нас его нет,
+    // просто возвращаем текущие данные пользователя из БД
+    
+    if (sql) {
+      const [user] = await sql`
+        SELECT discord_id, username, email, avatar, balance, badges
+        FROM users 
+        WHERE discord_id = ${userId}
+      `;
+      
+      if (user) {
+        return res.json({
+          success: true,
+          user: {
+            id: user.discord_id,
+            username: user.username,
+            email: user.email,
+            avatar: user.avatar,
+            balance: user.balance,
+            badges: user.badges
+          }
+        });
+      }
+    }
+    
+    // Если не нашли в БД, возвращаем из токена
+    res.json({
+      success: true,
+      user: {
+        id: decoded.id,
+        username: decoded.username,
+        avatar: decoded.avatar,
+        email: decoded.email
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка обновления токена:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Отмена заказа
+app.post('/api/orders/:orderId/cancel', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    const orderId = req.params.orderId;
+    const userId = decoded.id;
+    
+    // Находим заказ пользователя
+    let order = null;
+    let userOrders = [];
+    let userBalance = 0;
+    
+    if (sql) {
+      const [user] = await sql`
+        SELECT orders, balance FROM users WHERE discord_id = ${userId}
+      `;
+      
+      if (user) {
+        userOrders = user.orders || [];
+        userBalance = user.balance || 0;
+        order = userOrders.find(o => o.id === orderId);
+      }
+    }
+    
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Заказ не найден' });
+    }
+    
+    // Проверяем статус заказа (только pending можно отменить)
+    if (order.status !== 'pending') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Можно отменить только заказы в статусе "Ожидание"' 
+      });
+    }
+    
+    // Возвращаем средства на баланс
+    const refundAmount = order.price || order.finalPrice || 0;
+    const newBalance = userBalance + refundAmount;
+    
+    // Обновляем статус заказа
+    const updatedOrders = userOrders.map(o => 
+      o.id === orderId ? { ...o, status: 'cancelled', cancelledAt: new Date().toISOString() } : o
+    );
+    
+    if (sql) {
+      await sql`
+        UPDATE users 
+        SET orders = ${JSON.stringify(updatedOrders)},
+            balance = ${newBalance}
+        WHERE discord_id = ${userId}
+      `;
+    }
+    
+    console.log(`✅ Заказ ${orderId} отменён пользователем ${userId}, возвращено ${refundAmount}₽`);
+    
+    res.json({
+      success: true,
+      message: 'Заказ успешно отменён',
+      refundAmount: refundAmount,
+      newBalance: newBalance
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка отмены заказа:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Получение деталей заказа
+app.get('/api/orders/:orderId', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+    const orderId = req.params.orderId;
+    const userId = decoded.id;
+    
+    let order = null;
+    
+    if (sql) {
+      const [user] = await sql`
+        SELECT orders FROM users WHERE discord_id = ${userId}
+      `;
+      
+      if (user) {
+        order = (user.orders || []).find(o => o.id === orderId);
+      }
+    }
+    
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Заказ не найден' });
+    }
+    
+    res.json({
+      success: true,
+      order: order
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка получения заказа:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// ============================================
 // Админ маршруты для чата
 // ============================================
 
@@ -1072,20 +1395,37 @@ app.get('/api/user/:id/balance', async (req, res) => {
 // Получение заказов пользователя
 app.get('/api/user/:id/orders', async (req, res) => {
   try {
+    const userId = req.params.id;
+    const { status } = req.query;
+    
+    let orders = [];
+    
+    if (sql) {
       const [user] = await sql`
-          SELECT orders FROM users WHERE discord_id = ${req.params.id}
+        SELECT orders FROM users WHERE discord_id = ${userId}
       `;
       
-      res.json({
-          success: true,
-          orders: user?.orders || []
-      });
+      if (user && user.orders) {
+        orders = user.orders;
+        
+        // Фильтрация по статусу
+        if (status && status !== 'all') {
+          orders = orders.filter(o => o.status === status);
+        }
+      }
+    }
+    
+    res.json({
+      success: true,
+      orders: orders || []
+    });
+    
   } catch (error) {
-      console.error('❌ Ошибка получения заказов:', error.message);
-      res.status(500).json({ 
-          success: false, 
-          error: 'Ошибка сервера' 
-      });
+    console.error('❌ Ошибка получения заказов:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка сервера' 
+    });
   }
 });
 

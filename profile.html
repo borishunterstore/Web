@@ -1,869 +1,129 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <!-- Yandex.Metrika counter -->
-    <script type="text/javascript">
-        (function(m,e,t,r,i,k,a){
-            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-            m[i].l=1*new Date();
-            for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}
-            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-        })(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097','ym');
-        
-        ym(107215097,'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",referrer:document.referrer,url:location.href,accurateTrackBounce:true,trackLinks:true});
-    </script>
-    <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Профиль | BHStore</title>
     <meta name="description" content="Управляйте своим профилем, балансом и заказами в BHStore">
-    <meta name="keywords" content="профиль, баланс, заказы, промокоды, discord">
     <link rel="stylesheet" href="css/general.css">
     <link rel="stylesheet" href="css/profile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="/image/logo.png"><script src="js/api.js"></script><script src="js/auth.js"></script><script src="js/chat.js"></script><script src="js/promocode.js"></script><script src="js/payment.js"></script><script src="js/main.js"></script><script src="js/cursor.js"></script><script src="js/pkm.js"></script><script src="js/mobile-nav.js"></script></head>
-<body><div class="custom-cursor"></div><nav class="navbar">
-        <div class="nav-container"><a href="/" class="nav-logo"><img src="image/logo.png" alt="BHStore" style="width: 50px;"><span class="logo-text">BHStore</span></a>
+    <link rel="icon" type="image/png" href="/image/logo.png">
+    <!-- Yandex.Metrika counter -->
+    <script type="text/javascript">
+        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097','ym');
+        ym(107215097,'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",referrer:document.referrer,url:location.href,accurateTrackBounce:true,trackLinks:true});
+    </script>
+    <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/promocode.js"></script>
+    <script src="js/payment.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/cursor.js"></script>
+    <script src="js/pkm.js"></script>
+    <script src="js/mobile-nav.js"></script>
+    <script src="js/profile.js"></script>
+</head>
+<body>
+    <div class="custom-cursor"></div>
+    
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo"><img src="image/logo.png" alt="BHStore" style="width: 50px;"><span class="logo-text">BHStore</span></a>
             <div class="nav-menu">
                 <a href="/" class="nav-link"><i class="fas fa-home"></i> Главная</a>
                 <a href="/shop.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Магазин</a>
                 <a href="/news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
                 <a href="/faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
-                <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Правовая информация</a></div>
-            <div class="nav-auth"><button id="authBtn" class="btn-discord"><i class="fab fa-discord"></i> Войти</button></div><button class="mobile-menu-btn"><i class="fas fa-bars"></i></button></div></nav>
+                <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Правовая информация</a>
+            </div>
+            <div class="nav-auth"><button id="authBtn" class="btn-discord"><i class="fab fa-discord"></i> Войти</button></div>
+            <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+        </div>
+    </nav>
 
-    <div class="profile-container"><div class="profile-header" id="profileHeader"></div>
+    <div class="profile-container">
+        <div class="profile-header" id="profileHeader"></div>
         
         <div class="balance-section" id="balanceSection">
             <h2><i class="fas fa-coins"></i>Баланс</h2>
             <div class="balance-info">
                 <div><div class="balance-label">Текущий баланс</div><div class="balance-amount" id="balanceAmount">0₽</div></div>
-                <div class="balance-actions"><button class="btn-primary" onclick="showAddBalanceModal()"><i class="fas fa-plus"></i> Пополнить</button></div></div></div>
+                <div class="balance-actions"><button class="btn-primary" onclick="window.showAddBalanceModal()"><i class="fas fa-plus"></i> Пополнить</button></div>
+            </div>
+        </div>
 
         <div class="profile-stats" style="margin-bottom: 25px;">
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div><div class="stat-value" id="totalOrdersStat">0</div><div class="stat-label">Всего заказов</div></div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-coins"></i></div><div class="stat-value" id="totalSpentStat">0₽</div><div class="stat-label">Потрачено всего</div></div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="fas fa-calendar"></i></div><div class="stat-value" id="memberSinceStat">...</div><div class="stat-label">С нами</div></div></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-shopping-bag"></i></div><div class="stat-value" id="totalOrdersStat">0</div><div class="stat-label">Всего заказов</div></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-coins"></i></div><div class="stat-value" id="totalSpentStat">0₽</div><div class="stat-label">Потрачено всего</div></div>
+            <div class="stat-card"><div class="stat-icon"><i class="fas fa-calendar"></i></div><div class="stat-value" id="memberSinceStat">...</div><div class="stat-label">С нами</div></div>
+        </div>
 
-        <div class="profile-section"><h2><i class="fas"><img src="image/bhstore.png" style="height: 50px;"></i></h2><div id="supportChat" class="chat-container"><div style="text-align: center; padding: 40px; color: #b9bbbe;"><i class="fas fa-spinner fa-spin"></i><p>Загрузка чата...</p></div></div></div>
+        <div class="profile-section">
+            <h2><i class="fas fa-headset"></i> Поддержка</h2>
+            <div id="supportChat" class="chat-container"><div style="text-align: center; padding: 40px; color: #b9bbbe;"><i class="fas fa-spinner fa-spin"></i><p>Загрузка чата...</p></div></div>
+        </div>
+        
         <div class="promocode-section" id="promocodeSection">
             <h2><i class="fas fa-ticket-alt"></i> Промокоды</h2>
             <div class="promocode-input-container">
                 <input type="text" id="promocodeInput" placeholder="Введите промокод" autocomplete="off">
-                <button id="applyPromocodeBtn" class="btn-promocode">
-                    <i class="fas fa-check"></i> Активировать
-                </button>
+                <button id="applyPromocodeBtn" class="btn-promocode"><i class="fas fa-check"></i> Активировать</button>
             </div>
             <div id="promocodeMessage"></div>
-            
             <div id="userActivePromocodes" style="margin-top: 20px;"></div>
-            
             <div id="userPromocodesList" style="margin-top: 20px;"></div>
         </div>
-        <div class="orders-list"><h2><i class="fas fa-shopping-bag"></i>Мои заказы</h2><div id="ordersList"></div></div></div>
-
-    <div id="addBalanceModal" class="modal" style="display: none;"><div class="modal-content"><h2><i class="fas fa-coins"></i>Пополнение баланса</h2><p>Для пополнения баланса обратитесь к администратору через чат с поддержкой или Discord.</p><div class="modal-actions"><button class="btn-primary" onclick="window.location.href='#supportChat'"><i class="fas fa-headset"></i> Написать в поддержку</button><button class="btn-admin" onclick="closeModal('addBalanceModal')"><i class="fas fa-times"></i> Закрыть</button></div></div></div>
-    <div id="promocodeInfoModal" class="modal" style="display: none;"><div class="modal-content"><h2><i class="fas fa-info-circle"></i>Информация о промокоде</h2><div id="promocodeInfoContent"></div><div class="modal-actions"><button class="btn-primary" onclick="closeModal('promocodeInfoModal')"><i class="fas fa-check"></i> Понятно</button></div></div></div>
-
-    <footer class="footer"><img src="image/bhstore.png" style="width: 100%;"><p class="footertxt" style="text-align: center; margin-bottom: 20px;">СПАСИБО, ЧТО ИСПОЛЬЗУЕТЕ НАШ СЕРВИС!</p><div class="footer-content"><div class="footer-section"><h3><i class="fas fa-compass"></i> Навигация</h3><a href="/"><i class="fas fa-home"></i> Главная</a><a href="shop.html"><i class="fas fa-shopping-cart"></i> Магазин</a><a href="news.html"><i class="fas fa-newspaper"></i> Новости</a><a href="faq.html"><i class="fas fa-question-circle"></i> FAQ</a></div><div class="footer-section"><h3><i class="fas fa-file-contract"></i> Документы</h3><a href="legal.html#terms"><i class="fas fa-file-signature"></i> Пользовательское соглашение</a><a href="legal.html#privacy"><i class="fas fa-shield-alt"></i> Политика конфиденциальности</a><a href="legal.html#offer"><i class="fas fa-hand-holding-heart"></i> Публичная оферта</a></div><div class="footer-section"><h3><i class="fas fa-headset"></i> Контакты</h3><a href="https://t.me/borishunterstore"><i class="fab fa-telegram"></i> TELEGRAM</a><a href="https://www.facebook.com/groups/borishunterstore"><i class="fab fa-facebook"></i> FACEBOOK</a><a href="https://discord.gg/YfZxXXeW6D"><i class="fab fa-discord"></i> DISCORD</a><a href="https://vk.com/fastvideo_zeny"><i class="fab fa-vk"></i> VK</a></div></div><div class="footer-bottom" style="margin-bottom: 20px;"><p><i class="far fa-copyright"></i> 2024 - 2026 BHStore. Все права защищены.</p><p><i class="fas fa-id-card"></i> ИНН: 742541714674 / Стахеев Д.А.</p></div></footer>
-    <script>
-        const BADGE_IMAGES = {
-            verified: 'image/BADGE/verified.gif',
-            partner: 'image/BADGE/partner.png',
-            buyer: 'image/BADGE/buy.gif',
-            admin: 'image/BADGE/admin.png',
-            vip: 'image/BADGE/vip.png',
-            early: 'image/BADGE/early.png'
-        };
-    
-        function showAddBalanceModal() {
-            document.getElementById('addBalanceModal').style.display = 'flex';
-        }
-    
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-        }
-    
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('modal')) {
-                e.target.style.display = 'none';
-            }
-        });
-    
-        document.addEventListener('DOMContentLoaded', async function() {
-    console.log('Loading profile...');
-    
-    const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-    if (!authData.id) {
-        window.location.href = '/auth.html';
-        return;
-    }
-    
-    await loadProfile();
-
-    // Инициализируем систему промокодов
-    if (window.promocodeSystem) {
-        window.promocodeSystem.onBalanceUpdate = (newBalance) => {
-            renderBalance(newBalance);
-        };
-        window.promocodeSystem.onPromocodeActivated = (data) => {
-            showPromocodeInfo(data);
-            loadUserPromocodes();     // Обновляем историю
-            loadActivePromocodes();   // Обновляем активные промокоды
-        };
         
-        // Загружаем оба списка
-        await loadActivePromocodes();  // Активные скидки
-        await loadUserPromocodes();    // История использованных
-    } else {
-        console.error('Promocode system not loaded');
-    }
-});
+        <div class="orders-list">
+            <h2><i class="fas fa-shopping-bag"></i>Мои заказы</h2>
+            <div id="ordersList"></div>
+        </div>
+    </div>
 
-        async function loadProfile() {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            
-            try {
-                const response = await fetch(`/api/user/${authData.id}`);
-                const data = await response.json();
-                
-                if (data.success && data.user) {
-                    const user = data.user;
-                    
-                    authData.balance = user.balance;
-                    authData.badges = user.badges || {};
-                    localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-                    
-                    if (window.updateAuthButton) {
-                        window.updateAuthButton();
-                    }
-                    
-                    renderProfile(user);
-                    renderBalance(user.balance || 0);
-                    
-                    const ordersResponse = await fetch(`/api/user/${authData.id}/orders`);
-                    const ordersData = await ordersResponse.json();
-                    
-                    if (ordersData.success) {
-                        renderOrders(ordersData.orders || []);
-                        updateStats(ordersData.orders || [], user);
-                    } else {
-                        renderOrders([]);
-                        updateStats([], user);
-                    }
-                } else {
-                    const registerResponse = await fetch('/api/register', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            discordId: authData.id,
-                            username: authData.username,
-                            email: authData.email,
-                            avatar: authData.avatar
-                        })
-                    });
-                    
-                    const registerData = await registerResponse.json();
-                    
-                    if (registerData.success) {
-                        await loadProfile();
-                    } else {
-                        renderProfile(authData);
-                        renderBalance(0);
-                        renderOrders([]);
-                        updateStats([], authData);
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading profile:', error);
-                renderProfile(authData);
-                renderBalance(0);
-                renderOrders([]);
-                updateStats([], authData);
-            }
-        }
-    
-        function renderProfile(user) {
-            let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
-            
-            if (user.avatar) {
-                if (user.avatar.startsWith('a_')) {
-                    avatarUrl = `https://cdn.discordapp.com/avatars/${user.discordId || user.id}/${user.avatar}.gif?size=256`;
-                } else {
-                    avatarUrl = `https://cdn.discordapp.com/avatars/${user.discordId || user.id}/${user.avatar}.png?size=256`;
-                }
-            }
-            
-            const badges = normalizeBadges(user.badges);
-            const mainBadge = getMainBadge(badges);
-            const badgesHTML = generateBadgesHTML(badges);
-            
-            document.getElementById('profileHeader').innerHTML = `
-                <div class="profile-avatar-wrapper">
-                    <img src="${avatarUrl}" 
-                         class="profile-avatar"
-                         alt="Avatar"
-                         onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                    ${mainBadge}
-                </div>
-                <div class="profile-info">
-                    <h2>
-                        <i class="fas fa-user-circle"></i>
-                        ${escapeHtml(user.username || 'Пользователь')}
-                    </h2>
-                    <div class="badges-container">
-                        ${badgesHTML}
-                    </div>
-                    <p><i class="fas fa-hashtag"></i> Discord ID: ${escapeHtml(user.discordId || user.id || 'Не указан')}</p>
-                    <p><i class="fas fa-calendar-alt"></i> Зарегистрирован: ${new Date(user.registeredAt || Date.now()).toLocaleDateString('ru-RU', {
-                        day: 'numeric',
-                        month: 'long',
-                        year: 'numeric'
-                    })}</p>
-                    <p><i class="fas fa-envelope"></i> Gmail: ${escapeHtml(user.email || 'Не указан')}</p>
-                </div>
-            `;
-        }
-    
-        function updateStats(orders, user) {
-            document.getElementById('totalOrdersStat').textContent = orders.length;
-            
-            const totalSpent = orders.reduce((sum, order) => sum + (order.price || 0), 0);
-            document.getElementById('totalSpentStat').textContent = `${totalSpent}₽`;
-            
-            const registeredDate = new Date(user.registeredAt || Date.now());
-            const now = new Date();
-            const diffTime = Math.abs(now - registeredDate);
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
-            if (diffDays < 30) {
-                document.getElementById('memberSinceStat').textContent = `${diffDays} дн.`;
-            } else if (diffDays < 365) {
-                const months = Math.floor(diffDays / 30);
-                document.getElementById('memberSinceStat').textContent = `${months} мес.`;
-            } else {
-                const years = Math.floor(diffDays / 365);
-                document.getElementById('memberSinceStat').textContent = `${years} г.`;
-            }
-        }
-    
-        function escapeHtml(unsafe) {
-            if (!unsafe) return '';
-            return String(unsafe)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
-        }
-    
-        function normalizeBadges(badgesData) {
-            if (!badgesData) {
-                return { verified: false, partner: false, buyer: false, early: false, vip: false, admin: false };
-            }
-            
-            if (typeof badgesData === 'string') {
-                return {
-                    verified: badgesData === 'verified',
-                    partner: false,
-                    buyer: false,
-                    early: false,
-                    vip: false,
-                    admin: false
-                };
-            }
-            
-            if (typeof badgesData === 'object') {
-                return {
-                    admin: !!badgesData.admin,
-                    verified: !!badgesData.verified,
-                    partner: !!badgesData.partner,
-                    buyer: !!badgesData.buyer,
-                    early: !!badgesData.early,
-                    vip: !!badgesData.vip
-                };
-            }
-            
-            return { verified: false, partner: false, buyer: false, early: false, vip: false, admin: false };
-        }
-    
-        function getMainBadge(badges) {
-            if (badges.admin) {
-                return `
-                    <div class="avatar-badge" title="Администратор">
-                        <img src="${BADGE_IMAGES.admin}" alt="Admin">
-                    </div>
-                `;
-            } else if (badges.verified) {
-                return `
-                    <div class="avatar-badge" title="Верифицированный аккаунт">
-                        <img src="${BADGE_IMAGES.verified}" alt="Verified">
-                    </div>
-                `;
-            } else if (badges.partner) {
-                return `
-                    <div class="avatar-badge" title="Партнёр">
-                        <img src="${BADGE_IMAGES.partner}" alt="Partner">
-                    </div>
-                `;
-            } else if (badges.buyer) {
-                return `
-                    <div class="avatar-badge" title="Покупатель">
-                        <img src="${BADGE_IMAGES.buyer}" alt="Buyer">
-                    </div>
-                `;
-            } else if (badges.vip) {
-                return `
-                    <div class="avatar-badge" title="VIP пользователь">
-                        <img src="${BADGE_IMAGES.vip}" alt="VIP">
-                    </div>
-                `;
-            } else if (badges.early) {
-                return `
-                    <div class="avatar-badge" title="Ранний сторонник">
-                        <img src="${BADGE_IMAGES.early}" alt="Early Supporter">
-                    </div>
-                `;
-            }
-            return '';
-        }
-    
-        function generateBadgesHTML(badges) {
-            let badgesHtml = '';
-            
-            const badgeConfigs = [
-                { condition: badges.admin, class: 'admin', image: BADGE_IMAGES.admin, text: 'Администратор', priority: 1 },
-                { condition: badges.verified, class: 'verified', image: BADGE_IMAGES.verified, text: 'Верифицирован', priority: 2 },
-                { condition: badges.partner, class: 'partner', image: BADGE_IMAGES.partner, text: 'Партнёр', priority: 3 },
-                { condition: badges.buyer, class: 'buyer', image: BADGE_IMAGES.buyer, text: 'Покупатель', priority: 4 },
-                { condition: badges.vip, class: 'vip', image: BADGE_IMAGES.vip, text: 'VIP', priority: 5 },
-                { condition: badges.early, class: 'early', image: BADGE_IMAGES.early, text: 'Ранний сторонник', priority: 6 }
-            ];
-            
-            const sortedConfigs = badgeConfigs.sort((a, b) => a.priority - b.priority);
-            
-            sortedConfigs.forEach(config => {
-                if (config.condition) {
-                    badgesHtml += `
-                        <div class="badge badge-${config.class}" title="${config.text}">
-                            <img src="${config.image}" alt="${config.text}" loading="lazy">
-                            <span>${config.text}</span>
-                        </div>
-                    `;
-                }
-            });
-            
-            return badgesHtml;
-        }
-    
-        function renderBalance(balance) {
-            document.getElementById('balanceAmount').textContent = `${balance}₽`;
-        }
-    
-        function renderOrders(orders) {
-            const ordersList = document.getElementById('ordersList');
-            
-            if (!orders || orders.length === 0) {
-                ordersList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-shopping-cart"></i>
-                        <p>У вас пока нет заказов</p>
-                        <a href="/shop.html" class="btn-primary">
-                            <i class="fas fa-store"></i> Перейти в магазин
-                        </a>
-                    </div>
-                `;
-                return;
-            }
-            
-            orders.sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
-            
-            ordersList.innerHTML = orders.map(order => {
-                const statusClass = {
-                    'pending': 'status-pending',
-                    'completed': 'status-completed',
-                    'cancelled': 'status-cancelled'
-                }[order.status] || 'status-pending';
-                
-                const statusText = {
-                    'pending': 'Ожидание',
-                    'completed': 'Выполнено',
-                    'cancelled': 'Отменено'
-                }[order.status] || order.status;
-                
-                const statusIcon = {
-                    'pending': 'fa-clock',
-                    'completed': 'fa-check-circle',
-                    'cancelled': 'fa-times-circle'
-                }[order.status] || 'fa-clock';
-                
-                return `
-                    <div class="order-item">
-                        <div class="order-id">
-                            <i class="fas fa-hashtag"></i>
-                            ${escapeHtml(order.id)}
-                        </div>
-                        <div class="order-product">
-                            <strong>${escapeHtml(order.productName)}</strong>
-                            <div class="order-price">
-                                <i class="fas fa-tag"></i>
-                                ${order.price || 0}₽
-                            </div>
-                        </div>
-                        <div class="order-date">
-                            <span>
-                                <i class="fas fa-calendar-alt"></i>
-                                ${new Date(order.date || order.createdAt).toLocaleString('ru-RU', {
-                                    day: 'numeric',
-                                    month: 'long',
-                                    year: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                })}
-                            </span>
-                            <span class="status-badge ${statusClass}">
-                                <i class="fas ${statusIcon}"></i>
-                                ${statusText}
-                            </span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-    
-        // Функция для загрузки истории промокодов
-        async function loadUserPromocodes() {
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            if (!authData.id) return;
-            
-            try {
-                const response = await fetch(`/api/promocodes/user/${authData.id}`);
-                const data = await response.json();
-                
-                if (data.success && data.promocodes) {
-                    renderUserPromocodes(data.promocodes);
-                } else {
-                    renderUserPromocodes([]);
-                }
-            } catch (error) {
-                console.error('Ошибка загрузки промокодов:', error);
-                renderUserPromocodes([]);
-            }
-        }
-        
-        function renderUserPromocodes(promocodes) {
-    const container = document.getElementById('userPromocodesList');
-    
-    if (!container) {
-        console.error('Контейнер userPromocodesList не найден');
-        return;
-    }
-    
-    if (!promocodes || promocodes.length === 0) {
-        container.innerHTML = `
-            <div class="empty-promocodes" style="text-align: center; padding: 30px; background: #1e1f29; border-radius: 16px;">
-                <i class="fas fa-ticket-alt" style="font-size: 3rem; color: #4a4b5e; margin-bottom: 15px; display: block;"></i>
-                <p style="color: #b9bbbe; margin: 0;">У вас пока нет использованных промокодов</p>
-                <p style="color: #72767d; font-size: 0.85rem; margin-top: 10px;">Активируйте промокод, чтобы получить скидку или бонус</p>
+    <div id="addBalanceModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2><i class="fas fa-coins"></i>Пополнение баланса</h2>
+            <p>Для пополнения баланса обратитесь к администратору через чат с поддержкой или Discord.</p>
+            <div class="modal-actions">
+                <button class="btn-primary" onclick="window.location.href='#supportChat'"><i class="fas fa-headset"></i> Написать в поддержку</button>
+                <button class="btn-admin" onclick="window.closeModal('addBalanceModal')"><i class="fas fa-times"></i> Закрыть</button>
             </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = `
-        <div class="promocodes-history-header" style="margin-bottom: 20px;">
-            <h3 style="font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-history" style="color: #5865F2;"></i> 
-                История использованных промокодов
-                <span style="font-size: 0.8rem; background: #2a2b36; padding: 2px 10px; border-radius: 20px; color: #b9bbbe;">${promocodes.length} шт.</span>
-            </h3>
         </div>
-        <div class="promocodes-list" style="display: flex; flex-direction: column; gap: 12px;">
-            ${promocodes.map(promo => `
-                <div class="promocode-history-item" style="
-                    background: #1e1f29;
-                    border-radius: 16px;
-                    padding: 16px 20px;
-                    transition: all 0.2s ease;
-                    border: 1px solid #2a2b36;
-                ">
-                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
-                        <div style="display: flex; align-items: center; gap: 15px; flex: 2;">
-                            <div style="
-                                width: 50px;
-                                height: 50px;
-                                background: linear-gradient(135deg, ${promo.type === 'discount' ? '#FEE75C' : '#57F287'}, ${promo.type === 'discount' ? '#FEE75C' : '#43b581'});
-                                border-radius: 12px;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-                            ">
-                                <i class="fas fa-${promo.type === 'discount' ? 'percent' : 'coins'}" style="color: #1e1f29; font-size: 1.4rem;"></i>
-                            </div>
-                            <div>
-                                <div style="
-                                    font-weight: 700;
-                                    color: ${promo.type === 'discount' ? '#FEE75C' : '#57F287'};
-                                    font-family: monospace;
-                                    font-size: 1.1rem;
-                                    letter-spacing: 0.5px;
-                                ">
-                                    ${escapeHtml(promo.code)}
-                                </div>
-                                <div style="
-                                    display: flex;
-                                    gap: 15px;
-                                    margin-top: 6px;
-                                    font-size: 0.85rem;
-                                    color: #b9bbbe;
-                                    flex-wrap: wrap;
-                                ">
-                                    <span style="display: flex; align-items: center; gap: 5px;">
-                                        <i class="fas fa-${promo.type === 'discount' ? 'percent' : 'coins'}" style="font-size: 0.75rem;"></i>
-                                        <strong style="color: ${promo.type === 'discount' ? '#FEE75C' : '#57F287'};">${promo.type === 'discount' ? `${promo.value}% скидка` : `${promo.value}₽`}</strong>
-                                    </span>
-                                    <span style="display: flex; align-items: center; gap: 5px;">
-                                        <i class="fas fa-calendar-alt" style="font-size: 0.75rem;"></i>
-                                        ${promo.usedAtFormatted || new Date(promo.usedAt).toLocaleString('ru-RU')}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        <div style="
-                            padding: 6px 16px;
-                            border-radius: 30px;
-                            font-size: 0.8rem;
-                            font-weight: 500;
-                            background: rgba(87, 242, 135, 0.15);
-                            color: #57F287;
-                            display: flex;
-                            align-items: center;
-                            gap: 6px;
-                            white-space: nowrap;
-                        ">
-                            <i class="fas fa-check-circle"></i> Использован
-                        </div>
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-    `;
-}
+    </div>
 
-        // Функция для отображения информации после активации
-        function showPromocodeInfo(data) {
-            const modal = document.getElementById('promocodeInfoModal');
-            const content = document.getElementById('promocodeInfoContent');
-            
-            if (!modal || !content) return;
-            
-            let message = '';
-            if (data.message) {
-                message = data.message;
-            } else if (data.newBalance !== undefined) {
-                message = `Баланс пополнен на ${data.value}₽`;
-            } else {
-                message = 'Промокод успешно активирован!';
-            }
-            
-            content.innerHTML = `
-                <div style="text-align: center; padding: 20px;">
-                    <div style="font-size: 3rem; color: #FEE75C; margin-bottom: 20px;">
-                        <i class="fas fa-ticket-alt"></i>
-                    </div>
-                    <h3 style="color: white; margin-bottom: 15px;">${escapeHtml(message)}</h3>
-                    ${data.newBalance !== undefined ? `
-                        <p style="color: #b9bbbe; font-size: 1.2rem;">
-                            Текущий баланс: <strong style="color: #57F287;">${data.newBalance}₽</strong>
-                        </p>
-                    ` : ''}
-                </div>
-            `;
-            
-            modal.style.display = 'flex';
-        }
-    
-        // Подключаем кнопку промокода к системе promocodeSystem
-document.addEventListener('DOMContentLoaded', function() {
-    const applyBtn = document.getElementById('applyPromocodeBtn');
-    const promocodeInput = document.getElementById('promocodeInput');
-    
-    if (applyBtn && window.promocodeSystem) {
-        // Удаляем старые обработчики
-        const newBtn = applyBtn.cloneNode(true);
-        applyBtn.parentNode.replaceChild(newBtn, applyBtn);
-        
-        newBtn.addEventListener('click', function() {
-            const code = promocodeInput.value.trim().toUpperCase();
-            if (code && window.promocodeSystem) {
-                window.promocodeSystem.applyPromocodeByCode(code);
-            } else if (!code) {
-                alert('Введите промокод');
-            }
-        });
-        
-        promocodeInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const code = promocodeInput.value.trim().toUpperCase();
-                if (code && window.promocodeSystem) {
-                    window.promocodeSystem.applyPromocodeByCode(code);
-                }
-            }
-        });
-    }
-});
-
-// Добавляем метод в promocodeSystem для прямой активации по коду
-if (window.promocodeSystem && !window.promocodeSystem.applyPromocodeByCode) {
-    window.promocodeSystem.applyPromocodeByCode = async function(code) {
-        if (this.isProcessing) return;
-        
-        const auth = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-        if (!auth.id) {
-            alert('Авторизуйтесь');
-            return;
-        }
-        
-        this.setLoading(true);
-        
-        try {
-            // Проверяем промокод
-            const checkData = await window.api.request('/promocodes/check', {
-                method: 'POST',
-                body: JSON.stringify({ userId: auth.id, code: code })
-            });
-            
-            if (!checkData.success) {
-                this.showMessage(checkData.error || 'Промокод недействителен', 'error');
-                this.setLoading(false);
-                
-                // Если промокод уже использован, показываем понятное сообщение
-                if (checkData.error === 'Вы уже использовали этот промокод') {
-                    alert('Этот промокод уже был активирован');
-                }
-                return;
-            }
-            
-            // Активируем
-            const activateData = await window.api.request('/promocodes/activate', {
-                method: 'POST',
-                body: JSON.stringify({ userId: auth.id, code: code })
-            });
-            
-            if (activateData.success) {
-                const promo = checkData.promocode;
-                
-                if (promo.type === 'discount') {
-                    this.activeDiscounts.push({
-                        code: promo.code,
-                        value: promo.value,
-                        type: 'discount',
-                        appliedAt: new Date().toISOString()
-                    });
-                    await this.saveToAPI();
-                    this.showMessage(`✓ Промокод активирован! Скидка ${promo.value}%`, 'success');
-                    
-                    // Обновляем отображение
-                    if (typeof window.updateProductsDisplay === 'function') {
-                        window.updateProductsDisplay();
-                    }
-                    if (typeof updateHomePagePrices === 'function') {
-                        updateHomePagePrices();
-                    }
-                    
-                } else if (promo.type === 'balance') {
-                    this.showMessage(`💰 Баланс пополнен на ${promo.value} ₽`, 'success');
-                    
-                    // Обновляем баланс на странице
-                    if (activateData.newBalance !== undefined && activateData.newBalance !== null) {
-                        // Обновляем через глобальную функцию
-                        if (window.renderBalance) {
-                            window.renderBalance(activateData.newBalance);
-                        }
-                        // Обновляем через loadProfile
-                        if (typeof loadProfile === 'function') {
-                            await loadProfile();
-                        }
-                        // Обновляем локальное хранилище
-                        const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-                        authData.balance = activateData.newBalance;
-                        localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-                        
-                        // Показываем модальное окно с информацией
-                        if (window.showPromocodeInfo) {
-                            window.showPromocodeInfo({
-                                ...activateData,
-                                message: `Баланс пополнен на ${promo.value}₽. Новый баланс: ${activateData.newBalance}₽`
-                            });
-                        }
-                    } else {
-                        // Если баланс не вернулся, просто перезагружаем страницу
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1500);
-                    }
-                }
-                
-                const input = document.getElementById('promocodeInput');
-                if (input) input.value = '';
-                
-                await this.loadFromAPI();
-                this.renderUI();
-                
-                // Обновляем историю промокодов
-                if (typeof loadUserPromocodes === 'function') {
-                    await loadUserPromocodes();
-                }
-                
-            } else {
-                this.showMessage(activateData.error || 'Ошибка активации', 'error');
-            }
-        } catch (e) {
-            console.error('Ошибка применения промокода:', e);
-            this.showMessage('Ошибка сервера: ' + (e.message || 'неизвестная ошибка'), 'error');
-        } finally {
-            this.setLoading(false);
-        }
-    };
-}
-
-
-// Функция для отображения АКТИВНЫХ промокодов (скидок)
-function renderActivePromocodes(promocodes) {
-    const container = document.getElementById('userActivePromocodes');
-    
-    if (!container) {
-        console.error('Контейнер userActivePromocodes не найден');
-        return;
-    }
-    
-    if (!promocodes || promocodes.length === 0) {
-        container.innerHTML = `
-            <div class="empty-promocodes" style="text-align: center; padding: 20px; background: #1e1f29; border-radius: 16px;">
-                <i class="fas fa-ticket-alt" style="font-size: 2rem; color: #4a4b5e; margin-bottom: 10px; display: block;"></i>
-                <p style="color: #b9bbbe; margin: 0;">Нет активных промокодов</p>
-                <p style="color: #72767d; font-size: 0.8rem; margin-top: 5px;">Активируйте промокод, чтобы получить скидку</p>
+    <footer class="footer">
+        <img src="image/bhstore.png" style="width: 100%;">
+        <p class="footertxt" style="text-align: center; margin-bottom: 20px;">СПАСИБО, ЧТО ИСПОЛЬЗУЕТЕ НАШ СЕРВИС!</p>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3><i class="fas fa-compass"></i> Навигация</h3>
+                <a href="/"><i class="fas fa-home"></i> Главная</a>
+                <a href="shop.html"><i class="fas fa-shopping-cart"></i> Магазин</a>
+                <a href="news.html"><i class="fas fa-newspaper"></i> Новости</a>
+                <a href="faq.html"><i class="fas fa-question-circle"></i> FAQ</a>
             </div>
-        `;
-        return;
-    }
-    
-    container.innerHTML = `
-        <div class="active-promocodes-header" style="margin-bottom: 15px;">
-            <h3 style="font-size: 1.1rem; color: #fff; display: flex; align-items: center; gap: 10px;">
-                <i class="fas fa-fire" style="color: #FEE75C;"></i> 
-                Активные промокоды (скидки)
-                <span style="font-size: 0.8rem; background: #2a2b36; padding: 2px 10px; border-radius: 20px; color: #FEE75C;">${promocodes.length} шт.</span>
-            </h3>
+            <div class="footer-section">
+                <h3><i class="fas fa-file-contract"></i> Документы</h3>
+                <a href="legal.html#terms"><i class="fas fa-file-signature"></i> Пользовательское соглашение</a>
+                <a href="legal.html#privacy"><i class="fas fa-shield-alt"></i> Политика конфиденциальности</a>
+                <a href="legal.html#offer"><i class="fas fa-hand-holding-heart"></i> Публичная оферта</a>
+            </div>
+            <div class="footer-section">
+                <h3><i class="fas fa-headset"></i> Контакты</h3>
+                <a href="https://t.me/borishunterstore"><i class="fab fa-telegram"></i> TELEGRAM</a>
+                <a href="https://www.facebook.com/groups/borishunterstore"><i class="fab fa-facebook"></i> FACEBOOK</a>
+                <a href="https://discord.gg/YfZxXXeW6D"><i class="fab fa-discord"></i> DISCORD</a>
+                <a href="https://vk.com/fastvideo_zeny"><i class="fab fa-vk"></i> VK</a>
+            </div>
         </div>
-        <div class="active-promocodes-list" style="display: flex; flex-direction: column; gap: 10px;">
-            ${promocodes.map(promo => `
-                <div class="active-promocode-item" style="
-                    background: linear-gradient(135deg, rgba(254, 231, 92, 0.1), rgba(254, 231, 92, 0.05));
-                    border-radius: 16px;
-                    padding: 12px 16px;
-                    border: 1px solid rgba(254, 231, 92, 0.3);
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    flex-wrap: wrap;
-                    gap: 10px;
-                ">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="
-                            width: 40px;
-                            height: 40px;
-                            background: linear-gradient(135deg, #FEE75C, #FEE75C);
-                            border-radius: 10px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                        ">
-                            <i class="fas fa-percent" style="color: #1e1f29; font-size: 1.2rem;"></i>
-                        </div>
-                        <div>
-                            <div style="font-weight: 700; color: #FEE75C; font-family: monospace; font-size: 1rem;">
-                                ${escapeHtml(promo.code)}
-                            </div>
-                            <div style="font-size: 0.8rem; color: #b9bbbe;">
-                                Скидка ${promo.value}% ${promo.product_ids && promo.product_ids.length > 0 ? 'на выбранные товары' : 'на все товары'}
-                            </div>
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        ${promo.expires_at ? `
-                            <div style="font-size: 0.7rem; color: #FEE75C;">
-                                <i class="fas fa-clock"></i> до ${new Date(promo.expires_at).toLocaleDateString('ru-RU')}
-                            </div>
-                        ` : ''}
-                        <button class="btn-remove-promo" onclick="window.promocodeSystem?.removeDiscount('${escapeHtml(promo.code)}')" style="
-                            background: none;
-                            border: none;
-                            color: #ED4245;
-                            cursor: pointer;
-                            padding: 5px 10px;
-                            border-radius: 8px;
-                            transition: all 0.2s;
-                        " onmouseover="this.style.background='rgba(237, 66, 69, 0.2)'" onmouseout="this.style.background='none'">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                </div>
-            `).join('')}
+        <div class="footer-bottom" style="margin-bottom: 20px;">
+            <p><i class="far fa-copyright"></i> 2024 - 2026 BHStore. Все права защищены.</p>
+            <p><i class="fas fa-id-card"></i> ИНН: 742541714674 / Стахеев Д.А.</p>
         </div>
-    `;
-}
-
-// Обновленная функция загрузки активных промокодов
-async function loadActivePromocodes() {
-    const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-    if (!authData.id) return;
-    
-    try {
-        const response = await fetch(`/api/promocodes/active/${authData.id}`);
-        const data = await response.json();
-        
-        if (data.success && data.promocodes) {
-            renderActivePromocodes(data.promocodes);
-        } else {
-            renderActivePromocodes([]);
-        }
-    } catch (error) {
-        console.error('Ошибка загрузки активных промокодов:', error);
-        renderActivePromocodes([]);
-    }
-}
-
-// Обновите функцию loadUserPromocodes (история)
-async function loadUserPromocodes() {
-    const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-    if (!authData.id) return;
-    
-    try {
-        const response = await fetch(`/api/promocodes/user/${authData.id}`);
-        const data = await response.json();
-        
-        if (data.success && data.promocodes) {
-            renderUserPromocodes(data.promocodes);
-        } else {
-            renderUserPromocodes([]);
-        }
-    } catch (error) {
-        console.error('Ошибка загрузки истории промокодов:', error);
-        renderUserPromocodes([]);
-    }
-}
-
-        window.logout = function() {
-            localStorage.removeItem('bhstore_auth');
-            localStorage.removeItem('bhstore_active_promocodes');
-            window.location.href = '/';
-        };
-    </script>
+    </footer>
 </body>
 </html>

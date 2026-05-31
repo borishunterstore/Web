@@ -1159,3 +1159,129 @@
         align-self: flex-end;
     }
 }
+
+/* Дополнительные стили для profile.html */
+.hidden {
+    display: none !important;
+}
+
+.btn-settings {
+    background: linear-gradient(135deg, #5865F2, #4752c4);
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    color: white;
+    font-size: 0.9rem;
+    cursor: pointer;
+    margin-left: 15px;
+    transition: all 0.2s ease;
+}
+
+.btn-settings:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(88, 101, 242, 0.4);
+}
+
+.order-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #40444b;
+}
+
+.btn-order-details {
+    background: #5865F2;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-order-details:hover {
+    background: #4752c4;
+}
+
+.btn-order-cancel {
+    background: #ED4245;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-order-cancel:hover {
+    background: #c73b3e;
+}
+
+.error-page {
+    text-align: center;
+    padding: 100px 20px;
+}
+
+.error-page i {
+    font-size: 5rem;
+    color: #ED4245;
+    margin-bottom: 20px;
+}
+
+.settings-section {
+    margin-bottom: 25px;
+}
+
+.settings-section h3 {
+    color: #5865F2;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    color: #b9bbbe;
+    font-size: 0.85rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    background: #1e1f29;
+    border: 1px solid #40444b;
+    border-radius: 8px;
+    color: white;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #5865F2;
+}
+
+.form-group input[readonly] {
+    color: #72767d;
+    cursor: not-allowed;
+}
+
+.btn-save-email,
+.btn-refresh-avatar,
+.btn-request-badge {
+    width: 100%;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-save-email:hover,
+.btn-refresh-avatar:hover,
+.btn-request-badge:hover {
+    transform: translateY(-2px);
+}
