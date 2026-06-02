@@ -27,6 +27,33 @@ class DiscordAuth {
         this.updateAuthButton();
     }
 
+    updateAuthButton() {
+        const authData = this.getAuthData();
+        const authBtn = document.getElementById('authBtn');
+        
+        if (!authBtn) return;
+        
+        if (authData?.id) {
+            let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
+            if (authData.avatar) {
+                const ext = authData.avatar.startsWith('a_') ? 'gif' : 'png';
+                avatarUrl = `https://cdn.discordapp.com/avatars/${authData.id}/${authData.avatar}.${ext}?size=32`;
+            }
+            
+            authBtn.innerHTML = `
+                <img src="${avatarUrl}" style="width: 24px; height: 24px; border-radius: 50%; margin-right: 8px;" 
+                     onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
+                ${authData.username || 'Профиль'}
+            `;
+            authBtn.onclick = () => window.location.href = '/profile.html';
+            authBtn.classList.add('auth-authenticated');
+        } else {
+            authBtn.innerHTML = '<i class="fab fa-discord"></i> Войти';
+            authBtn.onclick = () => window.location.href = '/auth.html';
+            authBtn.classList.remove('auth-authenticated');
+        }
+    }
+    
     async checkAuthStatus() {
         try {
             const cached = this.cache.get('authStatus');
