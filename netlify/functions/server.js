@@ -541,76 +541,85 @@ app.get('/api/products', async (req, res) => {
 // TELEGRAM AUTHENTICATION
 // ============================================
 
-const TELEGRAM_BOT_TOKEN = '6876007284:AAH5R2BCqS8RPafZWg5s_0v-DJfoiJsiQco';
 const TELEGRAM_BOT_ID = '6876007284';
-
+const TELEGRAM_BOT_TOKEN = '6876007284:AAH5R2BCqS8RPafZWg5s_0v-DJfoiJsiQco';
+console.log('🤖 TELEGRAM_BOT_TOKEN загружен:', TELEGRAM_BOT_TOKEN ? 'Да' : 'Нет');
 
 // Отправка кода в Telegram
 app.post('/api/telegram/send-code', async (req, res) => {
   try {
-    console.log('📱 ===== НОВЫЙ ЗАПРОС НА ОТПРАВКУ КОДА =====');
-    console.log('📱 Тело запроса:', req.body);
+    console.log('📱 ===== НОВЫЙ ЗАПРОС =====');
+    console.log('📱 Body:', req.body);
     
     const { telegramId, phoneNumber, username } = req.body;
-    
     const chatId = telegramId || phoneNumber;
     
     if (!chatId) {
-      console.log('❌ Нет chatId');
       return res.status(400).json({ success: false, error: 'Укажите Telegram ID' });
     }
     
-    console.log(`📱 Chat ID: ${chatId}`);
+    // Проверяем, что chatId - это число
+    const numericChatId = parseInt(chatId);
+    if (isNaN(numericChatId)) {
+      return res.status(400).json({ success: false, error: 'Telegram ID должен состоять из цифр' });
+    }
     
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log(`📱 Код: ${verificationCode}`);
+    console.log(`📱 Код: ${verificationCode} для chatId: ${numericChatId}`);
     
     // Сохраняем код
     if (!global.telegramCodes) global.telegramCodes = {};
-    global.telegramCodes[chatId] = {
+    global.telegramCodes[numericChatId.toString()] = {
       code: verificationCode,
       username: username || 'Пользователь',
       expiresAt: Date.now() + 5 * 60 * 1000
     };
     
+    // Формируем сообщение
     const message = `🔐 **КОД АВТОРИЗАЦИИ BHStore**\n\nЗдравствуйте, ${username || 'пользователь'}!\n\nВаш код для входа: \`${verificationCode}\`\n\n⚠️ Никому не сообщайте этот код!\n⏰ Код действителен 5 минут.`;
     
-    console.log(`📱 Отправка в Telegram: ${chatId}`);
+    console.log(`📱 Отправка в Telegram...`);
     
+    // Отправляем через Telegram API
     const telegramResponse = await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      chat_id: chatId,
+      chat_id: numericChatId,
       text: message,
       parse_mode: 'Markdown'
     });
     
     console.log('📱 Ответ Telegram:', telegramResponse.status, telegramResponse.data);
     
-    if (telegramResponse.data.ok) {
+    if (telegramResponse.data && telegramResponse.data.ok) {
       console.log(`✅ Код успешно отправлен!`);
       res.json({
         success: true,
         message: 'Код отправлен в Telegram',
-        tempId: chatId
+        tempId: numericChatId.toString()
       });
     } else {
-      throw new Error('Telegram вернул ошибку');
+      throw new Error(telegramResponse.data?.description || 'Неизвестная ошибка Telegram');
     }
     
   } catch (error) {
     console.error('❌ ОШИБКА:', error.message);
-    if (error.response) {
-      console.error('❌ Детали от Telegram:', error.response.data);
-    }
     
-    let errorMessage = 'Ошибка отправки кода';
+    let errorMessage = 'Ошибка отправки кода в Telegram';
+    
     if (error.response?.data?.description) {
-      if (error.response.data.description.includes('chat not found')) {
-        errorMessage = 'Пользователь не найден. Напишите боту @Meentioned_bot команду /start';
-      } else if (error.response.data.description.includes('bot was blocked')) {
-        errorMessage = 'Вы заблокировали бота. Разблокируйте @Meentioned_bot';
+      const desc = error.response.data.description;
+      console.error('❌ Telegram error description:', desc);
+      
+      if (desc.includes('chat not found')) {
+        errorMessage = '❌ Пользователь не найден!\n\nСначала напишите боту @Meentioned_bot команду /start';
+      } else if (desc.includes('bot was blocked')) {
+        errorMessage = '❌ Вы заблокировали бота!\n\nРазблокируйте @Meentioned_bot в Telegram';
+      } else if (desc.includes('Forbidden')) {
+        errorMessage = '❌ Доступ запрещен!\n\nНапишите боту @Meentioned_bot команду /start';
       } else {
-        errorMessage = error.response.data.description;
+        errorMessage = `❌ ${desc}`;
       }
+    } else if (error.code === 'ECONNREFUSED') {
+      errorMessage = '❌ Не удалось подключиться к Telegram API';
     }
     
     res.status(500).json({ 
