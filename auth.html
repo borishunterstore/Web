@@ -638,6 +638,155 @@
         });
     </script>
 
-
+<script>
+    // Принудительная привязка кнопки отправки Telegram
+    (function() {
+        function bindTelegramButtons() {
+            const sendBtn = document.getElementById('sendTelegramCodeBtn');
+            if (sendBtn && !sendBtn.hasAttribute('data-telegram-bound')) {
+                sendBtn.setAttribute('data-telegram-bound', 'true');
+                console.log('🔗 Привязываем кнопку отправки');
+                
+                const newBtn = sendBtn.cloneNode(true);
+                sendBtn.parentNode.replaceChild(newBtn, sendBtn);
+                
+                newBtn.onclick = async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('📱 Кнопка отправки нажата (привязка из auth.html)');
+                    
+                    const id = document.getElementById('telegramIdInput')?.value.trim();
+                    const name = document.getElementById('telegramNameInput')?.value.trim();
+                    
+                    console.log('ID:', id, 'Name:', name);
+                    
+                    if (!id || !/^\d+$/.test(id)) {
+                        alert('Введите корректный Telegram ID (только цифры)');
+                        return;
+                    }
+                    if (!name) {
+                        alert('Введите ваше имя');
+                        return;
+                    }
+                    
+                    const btn = this;
+                    const originalText = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
+                    
+                    try {
+                        const response = await fetch('/api/telegram/send-code', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ id, name })
+                        });
+                        
+                        const data = await response.json();
+                        console.log('Ответ:', data);
+                        
+                        if (data.success) {
+                            // Сохраняем данные
+                            window.telegramAuth.tempData = { id, name };
+                            // Переключаем на шаг 2
+                            document.getElementById('step1').style.display = 'none';
+                            document.getElementById('step2').style.display = 'block';
+                            setTimeout(() => {
+                                const codeInput = document.getElementById('telegramCodeInput');
+                                if (codeInput) codeInput.focus();
+                            }, 100);
+                            alert('✅ Код отправлен в Telegram!');
+                        } else {
+                            alert('❌ ' + (data.error || 'Ошибка отправки'));
+                        }
+                    } catch(e) {
+                        console.error('Ошибка:', e);
+                        alert('❌ Ошибка соединения: ' + e.message);
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    }
+                };
+            }
+            
+            // Привязываем кнопку подтверждения
+            const verifyBtn = document.getElementById('verifyTelegramCodeBtn');
+            if (verifyBtn && !verifyBtn.hasAttribute('data-telegram-bound-verify')) {
+                verifyBtn.setAttribute('data-telegram-bound-verify', 'true');
+                console.log('🔗 Привязываем кнопку подтверждения');
+                
+                const newVerifyBtn = verifyBtn.cloneNode(true);
+                verifyBtn.parentNode.replaceChild(newVerifyBtn, verifyBtn);
+                
+                newVerifyBtn.onclick = async function(e) {
+                    e.preventDefault();
+                    console.log('📱 Кнопка подтверждения нажата');
+                    
+                    const code = document.getElementById('telegramCodeInput')?.value.trim();
+                    const tempData = window.telegramAuth?.tempData;
+                    
+                    if (!code || code.length !== 6) {
+                        alert('Введите 6-значный код');
+                        return;
+                    }
+                    if (!tempData) {
+                        alert('Сессия истекла. Начните заново');
+                        return;
+                    }
+                    
+                    const btn = this;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Проверка...';
+                    
+                    try {
+                        const response = await fetch('/api/auth/telegram', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                                code, 
+                                id: tempData.id, 
+                                name: tempData.name 
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        console.log('Ответ:', data);
+                        
+                        if (data.success) {
+                            localStorage.setItem('bhstore_auth', JSON.stringify({
+                                id: data.user.id,
+                                username: data.user.username,
+                                email: data.user.email,
+                                token: data.token,
+                                authMethod: 'telegram'
+                            }));
+                            alert('✅ Вход выполнен!');
+                            document.getElementById('telegramAuthModal')?.remove();
+                            window.location.href = '/profile.html';
+                        } else {
+                            alert('❌ ' + (data.error || 'Неверный код'));
+                        }
+                    } catch(e) {
+                        console.error('Ошибка:', e);
+                        alert('❌ Ошибка проверки');
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerHTML = 'Подтвердить';
+                    }
+                };
+            }
+        }
+        
+        // Следим за появлением модального окна
+        const observer = new MutationObserver(function(mutations) {
+            if (document.getElementById('telegramAuthModal')) {
+                setTimeout(bindTelegramButtons, 100);
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+        
+        // Первая привязка
+        setTimeout(bindTelegramButtons, 500);
+    })();
+</script>
 </body>
 </html>
