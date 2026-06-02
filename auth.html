@@ -614,29 +614,30 @@
     <div class="custom-cursor"></div>
 
     <script>
-        // Привязка кнопки подтверждения
-        const observer2 = new MutationObserver(function(mutations) {
-            const verifyBtn = document.getElementById('verifyTelegramCodeBtn');
-            if (verifyBtn && !verifyBtn.hasAttribute('data-bound')) {
-                verifyBtn.setAttribute('data-bound', 'true');
-                console.log('Привязываем кнопку подтверждения');
-                verifyBtn.onclick = function(e) {
-                    e.preventDefault();
-                    console.log('Кнопка подтверждения нажата');
-                    const code = document.getElementById('telegramCodeInput')?.value;
-                    console.log('Введённый код:', code);
+        // Дополнительная привязка на случай проблем
+        document.addEventListener('DOMContentLoaded', function() {
+            // Проверяем что telegramAuth загружен
+            setTimeout(function() {
+                if (window.telegramAuth && typeof window.telegramAuth.showModal === 'function') {
+                    console.log('✅ telegramAuth готов');
                     
-                    if (window.telegramAuth && window.telegramAuth._verifyCode) {
-                        window.telegramAuth._verifyCode();
-                    } else if (window.telegramAuth && window.telegramAuth.verifyCode) {
-                        window.telegramAuth.verifyCode();
-                    } else {
-                        alert('Ошибка: метод подтверждения не найден');
+                    // Перепривязываем кнопку
+                    const tgBtn = document.getElementById('telegramAuthBtn');
+                    if (tgBtn) {
+                        const newBtn = tgBtn.cloneNode(true);
+                        tgBtn.parentNode.replaceChild(newBtn, tgBtn);
+                        newBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            window.telegramAuth.showModal();
+                        });
                     }
-                };
-            }
+                } else {
+                    console.error('❌ telegramAuth не загружен');
+                }
+            }, 500);
         });
-        observer2.observe(document.body, { childList: true, subtree: true });
     </script>
+
+
 </body>
 </html>
