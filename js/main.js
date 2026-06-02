@@ -136,7 +136,7 @@
     function renderLoginButton(btn) {
         btn.innerHTML = `
             <div class="auth-button-content">
-                <div class="auth-discord-icon"><i class="fab fa-discord"></i></div>
+                <div class="auth-discord-icon"><i class="fa-solid fa-network-wired"></i></div>
                 <span class="auth-login-text">Войти</span>
                 <span class="auth-login-hint">нажмите для входа</span>
             </div>`;
