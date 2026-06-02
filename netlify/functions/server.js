@@ -544,50 +544,79 @@ app.get('/api/products', async (req, res) => {
 const TELEGRAM_BOT_TOKEN = '6876007284:AAH5R2BCqS8RPafZWg5s_0v-DJfoiJsiQco';
 const TELEGRAM_BOT_ID = '6876007284';
 
+
 // Отправка кода в Telegram
 app.post('/api/telegram/send-code', async (req, res) => {
   try {
-    const { telegramId, phoneNumber } = req.body;
+    console.log('📱 ===== НОВЫЙ ЗАПРОС НА ОТПРАВКУ КОДА =====');
+    console.log('📱 Тело запроса:', req.body);
     
-    if (!telegramId && !phoneNumber) {
-      return res.status(400).json({ success: false, error: 'Укажите Telegram ID или номер телефона' });
+    const { telegramId, phoneNumber, username } = req.body;
+    
+    const chatId = telegramId || phoneNumber;
+    
+    if (!chatId) {
+      console.log('❌ Нет chatId');
+      return res.status(400).json({ success: false, error: 'Укажите Telegram ID' });
     }
+    
+    console.log(`📱 Chat ID: ${chatId}`);
     
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(`📱 Код: ${verificationCode}`);
     
-    // Сохраняем код временно (в памяти или БД)
+    // Сохраняем код
     if (!global.telegramCodes) global.telegramCodes = {};
-    global.telegramCodes[telegramId || phoneNumber] = {
+    global.telegramCodes[chatId] = {
       code: verificationCode,
-      expiresAt: Date.now() + 5 * 60 * 1000 // 5 минут
+      username: username || 'Пользователь',
+      expiresAt: Date.now() + 5 * 60 * 1000
     };
     
-    // Отправляем код через Telegram бота
-    let chatId = telegramId;
-    if (phoneNumber && !chatId) {
-      // Можно добавить поиск по номеру телефона
-      chatId = phoneNumber;
-    }
+    const message = `🔐 **КОД АВТОРИЗАЦИИ BHStore**\n\nЗдравствуйте, ${username || 'пользователь'}!\n\nВаш код для входа: \`${verificationCode}\`\n\n⚠️ Никому не сообщайте этот код!\n⏰ Код действителен 5 минут.`;
     
-    const message = `🔐 **Код авторизации BHStore**\n\nВаш код: \`${verificationCode}\`\n\nНикому не сообщайте этот код!\nКод действителен 5 минут.`;
+    console.log(`📱 Отправка в Telegram: ${chatId}`);
     
-    await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    const telegramResponse = await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       chat_id: chatId,
       text: message,
       parse_mode: 'Markdown'
     });
     
-    console.log(`📱 Код отправлен в Telegram: ${verificationCode} для ${chatId}`);
+    console.log('📱 Ответ Telegram:', telegramResponse.status, telegramResponse.data);
     
-    res.json({
-      success: true,
-      message: 'Код отправлен в Telegram',
-      tempId: telegramId || phoneNumber
-    });
+    if (telegramResponse.data.ok) {
+      console.log(`✅ Код успешно отправлен!`);
+      res.json({
+        success: true,
+        message: 'Код отправлен в Telegram',
+        tempId: chatId
+      });
+    } else {
+      throw new Error('Telegram вернул ошибку');
+    }
     
   } catch (error) {
-    console.error('❌ Ошибка отправки Telegram кода:', error.message);
-    res.status(500).json({ success: false, error: 'Ошибка отправки кода в Telegram' });
+    console.error('❌ ОШИБКА:', error.message);
+    if (error.response) {
+      console.error('❌ Детали от Telegram:', error.response.data);
+    }
+    
+    let errorMessage = 'Ошибка отправки кода';
+    if (error.response?.data?.description) {
+      if (error.response.data.description.includes('chat not found')) {
+        errorMessage = 'Пользователь не найден. Напишите боту @Meentioned_bot команду /start';
+      } else if (error.response.data.description.includes('bot was blocked')) {
+        errorMessage = 'Вы заблокировали бота. Разблокируйте @Meentioned_bot';
+      } else {
+        errorMessage = error.response.data.description;
+      }
+    }
+    
+    res.status(500).json({ 
+      success: false, 
+      error: errorMessage
+    });
   }
 });
 
