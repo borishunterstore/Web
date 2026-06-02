@@ -613,18 +613,52 @@
     </style>
     <div class="custom-cursor"></div>
 
-<script>
-    // Проверка что объект создался
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('window.telegramAuth:', window.telegramAuth);
-        console.log('window.auth:', window.auth);
-        
-        // Если telegramAuth не создался, покажем ошибку
-        if (!window.telegramAuth) {
-            console.error('❌ telegramAuth не инициализирован!');
-            document.getElementById('telegramAuthBtn')?.setAttribute('disabled', 'disabled');
-        }
-    });
-</script>
+    <script>
+        // Принудительная привязка кнопки Telegram после загрузки
+        (function() {
+            // Ждём появления window.telegramAuth
+            const checkInterval = setInterval(function() {
+                if (window.telegramAuth && typeof window.telegramAuth.showModal === 'function') {
+                    clearInterval(checkInterval);
+                    console.log('✅ TelegramAuth найден, привязываем кнопку');
+                    
+                    const telegramBtn = document.getElementById('telegramAuthBtn');
+                    if (telegramBtn) {
+                        // Удаляем старый обработчик
+                        const newBtn = telegramBtn.cloneNode(true);
+                        telegramBtn.parentNode.replaceChild(newBtn, telegramBtn);
+                        
+                        // Добавляем новый обработчик
+                        newBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Telegram кнопка нажата');
+                            
+                            if (window.telegramAuth && typeof window.telegramAuth.showModal === 'function') {
+                                window.telegramAuth.showModal();
+                            } else if (window._tgAuth && typeof window._tgAuth.showModal === 'function') {
+                                window._tgAuth.showModal();
+                            } else {
+                                alert('Ошибка: Telegram авторизация не загружена');
+                            }
+                        });
+                    }
+                }
+            }, 100);
+            
+            // Таймаут на случай если скрипт не загрузился
+            setTimeout(function() {
+                clearInterval(checkInterval);
+                if (!window.telegramAuth) {
+                    console.error('❌ TelegramAuth не загружен');
+                    const btn = document.getElementById('telegramAuthBtn');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.title = 'Ошибка загрузки, обновите страницу';
+                    }
+                }
+            }, 5000);
+        })();
+    </script>
 </body>
 </html>
