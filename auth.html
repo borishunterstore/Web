@@ -614,51 +614,29 @@
     <div class="custom-cursor"></div>
 
     <script>
-        // Принудительная привязка кнопки Telegram после загрузки
-        (function() {
-            // Ждём появления window.telegramAuth
-            const checkInterval = setInterval(function() {
-                if (window.telegramAuth && typeof window.telegramAuth.showModal === 'function') {
-                    clearInterval(checkInterval);
-                    console.log('✅ TelegramAuth найден, привязываем кнопку');
+        // Привязка кнопки подтверждения
+        const observer2 = new MutationObserver(function(mutations) {
+            const verifyBtn = document.getElementById('verifyTelegramCodeBtn');
+            if (verifyBtn && !verifyBtn.hasAttribute('data-bound')) {
+                verifyBtn.setAttribute('data-bound', 'true');
+                console.log('Привязываем кнопку подтверждения');
+                verifyBtn.onclick = function(e) {
+                    e.preventDefault();
+                    console.log('Кнопка подтверждения нажата');
+                    const code = document.getElementById('telegramCodeInput')?.value;
+                    console.log('Введённый код:', code);
                     
-                    const telegramBtn = document.getElementById('telegramAuthBtn');
-                    if (telegramBtn) {
-                        // Удаляем старый обработчик
-                        const newBtn = telegramBtn.cloneNode(true);
-                        telegramBtn.parentNode.replaceChild(newBtn, telegramBtn);
-                        
-                        // Добавляем новый обработчик
-                        newBtn.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            console.log('Telegram кнопка нажата');
-                            
-                            if (window.telegramAuth && typeof window.telegramAuth.showModal === 'function') {
-                                window.telegramAuth.showModal();
-                            } else if (window._tgAuth && typeof window._tgAuth.showModal === 'function') {
-                                window._tgAuth.showModal();
-                            } else {
-                                alert('Ошибка: Telegram авторизация не загружена');
-                            }
-                        });
+                    if (window.telegramAuth && window.telegramAuth._verifyCode) {
+                        window.telegramAuth._verifyCode();
+                    } else if (window.telegramAuth && window.telegramAuth.verifyCode) {
+                        window.telegramAuth.verifyCode();
+                    } else {
+                        alert('Ошибка: метод подтверждения не найден');
                     }
-                }
-            }, 100);
-            
-            // Таймаут на случай если скрипт не загрузился
-            setTimeout(function() {
-                clearInterval(checkInterval);
-                if (!window.telegramAuth) {
-                    console.error('❌ TelegramAuth не загружен');
-                    const btn = document.getElementById('telegramAuthBtn');
-                    if (btn) {
-                        btn.disabled = true;
-                        btn.title = 'Ошибка загрузки, обновите страницу';
-                    }
-                }
-            }, 5000);
-        })();
+                };
+            }
+        });
+        observer2.observe(document.body, { childList: true, subtree: true });
     </script>
 </body>
 </html>

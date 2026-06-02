@@ -202,8 +202,13 @@
         }
         
         async _verifyCode() {
+            console.log('📱 _verifyCode вызван');
+            
             const code = document.getElementById('telegramCodeInput')?.value.trim();
             const temp = this._tempData.get(this);
+            
+            console.log('📱 Код:', code);
+            console.log('📱 Temp данные:', temp);
             
             if(!code || code.length !== 6) {
                 alert('Введите 6-значный код');
@@ -233,19 +238,30 @@
                 });
                 
                 const data = await response.json();
+                console.log('📱 Ответ сервера:', data);
                 
                 if(data.success) {
-                    localStorage.setItem('_a', btoa(JSON.stringify(data.user)));
-                    localStorage.setItem('_t', data.token);
+                    // Сохраняем данные
+                    const authData = {
+                        id: data.user.id,
+                        username: data.user.username,
+                        email: data.user.email,
+                        token: data.token,
+                        authMethod: 'telegram',
+                        balance: 0,
+                        badges: {}
+                    };
+                    localStorage.setItem('bhstore_auth', JSON.stringify(authData));
                     
-                    alert('Вход выполнен!');
+                    alert('✅ Вход выполнен!');
                     document.getElementById('telegramAuthModal')?.remove();
                     window.location.href = '/profile.html';
                 } else {
                     alert(data.error || 'Неверный код');
                 }
             } catch(e) {
-                alert('Ошибка проверки');
+                console.error('❌ Ошибка:', e);
+                alert('Ошибка проверки: ' + e.message);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Подтвердить';
