@@ -239,5 +239,9 @@
         }
     }
     
-    window._tgAuth = new TelegramAuthSecure();
+    const telegramAuthInstance = new TelegramAuthSecure();
+    window.telegramAuth = telegramAuthInstance;
+    window._tgAuth = telegramAuthInstance; // резервное имя
+    
+    console.log('✅ Telegram Auth инициализирован, window.telegramAuth доступен');
 })();

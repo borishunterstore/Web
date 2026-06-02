@@ -612,5 +612,19 @@
         }
     </style>
     <div class="custom-cursor"></div>
+
+<script>
+    // Проверка что объект создался
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('window.telegramAuth:', window.telegramAuth);
+        console.log('window.auth:', window.auth);
+        
+        // Если telegramAuth не создался, покажем ошибку
+        if (!window.telegramAuth) {
+            console.error('❌ telegramAuth не инициализирован!');
+            document.getElementById('telegramAuthBtn')?.setAttribute('disabled', 'disabled');
+        }
+    });
+</script>
 </body>
 </html>
