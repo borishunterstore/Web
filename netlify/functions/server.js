@@ -1697,7 +1697,7 @@ app.get('/api/user/:id/orders', async (req, res) => {
   }
 });
 
-// Получение информации о текущем пользователе
+// Получение информации о текущем пользовател
 app.get('/api/user/me', async (req, res) => {
   try {
       const authHeader = req.headers.authorization;
@@ -1713,10 +1713,12 @@ app.get('/api/user/me', async (req, res) => {
           
           if (sql) {
               const [user] = await sql`
-                  SELECT * FROM users WHERE discord_id = ${decoded.id}
+                  SELECT discord_id, username, email, avatar, registered_at, balance, badges, orders, privacy, frozen 
+                  FROM users WHERE discord_id = ${decoded.id}
               `;
               
               if (user) {
+                  console.log(`✅ Данные пользователя загружены: ${user.username}, баланс: ${user.balance}`);
                   return res.json({
                       success: true,
                       user: {
@@ -1735,7 +1737,7 @@ app.get('/api/user/me', async (req, res) => {
               }
           }
           
-          // Fallback для in-memory
+          // Fallback если нет БД
           const userData = users[decoded.id];
           if (userData) {
               return res.json({
@@ -1753,17 +1755,22 @@ app.get('/api/user/me', async (req, res) => {
               });
           }
           
+          // Если пользователь не найден в БД, возвращаем данные из токена
           return res.json({ 
               success: true, 
               user: {
                   discordId: decoded.id,
                   username: decoded.username,
                   avatar: decoded.avatar,
-                  badges: {}
+                  email: decoded.email,
+                  balance: 0,
+                  badges: {},
+                  orders: []
               }
           });
 
       } catch (decodeError) {
+          console.error('Ошибка декодирования токена:', decodeError);
           return res.status(401).json({ success: false, error: 'Неверный токен' });
       }
       
@@ -1779,6 +1786,41 @@ app.get('/api/user/me', async (req, res) => {
 // ============================================
 // Авторизация
 // ============================================
+
+app.get('/api/user/:id/orders', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    
+    let orders = [];
+    
+    if (sql) {
+      try {
+        const [user] = await sql`
+          SELECT orders FROM users WHERE discord_id = ${userId}
+        `;
+        
+        if (user && user.orders) {
+          orders = user.orders;
+          console.log(`📦 Найдено ${orders.length} заказов для ${userId}`);
+        }
+      } catch (dbError) {
+        console.error('❌ Ошибка БД:', dbError.message);
+      }
+    }
+    
+    res.json({
+      success: true,
+      orders: orders || []
+    });
+    
+  } catch (error) {
+    console.error('❌ Ошибка получения заказов:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Ошибка сервера' 
+    });
+  }
+});
 
 // API авторизации
 app.post('/api/auth/discord', async (req, res) => {

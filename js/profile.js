@@ -56,13 +56,13 @@
         }
         
         try {
-            // Используем /api/user/me вместо /api/user/${authData.id}
+            // Используем /api/user/me
             const response = await fetch('/api/user/me', {
-                headers: {
-                    'Authorization': `Bearer ${authData.token}`
-                }
+                headers: { 'Authorization': `Bearer ${authData.token}` }
             });
             const data = await response.json();
+            
+            console.log('📦 Данные из /api/user/me:', data); // Отладка
             
             if (data.success && data.user) {
                 const user = data.user;
@@ -78,16 +78,17 @@
                 renderBalance(user.balance || 0);
                 
                 // Загружаем заказы
+                console.log('📦 Загрузка заказов...');
                 const ordersResponse = await fetch(`/api/user/${authData.id}/orders`, {
-                    headers: {
-                        'Authorization': `Bearer ${authData.token}`
-                    }
+                    headers: { 'Authorization': `Bearer ${authData.token}` }
                 });
                 const ordersData = await ordersResponse.json();
                 
-                if (ordersData.success) {
-                    renderOrders(ordersData.orders || [], true);
-                    updateStats(ordersData.orders || [], user);
+                console.log('📦 Заказы получены:', ordersData);
+                
+                if (ordersData.success && ordersData.orders) {
+                    renderOrders(ordersData.orders, true);
+                    updateStats(ordersData.orders, user);
                 } else {
                     renderOrders([], true);
                     updateStats([], user);
@@ -103,7 +104,7 @@
                     await window.chatSystem.init();
                 }
             } else {
-                console.error('No user data received');
+                console.error('No user data received', data);
                 renderProfile(authData, true);
                 renderBalance(0);
                 renderOrders([], true);
