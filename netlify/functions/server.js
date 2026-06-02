@@ -1838,8 +1838,7 @@ app.get('/api/user/:id/balance', async (req, res) => {
   }
 });
 
-// Получение заказов пользователя
-// Получение заказов пользователя (с проверкой приватности)
+
 app.get('/api/user/:id/orders', async (req, res) => {
   try {
     const userId = req.params.id;
@@ -2078,41 +2077,6 @@ app.get('/api/user/me', async (req, res) => {
 // ============================================
 // Авторизация
 // ============================================
-
-app.get('/api/user/:id/orders', async (req, res) => {
-  try {
-    const userId = req.params.id;
-    
-    let orders = [];
-    
-    if (sql) {
-      try {
-        const [user] = await sql`
-          SELECT orders FROM users WHERE discord_id = ${userId}
-        `;
-        
-        if (user && user.orders) {
-          orders = user.orders;
-          console.log(`📦 Найдено ${orders.length} заказов для ${userId}`);
-        }
-      } catch (dbError) {
-        console.error('❌ Ошибка БД:', dbError.message);
-      }
-    }
-    
-    res.json({
-      success: true,
-      orders: orders || []
-    });
-    
-  } catch (error) {
-    console.error('❌ Ошибка получения заказов:', error.message);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Ошибка сервера' 
-    });
-  }
-});
 
 // API авторизации
 app.post('/api/auth/discord', async (req, res) => {

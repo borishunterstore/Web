@@ -78,18 +78,20 @@ async function checkAuth() {
     const authBtn = document.getElementById('authBtn');
     if (!authBtn) return;
 
-    if (authData.token && authData.id && window.api) {
+    // Если есть токен, но нет данных пользователя - запрашиваем через /api/user/me
+    if (authData.token && !authData.username) {
         try {
-            const data = await window.api.getUser(authData.id);
-            if (data?.success && data.user) {
-                Object.assign(authData, {
-                    username: data.user.username,
-                    avatar: data.user.avatar,
-                    balance: data.user.balance,
-                    badges: data.user.badges || {},
-                    discordId: data.user.discordId,
-                    registeredAt: data.user.registeredAt
-                });
+            const response = await fetch('/api/user/me', {
+                headers: { 'Authorization': `Bearer ${authData.token}` }
+            });
+            const data = await response.json();
+            
+            if (data.success && data.user) {
+                authData.id = data.user.discordId;
+                authData.username = data.user.username;
+                authData.avatar = data.user.avatar;
+                authData.balance = data.user.balance;
+                authData.badges = data.user.badges || {};
                 localStorage.setItem('bhstore_auth', JSON.stringify(authData));
             }
         } catch (error) {
@@ -98,10 +100,14 @@ async function checkAuth() {
     }
 
     if (authData.username && !authData.verificationCode) {
+        // Обновляем баланс
         try {
-            const balanceData = await window.api?.getUserBalance(authData.id);
-            if (balanceData?.success) {
-                authData.balance = balanceData.balance;
+            const balanceData = await fetch(`/api/user/${authData.id}/balance`, {
+                headers: { 'Authorization': `Bearer ${authData.token}` }
+            });
+            const balanceResult = await balanceData.json();
+            if (balanceResult.success && balanceResult.balance !== undefined) {
+                authData.balance = balanceResult.balance;
                 localStorage.setItem('bhstore_auth', JSON.stringify(authData));
             }
         } catch (error) {
