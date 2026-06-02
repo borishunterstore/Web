@@ -137,7 +137,7 @@
         btn.innerHTML = `
             <div class="auth-button-content">
                 <div class="auth-discord-icon"><i class="fab fa-discord"></i></div>
-                <span class="auth-login-text">Войти через Discord</span>
+                <span class="auth-login-text">Войти</span>
                 <span class="auth-login-hint">нажмите для входа</span>
             </div>`;
         btn.classList.remove('auth-authenticated', 'auth-verification');
