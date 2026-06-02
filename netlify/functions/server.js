@@ -28,25 +28,27 @@ const app = express();
 
 // ========== БЕЗОПАСНОСТЬ ==========
 // Helmet с CSP
+// Замените блок helmet на этот:
 app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
-            imgSrc: ["'self'", "data:", "https://cdn.discordapp.com", "https://cdn3.emoji.gg", "https://mc.yandex.ru"],
-            connectSrc: ["'self'", "https://api.telegram.org", "https://discord.com", "https://discord.com/api", "https://mc.yandex.ru"],
-            frameSrc: ["'self'", "https://discord.com"],
-            fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
-            mediaSrc: ["'self'"],
-            objectSrc: ["'none'"],
-            baseUri: ["'self'"],
-            formAction: ["'self'"],
-            upgradeInsecureRequests: []
-        }
-    },
-    crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: { policy: "cross-origin" }
+  contentSecurityPolicy: {
+      directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdnjs.cloudflare.com", "https://mc.yandex.ru", "https://cdn3.emoji.gg"],
+          styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
+          imgSrc: ["'self'", "data:", "https://cdn.discordapp.com", "https://cdn3.emoji.gg", "https://mc.yandex.ru", "https://*.discord.com", "https://discord.com"],
+          connectSrc: ["'self'", "https://api.telegram.org", "https://discord.com", "https://discord.com/api", "https://mc.yandex.ru", "https://cdn.discordapp.com", "wss://*.discord.com", "https://*.discord.com"],
+          frameSrc: ["'self'", "https://discord.com", "https://*.discord.com"],
+          fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://discord.com"],
+          mediaSrc: ["'self'"],
+          objectSrc: ["'none'"],
+          baseUri: ["'self'"],
+          formAction: ["'self'"],
+          upgradeInsecureRequests: []
+      }
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginOpenerPolicy: false
 }));
 
 // Дополнительные заголовки безопасности
