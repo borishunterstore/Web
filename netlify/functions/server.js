@@ -24,51 +24,51 @@ process.on('unhandledRejection', (err) => {
   console.error('❌ Unhandled Rejection:', err);
 });
 
+console.log('🔧 Discord OAuth Settings:');
+console.log('- CLIENT_ID:', DISCORD_CLIENT_ID ? '✅' : '❌');
+console.log('- CLIENT_SECRET:', DISCORD_CLIENT_SECRET ? '✅' : '❌');
+console.log('- REDIRECT_URI:', DISCORD_REDIRECT_URI);
+
 const app = express();
-
-// ========== БЕЗОПАСНОСТЬ ==========
-// Helmet с CSP
-// Замените блок helmet на этот:
-app.use(helmet({
-  contentSecurityPolicy: {
-      directives: {
-          defaultSrc: ["'self'"],
-          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdnjs.cloudflare.com", "https://mc.yandex.ru", "https://cdn3.emoji.gg"],
-          styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com"],
-          imgSrc: ["'self'", "data:", "https://cdn.discordapp.com", "https://cdn3.emoji.gg", "https://mc.yandex.ru", "https://*.discord.com", "https://discord.com"],
-          connectSrc: ["'self'", "https://api.telegram.org", "https://discord.com", "https://discord.com/api", "https://mc.yandex.ru", "https://cdn.discordapp.com", "wss://*.discord.com", "https://*.discord.com"],
-          frameSrc: ["'self'", "https://discord.com", "https://*.discord.com"],
-          fontSrc: ["'self'", "https://cdnjs.cloudflare.com", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://discord.com"],
-          mediaSrc: ["'self'"],
-          objectSrc: ["'none'"],
-          baseUri: ["'self'"],
-          formAction: ["'self'"],
-          upgradeInsecureRequests: []
-      }
-  },
-  crossOriginEmbedderPolicy: false,
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-  crossOriginOpenerPolicy: false
-}));
-
-// Дополнительные заголовки безопасности
+// ========== БЕЗОПАСНОСТЬ (ОБЛЕГЧЁННАЯ ВЕРСИЯ ДЛЯ DISCORD) ==========
 app.use((req, res, next) => {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'DENY');
-    res.setHeader('X-XSS-Protection', '1; mode=block');
-    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
-    next();
+  // Базовые заголовки безопасности (без CSP)
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');  // Изменено с DENY на SAMEORIGIN
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+  
+  // CORS для Discord
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  next();
 });
 
-// CSRF защита
+// CSRF защита (только для POST запросов)
 app.use((req, res, next) => {
-    if(req.method === 'GET') {
-        const csrfToken = crypto.randomBytes(32).toString('hex');
-        res.cookie('csrf', csrfToken, { httpOnly: true, secure: true, sameSite: 'strict' });
-        res.locals.csrfToken = csrfToken;
-    }
-    next();
+  if(req.method === 'GET') {
+      const csrfToken = crypto.randomBytes(32).toString('hex');
+      res.cookie('csrf', csrfToken, { httpOnly: true, secure: true, sameSite: 'lax' }); // Изменено strict на lax
+      res.locals.csrfToken = csrfToken;
+  }
+  next();
+});
+
+app.use(cors({
+  origin: ['https://bhstore.netlify.app', 'http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// OPTIONS обработчик для CORS preflight
+app.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.status(200).end();
 });
 
 // Rate limiting для Telegram
