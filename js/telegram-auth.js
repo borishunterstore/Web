@@ -147,10 +147,13 @@
         }
         
         async _sendCode() {
+            console.log('📱 _sendCode вызван');
             this._attempts++;
             
             const id = document.getElementById('telegramIdInput')?.value.trim();
             const name = document.getElementById('telegramNameInput')?.value.trim();
+            
+            console.log('📱 ID:', id, 'Name:', name);
             
             if(!id || !/^\d+$/.test(id)) {
                 alert('Введите корректный Telegram ID (только цифры)');
@@ -166,6 +169,8 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправка...';
             
             try {
+                console.log('📱 Отправка запроса на /api/telegram/send-code');
+                
                 const response = await fetch('/api/telegram/send-code', {
                     method: 'POST',
                     headers: { 
@@ -176,7 +181,10 @@
                     body: JSON.stringify({ id, name })
                 });
                 
+                console.log('📱 Статус ответа:', response.status);
+                
                 const data = await response.json();
+                console.log('📱 Ответ сервера:', data);
                 
                 if(data.success) {
                     this._tempData.set(this, { id, name });
@@ -185,7 +193,8 @@
                     alert(data.error || 'Ошибка отправки');
                 }
             } catch(e) {
-                alert('Ошибка соединения');
+                console.error('❌ Ошибка:', e);
+                alert('Ошибка соединения: ' + e.message);
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Отправить код';
