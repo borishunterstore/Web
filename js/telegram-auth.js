@@ -40,11 +40,20 @@
             this._init();
         }
         
+        showModal() {
+            this._showModal();
+        }
+        
+        closeModal() {
+            const modal = document.getElementById('telegramAuthModal');
+            if (modal) modal.remove();
+        }
+        
         async _init() {
             await this._checkBotStatus();
             this._setupEventListeners();
         }
-        
+
         async _checkBotStatus() {
             try {
                 const response = await fetch('/api/telegram/status', {
