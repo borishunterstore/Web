@@ -731,3 +731,53 @@
     background: rgba(127, 197, 255, 0.2);
     text-decoration: underline;
 }
+
+.btn-telegram {
+    background: linear-gradient(135deg, #26A5E4, #1e8bc3);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 40px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .btn-telegram:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(38, 165, 228, 0.4);
+  }
+  
+  .auth-divider {
+    text-align: center;
+    margin: 20px 0;
+    position: relative;
+  }
+  
+  .auth-divider::before,
+  .auth-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 45%;
+    height: 1px;
+    background: var(--border);
+  }
+  
+  .auth-divider::before {
+    left: 0;
+  }
+  
+  .auth-divider::after {
+    right: 0;
+  }
+  
+  .auth-divider span {
+    background: var(--bg-card);
+    padding: 0 15px;
+    color: var(--text-tertiary);
+  }
