@@ -12,8 +12,3 @@
   to = "/.netlify/functions/server/auth/discord/callback"
   status = 200
   force = true
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Content-Security-Policy = "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;"
