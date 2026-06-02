@@ -1918,7 +1918,7 @@ app.get('/api/user/me', async (req, res) => {
       
       try {
           const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-          console.log('🔍 /api/user/me - декодирован ID:', decoded.id);
+          console.log('🔍 /api/user/me - ID:', decoded.id);
           
           if (sql) {
               const [user] = await sql`
@@ -1927,7 +1927,6 @@ app.get('/api/user/me', async (req, res) => {
               `;
               
               if (user) {
-                  console.log(`✅ Найден пользователь в БД: ${user.username}, баланс: ${user.balance}`);
                   return res.json({
                       success: true,
                       user: {
@@ -1939,135 +1938,62 @@ app.get('/api/user/me', async (req, res) => {
                           balance: user.balance || 0,
                           badges: user.badges || {},
                           orders: user.orders || [],
-                          privacy: user.privacy || {
-                              show_avatar: true,
-                              show_orders: true,
-                              show_badges: true,
-                              show_spent: true,
-                              show_orders_count: true,
-                              show_registered: true,
-                              hide_profile: false
-                          },
+                          privacy: user.privacy || {},
                           frozen: user.frozen || false
-                      }
-                  });
-              } else {
-                  console.log(`⚠️ Пользователь ${decoded.id} не найден в БД, проверяем in-memory`);
-                  
-                  // Проверяем in-memory storage
-                  const memoryUser = users[decoded.id];
-                  if (memoryUser) {
-                      return res.json({
-                          success: true,
-                          user: {
-                              discordId: memoryUser.discordId,
-                              username: memoryUser.username,
-                              email: memoryUser.email,
-                              avatar: memoryUser.avatar,
-                              registeredAt: memoryUser.registeredAt,
-                              balance: memoryUser.balance || 0,
-                              badges: memoryUser.badges || {},
-                              orders: memoryUser.orders || []
-                          }
-                      });
-                  }
-                  
-                  // Если пользователя нет нигде, создаём нового
-                  console.log(`🆕 Создаём нового пользователя ${decoded.id} в БД`);
-                  await sql`
-                      INSERT INTO users (
-                          discord_id, username, email, avatar, balance, badges, frozen, privacy
-                      ) VALUES (
-                          ${decoded.id}, 
-                          ${decoded.username || 'User'}, 
-                          ${decoded.email || ''}, 
-                          ${decoded.avatar || ''}, 
-                          0,
-                          '{}',
-                          false,
-                          ${JSON.stringify({
-                              show_avatar: true,
-                              show_orders: true,
-                              show_badges: true,
-                              show_spent: true,
-                              show_orders_count: true,
-                              show_registered: true,
-                              hide_profile: false
-                          })}
-                      )
-                  `;
-                  
-                  // Возвращаем созданного пользователя
-                  return res.json({
-                      success: true,
-                      user: {
-                          discordId: decoded.id,
-                          username: decoded.username || 'User',
-                          email: decoded.email || '',
-                          avatar: decoded.avatar || '',
-                          registeredAt: new Date().toISOString(),
-                          balance: 0,
-                          badges: {},
-                          orders: []
                       }
                   });
               }
           }
           
-          // Fallback если нет БД
-          const userData = users[decoded.id];
-          if (userData) {
+          // Если пользователь не найден в БД, но есть в памяти
+          const memoryUser = users[decoded.id];
+          if (memoryUser) {
               return res.json({
                   success: true,
                   user: {
-                      discordId: userData.discordId,
-                      username: userData.username,
-                      email: userData.email,
-                      avatar: userData.avatar,
-                      registeredAt: userData.registeredAt,
-                      balance: userData.balance || 0,
-                      badges: userData.badges || {},
-                      orders: userData.orders || []
+                      discordId: memoryUser.discordId,
+                      username: memoryUser.username,
+                      email: memoryUser.email,
+                      avatar: memoryUser.avatar,
+                      registeredAt: memoryUser.registeredAt,
+                      balance: memoryUser.balance || 0,
+                      badges: memoryUser.badges || {},
+                      orders: memoryUser.orders || []
                   }
               });
           }
           
-          // Создаём в памяти
-          users[decoded.id] = {
-              discordId: decoded.id,
-              username: decoded.username || 'User',
-              email: decoded.email || '',
-              avatar: decoded.avatar || '',
-              registeredAt: new Date().toISOString(),
-              balance: 0,
-              orders: [],
-              badges: {}
-          };
+          // Если пользователь не найден - создаём
+          if (decoded.id && decoded.id.startsWith('tg_')) {
+              await sql`
+                  INSERT INTO users (discord_id, username, email, balance, badges, frozen, privacy)
+                  VALUES (${decoded.id}, ${decoded.username || 'Telegram User'}, ${decoded.email || ''}, NULL, 0, '{}', false, '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}')
+              `;
+              
+              return res.json({
+                  success: true,
+                  user: {
+                      discordId: decoded.id,
+                      username: decoded.username || 'Telegram User',
+                      email: decoded.email || '',
+                      avatar: null,
+                      registeredAt: new Date().toISOString(),
+                      balance: 0,
+                      badges: {},
+                      orders: []
+                  }
+              });
+          }
           
-          return res.json({ 
-              success: true, 
-              user: {
-                  discordId: decoded.id,
-                  username: decoded.username || 'User',
-                  avatar: decoded.avatar || '',
-                  email: decoded.email || '',
-                  balance: 0,
-                  badges: {},
-                  orders: []
-              }
-          });
-
+          return res.json({ success: true, user: null });
+          
       } catch (decodeError) {
-          console.error('❌ Ошибка декодирования токена:', decodeError);
           return res.status(401).json({ success: false, error: 'Неверный токен' });
       }
       
   } catch (error) {
-      console.error('❌ Ошибка получения пользователя:', error.message);
-      res.status(500).json({ 
-          success: false, 
-          error: 'Ошибка сервера' 
-      });
+      console.error('❌ Ошибка:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
 
