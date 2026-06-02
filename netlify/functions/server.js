@@ -1711,39 +1711,55 @@ app.get('/api/user/me', async (req, res) => {
       try {
           const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
           
-          let userData = null;
-          
           if (sql) {
               const [user] = await sql`
                   SELECT * FROM users WHERE discord_id = ${decoded.id}
               `;
-              userData = user;
-          } else {
-              userData = users[decoded.id];
+              
+              if (user) {
+                  return res.json({
+                      success: true,
+                      user: {
+                          discordId: user.discord_id,
+                          username: user.username,
+                          email: user.email,
+                          avatar: user.avatar,
+                          registeredAt: user.registered_at,
+                          balance: user.balance || 0,
+                          badges: user.badges || {},
+                          orders: user.orders || [],
+                          privacy: user.privacy || {},
+                          frozen: user.frozen || false
+                      }
+                  });
+              }
           }
           
-          if (!userData) {
-              return res.json({ 
-                  success: true, 
+          // Fallback для in-memory
+          const userData = users[decoded.id];
+          if (userData) {
+              return res.json({
+                  success: true,
                   user: {
-                      discordId: decoded.id,
-                      username: decoded.username,
-                      avatar: decoded.avatar,
-                      badges: {}
+                      discordId: userData.discordId,
+                      username: userData.username,
+                      email: userData.email,
+                      avatar: userData.avatar,
+                      registeredAt: userData.registeredAt,
+                      balance: userData.balance || 0,
+                      badges: userData.badges || {},
+                      orders: userData.orders || []
                   }
               });
           }
           
-          res.json({
-              success: true,
+          return res.json({ 
+              success: true, 
               user: {
-                  discordId: userData.discord_id || userData.discordId,
-                  username: userData.username,
-                  avatar: userData.avatar,
-                  registeredAt: userData.registered_at || userData.registeredAt,
-                  balance: userData.balance || 0,
-                  badges: userData.badges || {},
-                  isAdmin: userData.badges?.admin === true || decoded.id === '992442453833547886'
+                  discordId: decoded.id,
+                  username: decoded.username,
+                  avatar: decoded.avatar,
+                  badges: {}
               }
           });
 

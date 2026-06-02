@@ -50,23 +50,39 @@
     async function loadOwnProfile() {
         const authData = getAuthData();
         
+        if (!authData.id) {
+            window.location.href = '/auth.html';
+            return;
+        }
+        
         try {
-            const response = await fetch(`/api/user/${authData.id}`);
+            // Используем /api/user/me вместо /api/user/${authData.id}
+            const response = await fetch('/api/user/me', {
+                headers: {
+                    'Authorization': `Bearer ${authData.token}`
+                }
+            });
             const data = await response.json();
             
             if (data.success && data.user) {
                 const user = data.user;
                 
+                // Обновляем auth данные
                 authData.balance = user.balance;
                 authData.badges = user.badges || {};
-                authData.privacy = user.privacy || getDefaultPrivacy();
+                authData.email = user.email;
+                authData.username = user.username;
                 localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-                currentUserPrivacy = authData.privacy;
                 
                 renderProfile(user, true);
                 renderBalance(user.balance || 0);
                 
-                const ordersResponse = await fetch(`/api/user/${authData.id}/orders`);
+                // Загружаем заказы
+                const ordersResponse = await fetch(`/api/user/${authData.id}/orders`, {
+                    headers: {
+                        'Authorization': `Bearer ${authData.token}`
+                    }
+                });
                 const ordersData = await ordersResponse.json();
                 
                 if (ordersData.success) {
@@ -77,15 +93,21 @@
                     updateStats([], user);
                 }
                 
+                // Загружаем промокоды
                 await loadUserPromocodes();
                 await loadActivePromocodes();
                 
+                // Инициализируем чат
                 if (window.ChatSystem) {
                     window.chatSystem = new ChatSystem();
                     await window.chatSystem.init();
                 }
             } else {
-                await registerNewUser(authData);
+                console.error('No user data received');
+                renderProfile(authData, true);
+                renderBalance(0);
+                renderOrders([], true);
+                updateStats([], authData);
             }
         } catch (error) {
             console.error('Error loading profile:', error);
