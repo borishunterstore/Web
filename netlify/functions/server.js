@@ -6,6 +6,13 @@ const { neon } = require('@neondatabase/serverless');
 const path = require('path');
 require('dotenv').config();
 const fs = require('fs');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
+const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
+const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'https://bhstore.netlify.app/auth/discord/callback';
 
 console.log('🚀 SERVER FUNCTION STARTED');
 
@@ -17,39 +24,57 @@ process.on('unhandledRejection', (err) => {
   console.error('❌ Unhandled Rejection:', err);
 });
 
-let productsData = [];
-try {
-  const productsPath = path.join(__dirname, '../../data/products.json');
-  if (fs.existsSync(productsPath)) {
-    productsData = JSON.parse(fs.readFileSync(productsPath, 'utf8'));
-    console.log(`✅ Загружено ${productsData.length} товаров из products.json`);
-  } else {
-    console.log('⚠️ Файл data/products.json не найден, использую тестовые товары');
-    productsData = getTestProducts();
-  }
-} catch (error) {
-  console.error('❌ Ошибка загрузки товаров:', error.message);
-  productsData = getTestProducts();
-}
-
 const app = express();
 
-app.use((err, req, res, next) => {
-  console.error('❌ Серверная ошибка:', err);
-  res.status(500).json({ success: false, error: 'Внутренняя ошибка сервера' });
+// ========== БЕЗОПАСНОСТЬ ==========
+// Helmet с CSP
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com"],
+            imgSrc: ["'self'", "data:", "https://cdn.discordapp.com", "https://cdn3.emoji.gg", "https://mc.yandex.ru"],
+            connectSrc: ["'self'", "https://api.telegram.org", "https://discord.com", "https://discord.com/api", "https://mc.yandex.ru"],
+            frameSrc: ["'self'", "https://discord.com"],
+            fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+            mediaSrc: ["'self'"],
+            objectSrc: ["'none'"],
+            baseUri: ["'self'"],
+            formAction: ["'self'"],
+            upgradeInsecureRequests: []
+        }
+    },
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+// Дополнительные заголовки безопасности
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
+    next();
 });
 
+// CSRF защита
+app.use((req, res, next) => {
+    if(req.method === 'GET') {
+        const csrfToken = crypto.randomBytes(32).toString('hex');
+        res.cookie('csrf', csrfToken, { httpOnly: true, secure: true, sameSite: 'strict' });
+        res.locals.csrfToken = csrfToken;
+    }
+    next();
+});
 
-const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
-const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
-const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'https://bhstore.netlify.app/auth/discord/callback';
-const BOT_API_URL = process.env.BOT_API_URL || 'https://bhstore.netlify.app';
-const jwt = require('jsonwebtoken');
-const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
-
-const JWT_SECRET = process.env.JWT_SECRET || 'bhstore-super-secret-key-change-in-production-2024';
-const TOKEN_EXPIRY = '24h';
+// Rate limiting для Telegram
+const telegramLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: { success: false, error: 'Слишком много попыток. Подождите 15 минут.' }
+});
 
 let sql;
 try {
@@ -99,6 +124,21 @@ const initTestData = () => {
 };
 
 initTestData();
+
+let productsData = [];
+try {
+  const productsPath = path.join(__dirname, '../../data/products.json');
+  if (fs.existsSync(productsPath)) {
+    productsData = JSON.parse(fs.readFileSync(productsPath, 'utf8'));
+    console.log(`✅ Загружено ${productsData.length} товаров из products.json`);
+  } else {
+    console.log('⚠️ Файл data/products.json не найден, использую тестовые товары');
+    productsData = getTestProducts();
+  }
+} catch (error) {
+  console.error('❌ Ошибка загрузки товаров:', error.message);
+  productsData = getTestProducts();
+}
 
 // ============================================
 // Инициализация БД
@@ -546,200 +586,117 @@ const TELEGRAM_BOT_TOKEN = '6876007284:AAH5R2BCqS8RPafZWg5s_0v-DJfoiJsiQco';
 console.log('🤖 TELEGRAM_BOT_TOKEN загружен:', TELEGRAM_BOT_TOKEN ? 'Да' : 'Нет');
 
 // Отправка кода в Telegram
-app.post('/api/telegram/send-code', async (req, res) => {
+app.post('/api/telegram/send-code', telegramLimiter, async (req, res) => {
   try {
-    console.log('📱 ===== НОВЫЙ ЗАПРОС =====');
-    console.log('📱 Body:', req.body);
-    
-    const { telegramId, phoneNumber, username } = req.body;
-    const chatId = telegramId || phoneNumber;
-    
-    if (!chatId) {
-      return res.status(400).json({ success: false, error: 'Укажите Telegram ID' });
-    }
-    
-    // Проверяем, что chatId - это число
-    const numericChatId = parseInt(chatId);
-    if (isNaN(numericChatId)) {
-      return res.status(400).json({ success: false, error: 'Telegram ID должен состоять из цифр' });
-    }
-    
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log(`📱 Код: ${verificationCode} для chatId: ${numericChatId}`);
-    
-    // Сохраняем код
-    if (!global.telegramCodes) global.telegramCodes = {};
-    global.telegramCodes[numericChatId.toString()] = {
-      code: verificationCode,
-      username: username || 'Пользователь',
-      expiresAt: Date.now() + 5 * 60 * 1000
-    };
-    
-    // Формируем сообщение
-    const message = `🔐 **КОД АВТОРИЗАЦИИ BHStore**\n\nЗдравствуйте, ${username || 'пользователь'}!\n\nВаш код для входа: \`${verificationCode}\`\n\n⚠️ Никому не сообщайте этот код!\n⏰ Код действителен 5 минут.`;
-    
-    console.log(`📱 Отправка в Telegram...`);
-    
-    // Отправляем через Telegram API
-    const telegramResponse = await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
-      chat_id: numericChatId,
-      text: message,
-      parse_mode: 'Markdown'
-    });
-    
-    console.log('📱 Ответ Telegram:', telegramResponse.status, telegramResponse.data);
-    
-    if (telegramResponse.data && telegramResponse.data.ok) {
-      console.log(`✅ Код успешно отправлен!`);
-      res.json({
-        success: true,
-        message: 'Код отправлен в Telegram',
-        tempId: numericChatId.toString()
-      });
-    } else {
-      throw new Error(telegramResponse.data?.description || 'Неизвестная ошибка Telegram');
-    }
-    
-  } catch (error) {
-    console.error('❌ ОШИБКА:', error.message);
-    
-    let errorMessage = 'Ошибка отправки кода в Telegram';
-    
-    if (error.response?.data?.description) {
-      const desc = error.response.data.description;
-      console.error('❌ Telegram error description:', desc);
+      const { id, name } = req.body;
       
-      if (desc.includes('chat not found')) {
-        errorMessage = '❌ Пользователь не найден!\n\nСначала напишите боту @Meentioned_bot команду /start';
-      } else if (desc.includes('bot was blocked')) {
-        errorMessage = '❌ Вы заблокировали бота!\n\nРазблокируйте @Meentioned_bot в Telegram';
-      } else if (desc.includes('Forbidden')) {
-        errorMessage = '❌ Доступ запрещен!\n\nНапишите боту @Meentioned_bot команду /start';
-      } else {
-        errorMessage = `❌ ${desc}`;
+      // Валидация
+      if(!id || !/^\d+$/.test(id)) {
+          return res.status(400).json({ success: false, error: 'Неверный формат ID' });
       }
-    } else if (error.code === 'ECONNREFUSED') {
-      errorMessage = '❌ Не удалось подключиться к Telegram API';
-    }
-    
-    res.status(500).json({ 
-      success: false, 
-      error: errorMessage
-    });
+      
+      if(!name || name.length < 2 || name.length > 50) {
+          return res.status(400).json({ success: false, error: 'Имя должно быть от 2 до 50 символов' });
+      }
+      
+      // Очистка старых кодов
+      const now = Date.now();
+      for(const [key, value] of Object.entries(global.telegramCodes || {})) {
+          if(value.expiresAt < now) delete global.telegramCodes[key];
+      }
+      
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      if(!global.telegramCodes) global.telegramCodes = {};
+      global.telegramCodes[id] = {
+          code: verificationCode,
+          name: name,
+          expiresAt: Date.now() + 5 * 60 * 1000,
+          attempts: 0
+      };
+      
+      const message = `🔐 **КОД АВТОРИЗАЦИИ BHStore**\n\nЗдравствуйте, ${name}!\n\nВаш код: \`${verificationCode}\`\n\n⚠️ Никому не сообщайте код!\n⏰ Действителен 5 минут.`;
+      
+      await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+          chat_id: parseInt(id),
+          text: message,
+          parse_mode: 'Markdown'
+      });
+      
+      console.log(`✅ Код отправлен для ${id}`);
+      
+      res.json({ success: true });
+      
+  } catch(error) {
+      console.error('❌ Ошибка:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка отправки. Проверьте ID и что бот не заблокирован' });
   }
 });
 
-// Авторизация через Telegram по коду
-app.post('/api/auth/telegram', async (req, res) => {
+// Авторизация через Telegram (защищённая версия)
+app.post('/api/auth/telegram', telegramLimiter, async (req, res) => {
   try {
-    const { code, telegramId, username, firstName, lastName, phoneNumber } = req.body;
-    
-    if (!code) {
-      return res.status(400).json({ success: false, error: 'Введите код' });
-    }
-    
-    // Проверяем код
-    if (!global.telegramCodes) global.telegramCodes = {};
-    
-    let validCode = null;
-    let userIdentifier = telegramId || phoneNumber;
-    
-    if (global.telegramCodes[userIdentifier] && 
-        global.telegramCodes[userIdentifier].code === code &&
-        global.telegramCodes[userIdentifier].expiresAt > Date.now()) {
-      validCode = global.telegramCodes[userIdentifier];
-      delete global.telegramCodes[userIdentifier];
-    } else {
-      return res.status(400).json({ success: false, error: 'Неверный или просроченный код' });
-    }
-    
-    // Формируем ID пользователя (telegram_id или генерируем из номера)
-    const userId = telegramId ? `tg_${telegramId}` : `tg_${phoneNumber.replace(/[^0-9]/g, '')}`;
-    const userDisplayName = username || firstName || lastName || `Пользователь Telegram`;
-    
-    // Данные пользователя
-    const userData = {
-      id: userId,
-      username: userDisplayName,
-      avatar: null,
-      email: `${userId}@telegram.bhstore`,
-      authMethod: 'telegram'
-    };
-    
-    // Сохраняем или обновляем пользователя в БД
-    if (sql) {
-      try {
-        const [existingUser] = await sql`
-          SELECT * FROM users WHERE discord_id = ${userId}
-        `;
-        
-        if (!existingUser) {
-          await sql`
-            INSERT INTO users (
-              discord_id, username, email, avatar, balance, badges, frozen, privacy
-            ) VALUES (
-              ${userId}, 
-              ${userDisplayName}, 
-              ${userData.email}, 
-              NULL,
-              0,
-              ${JSON.stringify({})},
-              false,
-              ${JSON.stringify({
-                show_avatar: true,
-                show_orders: true,
-                show_badges: true,
-                show_spent: true,
-                show_orders_count: true,
-                show_registered: true,
-                hide_profile: false
-              })}
-            )
-          `;
-          console.log(`✅ Новый Telegram пользователь сохранен: ${userId}`);
-        } else {
-          await sql`
-            UPDATE users 
-            SET username = ${userDisplayName}, 
-                email = ${userData.email}
-            WHERE discord_id = ${userId}
-          `;
-          console.log(`✅ Telegram пользователь обновлён: ${userId}`);
-        }
-      } catch (dbError) {
-        console.error('Ошибка сохранения в БД:', dbError.message);
+      const { code, id, name } = req.body;
+      
+      if(!code || !/^\d{6}$/.test(code)) {
+          return res.status(400).json({ success: false, error: 'Неверный формат кода' });
       }
-    }
-    
-    // Сохраняем в память
-    if (!users[userId]) {
-      users[userId] = {
-        discordId: userId,
-        username: userDisplayName,
-        email: userData.email,
-        avatar: null,
-        registeredAt: new Date().toISOString(),
-        balance: 0,
-        orders: [],
-        badges: {}
+      
+      if(!global.telegramCodes || !global.telegramCodes[id]) {
+          return res.status(400).json({ success: false, error: 'Код не найден. Запросите новый' });
+      }
+      
+      const saved = global.telegramCodes[id];
+      
+      saved.attempts = (saved.attempts || 0) + 1;
+      if(saved.attempts > 3) {
+          delete global.telegramCodes[id];
+          return res.status(400).json({ success: false, error: 'Превышено количество попыток' });
+      }
+      
+      if(saved.code !== code) {
+          return res.status(400).json({ success: false, error: `Неверный код. Осталось попыток: ${3 - saved.attempts}` });
+      }
+      
+      if(saved.expiresAt < Date.now()) {
+          delete global.telegramCodes[id];
+          return res.status(400).json({ success: false, error: 'Код истёк' });
+      }
+      
+      delete global.telegramCodes[id];
+      
+      const userId = `tg_${id}`;
+      const userDisplayName = name || saved.name;
+      
+      const userData = {
+          id: userId,
+          username: userDisplayName,
+          avatar: null,
+          email: `${userId}@telegram.bhstore`
       };
-    }
-    
-    // Создаём токен
-    const token = Buffer.from(JSON.stringify({
-      ...userData,
-      exp: Date.now() + 7 * 24 * 60 * 60 * 1000
-    })).toString('base64');
-    
-    res.json({
-      success: true,
-      token: token,
-      user: userData
-    });
-    
-  } catch (error) {
-    console.error('❌ Ошибка Telegram авторизации:', error.message);
-    res.status(500).json({ success: false, error: 'Ошибка авторизации через Telegram' });
+      
+      if(sql) {
+          const [existing] = await sql`SELECT * FROM users WHERE discord_id = ${userId}`;
+          if(!existing) {
+              await sql`
+                  INSERT INTO users (discord_id, username, email, avatar, balance, badges, frozen, privacy)
+                  VALUES (${userId}, ${userDisplayName}, ${userData.email}, NULL, 0, '{}', false, '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}')
+              `;
+          } else {
+              await sql`UPDATE users SET username = ${userDisplayName}, email = ${userData.email} WHERE discord_id = ${userId}`;
+          }
+      }
+      
+      const token = Buffer.from(JSON.stringify({
+          ...userData,
+          exp: Date.now() + 7 * 24 * 60 * 60 * 1000
+      })).toString('base64');
+      
+      res.json({ success: true, token, user: userData });
+      
+  } catch(error) {
+      console.error('❌ Ошибка:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
 
