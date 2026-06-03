@@ -686,20 +686,37 @@ app.post('/api/auth/telegram/deep', async (req, res) => {
   }
 });
 
-// Telegram авторизация через callback
+// Проверка статуса Telegram бота
+app.get('/api/telegram/status', async (req, res) => {
+  try {
+    const response = await axios.get(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getMe`);
+    res.json({
+      success: true,
+      bot: response.data.result,
+      status: 'active'
+    });
+  } catch (error) {
+    res.json({
+      success: false,
+      status: 'error',
+      error: error.message
+    });
+  }
+});
+
+// Telegram авторизация через callback (обработчик ссылки из бота)
 app.get('/auth/telegram/callback', async (req, res) => {
   try {
     const { token, telegram_id, username, name } = req.query;
+    
+    console.log('🔐 Telegram callback получен:', { token, telegram_id, username, name });
     
     if (!token || !telegram_id) {
       return res.status(400).send('Ошибка: недостаточно параметров');
     }
     
-    // Проверяем токен (можно проверить через API бота или общую БД)
-    // Здесь нужно проверить, что токен существует и не истек
-    
     const userId = `tg_${telegram_id}`;
-    const userDisplayName = name || username || `Telegram_${telegram_id}`;
+    const userDisplayName = decodeURIComponent(name || username || `Telegram_${telegram_id}`);
     
     const userData = {
       id: userId,
@@ -709,52 +726,149 @@ app.get('/auth/telegram/callback', async (req, res) => {
       authMethod: 'telegram'
     };
     
-    // Сохраняем пользователя
+    // Сохраняем или обновляем пользователя в БД
     if (sql) {
-      const [existing] = await sql`SELECT * FROM users WHERE discord_id = ${userId}`;
-      if (!existing) {
-        await sql`
-          INSERT INTO users (discord_id, username, email, avatar, balance, badges, frozen, privacy)
-          VALUES (${userId}, ${userDisplayName}, ${userData.email}, NULL, 0, '{}', false, '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}')
-        `;
+      try {
+        const [existing] = await sql`SELECT * FROM users WHERE discord_id = ${userId}`;
+        if (!existing) {
+          await sql`
+            INSERT INTO users (discord_id, username, email, avatar, balance, badges, frozen, privacy)
+            VALUES (${userId}, ${userDisplayName}, ${userData.email}, NULL, 0, '{}', false, '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}')
+          `;
+          console.log(`✅ Новый Telegram пользователь: ${userId}`);
+        } else {
+          await sql`
+            UPDATE users 
+            SET username = ${userDisplayName}, 
+                email = ${userData.email}
+            WHERE discord_id = ${userId}
+          `;
+          console.log(`✅ Telegram пользователь обновлён: ${userId}`);
+        }
+      } catch (dbError) {
+        console.error('Ошибка БД:', dbError.message);
       }
     }
     
-    const token_jwt = Buffer.from(JSON.stringify({
+    // Создаём JWT токен
+    const jwtToken = Buffer.from(JSON.stringify({
       ...userData,
       exp: Date.now() + 7 * 24 * 60 * 60 * 1000
     })).toString('base64');
     
-    // Сохраняем в localStorage через HTML страницу
+    // Отправляем HTML страницу с автоматической авторизацией
     const html = `
       <!DOCTYPE html>
       <html>
       <head>
         <meta charset="UTF-8">
         <title>Авторизация BHStore</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-          body { background: #1e1f29; color: white; font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-          .container { text-align: center; background: #2a2b36; padding: 40px; border-radius: 20px; }
-          .loader { width: 50px; height: 50px; border: 3px solid #40444b; border-top-color: #5865F2; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            background: linear-gradient(135deg, #0f172a 0%, #0a0a0f 100%);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+          }
+          .container {
+            text-align: center;
+            background: rgba(42, 43, 54, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid #40444b;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 100%;
+            animation: fadeIn 0.3s ease;
+          }
+          .loader {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #40444b;
+            border-top-color: #5865F2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+          }
+          .success-icon {
+            width: 70px;
+            height: 70px;
+            background: #57F287;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: scaleUp 0.3s ease;
+          }
+          .success-icon i {
+            font-size: 2rem;
+            color: #1e1f29;
+          }
           @keyframes spin { to { transform: rotate(360deg); } }
-          .success { color: #57F287; }
+          @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+          @keyframes scaleUp { from { transform: scale(0); } to { transform: scale(1); } }
+          h2 { margin-bottom: 15px; }
+          p { color: #b9bbbe; margin-bottom: 10px; }
+          .user-info { background: #1e1f29; border-radius: 12px; padding: 15px; margin: 20px 0; }
+          .user-info p { margin: 5px 0; }
+          .redirect-text { color: #5865F2; margin-top: 15px; }
         </style>
       </head>
       <body>
-        <div class="container">
-          <h2>🔐 Авторизация через Telegram</h2>
+        <div class="container" id="content">
           <div class="loader"></div>
-          <p>Обработка входа...</p>
+          <h2>🔐 Авторизация через Telegram</h2>
+          <p>Вход выполняется...</p>
+          <div class="user-info" style="display: none;">
+            <p><strong>${escapeHtml(userDisplayName)}</strong></p>
+            <p><code>${userId}</code></p>
+          </div>
         </div>
         <script>
-          localStorage.setItem('bhstore_auth', JSON.stringify({
+          function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+              if (m === '&') return '&amp;';
+              if (m === '<') return '&lt;';
+              if (m === '>') return '&gt;';
+              return m;
+            });
+          }
+          
+          // Сохраняем данные авторизации
+          const authData = {
             id: '${userId}',
-            username: '${userDisplayName}',
+            username: '${escapeHtml(userDisplayName)}',
             email: '${userData.email}',
-            token: '${token_jwt}',
+            token: '${jwtToken}',
             authMethod: 'telegram'
-          }));
-          setTimeout(() => { window.location.href = '/profile.html'; }, 1500);
+          };
+          
+          localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+          console.log('✅ Авторизация成功, перенаправление...');
+          
+          // Показываем успех и перенаправляем
+          setTimeout(function() {
+            const container = document.getElementById('content');
+            container.innerHTML = \`
+              <div class="success-icon"><i class="fas fa-check"></i></div>
+              <h2 style="color: #57F287;">Вход выполнен!</h2>
+              <p>Добро пожаловать, \${escapeHtml(authData.username)}</p>
+              <p class="redirect-text">Перенаправление в профиль...</p>
+            \`;
+            setTimeout(function() {
+              window.location.href = '/profile.html';
+            }, 1500);
+          }, 1000);
         </script>
       </body>
       </html>
@@ -763,10 +877,33 @@ app.get('/auth/telegram/callback', async (req, res) => {
     res.send(html);
     
   } catch (error) {
-    console.error('❌ Ошибка:', error.message);
-    res.status(500).send('Ошибка авторизации');
+    console.error('❌ Ошибка Telegram callback:', error.message);
+    res.status(500).send(`
+      <!DOCTYPE html>
+      <html>
+      <head><meta charset="UTF-8"><title>Ошибка авторизации</title></head>
+      <body style="background:#1e1f29;color:white;display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial">
+        <div style="text-align:center;background:#2a2b36;padding:40px;border-radius:20px">
+          <h2 style="color:#ED4245">❌ Ошибка авторизации</h2>
+          <p>${error.message}</p>
+          <a href="/auth.html" style="color:#5865F2">Вернуться назад</a>
+        </div>
+      </body>
+      </html>
+    `);
   }
 });
+
+// Добавьте вспомогательную функцию escapeHtml если её нет
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
+}
 
 // Авторизация через Telegram (защищённая версия)
 app.post('/api/auth/telegram', telegramLimiter, async (req, res) => {
