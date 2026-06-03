@@ -89,6 +89,33 @@
     <script src="js/auth.js"></script>
 
     <script>
+const urlParams = new URLSearchParams(window.location.search);
+const telegramCode = urlParams.get('code');
+const telegramId = urlParams.get('telegram_id');
+
+if (telegramCode && telegramId) {
+    // Автоматическая авторизация через Telegram
+    fetch('/api/auth/telegram/deep', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: telegramCode, telegram_id: telegramId })
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            localStorage.setItem('bhstore_auth', JSON.stringify({
+                id: data.user.id,
+                username: data.user.username,
+                email: data.user.email,
+                token: data.token,
+                authMethod: 'telegram'
+            }));
+            window.location.href = '/profile.html';
+        } else {
+            alert('Ошибка авторизации: ' + data.error);
+        }
+    });
+}
+
+
         (function() {
             const STORAGE_KEYS = {
                 offer: 'legal_consent_offer',

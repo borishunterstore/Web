@@ -635,6 +635,58 @@ app.post('/api/telegram/send-code', telegramLimiter, async (req, res) => {
   }
 });
 
+
+// Telegram авторизация через deep link (код из бота)
+app.post('/api/auth/telegram/deep', async (req, res) => {
+  try {
+    const { code, telegram_id } = req.body;
+    
+    if (!code || !telegram_id) {
+      return res.status(400).json({ success: false, error: 'Не указаны параметры' });
+    }
+    
+    // Здесь нужно проверить код с ботом
+    // Для этого бот должен хранить коды в памяти или БД
+    
+    // Временно - проверяем что код существует (заглушка)
+    // В реальности нужно связаться с ботом через API или общую БД
+    
+    const userId = `tg_${telegram_id}`;
+    const username = `Telegram_${telegram_id}`;
+    
+    const userData = {
+      id: userId,
+      username: username,
+      avatar: null,
+      email: `${userId}@telegram.bhstore`,
+      authMethod: 'telegram'
+    };
+    
+    // Сохраняем пользователя
+    if (sql) {
+      const [existing] = await sql`SELECT * FROM users WHERE discord_id = ${userId}`;
+      if (!existing) {
+        await sql`
+          INSERT INTO users (discord_id, username, email, avatar, balance, badges, frozen, privacy)
+          VALUES (${userId}, ${username}, ${userData.email}, NULL, 0, '{}', false, '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}')
+        `;
+      }
+    }
+    
+    const token = Buffer.from(JSON.stringify({
+      ...userData,
+      exp: Date.now() + 7 * 24 * 60 * 60 * 1000
+    })).toString('base64');
+    
+    res.json({ success: true, token, user: userData });
+    
+  } catch (error) {
+    console.error('❌ Ошибка:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+
 // Авторизация через Telegram (защищённая версия)
 app.post('/api/auth/telegram', telegramLimiter, async (req, res) => {
   try {
