@@ -2167,10 +2167,11 @@ function verifyToken(req) {
 
 // Получение информации о текущем пользователе
 app.get('/api/user/me', async (req, res) => {
-  const decoded = verifyToken(req);
-  if (!decoded) {
-    return res.status(401).json({ success: false, error: 'Неверный токен' });
-  }
+  try {
+    const decoded = verifyToken(req);
+    if (!decoded) {
+      return res.status(401).json({ success: false, error: 'Неверный токен' });
+    }
 
       const token = authHeader.replace('Bearer ', '');
       
