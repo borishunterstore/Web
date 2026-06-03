@@ -5,7 +5,6 @@
 
 [functions]
   node_bundler = "esbuild"
-  external_node_modules = ["express", "axios", "cors", "serverless-http", "@neondatabase/serverless", "dotenv", "jsonwebtoken", "helmet", "express-rate-limit"]
 
 [[redirects]]
   from = "/api/*"
@@ -21,6 +20,6 @@
 
 [[redirects]]
   from = "/auth/telegram/callback"
-  to = "/.netlify/functions/server/auth/telegram/callback"
+  to = "/.netlify/functions/telegram-callback"
   status = 200
   force = true
