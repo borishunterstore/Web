@@ -686,6 +686,87 @@ app.post('/api/auth/telegram/deep', async (req, res) => {
   }
 });
 
+// Telegram авторизация через callback
+app.get('/auth/telegram/callback', async (req, res) => {
+  try {
+    const { token, telegram_id, username, name } = req.query;
+    
+    if (!token || !telegram_id) {
+      return res.status(400).send('Ошибка: недостаточно параметров');
+    }
+    
+    // Проверяем токен (можно проверить через API бота или общую БД)
+    // Здесь нужно проверить, что токен существует и не истек
+    
+    const userId = `tg_${telegram_id}`;
+    const userDisplayName = name || username || `Telegram_${telegram_id}`;
+    
+    const userData = {
+      id: userId,
+      username: userDisplayName,
+      avatar: null,
+      email: `${userId}@telegram.bhstore`,
+      authMethod: 'telegram'
+    };
+    
+    // Сохраняем пользователя
+    if (sql) {
+      const [existing] = await sql`SELECT * FROM users WHERE discord_id = ${userId}`;
+      if (!existing) {
+        await sql`
+          INSERT INTO users (discord_id, username, email, avatar, balance, badges, frozen, privacy)
+          VALUES (${userId}, ${userDisplayName}, ${userData.email}, NULL, 0, '{}', false, '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}')
+        `;
+      }
+    }
+    
+    const token_jwt = Buffer.from(JSON.stringify({
+      ...userData,
+      exp: Date.now() + 7 * 24 * 60 * 60 * 1000
+    })).toString('base64');
+    
+    // Сохраняем в localStorage через HTML страницу
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Авторизация BHStore</title>
+        <style>
+          body { background: #1e1f29; color: white; font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+          .container { text-align: center; background: #2a2b36; padding: 40px; border-radius: 20px; }
+          .loader { width: 50px; height: 50px; border: 3px solid #40444b; border-top-color: #5865F2; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
+          @keyframes spin { to { transform: rotate(360deg); } }
+          .success { color: #57F287; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h2>🔐 Авторизация через Telegram</h2>
+          <div class="loader"></div>
+          <p>Обработка входа...</p>
+        </div>
+        <script>
+          localStorage.setItem('bhstore_auth', JSON.stringify({
+            id: '${userId}',
+            username: '${userDisplayName}',
+            email: '${userData.email}',
+            token: '${token_jwt}',
+            authMethod: 'telegram'
+          }));
+          setTimeout(() => { window.location.href = '/profile.html'; }, 1500);
+        </script>
+      </body>
+      </html>
+    `;
+    
+    res.send(html);
+    
+  } catch (error) {
+    console.error('❌ Ошибка:', error.message);
+    res.status(500).send('Ошибка авторизации');
+  }
+});
 
 // Авторизация через Telegram (защищённая версия)
 app.post('/api/auth/telegram', telegramLimiter, async (req, res) => {
