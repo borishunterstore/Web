@@ -13,7 +13,6 @@ const rateLimit = require('express-rate-limit');
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'https://bhstore.netlify.app/auth/discord/callback';
-const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'bhstore-super-secret-key-2024-change-this';
 
 console.log('🚀 SERVER FUNCTION STARTED');
@@ -2172,87 +2171,79 @@ app.get('/api/user/me', async (req, res) => {
     if (!decoded) {
       return res.status(401).json({ success: false, error: 'Неверный токен' });
     }
-
-      const token = authHeader.replace('Bearer ', '');
+    
+    console.log('🔍 /api/user/me - ID:', decoded.id);
+    
+    if (sql) {
+      const [user] = await sql`
+        SELECT discord_id, username, email, avatar, registered_at, balance, badges, orders, privacy, frozen 
+        FROM users WHERE discord_id = ${decoded.id}
+      `;
       
-      try {
-          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-          console.log('🔍 /api/user/me - ID:', decoded.id);
-          
-          if (sql) {
-              const [user] = await sql`
-                  SELECT discord_id, username, email, avatar, registered_at, balance, badges, orders, privacy, frozen 
-                  FROM users WHERE discord_id = ${decoded.id}
-              `;
-              
-              if (user) {
-                  return res.json({
-                      success: true,
-                      user: {
-                          discordId: user.discord_id,
-                          username: user.username,
-                          email: user.email,
-                          avatar: user.avatar,
-                          registeredAt: user.registered_at,
-                          balance: user.balance || 0,
-                          badges: user.badges || {},
-                          orders: user.orders || [],
-                          privacy: user.privacy || {},
-                          frozen: user.frozen || false
-                      }
-                  });
-              }
+      if (user) {
+        return res.json({
+          success: true,
+          user: {
+            discordId: user.discord_id,
+            username: user.username,
+            email: user.email,
+            avatar: user.avatar,
+            registeredAt: user.registered_at,
+            balance: user.balance || 0,
+            badges: user.badges || {},
+            orders: user.orders || [],
+            privacy: user.privacy || {},
+            frozen: user.frozen || false
           }
-          
-          // Если пользователь не найден в БД, но есть в памяти
-          const memoryUser = users[decoded.id];
-          if (memoryUser) {
-              return res.json({
-                  success: true,
-                  user: {
-                      discordId: memoryUser.discordId,
-                      username: memoryUser.username,
-                      email: memoryUser.email,
-                      avatar: memoryUser.avatar,
-                      registeredAt: memoryUser.registeredAt,
-                      balance: memoryUser.balance || 0,
-                      badges: memoryUser.badges || {},
-                      orders: memoryUser.orders || []
-                  }
-              });
-          }
-          
-          // Если пользователь не найден - создаём
-          if (decoded.id && decoded.id.startsWith('tg_')) {
-              await sql`
-                  INSERT INTO users (discord_id, username, email, balance, badges, frozen, privacy)
-                  VALUES (${decoded.id}, ${decoded.username || 'Telegram User'}, ${decoded.email || ''}, NULL, 0, '{}', false, '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}')
-              `;
-              
-              return res.json({
-                  success: true,
-                  user: {
-                      discordId: decoded.id,
-                      username: decoded.username || 'Telegram User',
-                      email: decoded.email || '',
-                      avatar: null,
-                      registeredAt: new Date().toISOString(),
-                      balance: 0,
-                      badges: {},
-                      orders: []
-                  }
-              });
-          }
-          
-          return res.json({ success: true, user: null });
-          
-      } catch (decodeError) {
-          return res.status(401).json({ success: false, error: 'Неверный токен' });
+        });
       }
+    }
+    
+    // Если пользователь не найден в БД, но есть в памяти
+    const memoryUser = users[decoded.id];
+    if (memoryUser) {
+      return res.json({
+        success: true,
+        user: {
+          discordId: memoryUser.discordId,
+          username: memoryUser.username,
+          email: memoryUser.email,
+          avatar: memoryUser.avatar,
+          registeredAt: memoryUser.registeredAt,
+          balance: memoryUser.balance || 0,
+          badges: memoryUser.badges || {},
+          orders: memoryUser.orders || []
+        }
+      });
+    }
+    
+    // Если пользователь не найден - создаём
+    if (decoded.id && decoded.id.startsWith('tg_')) {
+      await sql`
+        INSERT INTO users (discord_id, username, email, balance, badges, frozen, privacy)
+        VALUES (${decoded.id}, ${decoded.username || 'Telegram User'}, ${decoded.email || ''}, 0, '{}', false, '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}')
+      `;
       
+      return res.json({
+        success: true,
+        user: {
+          discordId: decoded.id,
+          username: decoded.username || 'Telegram User',
+          email: decoded.email || '',
+          avatar: null,
+          registeredAt: new Date().toISOString(),
+          balance: 0,
+          badges: {},
+          orders: []
+        }
+      });
+    }
+    
+    return res.json({ success: true, user: null });
+    
   } catch (error) {
-      console.error('❌ Ошибка:', error.message);
-      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+    console.error('❌ Ошибка:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
 
