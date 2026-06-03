@@ -704,7 +704,6 @@ app.get('/api/telegram/status', async (req, res) => {
   }
 });
 
-// Telegram авторизация через callback (обработчик ссылки из бота)
 app.get('/auth/telegram/callback', async (req, res) => {
   try {
     const { token, telegram_id, username, name } = req.query;
@@ -726,7 +725,7 @@ app.get('/auth/telegram/callback', async (req, res) => {
       authMethod: 'telegram'
     };
     
-    // Сохраняем или обновляем пользователя в БД
+    // Сохраняем пользователя в БД
     if (sql) {
       try {
         const [existing] = await sql`SELECT * FROM users WHERE discord_id = ${userId}`;
@@ -756,7 +755,7 @@ app.get('/auth/telegram/callback', async (req, res) => {
       exp: Date.now() + 7 * 24 * 60 * 60 * 1000
     })).toString('base64');
     
-    // Отправляем HTML страницу с автоматической авторизацией
+    // HTML страница с авторизацией
     const html = `
       <!DOCTYPE html>
       <html>
@@ -769,7 +768,7 @@ app.get('/auth/telegram/callback', async (req, res) => {
           body {
             background: linear-gradient(135deg, #0f172a 0%, #0a0a0f 100%);
             color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -798,53 +797,21 @@ app.get('/auth/telegram/callback', async (req, res) => {
             animation: spin 1s linear infinite;
             margin: 20px auto;
           }
-          .success-icon {
-            width: 70px;
-            height: 70px;
-            background: #57F287;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            animation: scaleUp 0.3s ease;
-          }
-          .success-icon i {
-            font-size: 2rem;
-            color: #1e1f29;
-          }
           @keyframes spin { to { transform: rotate(360deg); } }
           @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-          @keyframes scaleUp { from { transform: scale(0); } to { transform: scale(1); } }
           h2 { margin-bottom: 15px; }
-          p { color: #b9bbbe; margin-bottom: 10px; }
-          .user-info { background: #1e1f29; border-radius: 12px; padding: 15px; margin: 20px 0; }
-          .user-info p { margin: 5px 0; }
-          .redirect-text { color: #5865F2; margin-top: 15px; }
+          p { color: #b9bbbe; }
+          .redirect-text { color: #5865F2; margin-top: 15px; font-size: 0.9rem; }
         </style>
       </head>
       <body>
-        <div class="container" id="content">
+        <div class="container">
           <div class="loader"></div>
           <h2>🔐 Авторизация через Telegram</h2>
           <p>Вход выполняется...</p>
-          <div class="user-info" style="display: none;">
-            <p><strong>${escapeHtml(userDisplayName)}</strong></p>
-            <p><code>${userId}</code></p>
-          </div>
+          <p class="redirect-text">Пожалуйста, подождите</p>
         </div>
         <script>
-          function escapeHtml(str) {
-            if (!str) return '';
-            return String(str).replace(/[&<>]/g, function(m) {
-              if (m === '&') return '&amp;';
-              if (m === '<') return '&lt;';
-              if (m === '>') return '&gt;';
-              return m;
-            });
-          }
-          
-          // Сохраняем данные авторизации
           const authData = {
             id: '${userId}',
             username: '${escapeHtml(userDisplayName)}',
@@ -854,21 +821,21 @@ app.get('/auth/telegram/callback', async (req, res) => {
           };
           
           localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-          console.log('✅ Авторизация成功, перенаправление...');
+          console.log('✅ Авторизация успешна, перенаправление...');
           
-          // Показываем успех и перенаправляем
           setTimeout(function() {
-            const container = document.getElementById('content');
-            container.innerHTML = \`
-              <div class="success-icon"><i class="fas fa-check"></i></div>
-              <h2 style="color: #57F287;">Вход выполнен!</h2>
-              <p>Добро пожаловать, \${escapeHtml(authData.username)}</p>
-              <p class="redirect-text">Перенаправление в профиль...</p>
-            \`;
-            setTimeout(function() {
-              window.location.href = '/profile.html';
-            }, 1500);
-          }, 1000);
+            window.location.href = '/profile.html';
+          }, 1500);
+          
+          function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+              if (m === '&') return '&amp;';
+              if (m === '<') return '&lt;';
+              if (m === '>') return '&gt;';
+              return m;
+            });
+          }
         </script>
       </body>
       </html>
@@ -881,18 +848,29 @@ app.get('/auth/telegram/callback', async (req, res) => {
     res.status(500).send(`
       <!DOCTYPE html>
       <html>
-      <head><meta charset="UTF-8"><title>Ошибка авторизации</title></head>
-      <body style="background:#1e1f29;color:white;display:flex;justify-content:center;align-items:center;height:100vh;font-family:Arial">
+      <head><meta charset="UTF-8"><title>Ошибка</title></head>
+      <body style="background:#1e1f29;color:white;display:flex;justify-content:center;align-items:center;height:100vh">
         <div style="text-align:center;background:#2a2b36;padding:40px;border-radius:20px">
           <h2 style="color:#ED4245">❌ Ошибка авторизации</h2>
           <p>${error.message}</p>
-          <a href="/auth.html" style="color:#5865F2">Вернуться назад</a>
+          <a href="/auth.html" style="color:#5865F2">Вернуться</a>
         </div>
       </body>
       </html>
     `);
   }
 });
+
+// Вспомогательная функция
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
+}
 
 // Добавьте вспомогательную функцию escapeHtml если её нет
 function escapeHtml(str) {

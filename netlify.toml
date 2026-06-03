@@ -12,3 +12,9 @@
   to = "/.netlify/functions/server/auth/discord/callback"
   status = 200
   force = true
+
+  [[redirects]]
+  from = "/auth/telegram/callback"
+  to = "/.netlify/functions/server"
+  status = 200
+  force = true
