@@ -704,6 +704,11 @@ app.get('/api/telegram/status', async (req, res) => {
   }
 });
 
+app.get('/api/auth/telegram/callback', async (req, res) => {
+  const url = `/auth/telegram/callback?${new URLSearchParams(req.query).toString()}`;
+  res.redirect(url);
+});
+
 app.get('/auth/telegram/callback', async (req, res) => {
   try {
     const { token, telegram_id, username, name } = req.query;
@@ -814,7 +819,7 @@ app.get('/auth/telegram/callback', async (req, res) => {
         <script>
           const authData = {
             id: '${userId}',
-            username: '${escapeHtml(userDisplayName)}',
+            username: '${userDisplayName.replace(/'/g, "\\'")}',
             email: '${userData.email}',
             token: '${jwtToken}',
             authMethod: 'telegram'
@@ -826,16 +831,6 @@ app.get('/auth/telegram/callback', async (req, res) => {
           setTimeout(function() {
             window.location.href = '/profile.html';
           }, 1500);
-          
-          function escapeHtml(str) {
-            if (!str) return '';
-            return String(str).replace(/[&<>]/g, function(m) {
-              if (m === '&') return '&amp;';
-              if (m === '<') return '&lt;';
-              if (m === '>') return '&gt;';
-              return m;
-            });
-          }
         </script>
       </body>
       </html>
