@@ -79,6 +79,20 @@ const telegramLimiter = rateLimit({
     message: { success: false, error: 'Слишком много попыток. Подождите 15 минут.' }
 });
 
+setInterval(() => {
+  if(global.telegramCodes) {
+    const now = Date.now();
+    let deleted = 0;
+    for(const [key, value] of Object.entries(global.telegramCodes)) {
+      if(value.expiresAt < now) {
+        delete global.telegramCodes[key];
+        deleted++;
+      }
+    }
+    if(deleted > 0) console.log(`🧹 Очищено ${deleted} просроченных кодов. Осталось: ${Object.keys(global.telegramCodes).length}`);
+  }
+}, 5 * 60 * 1000);
+
 let sql;
 try {
   if (process.env.DATABASE_URL) {
@@ -602,37 +616,78 @@ app.post('/api/telegram/send-code', telegramLimiter, async (req, res) => {
           return res.status(400).json({ success: false, error: 'Имя должно быть от 2 до 50 символов' });
       }
       
-      // Очистка старых кодов
-      const now = Date.now();
-      for(const [key, value] of Object.entries(global.telegramCodes || {})) {
-          if(value.expiresAt < now) delete global.telegramCodes[key];
+      // Инициализируем хранилище если нужно
+      if(!global.telegramCodes) global.telegramCodes = {};
+      
+      // Ограничиваем общее количество кодов в памяти (защита от спама)
+      const codesCount = Object.keys(global.telegramCodes).length;
+      if(codesCount > 1000) {
+          // Очищаем самые старые коды
+          const sorted = Object.entries(global.telegramCodes).sort((a,b) => a[1].expiresAt - b[1].expiresAt);
+          for(let i = 0; i < 100; i++) {
+              if(sorted[i]) delete global.telegramCodes[sorted[i][0]];
+          }
+          console.log(`🧹 Очищено 100 старых кодов, осталось: ${Object.keys(global.telegramCodes).length}`);
       }
       
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      // Если уже есть активный код для этого пользователя - удаляем его (нельзя иметь несколько активных)
+      if(global.telegramCodes[id]) {
+          delete global.telegramCodes[id];
+          console.log(`🗑️ Удалён старый код для пользователя ${id}`);
+      }
       
-      if(!global.telegramCodes) global.telegramCodes = {};
+      // Генерируем новый код
+      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = Date.now() + 5 * 60 * 1000; // 5 минут
+      
+      // Сохраняем код
       global.telegramCodes[id] = {
           code: verificationCode,
           name: name,
-          expiresAt: Date.now() + 5 * 60 * 1000,
-          attempts: 0
+          expiresAt: expiresAt,
+          attempts: 0,
+          createdAt: Date.now()
       };
       
-      const message = `🔐 **КОД АВТОРИЗАЦИИ BHStore**\n\nЗдравствуйте, ${name}!\n\nВаш код: \`${verificationCode}\`\n\n⚠️ Никому не сообщайте код!\n⏰ Действителен 5 минут.`;
+      // Отправляем сообщение в Telegram
+      const message = `🔐 **КОД АВТОРИЗАЦИИ BHStore**\n\nЗдравствуйте, ${name}!\n\nВаш код для входа: \`${verificationCode}\`\n\n⚠️ Никому не сообщайте код!\n⏰ Код действителен 5 минут.\n\n✅ Код можно использовать ТОЛЬКО ОДИН РАЗ!`;
       
-      await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      const telegramResponse = await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
           chat_id: parseInt(id),
           text: message,
           parse_mode: 'Markdown'
       });
       
-      console.log(`✅ Код отправлен для ${id}`);
+      console.log(`✅ Код ${verificationCode} отправлен для ${id}, действителен до ${new Date(expiresAt).toLocaleTimeString()}`);
       
-      res.json({ success: true });
+      res.json({ 
+          success: true, 
+          message: 'Код отправлен в Telegram',
+          expiresIn: 300 // 5 минут в секундах
+      });
       
   } catch(error) {
-      console.error('❌ Ошибка:', error.message);
-      res.status(500).json({ success: false, error: 'Ошибка отправки. Проверьте ID и что бот не заблокирован' });
+      console.error('❌ Ошибка отправки кода:', error.message);
+      
+      let errorMessage = 'Ошибка отправки кода. Проверьте ID и что бот не заблокирован';
+      
+      if(error.response?.data?.description) {
+          const desc = error.response.data.description;
+          if(desc.includes('chat not found')) {
+              errorMessage = '❌ Пользователь не найден! Напишите боту @Meentioned_bot команду /start';
+          } else if(desc.includes('bot was blocked')) {
+              errorMessage = '❌ Бот заблокирован! Разблокируйте @Meentioned_bot';
+          } else if(desc.includes('Forbidden')) {
+              errorMessage = '❌ Доступ запрещен! Напишите боту @Meentioned_bot команду /start';
+          } else {
+              errorMessage = desc;
+          }
+      }
+      
+      res.status(500).json({ 
+          success: false, 
+          error: errorMessage
+      });
   }
 });
 
@@ -880,7 +935,7 @@ function escapeHtml(str) {
   });
 }
 
-// Авторизация через Telegram (защищённая версия)
+// Авторизация через Telegram
 app.post('/api/auth/telegram', telegramLimiter, async (req, res) => {
   try {
       const { code, id, name } = req.body;
@@ -895,21 +950,28 @@ app.post('/api/auth/telegram', telegramLimiter, async (req, res) => {
       
       const saved = global.telegramCodes[id];
       
+      // Проверяем количество попыток
       saved.attempts = (saved.attempts || 0) + 1;
       if(saved.attempts > 3) {
           delete global.telegramCodes[id];
-          return res.status(400).json({ success: false, error: 'Превышено количество попыток' });
+          return res.status(400).json({ success: false, error: 'Превышено количество попыток. Запросите новый код' });
       }
       
+      // Проверяем код
       if(saved.code !== code) {
-          return res.status(400).json({ success: false, error: `Неверный код. Осталось попыток: ${3 - saved.attempts}` });
+          return res.status(400).json({ 
+              success: false, 
+              error: `Неверный код. Осталось попыток: ${3 - saved.attempts}` 
+          });
       }
       
+      // Проверяем срок действия
       if(saved.expiresAt < Date.now()) {
           delete global.telegramCodes[id];
-          return res.status(400).json({ success: false, error: 'Код истёк' });
+          return res.status(400).json({ success: false, error: 'Код истёк. Запросите новый' });
       }
       
+      // ===== КРИТИЧНО: УДАЛЯЕМ КОД ПОСЛЕ УСПЕШНОЙ АВТОРИЗАЦИИ =====
       delete global.telegramCodes[id];
       
       const userId = `tg_${id}`;
@@ -919,9 +981,11 @@ app.post('/api/auth/telegram', telegramLimiter, async (req, res) => {
           id: userId,
           username: userDisplayName,
           avatar: null,
-          email: `${userId}@telegram.bhstore`
+          email: `${userId}@telegram.bhstore`,
+          authMethod: 'telegram'
       };
       
+      // Сохраняем пользователя в БД
       if(sql) {
           const [existing] = await sql`SELECT * FROM users WHERE discord_id = ${userId}`;
           if(!existing) {
@@ -929,22 +993,39 @@ app.post('/api/auth/telegram', telegramLimiter, async (req, res) => {
                   INSERT INTO users (discord_id, username, email, avatar, balance, badges, frozen, privacy)
                   VALUES (${userId}, ${userDisplayName}, ${userData.email}, NULL, 0, '{}', false, '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}')
               `;
+              console.log(`✅ Новый Telegram пользователь создан: ${userId}`);
           } else {
-              await sql`UPDATE users SET username = ${userDisplayName}, email = ${userData.email} WHERE discord_id = ${userId}`;
+              await sql`
+                  UPDATE users 
+                  SET username = ${userDisplayName}, 
+                      email = ${userData.email}
+                  WHERE discord_id = ${userId}
+              `;
+              console.log(`✅ Telegram пользователь обновлён: ${userId}`);
           }
       }
       
+      // Создаём JWT токен
       const token = jwt.sign(
-        { ...userData },
-        JWT_SECRET,
-        { expiresIn: '7d' }
+          { ...userData },
+          JWT_SECRET,
+          { expiresIn: '7d' }
       );
       
-      res.json({ success: true, token, user: userData });
+      console.log(`✅ Успешная авторизация для ${userId}, код ${code} удалён`);
+      
+      res.json({ 
+          success: true, 
+          token, 
+          user: userData 
+      });
       
   } catch(error) {
-      console.error('❌ Ошибка:', error.message);
-      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+      console.error('❌ Ошибка авторизации:', error.message);
+      res.status(500).json({ 
+          success: false, 
+          error: 'Ошибка сервера' 
+      });
   }
 });
 
