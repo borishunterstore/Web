@@ -13,6 +13,8 @@ const rateLimit = require('express-rate-limit');
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'https://bhstore.netlify.app/auth/discord/callback';
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET || 'bhstore-super-secret-key-2024-change-this';
 
 console.log('🚀 SERVER FUNCTION STARTED');
 
@@ -673,10 +675,11 @@ app.post('/api/auth/telegram/deep', async (req, res) => {
       }
     }
     
-    const token = Buffer.from(JSON.stringify({
-      ...userData,
-      exp: Date.now() + 7 * 24 * 60 * 60 * 1000
-    })).toString('base64');
+    const token = jwt.sign(
+      { ...userData },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
     
     res.json({ success: true, token, user: userData });
     
@@ -932,10 +935,11 @@ app.post('/api/auth/telegram', telegramLimiter, async (req, res) => {
           }
       }
       
-      const token = Buffer.from(JSON.stringify({
-          ...userData,
-          exp: Date.now() + 7 * 24 * 60 * 60 * 1000
-      })).toString('base64');
+      const token = jwt.sign(
+        { ...userData },
+        JWT_SECRET,
+        { expiresIn: '7d' }
+      );
       
       res.json({ success: true, token, user: userData });
       
@@ -2148,14 +2152,25 @@ app.get('/api/user/:id/orders', async (req, res) => {
   }
 });
 
+function verifyToken(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return null;
+  
+  const token = authHeader.replace('Bearer ', '');
+  try {
+    return jwt.verify(token, JWT_SECRET);
+  } catch(e) {
+    return null;
+  }
+}
+
+
 // Получение информации о текущем пользователе
 app.get('/api/user/me', async (req, res) => {
-  try {
-      const authHeader = req.headers.authorization;
-      
-      if (!authHeader) {
-          return res.status(401).json({ success: false, error: 'Не авторизован' });
-      }
+  const decoded = verifyToken(req);
+  if (!decoded) {
+    return res.status(401).json({ success: false, error: 'Неверный токен' });
+  }
 
       const token = authHeader.replace('Bearer ', '');
       
@@ -2382,10 +2397,11 @@ app.post('/api/auth/discord', async (req, res) => {
       }
     }
 
-    const token = Buffer.from(JSON.stringify({
-      ...userData,
-      exp: Date.now() + 7 * 24 * 60 * 60 * 1000
-    })).toString('base64');
+    const token = jwt.sign(
+      { ...userData },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
 
     console.log('Токен для клиента создан');
 
