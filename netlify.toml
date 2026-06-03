@@ -1,5 +1,11 @@
+[build]
+  command = "npm ci --production"
+  functions = "netlify/functions"
+  publish = "."
+
 [functions]
-  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["express", "axios", "cors", "serverless-http", "@neondatabase/serverless", "dotenv", "jsonwebtoken", "helmet", "express-rate-limit"]
 
 [[redirects]]
   from = "/api/*"
@@ -13,8 +19,8 @@
   status = 200
   force = true
 
-  [[redirects]]
+[[redirects]]
   from = "/auth/telegram/callback"
-  to = "/.netlify/functions/server"
+  to = "/.netlify/functions/server/auth/telegram/callback"
   status = 200
   force = true
