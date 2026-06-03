@@ -693,6 +693,7 @@ app.post('/api/telegram/send-code', telegramLimiter, async (req, res) => {
 
 
 // Telegram авторизация через deep link (код из бота)
+// Telegram авторизация через deep link
 app.post('/api/auth/telegram/deep', async (req, res) => {
   try {
     const { code, telegram_id } = req.body;
@@ -700,12 +701,6 @@ app.post('/api/auth/telegram/deep', async (req, res) => {
     if (!code || !telegram_id) {
       return res.status(400).json({ success: false, error: 'Не указаны параметры' });
     }
-    
-    // Здесь нужно проверить код с ботом
-    // Для этого бот должен хранить коды в памяти или БД
-    
-    // Временно - проверяем что код существует (заглушка)
-    // В реальности нужно связаться с ботом через API или общую БД
     
     const userId = `tg_${telegram_id}`;
     const username = `Telegram_${telegram_id}`;
@@ -718,24 +713,31 @@ app.post('/api/auth/telegram/deep', async (req, res) => {
       authMethod: 'telegram'
     };
     
-    // Сохраняем пользователя
-    if (sql) {
-      const [existing] = await sql`SELECT * FROM users WHERE discord_id = ${userId}`;
-      if (!existing) {
-        await sql`
-          INSERT INTO users (discord_id, username, email, avatar, balance, badges, frozen, privacy)
-          VALUES (${userId}, ${username}, ${userData.email}, NULL, 0, '{}', false, '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}')
-        `;
-      }
-    }
+    // ========== СОХРАНЯЕМ СЕССИЮ В БД ==========
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 минут
     
-    const token = jwt.sign(
+    if (sql) {
+      await sql`
+        INSERT INTO auth_sessions (token, user_id, username, name, created_at, expires_at)
+        VALUES (${token}, ${telegram_id}, ${username}, ${username}, NOW(), ${expiresAt.toISOString()})
+        ON CONFLICT (token) DO UPDATE SET
+          user_id = EXCLUDED.user_id,
+          username = EXCLUDED.username,
+          name = EXCLUDED.name,
+          expires_at = EXCLUDED.expires_at
+      `;
+      console.log(`✅ Сессия сохранена в БД: ${token}`);
+    }
+    // ===========================================
+    
+    const jwtToken = jwt.sign(
       { ...userData },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
     
-    res.json({ success: true, token, user: userData });
+    res.json({ success: true, token: jwtToken, user: userData });
     
   } catch (error) {
     console.error('❌ Ошибка:', error.message);
