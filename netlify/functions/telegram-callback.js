@@ -1,7 +1,6 @@
 // netlify/functions/telegram-callback.js
 const { neon } = require('@neondatabase/serverless');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bhstore-super-secret-key-2024-change-this';
@@ -68,7 +67,7 @@ exports.handler = async (event, context) => {
   const userId = `tg_${telegram_id}`;
   const userDisplayName = decodeURIComponent(name || username || `Telegram_${telegram_id}`);
   
-  // HTML страница с формой для ввода email и пароля
+  // HTML страница с ВИДИМОЙ reCAPTCHA v2
   const html = `
     <!DOCTYPE html>
     <html>
@@ -76,7 +75,7 @@ exports.handler = async (event, context) => {
       <meta charset="UTF-8">
       <title>Завершение регистрации | BHStore</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <script src="https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}"></script>
+      <script src="https://www.google.com/recaptcha/api.js" async defer></script>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -130,6 +129,11 @@ exports.handler = async (event, context) => {
         }
         .info-box strong {
           color: white;
+        }
+        .g-recaptcha {
+          display: flex;
+          justify-content: center;
+          margin: 20px 0;
         }
         button {
           width: 100%;
@@ -203,6 +207,9 @@ exports.handler = async (event, context) => {
             <input type="password" id="confirm_password" required placeholder="Повторите пароль">
           </div>
           
+          <!-- ВИДИМАЯ reCAPTCHA v2 -->
+          <div class="g-recaptcha" data-sitekey="${RECAPTCHA_SITE_KEY}"></div>
+          
           <div id="errorMsg" class="error-message"></div>
           <div id="successMsg" class="success-message"></div>
           
@@ -241,6 +248,14 @@ exports.handler = async (event, context) => {
             return;
           }
           
+          // Получаем токен reCAPTCHA
+          const recaptchaResponse = grecaptcha.getResponse();
+          if (!recaptchaResponse) {
+            errorMsg.textContent = 'Пожалуйста, подтвердите, что вы не робот';
+            errorMsg.style.display = 'block';
+            return;
+          }
+          
           submitBtn.disabled = true;
           submitBtn.textContent = 'Обработка...';
           
@@ -254,7 +269,8 @@ exports.handler = async (event, context) => {
                 username: username,
                 name: name,
                 email: email || null,
-                password: password
+                password: password,
+                recaptchaToken: recaptchaResponse
               })
             });
             
@@ -278,6 +294,7 @@ exports.handler = async (event, context) => {
               errorMsg.style.display = 'block';
               submitBtn.disabled = false;
               submitBtn.textContent = 'Завершить регистрацию';
+              grecaptcha.reset();
             }
           } catch (err) {
             errorMsg.textContent = 'Ошибка сервера. Попробуйте позже.';
