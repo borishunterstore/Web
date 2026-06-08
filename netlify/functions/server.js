@@ -768,152 +768,464 @@ app.get('/api/auth/telegram/callback', async (req, res) => {
   res.redirect(url);
 });
 
+const RECAPTCHA_SECRET_KEY = '6LfunBMtAAAAAGR80_xnmH5yzFos93c62uq3BpRl';
+const RECAPTCHA_SITE_KEY = '6LfunBMtAAAAAERlHV1wjXssrw5yYmgPUmxvVUAQ';
+
+// Проверка reCAPTCHA на сервере
+async function verifyRecaptcha(token) {
+    if (!token) return false;
+    try {
+        const response = await axios.post('https://www.google.com/recaptcha/api/siteverify', null, {
+            params: {
+                secret: RECAPTCHA_SECRET_KEY,
+                response: token
+            }
+        });
+        return response.data.success === true;
+    } catch (error) {
+        console.error('❌ Ошибка проверки reCAPTCHA:', error.message);
+        return false;
+    }
+}
+
+// Создание сессии для Telegram авторизации (с сайта)
+app.post('/api/telegram/create-session', async (req, res) => {
+    try {
+        const { recaptchaToken } = req.body;
+        
+        // Проверяем reCAPTCHA
+        const isHuman = await verifyRecaptcha(recaptchaToken);
+        if (!isHuman) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Пожалуйста, подтвердите, что вы не робот' 
+            });
+        }
+        
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 минут
+        
+        if (sql) {
+            await sql`
+                INSERT INTO auth_sessions (token, user_id, username, name, created_at, expires_at)
+                VALUES (${token}, 'pending', 'pending', 'pending', NOW(), ${expiresAt.toISOString()})
+                ON CONFLICT (token) DO UPDATE SET
+                    expires_at = ${expiresAt.toISOString()}
+            `;
+        }
+        
+        const botLink = `https://t.me/Meentioned_bot?start=${token}`;
+        
+        res.json({
+            success: true,
+            botLink: botLink,
+            token: token,
+            expiresIn: 600
+        });
+        
+    } catch (error) {
+        console.error('❌ Ошибка создания сессии:', error.message);
+        res.status(500).json({ success: false, error: 'Ошибка сервера' });
+    }
+});
+
 app.get('/auth/telegram/callback', async (req, res) => {
   try {
-    const { token, telegram_id, username, name } = req.query;
-    
-    console.log('🔐 Telegram callback получен:', { token, telegram_id, username, name });
-    
-    if (!token || !telegram_id) {
-      return res.status(400).send('Ошибка: недостаточно параметров');
-    }
-    
-    const userId = `tg_${telegram_id}`;
-    const userDisplayName = decodeURIComponent(name || username || `Telegram_${telegram_id}`);
-    
-    const userData = {
-      id: userId,
-      username: userDisplayName,
-      avatar: null,
-      email: `${userId}@telegram.bhstore`,
-      authMethod: 'telegram'
-    };
-    
-    // Сохраняем пользователя в БД
-    if (sql) {
-      try {
-        const [existing] = await sql`SELECT * FROM users WHERE discord_id = ${userId}`;
-        if (!existing) {
-          await sql`
-            INSERT INTO users (discord_id, username, email, avatar, balance, badges, frozen, privacy)
-            VALUES (${userId}, ${userDisplayName}, ${userData.email}, NULL, 0, '{}', false, '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}')
-          `;
-          console.log(`✅ Новый Telegram пользователь: ${userId}`);
-        } else {
-          await sql`
-            UPDATE users 
-            SET username = ${userDisplayName}, 
-                email = ${userData.email}
-            WHERE discord_id = ${userId}
-          `;
-          console.log(`✅ Telegram пользователь обновлён: ${userId}`);
-        }
-      } catch (dbError) {
-        console.error('Ошибка БД:', dbError.message);
+      const { token, telegram_id, username, name } = req.query;
+      
+      if (!token || !telegram_id) {
+          return res.status(400).send('Ошибка: недостаточно параметров');
       }
-    }
-    
-    // Создаём JWT токен
-    const jwtToken = Buffer.from(JSON.stringify({
-      ...userData,
-      exp: Date.now() + 7 * 24 * 60 * 60 * 1000
-    })).toString('base64');
-    
-    // HTML страница с авторизацией
-    const html = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Авторизация BHStore</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-            background: linear-gradient(135deg, #0f172a 0%, #0a0a0f 100%);
-            color: white;
-            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            padding: 20px;
-          }
-          .container {
-            text-align: center;
-            background: rgba(42, 43, 54, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 40px;
-            border-radius: 24px;
-            border: 1px solid #40444b;
-            box-shadow: 0 20px 35px rgba(0,0,0,0.3);
-            max-width: 400px;
-            width: 100%;
-            animation: fadeIn 0.3s ease;
-          }
-          .loader {
-            width: 60px;
-            height: 60px;
-            border: 3px solid #40444b;
-            border-top-color: #5865F2;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-          }
-          @keyframes spin { to { transform: rotate(360deg); } }
-          @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-          h2 { margin-bottom: 15px; }
-          p { color: #b9bbbe; }
-          .redirect-text { color: #5865F2; margin-top: 15px; font-size: 0.9rem; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="loader"></div>
-          <h2>🔐 Авторизация через Telegram</h2>
-          <p>Вход выполняется...</p>
-          <p class="redirect-text">Пожалуйста, подождите</p>
-        </div>
-        <script>
-          const authData = {
-            id: '${userId}',
-            username: '${userDisplayName.replace(/'/g, "\\'")}',
-            email: '${userData.email}',
-            token: '${jwtToken}',
-            authMethod: 'telegram'
-          };
-          
-          localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-          console.log('✅ Авторизация успешна, перенаправление...');
-          
-          setTimeout(function() {
-            window.location.href = '/profile.html';
-          }, 1500);
-        </script>
-      </body>
-      </html>
-    `;
-    
-    res.send(html);
-    
+      
+      // Проверяем сессию в БД
+      let session = null;
+      if (sql) {
+          const [row] = await sql`
+              SELECT * FROM auth_sessions WHERE token = ${token} AND expires_at > NOW()
+          `;
+          session = row;
+      }
+      
+      if (!session) {
+          return res.status(400).send('Сессия истекла или не найдена. Запросите новую ссылку.');
+      }
+      
+      // Обновляем сессию данными пользователя
+      if (sql) {
+          await sql`
+              UPDATE auth_sessions 
+              SET user_id = ${telegram_id}, 
+                  username = ${username || ''}, 
+                  name = ${name || ''}
+              WHERE token = ${token}
+          `;
+      }
+      
+      // Отправляем HTML страницу с формой регистрации
+      const html = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <meta charset="UTF-8">
+              <title>Завершение регистрации | BHStore</title>
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+              <style>
+                  * { margin: 0; padding: 0; box-sizing: border-box; }
+                  body {
+                      background: linear-gradient(135deg, #0f172a 0%, #0a0a0f 100%);
+                      color: white;
+                      font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+                      display: flex;
+                      justify-content: center;
+                      align-items: center;
+                      min-height: 100vh;
+                      padding: 20px;
+                  }
+                  .container {
+                      background: rgba(42, 43, 54, 0.95);
+                      backdrop-filter: blur(10px);
+                      padding: 40px;
+                      border-radius: 24px;
+                      border: 1px solid #40444b;
+                      max-width: 450px;
+                      width: 100%;
+                  }
+                  h2 { margin-bottom: 25px; text-align: center; color: #5865F2; }
+                  .form-group { margin-bottom: 20px; }
+                  label { display: block; margin-bottom: 8px; color: #b9bbbe; font-size: 0.9rem; }
+                  input {
+                      width: 100%;
+                      padding: 12px 16px;
+                      background: #1e1f29;
+                      border: 1px solid #40444b;
+                      border-radius: 12px;
+                      color: white;
+                      font-size: 1rem;
+                      transition: all 0.2s;
+                  }
+                  input:focus {
+                      outline: none;
+                      border-color: #5865F2;
+                      box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.2);
+                  }
+                  .info-box {
+                      background: #1e1f29;
+                      padding: 15px;
+                      border-radius: 12px;
+                      margin-bottom: 20px;
+                      border-left: 3px solid #57F287;
+                  }
+                  .info-box p {
+                      margin: 5px 0;
+                      color: #b9bbbe;
+                      font-size: 0.85rem;
+                  }
+                  .info-box strong {
+                      color: white;
+                  }
+                  .g-recaptcha {
+                      display: flex;
+                      justify-content: center;
+                      margin: 20px 0;
+                  }
+                  button {
+                      width: 100%;
+                      padding: 14px;
+                      background: linear-gradient(135deg, #5865F2, #4752c4);
+                      color: white;
+                      border: none;
+                      border-radius: 12px;
+                      font-size: 1rem;
+                      font-weight: 600;
+                      cursor: pointer;
+                      transition: all 0.2s;
+                  }
+                  button:hover {
+                      transform: translateY(-2px);
+                      box-shadow: 0 5px 20px rgba(88, 101, 242, 0.3);
+                  }
+                  button:disabled {
+                      opacity: 0.5;
+                      cursor: not-allowed;
+                      transform: none;
+                  }
+                  .error-message {
+                      color: #ED4245;
+                      font-size: 0.85rem;
+                      margin-top: 5px;
+                      display: none;
+                  }
+                  .success-message {
+                      color: #57F287;
+                      text-align: center;
+                      margin-top: 15px;
+                      display: none;
+                  }
+                  .optional {
+                      color: #72767d;
+                      font-size: 0.75rem;
+                      margin-top: 4px;
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h2>🔐 Завершение регистрации</h2>
+                  
+                  <div class="info-box">
+                      <p><strong>👤 Telegram аккаунт</strong></p>
+                      <p>ID: <code>${telegram_id}</code></p>
+                      <p>Имя: ${escapeHtml(name || username || 'Не указано')}</p>
+                  </div>
+                  
+                  <form id="registerForm">
+                      <div class="form-group">
+                          <label>📧 Электронная почта <span class="optional">(необязательно)</span></label>
+                          <input type="email" id="email" placeholder="example@mail.com">
+                          <div class="optional">Если не указать, будет использован Telegram ID</div>
+                      </div>
+                      
+                      <div class="form-group">
+                          <label>🔒 Пароль <span style="color:#ED4245">*</span></label>
+                          <input type="password" id="password" required placeholder="Введите пароль">
+                          <div class="optional">Минимум 6 символов</div>
+                      </div>
+                      
+                      <div class="form-group">
+                          <label>🔒 Подтверждение пароля <span style="color:#ED4245">*</span></label>
+                          <input type="password" id="confirm_password" required placeholder="Повторите пароль">
+                      </div>
+                      
+                      <div class="g-recaptcha" data-sitekey="${RECAPTCHA_SITE_KEY}" data-callback="onCaptchaComplete"></div>
+                      
+                      <div id="errorMsg" class="error-message"></div>
+                      <div id="successMsg" class="success-message"></div>
+                      
+                      <button type="submit" id="submitBtn" disabled>Завершить регистрацию</button>
+                  </form>
+              </div>
+              
+              <script>
+                  let captchaCompleted = false;
+                  
+                  function onCaptchaComplete() {
+                      captchaCompleted = true;
+                      const submitBtn = document.getElementById('submitBtn');
+                      if (submitBtn) submitBtn.disabled = false;
+                  }
+                  
+                  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+                      e.preventDefault();
+                      
+                      const password = document.getElementById('password').value;
+                      const confirmPassword = document.getElementById('confirm_password').value;
+                      const email = document.getElementById('email').value;
+                      const errorMsg = document.getElementById('errorMsg');
+                      const successMsg = document.getElementById('successMsg');
+                      const submitBtn = document.getElementById('submitBtn');
+                      
+                      errorMsg.style.display = 'none';
+                      successMsg.style.display = 'none';
+                      
+                      if (!captchaCompleted) {
+                          errorMsg.textContent = 'Пожалуйста, подтвердите, что вы не робот';
+                          errorMsg.style.display = 'block';
+                          return;
+                      }
+                      
+                      if (password.length < 6) {
+                          errorMsg.textContent = 'Пароль должен содержать минимум 6 символов';
+                          errorMsg.style.display = 'block';
+                          return;
+                      }
+                      
+                      if (password !== confirmPassword) {
+                          errorMsg.textContent = 'Пароли не совпадают';
+                          errorMsg.style.display = 'block';
+                          return;
+                      }
+                      
+                      const recaptchaResponse = grecaptcha.getResponse();
+                      if (!recaptchaResponse) {
+                          errorMsg.textContent = 'Пожалуйста, подтвердите, что вы не робот';
+                          errorMsg.style.display = 'block';
+                          return;
+                      }
+                      
+                      submitBtn.disabled = true;
+                      submitBtn.textContent = 'Обработка...';
+                      
+                      try {
+                          const response = await fetch('/api/auth/telegram/complete', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                  token: '${token}',
+                                  telegram_id: '${telegram_id}',
+                                  username: '${escapeHtml(username || '')}',
+                                  name: '${escapeHtml(name || '')}',
+                                  email: email,
+                                  password: password,
+                                  recaptchaToken: recaptchaResponse
+                              })
+                          });
+                          
+                          const data = await response.json();
+                          
+                          if (data.success) {
+                              localStorage.setItem('bhstore_auth', JSON.stringify({
+                                  id: data.user.id,
+                                  username: data.user.username,
+                                  email: data.user.email,
+                                  token: data.token,
+                                  authMethod: 'telegram'
+                              }));
+                              successMsg.textContent = '✅ Регистрация успешна! Перенаправление...';
+                              successMsg.style.display = 'block';
+                              setTimeout(() => {
+                                  window.location.href = '/profile.html';
+                              }, 2000);
+                          } else {
+                              errorMsg.textContent = data.error || 'Ошибка регистрации';
+                              errorMsg.style.display = 'block';
+                              submitBtn.disabled = false;
+                              submitBtn.textContent = 'Завершить регистрацию';
+                              grecaptcha.reset();
+                              captchaCompleted = false;
+                          }
+                      } catch (err) {
+                          errorMsg.textContent = 'Ошибка сервера. Попробуйте позже.';
+                          errorMsg.style.display = 'block';
+                          submitBtn.disabled = false;
+                          submitBtn.textContent = 'Завершить регистрацию';
+                      }
+                  });
+              </script>
+          </body>
+          </html>
+      `;
+      
+      res.send(html);
+      
   } catch (error) {
-    console.error('❌ Ошибка Telegram callback:', error.message);
-    res.status(500).send(`
-      <!DOCTYPE html>
-      <html>
-      <head><meta charset="UTF-8"><title>Ошибка</title></head>
-      <body style="background:#1e1f29;color:white;display:flex;justify-content:center;align-items:center;height:100vh">
-        <div style="text-align:center;background:#2a2b36;padding:40px;border-radius:20px">
-          <h2 style="color:#ED4245">❌ Ошибка авторизации</h2>
-          <p>${error.message}</p>
-          <a href="/auth.html" style="color:#5865F2">Вернуться</a>
-        </div>
-      </body>
-      </html>
-    `);
+      console.error('❌ Ошибка callback:', error.message);
+      res.status(500).send('Ошибка сервера');
   }
 });
+
+app.post('/api/auth/telegram/complete', async (req, res) => {
+  try {
+      const { token, telegram_id, username, name, email, password, recaptchaToken } = req.body;
+      
+      // Проверяем reCAPTCHA
+      const isHuman = await verifyRecaptcha(recaptchaToken);
+      if (!isHuman) {
+          return res.status(400).json({ success: false, error: 'Пожалуйста, подтвердите, что вы не робот' });
+      }
+      
+      // Проверяем сессию
+      let session = null;
+      if (sql) {
+          const [row] = await sql`
+              SELECT * FROM auth_sessions WHERE token = ${token} AND expires_at > NOW()
+          `;
+          session = row;
+      }
+      
+      if (!session) {
+          return res.status(400).json({ success: false, error: 'Сессия истекла. Запросите новую ссылку' });
+      }
+      
+      // Хешируем пароль
+      const bcrypt = require('bcryptjs');
+      const hashedPassword = await bcrypt.hash(password, 10);
+      
+      const userId = `tg_${telegram_id}`;
+      const userDisplayName = name || username || `Telegram_${telegram_id}`;
+      const userEmail = email && email.includes('@') ? email : null;
+      
+      let existingUser = null;
+      if (sql) {
+          const [row] = await sql`
+              SELECT * FROM users WHERE discord_id = ${userId}
+          `;
+          existingUser = row;
+      }
+      
+      if (existingUser) {
+          // Обновляем существующего пользователя
+          if (sql) {
+              await sql`
+                  UPDATE users 
+                  SET username = ${userDisplayName},
+                      email = ${userEmail},
+                      password = ${hashedPassword}
+                  WHERE discord_id = ${userId}
+              `;
+          }
+      } else {
+          // Создаём нового пользователя
+          if (sql) {
+              await sql`
+                  INSERT INTO users (
+                      discord_id, username, email, avatar, balance, badges, orders, password, frozen, privacy
+                  ) VALUES (
+                      ${userId}, 
+                      ${userDisplayName}, 
+                      ${userEmail}, 
+                      NULL, 
+                      0, 
+                      '{}', 
+                      '[]', 
+                      ${hashedPassword},
+                      false,
+                      '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false,"frozen":false}'
+                  )
+              `;
+          }
+      }
+      
+      // Удаляем использованную сессию
+      if (sql) {
+          await sql`DELETE FROM auth_sessions WHERE token = ${token}`;
+      }
+      
+      // Создаём JWT токен
+      const userData = {
+          id: userId,
+          username: userDisplayName,
+          email: userEmail || `${userId}@telegram.bhstore`,
+          authMethod: 'telegram'
+      };
+      
+      const jwtToken = jwt.sign(userData, JWT_SECRET, { expiresIn: '7d' });
+      
+      res.json({
+          success: true,
+          token: jwtToken,
+          user: {
+              id: userId,
+              username: userDisplayName,
+              email: userEmail || `${userId}@telegram.bhstore`
+          }
+      });
+      
+  } catch (error) {
+      console.error('❌ Ошибка завершения регистрации:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+  });
+}
 
 // Вспомогательная функция
 function escapeHtml(str) {

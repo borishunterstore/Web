@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" type="image/png" href="/image/logo.png">
+    <!-- reCAPTCHA v2 -->
+    <script src="https://www.google.com/recaptcha/api.js?render=6LfunBMtAAAAAERlHV1wjXssrw5yYmgPUmxvVUAQ"></script>
+    <!-- Yandex.Metrika counter -->
     <script type="text/javascript">
         (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097','ym');
         ym(107215097,'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",referrer:document.referrer,url:location.href,accurateTrackBounce:true,trackLinks:true});
@@ -34,14 +37,14 @@
                     <i class="fas fa-chevron-right btn-auth-arrow"></i>
                 </button>
 
-<button id="telegramAuthBtn" class="btn-auth btn-telegram-auth">
-    <div class="btn-auth-icon"><i class="fab fa-telegram"></i></div>
-    <div class="btn-auth-content">
-        <span class="btn-auth-title">Telegram</span>
-        <span class="btn-auth-desc">Войти через Telegram</span>
-    </div>
-    <i class="fas fa-chevron-right btn-auth-arrow"></i>
-</button>
+                <button id="telegramAuthBtn" class="btn-auth btn-telegram-auth">
+                    <div class="btn-auth-icon"><i class="fab fa-telegram"></i></div>
+                    <div class="btn-auth-content">
+                        <span class="btn-auth-title">Telegram</span>
+                        <span class="btn-auth-desc">Войти через Telegram</span>
+                    </div>
+                    <i class="fas fa-chevron-right btn-auth-arrow"></i>
+                </button>
             </div>
 
             <!-- СОГЛАСИЯ -->
@@ -85,37 +88,9 @@
     <script src="js/cursor.js"></script>
     <script src="js/pkm.js"></script>
     <script src="js/mobile-nav.js"></script>
-    <script src="js/telegram-auth.js"></script>
     <script src="js/auth.js"></script>
 
     <script>
-const urlParams = new URLSearchParams(window.location.search);
-const telegramCode = urlParams.get('code');
-const telegramId = urlParams.get('telegram_id');
-
-if (telegramCode && telegramId) {
-    // Автоматическая авторизация через Telegram
-    fetch('/api/auth/telegram/deep', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: telegramCode, telegram_id: telegramId })
-    }).then(r => r.json()).then(data => {
-        if (data.success) {
-            localStorage.setItem('bhstore_auth', JSON.stringify({
-                id: data.user.id,
-                username: data.user.username,
-                email: data.user.email,
-                token: data.token,
-                authMethod: 'telegram'
-            }));
-            window.location.href = '/profile.html';
-        } else {
-            alert('Ошибка авторизации: ' + data.error);
-        }
-    });
-}
-
-
         (function() {
             const STORAGE_KEYS = {
                 offer: 'legal_consent_offer',
@@ -128,6 +103,8 @@ if (telegramCode && telegramId) {
             const consentBtns = document.querySelectorAll('.consent-btn');
             const warningMessage = document.getElementById('warningMessage');
             const completedSpan = document.getElementById('completedCount');
+            
+            let isTelegramProcessing = false;
             
             function checkAllConsents() {
                 return localStorage.getItem(STORAGE_KEYS.offer) === 'true' &&
@@ -192,21 +169,55 @@ if (telegramCode && telegramId) {
                 window.open(authUrl, 'Discord Auth', 'width=500,height=600,menubar=no,toolbar=no,location=no,status=no');
             }
             
-            // TELEGRAM
-            function showTelegramModal() {
+            // TELEGRAM с reCAPTCHA
+            async function startTelegramAuth() {
                 if (!checkAllConsents()) {
                     warningMessage.classList.add('show');
                     return;
                 }
-                if (window.telegramAuth && typeof window.telegramAuth.showModal === 'function') {
-                    window.telegramAuth.showModal();
-                } else {
-                    alert('Telegram авторизация временно недоступна. Обновите страницу.');
+                
+                if (isTelegramProcessing) return;
+                isTelegramProcessing = true;
+                
+                const btn = telegramBtn;
+                const originalContent = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<div class="btn-auth-icon"><i class="fas fa-spinner fa-spin"></i></div><div class="btn-auth-content"><span class="btn-auth-title">Обработка...</span><span class="btn-auth-desc">Пожалуйста, подождите</span></div><i class="fas fa-chevron-right btn-auth-arrow"></i>';
+                
+                try {
+                    // Получаем reCAPTCHA токен
+                    const recaptchaToken = await grecaptcha.execute('6LfunBMtAAAAAERlHV1wjXssrw5yYmgPUmxvVUAQ', { action: 'telegram_login' });
+                    
+                    // Создаём сессию на сервере
+                    const response = await fetch('/api/telegram/create-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ recaptchaToken })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Открываем ссылку на бота
+                        window.open(data.botLink, '_blank');
+                        alert('✅ Перейдите в Telegram и подтвердите вход!\n\nСсылка действительна 10 минут.');
+                    } else {
+                        alert('❌ Ошибка: ' + (data.error || 'Не удалось создать сессию'));
+                        btn.disabled = false;
+                        btn.innerHTML = originalContent;
+                    }
+                } catch (error) {
+                    console.error('Telegram auth error:', error);
+                    alert('❌ Ошибка: ' + error.message);
+                    btn.disabled = false;
+                    btn.innerHTML = originalContent;
+                } finally {
+                    isTelegramProcessing = false;
                 }
             }
             
             if (discordBtn) discordBtn.addEventListener('click', startDiscordAuth);
-            if (telegramBtn) telegramBtn.addEventListener('click', showTelegramModal);
+            if (telegramBtn) telegramBtn.addEventListener('click', startTelegramAuth);
             
             // DISCORD CALLBACK
             window.addEventListener('message', async (event) => {
@@ -292,6 +303,7 @@ if (telegramCode && telegramId) {
         .btn-auth-title { display: block; font-size: 1.1rem; font-weight: 600; color: white; }
         .btn-auth-desc { display: block; font-size: 0.8rem; color: #72767d; }
         .btn-auth-arrow { color: #72767d; }
+        .btn-auth:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
         .consent-section { background: #1e1f29; border-radius: 16px; padding: 20px; margin: 20px 0; }
         .consent-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #40444b; color: #5865F2; font-weight: 600; }
         .consent-buttons { display: flex; flex-direction: column; gap: 10px; }
