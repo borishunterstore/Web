@@ -1990,54 +1990,61 @@ app.get('/api/admin/chat/users', async (req, res) => {
 // Получение сообщений пользователя
 app.get('/api/chat/messages/:userId', async (req, res) => {
   try {
-      const authHeader = req.headers.authorization;
-      const userId = req.params.userId;
-      
-      if (!authHeader) {
-          return res.status(401).json({ success: false, error: 'Не авторизован' });
-      }
+    const authHeader = req.headers.authorization;
+    const userId = req.params.userId;
+    
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
 
-      const token = authHeader.replace('Bearer ', '');
-      
+    const token = authHeader.replace('Bearer ', '');
+    
+    try {
+      let decoded;
       try {
-          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-          
-          if (decoded.id !== userId) {
-              const [user] = await sql`
-                  SELECT badges FROM users WHERE discord_id = ${decoded.id}
-              `;
-              
-              const isAdmin = user?.badges?.admin === true || decoded.id === '992442453833547886';
-              
-              if (!isAdmin) {
-                  return res.status(403).json({ success: false, error: 'Доступ запрещен' });
-              }
-          }
-          
-          const messages = await sql`
-              SELECT * FROM messages 
-              WHERE user_id = ${userId} 
-              ORDER BY timestamp ASC
-              LIMIT 100
-          `;
-          
-          res.json({
-              success: true,
-              messages: messages,
-              total: messages.length
-          });
-          
-      } catch (decodeError) {
-          console.error('❌ Ошибка декодирования токена:', decodeError);
-          return res.status(401).json({ success: false, error: 'Неверный токен' });
+        decoded = jwt.verify(token, JWT_SECRET);
+      } catch (jwtError) {
+        decoded = JSON.parse(Buffer.from(token, 'base64').toString());
       }
       
+      // Проверяем права доступа (только админ или владелец)
+      const isAdmin = decoded.id === '992442453833547886';
+      const isOwner = decoded.id === userId;
+      
+      if (!isAdmin && !isOwner) {
+        const [user] = await sql`
+          SELECT badges FROM users WHERE discord_id = ${decoded.id}
+        `;
+        const isAdminFromBadges = user?.badges?.admin === true;
+        
+        if (!isAdminFromBadges && !isOwner) {
+          return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+        }
+      }
+      
+      const messages = await sql`
+        SELECT * FROM messages 
+        WHERE user_id = ${userId} 
+        ORDER BY timestamp ASC
+        LIMIT 100
+      `;
+      
+      res.json({
+        success: true,
+        messages: messages || [],
+        total: messages?.length || 0
+      });
+      
+    } catch (decodeError) {
+      console.error('❌ Ошибка декодирования токена:', decodeError);
+      return res.status(401).json({ success: false, error: 'Неверный токен' });
+    }
+    
   } catch (error) {
-      console.error('❌ Ошибка получения сообщений:', error);
-      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+    console.error('❌ Ошибка получения сообщений:', error);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
-
 
 // Отправка сообщения
 app.post('/api/chat/send', async (req, res) => {
@@ -2136,58 +2143,64 @@ app.post('/api/chat/send', async (req, res) => {
 // Проверка новых сообщений
 app.post('/api/chat/check', async (req, res) => {
   try {
-      const authHeader = req.headers.authorization;
-      
-      if (!authHeader) {
-          return res.status(401).json({ success: false, error: 'Не авторизован' });
-      }
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
 
-      const token = authHeader.replace('Bearer ', '');
-      
+    const token = authHeader.replace('Bearer ', '');
+    
+    try {
+      let decoded;
       try {
-          const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-          
-          const { userId, lastChecked } = req.body;
-          
-          if (!userId) {
-              return res.status(400).json({ success: false, error: 'Не указан userId' });
-          }
-          
-          if (decoded.id !== userId) {
-              const [user] = await sql`
-                  SELECT badges FROM users WHERE discord_id = ${decoded.id}
-              `;
-              
-              const isAdmin = user?.badges?.admin === true || decoded.id === '992442453833547886';
-              
-              if (!isAdmin) {
-                  return res.status(403).json({ success: false, error: 'Доступ запрещен' });
-              }
-          }
-          
-          const checkTime = lastChecked ? new Date(parseInt(lastChecked)).toISOString() : new Date(0).toISOString();
-          
-          const [result] = await sql`
-              SELECT COUNT(*) as count FROM messages 
-              WHERE user_id = ${userId} 
-              AND timestamp > ${checkTime}
-          `;
-          
-          res.json({
-              success: true,
-              hasNew: parseInt(result.count) > 0,
-              newCount: parseInt(result.count),
-              adminTyping: false
-          });
-          
-      } catch (decodeError) {
-          console.error('Ошибка декодирования токена:', decodeError);
-          return res.status(401).json({ success: false, error: 'Неверный токен' });
+        decoded = jwt.verify(token, JWT_SECRET);
+      } catch (jwtError) {
+        decoded = JSON.parse(Buffer.from(token, 'base64').toString());
       }
       
+      const { userId, lastChecked } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ success: false, error: 'Не указан userId' });
+      }
+      
+      // Проверяем права (админ или владелец)
+      const isAdmin = decoded.id === '992442453833547886';
+      const isOwner = decoded.id === userId;
+      
+      if (!isAdmin && !isOwner) {
+        const [user] = await sql`
+          SELECT badges FROM users WHERE discord_id = ${decoded.id}
+        `;
+        if (!user?.badges?.admin && !isOwner) {
+          return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+        }
+      }
+      
+      const checkTime = lastChecked ? new Date(parseInt(lastChecked)).toISOString() : new Date(0).toISOString();
+      
+      const [result] = await sql`
+        SELECT COUNT(*) as count FROM messages 
+        WHERE user_id = ${userId} 
+        AND timestamp > ${checkTime}
+      `;
+      
+      res.json({
+        success: true,
+        hasNew: parseInt(result?.count || 0) > 0,
+        newCount: parseInt(result?.count || 0),
+        adminTyping: false
+      });
+      
+    } catch (decodeError) {
+      console.error('Ошибка декодирования токена:', decodeError);
+      return res.status(401).json({ success: false, error: 'Неверный токен' });
+    }
+    
   } catch (error) {
-      console.error('Ошибка проверки сообщений:', error);
-      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+    console.error('Ошибка проверки сообщений:', error);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
 
@@ -2663,103 +2676,100 @@ function verifyToken(req) {
   }
 }
 
-
-// Получение информации о текущем пользователе
 // Получение информации о текущем пользователе
 app.get('/api/user/me', async (req, res) => {
   try {
-    const decoded = verifyToken(req);
-    if (!decoded) {
-      return res.status(401).json({ success: false, error: 'Неверный токен' });
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
     }
+
+    const token = authHeader.replace('Bearer ', '');
     
-    console.log('🔍 /api/user/me - ID:', decoded.id);
-    
-    if (sql) {
-      const [user] = await sql`
-        SELECT discord_id, username, email, avatar, registered_at, balance, badges, orders, privacy, frozen 
-        FROM users WHERE discord_id = ${decoded.id}
-      `;
+    try {
+      // Пробуем декодировать как JWT
+      let decoded;
+      try {
+        decoded = jwt.verify(token, JWT_SECRET);
+      } catch (jwtError) {
+        // Если не JWT, пробуем как base64
+        try {
+          decoded = JSON.parse(Buffer.from(token, 'base64').toString());
+        } catch (base64Error) {
+          return res.status(401).json({ success: false, error: 'Неверный токен' });
+        }
+      }
       
-      if (user) {
+      console.log('🔍 /api/user/me - ID:', decoded.id);
+      
+      if (sql) {
+        const [user] = await sql`
+          SELECT discord_id, username, email, avatar, registered_at, balance, badges, orders, privacy, frozen 
+          FROM users WHERE discord_id = ${decoded.id}
+        `;
+        
+        if (user) {
+          console.log(`✅ Найден пользователь: ${user.username}, баланс: ${user.balance}`);
+          return res.json({
+            success: true,
+            user: {
+              discordId: user.discord_id,
+              username: user.username,
+              email: user.email,
+              avatar: user.avatar,
+              registeredAt: user.registered_at,
+              balance: user.balance || 0,
+              badges: user.badges || {},
+              orders: user.orders || [],
+              privacy: user.privacy || {},
+              frozen: user.frozen || false
+            }
+          });
+        }
+      }
+      
+      // Если пользователь не найден в БД, создаём
+      if (decoded.id) {
+        const userId = decoded.id;
+        const username = decoded.username || 'User';
+        const email = decoded.email || `${userId}@temp.bhstore`;
+        
+        if (sql) {
+          await sql`
+            INSERT INTO users (discord_id, username, email, balance, badges, frozen, privacy)
+            VALUES (${userId}, ${username}, ${email}, 0, '{}', false, '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}')
+            ON CONFLICT (discord_id) DO NOTHING
+          `;
+          console.log(`🆕 Создан пользователь: ${userId}`);
+        }
+        
         return res.json({
           success: true,
           user: {
-            discordId: user.discord_id,
-            username: user.username,
-            email: user.email,
-            avatar: user.avatar,
-            registeredAt: user.registered_at,
-            balance: user.balance || 0,
-            badges: user.badges || {},
-            orders: user.orders || [],
-            privacy: user.privacy || {},
-            frozen: user.frozen || false
+            discordId: userId,
+            username: username,
+            email: email,
+            avatar: null,
+            registeredAt: new Date().toISOString(),
+            balance: 0,
+            badges: {},
+            orders: [],
+            privacy: {},
+            frozen: false
           }
         });
       }
-    }
-    
-    // Если пользователь не найден в БД, но есть в памяти
-    const memoryUser = users[decoded.id];
-    if (memoryUser) {
-      return res.json({
-        success: true,
-        user: {
-          discordId: memoryUser.discordId,
-          username: memoryUser.username,
-          email: memoryUser.email,
-          avatar: memoryUser.avatar,
-          registeredAt: memoryUser.registeredAt,
-          balance: memoryUser.balance || 0,
-          badges: memoryUser.badges || {},
-          orders: memoryUser.orders || []
-        }
-      });
-    }
-    
-    // Если пользователь не найден - создаём (только для Telegram, Discord создаётся через /auth/discord)
-    if (decoded.id && decoded.id.startsWith('tg_')) {
-      // Email из токена или null (не создаём фейковый)
-      const userEmail = decoded.email || null;
       
-      await sql`
-        INSERT INTO users (discord_id, username, email, avatar, balance, badges, orders, password, frozen, privacy)
-        VALUES (
-          ${decoded.id}, 
-          ${decoded.username || 'Telegram User'}, 
-          ${userEmail}, 
-          NULL, 
-          0, 
-          '{}', 
-          '[]', 
-          NULL,
-          false,
-          '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false,"frozen":false}'
-        )
-      `;
+      return res.json({ success: true, user: null });
       
-      console.log(`✅ Создан новый Telegram пользователь через /api/user/me: ${decoded.id}, email: ${userEmail || 'NULL'}`);
-      
-      return res.json({
-        success: true,
-        user: {
-          discordId: decoded.id,
-          username: decoded.username || 'Telegram User',
-          email: userEmail,
-          avatar: null,
-          registeredAt: new Date().toISOString(),
-          balance: 0,
-          badges: {},
-          orders: []
-        }
-      });
+    } catch (decodeError) {
+      console.error('❌ Ошибка декодирования:', decodeError);
+      return res.status(401).json({ success: false, error: 'Неверный токен' });
     }
-    
-    return res.json({ success: true, user: null });
     
   } catch (error) {
-    console.error('❌ Ошибка получения пользователя:', error.message);
+    console.error('❌ Ошибка:', error.message);
     res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
