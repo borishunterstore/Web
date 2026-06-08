@@ -177,7 +177,7 @@
                     <div class="badges-container">
                         ${badgesHTML}
                     </div>
-                    <p><i class="fas fa-hashtag"></i> Discord ID: ${escapeHtml(user.discordId)}</p>
+                    <p><i class="fas fa-hashtag"></i> ID: ${escapeHtml(user.discordId)}</p>
                     ${privacy.show_registered !== false && user.registeredAt ? 
                         `<p><i class="fas fa-calendar-alt"></i> Зарегистрирован: ${new Date(user.registeredAt).toLocaleDateString('ru-RU')}</p>` : 
                         privacy.show_registered === false ? '<p><i class="fas fa-lock"></i> Дата регистрации скрыта</p>' : ''
@@ -304,7 +304,7 @@
                     <div class="badges-container">
                         ${badgesHTML}
                     </div>
-                    <p><i class="fas fa-hashtag"></i> Discord ID: ${escapeHtml(user.discordId || user.id || 'Не указан')}</p>
+                    <p><i class="fas fa-hashtag"></i> ID: ${escapeHtml(user.discordId || user.id || 'Не указан')}</p>
                     ${privacy.show_registered !== false ? `<p><i class="fas fa-calendar-alt"></i> Зарегистрирован: ${new Date(user.registeredAt || Date.now()).toLocaleDateString('ru-RU')}</p>` : ''}
                 </div>
             `;
@@ -439,7 +439,7 @@
                     <div class="badges-container">
                         ${badgesHTML}
                     </div>
-                    <p><i class="fas fa-hashtag"></i> Discord ID: ${escapeHtml(user.discordId || user.id || 'Не указан')}</p>
+                    <p><i class="fas fa-hashtag"></i> ID: ${escapeHtml(user.discordId || user.id || 'Не указан')}</p>
                     <p><i class="fas fa-calendar-alt"></i> Зарегистрирован: ${new Date(user.registeredAt || Date.now()).toLocaleDateString('ru-RU')}</p>
                     ${isOwn ? `<p><i class="fas fa-envelope"></i> Gmail: ${escapeHtml(user.email || 'Не указан')}</p>` : ''}
                 </div>
@@ -838,8 +838,8 @@ function showProfileHiddenError() {
                 <p style="color: #b9bbbe; margin-bottom: 20px;">Это действие необратимо. Все ваши данные будут удалены.</p>
                 
                 <div class="form-group" style="margin-bottom: 15px;">
-                    <label style="color: #b9bbbe;">Ваш Discord ID</label>
-                    <input type="text" id="deleteConfirmId" placeholder="Введите ваш Discord ID" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
+                    <label style="color: #b9bbbe;">Ваш ID</label>
+                    <input type="text" id="deleteConfirmId" placeholder="Введите ваш ID" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                 </div>
                 
                 <div class="form-group" style="margin-bottom: 15px;">
@@ -889,7 +889,7 @@ function showProfileHiddenError() {
             const confirmCode = document.getElementById('deleteConfirmCode').value;
             
             if (confirmId !== authData.id) {
-                alert('Неверный Discord ID');
+                alert('Неверный ID');
                 return;
             }
             

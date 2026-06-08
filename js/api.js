@@ -1,8 +1,9 @@
+// api.js - BHStore API Client
 class BHStoreAPI {
     constructor() {
         this.baseUrl = 'https://bhstore.netlify.app';
         this.authData = this.getAuthData();
-        console.log('API Загружены');
+        console.log('✅ API Загружены');
     }
 
     getAuthData() {
@@ -11,6 +12,11 @@ class BHStoreAPI {
         } catch {
             return {};
         }
+    }
+
+    getAuthToken() {
+        const authData = this.getAuthData();
+        return authData.token || null;
     }
 
     async request(endpoint, options = {}) {
@@ -55,24 +61,6 @@ class BHStoreAPI {
     }
 
     // ========== ПОЛЬЗОВАТЕЛИ (АДМИН) ==========
-
-async getAllOrders() {
-    return this.request('/admin/orders');
-}
-
-async updateOrder(orderId, orderData) {
-    return this.request(`/admin/orders/${orderId}`, {
-        method: 'PUT',
-        body: JSON.stringify(orderData)
-    });
-}
-
-async deleteOrder(orderId) {
-    return this.request(`/admin/orders/${orderId}`, {
-        method: 'DELETE'
-    });
-}
-
     async getAllUsers() {
         return this.request('/admin/users');
     }
@@ -111,6 +99,19 @@ async deleteOrder(orderId) {
         return this.request('/admin/orders');
     }
 
+    async updateOrder(orderId, orderData) {
+        return this.request(`/admin/orders/${orderId}`, {
+            method: 'PUT',
+            body: JSON.stringify(orderData)
+        });
+    }
+
+    async deleteOrder(orderId) {
+        return this.request(`/admin/orders/${orderId}`, {
+            method: 'DELETE'
+        });
+    }
+
     async updateOrderStatus(orderId, status) {
         return this.request('/admin-update-order', {
             method: 'POST',
@@ -143,7 +144,7 @@ async deleteOrder(orderId) {
         });
     }
 
-    // ========== ЧАТ МЕТОДЫ (ДЛЯ АДМИНКИ) ==========
+    // ========== ЧАТ МЕТОДЫ ==========
     async getChatUsers() {
         return this.request('/admin/chat/users');
     }
@@ -209,12 +210,37 @@ async deleteOrder(orderId) {
         });
     }
 
+    // ========== TELEGRAM АВТОРИЗАЦИЯ ==========
+    async createTelegramSession(recaptchaToken) {
+        return this.request('/telegram/create-session', {
+            method: 'POST',
+            body: JSON.stringify({ recaptchaToken })
+        });
+    }
+
+    async completeTelegramRegistration(data) {
+        return this.request('/auth/telegram/complete', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+
     // ========== ЗАКАЗЫ (ПОЛЬЗОВАТЕЛЬ) ==========
     async createOrder(orderData) {
         return this.request('/create-order', {
             method: 'POST',
             body: JSON.stringify(orderData)
         });
+    }
+
+    async cancelOrder(orderId) {
+        return this.request(`/orders/${orderId}/cancel`, {
+            method: 'POST'
+        });
+    }
+
+    async getOrderDetails(orderId) {
+        return this.request(`/orders/${orderId}`);
     }
 
     // ========== УТИЛИТЫ ==========
