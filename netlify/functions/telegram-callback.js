@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bhstore-super-secret-key-2024-change-this';
+const RECAPTCHA_SITE_KEY = '6LfunBMtAAAAAERlHV1wjXssrw5yYmgPUmxvVUAQ';
 
 let sql;
 try {
@@ -66,63 +67,15 @@ exports.handler = async (event, context) => {
   const userId = `tg_${telegram_id}`;
   const userDisplayName = decodeURIComponent(name || username || `Telegram_${telegram_id}`);
   
-  const userData = {
-    id: userId,
-    username: userDisplayName,
-    avatar: null,
-    email: `${userId}@telegram.bhstore`,
-    authMethod: 'telegram'
-  };
-  
-  // Сохраняем или обновляем пользователя в БД
-  if (sql) {
-    try {
-      const [existing] = await sql`SELECT * FROM users WHERE discord_id = ${userId}`;
-      if (!existing) {
-        await sql`
-          INSERT INTO users (discord_id, username, email, avatar, balance, badges, frozen, privacy)
-          VALUES (${userId}, ${userDisplayName}, ${userData.email}, NULL, 0, '{}', false, '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}')
-        `;
-        console.log(`✅ Новый Telegram пользователь: ${userId}`);
-      } else {
-        await sql`
-          UPDATE users 
-          SET username = ${userDisplayName}, 
-              email = ${userData.email}
-          WHERE discord_id = ${userId}
-        `;
-        console.log(`✅ Telegram пользователь обновлён: ${userId}`);
-      }
-    } catch (dbError) {
-      console.error('❌ Ошибка сохранения пользователя:', dbError.message);
-    }
-  }
-  
-  // Создаём JWT токен
-  const jwtToken = jwt.sign(
-    { ...userData },
-    JWT_SECRET,
-    { expiresIn: '7d' }
-  );
-  
-  // Удаляем использованную сессию
-  if (sql) {
-    try {
-      await sql`DELETE FROM auth_sessions WHERE token = ${token}`;
-      console.log(`🗑️ Сессия ${token} удалена`);
-    } catch (dbError) {
-      console.error('❌ Ошибка удаления сессии:', dbError.message);
-    }
-  }
-  
-  // HTML страница с перенаправлением
+  // HTML страница с формой для ввода email и пароля
   const html = `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="UTF-8">
-      <title>Авторизация BHStore</title>
+      <title>Завершение регистрации | BHStore</title>
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <script src="https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}"></script>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -132,67 +85,225 @@ exports.handler = async (event, context) => {
           display: flex;
           justify-content: center;
           align-items: center;
-          height: 100vh;
-          margin: 0;
+          min-height: 100vh;
           padding: 20px;
         }
         .container {
-          text-align: center;
           background: rgba(42, 43, 54, 0.95);
           backdrop-filter: blur(10px);
           padding: 40px;
           border-radius: 24px;
           border: 1px solid #40444b;
-          max-width: 400px;
+          max-width: 450px;
           width: 100%;
         }
-        .loader {
-          width: 60px;
-          height: 60px;
-          border: 3px solid #40444b;
-          border-top-color: #5865F2;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin: 20px auto;
+        h2 { margin-bottom: 25px; text-align: center; color: #5865F2; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #b9bbbe; font-size: 0.9rem; }
+        input {
+          width: 100%;
+          padding: 12px 16px;
+          background: #1e1f29;
+          border: 1px solid #40444b;
+          border-radius: 12px;
+          color: white;
+          font-size: 1rem;
+          transition: all 0.2s;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        h2 { margin-bottom: 15px; }
-        p { color: #b9bbbe; margin-top: 15px; }
-        .success { color: #57F287; }
+        input:focus {
+          outline: none;
+          border-color: #5865F2;
+          box-shadow: 0 0 0 2px rgba(88, 101, 242, 0.2);
+        }
+        .info-box {
+          background: #1e1f29;
+          padding: 15px;
+          border-radius: 12px;
+          margin-bottom: 20px;
+          border-left: 3px solid #57F287;
+        }
+        .info-box p {
+          margin: 5px 0;
+          color: #b9bbbe;
+          font-size: 0.85rem;
+        }
+        .info-box strong {
+          color: white;
+        }
+        button {
+          width: 100%;
+          padding: 14px;
+          background: linear-gradient(135deg, #5865F2, #4752c4);
+          color: white;
+          border: none;
+          border-radius: 12px;
+          font-size: 1rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          margin-top: 10px;
+        }
+        button:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 5px 20px rgba(88, 101, 242, 0.3);
+        }
+        button:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          transform: none;
+        }
+        .error-message {
+          color: #ED4245;
+          font-size: 0.85rem;
+          margin-top: 5px;
+          display: none;
+        }
+        .success-message {
+          color: #57F287;
+          text-align: center;
+          margin-top: 15px;
+          display: none;
+        }
+        .optional {
+          color: #72767d;
+          font-size: 0.75rem;
+          margin-top: 4px;
+        }
+        .required {
+          color: #ED4245;
+        }
       </style>
     </head>
     <body>
       <div class="container">
-        <div class="loader"></div>
-        <h2>🔐 Авторизация через Telegram</h2>
-        <p>Вход выполняется...</p>
-        <p class="success" id="status"></p>
+        <h2>🔐 Завершение регистрации</h2>
+        
+        <div class="info-box">
+          <p><strong>👤 Telegram аккаунт</strong></p>
+          <p>ID: <code>${telegram_id}</code></p>
+          <p>Имя: ${escapeHtml(userDisplayName)}</p>
+        </div>
+        
+        <form id="registerForm">
+          <div class="form-group">
+            <label>📧 Электронная почта <span class="optional">(необязательно)</span></label>
+            <input type="email" id="email" placeholder="example@mail.com">
+            <div class="optional">Если не указать, поле email останется пустым</div>
+          </div>
+          
+          <div class="form-group">
+            <label>🔒 Пароль <span class="required">*</span></label>
+            <input type="password" id="password" required placeholder="Введите пароль">
+            <div class="optional">Минимум 6 символов</div>
+          </div>
+          
+          <div class="form-group">
+            <label>🔒 Подтверждение пароля <span class="required">*</span></label>
+            <input type="password" id="confirm_password" required placeholder="Повторите пароль">
+          </div>
+          
+          <div id="errorMsg" class="error-message"></div>
+          <div id="successMsg" class="success-message"></div>
+          
+          <button type="submit" id="submitBtn">Завершить регистрацию</button>
+        </form>
       </div>
+      
       <script>
-        (function() {
-          try {
-            const authData = {
-              id: '${userId}',
-              username: '${userDisplayName.replace(/'/g, "\\'")}',
-              email: '${userData.email}',
-              token: '${jwtToken}',
-              authMethod: 'telegram'
-            };
-            
-            localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-            console.log('✅ Авторизация успешна, перенаправление...');
-            
-            const statusEl = document.getElementById('status');
-            if (statusEl) statusEl.textContent = '✅ Вход выполнен! Перенаправление...';
-            
-            setTimeout(function() {
-              window.location.href = '/profile.html';
-            }, 1500);
-          } catch (err) {
-            console.error('Ошибка:', err);
-            document.getElementById('status').textContent = '❌ Ошибка, обновите страницу';
+        const token = '${token}';
+        const telegramId = '${telegram_id}';
+        const username = '${escapeHtml(username || '')}';
+        const name = '${escapeHtml(userDisplayName)}';
+        
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          const password = document.getElementById('password').value;
+          const confirmPassword = document.getElementById('confirm_password').value;
+          const email = document.getElementById('email').value;
+          const errorMsg = document.getElementById('errorMsg');
+          const successMsg = document.getElementById('successMsg');
+          const submitBtn = document.getElementById('submitBtn');
+          
+          errorMsg.style.display = 'none';
+          successMsg.style.display = 'none';
+          
+          if (password.length < 6) {
+            errorMsg.textContent = 'Пароль должен содержать минимум 6 символов';
+            errorMsg.style.display = 'block';
+            return;
           }
-        })();
+          
+          if (password !== confirmPassword) {
+            errorMsg.textContent = 'Пароли не совпадают';
+            errorMsg.style.display = 'block';
+            return;
+          }
+          
+          // Получаем reCAPTCHA токен
+          let recaptchaToken = '';
+          try {
+            recaptchaToken = await grecaptcha.execute('${RECAPTCHA_SITE_KEY}', { action: 'register' });
+          } catch(e) {
+            console.warn('reCAPTCHA error:', e);
+          }
+          
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Обработка...';
+          
+          try {
+            const response = await fetch('/api/auth/telegram/complete', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                token: token,
+                telegram_id: telegramId,
+                username: username,
+                name: name,
+                email: email || null,
+                password: password,
+                recaptchaToken: recaptchaToken
+              })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+              localStorage.setItem('bhstore_auth', JSON.stringify({
+                id: data.user.id,
+                username: data.user.username,
+                email: data.user.email,
+                token: data.token,
+                authMethod: 'telegram'
+              }));
+              successMsg.textContent = '✅ Регистрация успешна! Перенаправление...';
+              successMsg.style.display = 'block';
+              setTimeout(() => {
+                window.location.href = '/profile.html';
+              }, 2000);
+            } else {
+              errorMsg.textContent = data.error || 'Ошибка регистрации';
+              errorMsg.style.display = 'block';
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Завершить регистрацию';
+            }
+          } catch (err) {
+            errorMsg.textContent = 'Ошибка сервера. Попробуйте позже.';
+            errorMsg.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Завершить регистрацию';
+          }
+        });
+        
+        function escapeHtml(str) {
+          if (!str) return '';
+          return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+          });
+        }
       </script>
     </body>
     </html>
@@ -204,3 +315,13 @@ exports.handler = async (event, context) => {
     body: html
   };
 };
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  });
+}

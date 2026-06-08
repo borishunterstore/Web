@@ -1249,6 +1249,108 @@ function escapeHtml(str) {
   });
 }
 
+app.post('/api/auth/telegram/complete', async (req, res) => {
+  try {
+      const { token, telegram_id, username, name, email, password, recaptchaToken } = req.body;
+      
+      // Проверяем сессию
+      let session = null;
+      if (sql) {
+          const [row] = await sql`
+              SELECT * FROM auth_sessions WHERE token = ${token} AND expires_at > NOW()
+          `;
+          session = row;
+      }
+      
+      if (!session) {
+          return res.status(400).json({ success: false, error: 'Сессия истекла. Запросите новую ссылку' });
+      }
+      
+      // Хешируем пароль
+      const bcrypt = require('bcryptjs');
+      const hashedPassword = await bcrypt.hash(password, 10);
+      
+      const userId = `tg_${telegram_id}`;
+      const userDisplayName = name || username || `Telegram_${telegram_id}`;
+      // Email: если не указан, оставляем NULL (не создаём фейковый)
+      const userEmail = email && email.includes('@') ? email : null;
+      
+      let existingUser = null;
+      if (sql) {
+          const [row] = await sql`
+              SELECT * FROM users WHERE discord_id = ${userId}
+          `;
+          existingUser = row;
+      }
+      
+      if (existingUser) {
+          // Обновляем существующего пользователя
+          if (sql) {
+              await sql`
+                  UPDATE users 
+                  SET username = ${userDisplayName},
+                      email = ${userEmail},
+                      password = ${hashedPassword}
+                  WHERE discord_id = ${userId}
+              `;
+          }
+          console.log(`✅ Пользователь обновлён: ${userId}`);
+      } else {
+          // Создаём нового пользователя (email = NULL если не указан)
+          if (sql) {
+              await sql`
+                  INSERT INTO users (
+                      discord_id, username, email, avatar, balance, badges, orders, password, frozen, privacy
+                  ) VALUES (
+                      ${userId}, 
+                      ${userDisplayName}, 
+                      ${userEmail}, 
+                      NULL, 
+                      0, 
+                      '{}', 
+                      '[]', 
+                      ${hashedPassword},
+                      false,
+                      '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false,"frozen":false}'
+                  )
+              `;
+          }
+          console.log(`✅ Новый пользователь создан: ${userId}, email: ${userEmail || 'NULL'}`);
+      }
+      
+      // Удаляем использованную сессию
+      if (sql) {
+          await sql`DELETE FROM auth_sessions WHERE token = ${token}`;
+      }
+      
+      // Создаём JWT токен
+      const jwtToken = jwt.sign(
+          { 
+              id: userId, 
+              username: userDisplayName, 
+              email: userEmail,
+              authMethod: 'telegram' 
+          },
+          JWT_SECRET,
+          { expiresIn: '7d' }
+      );
+      
+      res.json({
+          success: true,
+          token: jwtToken,
+          user: {
+              id: userId,
+              username: userDisplayName,
+              email: userEmail
+          }
+      });
+      
+  } catch (error) {
+      console.error('❌ Ошибка завершения регистрации:', error.message);
+      res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
 // Авторизация через Telegram
 app.post('/api/auth/telegram', telegramLimiter, async (req, res) => {
   try {
