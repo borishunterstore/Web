@@ -1,6 +1,7 @@
 // netlify/functions/telegram-callback.js
 const { neon } = require('@neondatabase/serverless');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bhstore-super-secret-key-2024-change-this';
@@ -193,7 +194,7 @@ exports.handler = async (event, context) => {
           
           <div class="form-group">
             <label>🔒 Пароль <span class="required">*</span></label>
-            <input type="password" id="password" required placeholder="Введите пароль">
+            <input type="password" id="password" required placeholder="Введите пароль" minlength="6">
             <div class="optional">Минимум 6 символов</div>
           </div>
           
@@ -240,14 +241,6 @@ exports.handler = async (event, context) => {
             return;
           }
           
-          // Получаем reCAPTCHA токен
-          let recaptchaToken = '';
-          try {
-            recaptchaToken = await grecaptcha.execute('${RECAPTCHA_SITE_KEY}', { action: 'register' });
-          } catch(e) {
-            console.warn('reCAPTCHA error:', e);
-          }
-          
           submitBtn.disabled = true;
           submitBtn.textContent = 'Обработка...';
           
@@ -261,8 +254,7 @@ exports.handler = async (event, context) => {
                 username: username,
                 name: name,
                 email: email || null,
-                password: password,
-                recaptchaToken: recaptchaToken
+                password: password
               })
             });
             

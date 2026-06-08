@@ -1251,7 +1251,9 @@ function escapeHtml(str) {
 
 app.post('/api/auth/telegram/complete', async (req, res) => {
   try {
-      const { token, telegram_id, username, name, email, password, recaptchaToken } = req.body;
+      const { token, telegram_id, username, name, email, password } = req.body;
+      
+      console.log('📝 Завершение регистрации:', { token, telegram_id, username, name, email });
       
       // Проверяем сессию
       let session = null;
@@ -1272,7 +1274,7 @@ app.post('/api/auth/telegram/complete', async (req, res) => {
       
       const userId = `tg_${telegram_id}`;
       const userDisplayName = name || username || `Telegram_${telegram_id}`;
-      // Email: если не указан, оставляем NULL (не создаём фейковый)
+      // Email: если не указан, оставляем NULL (НЕ создаём фейковый)
       const userEmail = email && email.includes('@') ? email : null;
       
       let existingUser = null;
@@ -1294,9 +1296,9 @@ app.post('/api/auth/telegram/complete', async (req, res) => {
                   WHERE discord_id = ${userId}
               `;
           }
-          console.log(`✅ Пользователь обновлён: ${userId}`);
+          console.log(`✅ Пользователь обновлён: ${userId}, email: ${userEmail || 'NULL'}`);
       } else {
-          // Создаём нового пользователя (email = NULL если не указан)
+          // Создаём нового пользователя
           if (sql) {
               await sql`
                   INSERT INTO users (
@@ -1324,6 +1326,7 @@ app.post('/api/auth/telegram/complete', async (req, res) => {
       }
       
       // Создаём JWT токен
+      const jwt = require('jsonwebtoken');
       const jwtToken = jwt.sign(
           { 
               id: userId, 
@@ -2662,6 +2665,7 @@ function verifyToken(req) {
 
 
 // Получение информации о текущем пользователе
+// Получение информации о текущем пользователе
 app.get('/api/user/me', async (req, res) => {
   try {
     const decoded = verifyToken(req);
@@ -2714,19 +2718,35 @@ app.get('/api/user/me', async (req, res) => {
       });
     }
     
-    // Если пользователь не найден - создаём
+    // Если пользователь не найден - создаём (только для Telegram, Discord создаётся через /auth/discord)
     if (decoded.id && decoded.id.startsWith('tg_')) {
+      // Email из токена или null (не создаём фейковый)
+      const userEmail = decoded.email || null;
+      
       await sql`
-        INSERT INTO users (discord_id, username, email, balance, badges, frozen, privacy)
-        VALUES (${decoded.id}, ${decoded.username || 'Telegram User'}, ${decoded.email || ''}, 0, '{}', false, '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}')
+        INSERT INTO users (discord_id, username, email, avatar, balance, badges, orders, password, frozen, privacy)
+        VALUES (
+          ${decoded.id}, 
+          ${decoded.username || 'Telegram User'}, 
+          ${userEmail}, 
+          NULL, 
+          0, 
+          '{}', 
+          '[]', 
+          NULL,
+          false,
+          '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false,"frozen":false}'
+        )
       `;
+      
+      console.log(`✅ Создан новый Telegram пользователь через /api/user/me: ${decoded.id}, email: ${userEmail || 'NULL'}`);
       
       return res.json({
         success: true,
         user: {
           discordId: decoded.id,
           username: decoded.username || 'Telegram User',
-          email: decoded.email || '',
+          email: userEmail,
           avatar: null,
           registeredAt: new Date().toISOString(),
           balance: 0,
@@ -2739,7 +2759,7 @@ app.get('/api/user/me', async (req, res) => {
     return res.json({ success: true, user: null });
     
   } catch (error) {
-    console.error('❌ Ошибка:', error.message);
+    console.error('❌ Ошибка получения пользователя:', error.message);
     res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
