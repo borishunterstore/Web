@@ -379,6 +379,67 @@ class DiscordAuth {
     }
 }
 
+async function startTelegramAuth() {
+    if (!checkAllConsents()) {
+        warningMessage.classList.add('show');
+        return;
+    }
+    
+    if (isTelegramProcessing) return;
+    isTelegramProcessing = true;
+    
+    const btn = telegramBtn;
+    const originalContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<div class="btn-auth-icon"><i class="fas fa-spinner fa-spin"></i></div><div class="btn-auth-content"><span class="btn-auth-title">Обработка...</span><span class="btn-auth-desc">Пожалуйста, подождите</span></div><i class="fas fa-chevron-right btn-auth-arrow"></i>';
+    
+    try {
+        // Ждём загрузки grecaptcha (максимум 5 секунд)
+        let waitCount = 0;
+        while (typeof grecaptcha === 'undefined' && waitCount < 50) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            waitCount++;
+        }
+        
+        if (typeof grecaptcha === 'undefined') {
+            throw new Error('reCAPTCHA не загрузилась. Пожалуйста, обновите страницу.');
+        }
+        
+        // Получаем reCAPTCHA токен
+        const recaptchaToken = await grecaptcha.execute('6LfunBMtAAAAAERlHV1wjXssrw5yYmgPUmxvVUAQ', { action: 'telegram_login' });
+        
+        if (!recaptchaToken) {
+            throw new Error('Не удалось получить подтверждение reCAPTCHA');
+        }
+        
+        // Создаём сессию на сервере
+        const response = await fetch('/api/telegram/create-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recaptchaToken })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Открываем ссылку на бота
+            window.open(data.botLink, '_blank');
+            alert('✅ Перейдите в Telegram и подтвердите вход!\n\nСсылка действительна 10 минут.');
+        } else {
+            alert('❌ Ошибка: ' + (data.error || 'Не удалось создать сессию'));
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+        }
+    } catch (error) {
+        console.error('Telegram auth error:', error);
+        alert('❌ Ошибка: ' + error.message);
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+    } finally {
+        isTelegramProcessing = false;
+    }
+}
+
 const auth = new DiscordAuth();
 window.DiscordAuth = DiscordAuth;
 window.auth = auth;
