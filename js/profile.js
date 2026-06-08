@@ -62,7 +62,7 @@
             });
             const data = await response.json();
             
-            console.log('📦 Данные из /api/user/me:', data); // Отладка
+            console.log('📦 Данные из /api/user/me:', data);
             
             if (data.success && data.user) {
                 const user = data.user;
@@ -146,7 +146,7 @@
                 avatarUrl = `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png?size=256`;
             }
         } else if (privacy.show_avatar === false) {
-            avatarUrl = 'image/avatar-hidden.png'; // Серая аватарка по умолчанию
+            avatarUrl = 'image/avatar-hidden.png';
         }
         
         // Бейджи - только если разрешено
@@ -542,10 +542,14 @@
         const totalSpentElem = document.getElementById('totalSpentStat');
         const memberSinceElem = document.getElementById('memberSinceStat');
         
-        if (totalOrdersElem) totalOrdersElem.textContent = orders.length;
+        if (totalOrdersElem) {
+            totalOrdersElem.textContent = orders.length;
+        }
         
         const totalSpent = orders.reduce((sum, order) => sum + (order.price || 0), 0);
-        if (totalSpentElem) totalSpentElem.textContent = `${totalSpent}₽`;
+        if (totalSpentElem) {
+            totalSpentElem.textContent = `${totalSpent}₽`;
+        }
         
         const registeredDate = new Date(user.registeredAt || Date.now());
         const now = new Date();
@@ -563,21 +567,21 @@
     }
 
     // Ошибка - профиль скрыт
-function showProfileHiddenError() {
-    const container = document.querySelector('.profile-container');
-    if (container) {
-        container.innerHTML = `
-            <div class="error-page" style="text-align: center; padding: 100px 20px;">
-                <i class="fas fa-user-secret" style="font-size: 5rem; color: #ED4245; margin-bottom: 20px;"></i>
-                <h2>Профиль скрыт</h2>
-                <p>Пользователь скрыл свой профиль.</p>
-                <a href="/profile.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">
-                    <i class="fas fa-arrow-left"></i> Вернуться
-                </a>
-            </div>
-        `;
+    function showProfileHiddenError() {
+        const container = document.querySelector('.profile-container');
+        if (container) {
+            container.innerHTML = `
+                <div class="error-page" style="text-align: center; padding: 100px 20px;">
+                    <i class="fas fa-user-secret" style="font-size: 5rem; color: #ED4245; margin-bottom: 20px;"></i>
+                    <h2>Профиль скрыт</h2>
+                    <p>Пользователь скрыл свой профиль.</p>
+                    <a href="/profile.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">
+                        <i class="fas fa-arrow-left"></i> Вернуться
+                    </a>
+                </div>
+            `;
+        }
     }
-}
 
     // Ошибка - пользователь не найден
     function showNotFoundError() {
