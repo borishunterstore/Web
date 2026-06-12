@@ -471,8 +471,6 @@ class ChatSystem {
         
         const text = input.value.trim();
         if (!text) return;
-
-        // Оптимистичное добавление
         const tempMsg = {
             message: text,
             from_admin: false,
@@ -481,20 +479,15 @@ class ChatSystem {
         
         this.messages.push(tempMsg);
         this.appendMessage(tempMsg);
-        
-        // Очищаем поле
         input.value = '';
         input.style.height = 'auto';
 
         try {
             console.log('📤 Отправка сообщения...');
-            
-            // Отправляем через API (сервер сам отправит в Discord)
             await this.api.sendChatMessage(this.userId, text, false);
             
             console.log('✅ Сообщение отправлено');
             
-            // Обновляем сообщения через секунду
             setTimeout(() => {
                 this.loadMessages();
             }, 1000);
@@ -502,7 +495,6 @@ class ChatSystem {
         } catch (error) {
             console.error('❌ Ошибка отправки:', error);
             
-            // Показываем ошибку
             const container = document.getElementById('chatMessages');
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error-message';
@@ -514,7 +506,6 @@ class ChatSystem {
             
             setTimeout(() => errorDiv.remove(), 3000);
             
-            // Удаляем оптимистичное сообщение
             this.messages = this.messages.filter(m => m !== tempMsg);
             this.renderMessages();
         }
@@ -548,7 +539,6 @@ class ChatSystem {
             }
             
         } catch (error) {
-            // Игнорируем ошибки при polling
         }
     }
 
@@ -602,7 +592,6 @@ class ChatSystem {
                 })
             });
         } catch (e) {
-            // Игнорируем
         }
     }
 
@@ -642,11 +631,8 @@ class ChatSystem {
     }
 }
 
-// Инициализация
 document.addEventListener('DOMContentLoaded', () => {
-    // Даем время на загрузку API
     setTimeout(() => {
-        // Проверяем, что window.api существует
         if (!window.api) {
             console.error('❌ window.api не найден! Проверьте подключение api.js');
             return;

@@ -1,8 +1,6 @@
-// profile.js - Полноценный профиль с настройками приватности
 (function() {
     'use strict';
 
-    // Конфигурация бейджей
     const BADGE_IMAGES = {
         verified: 'image/BADGE/verified.gif',
         partner: 'image/BADGE/partner.png',
@@ -11,19 +9,14 @@
         vip: 'image/BADGE/vip.png',
         early: 'image/BADGE/early.png'
     };
-
-    // Текущий просматриваемый пользователь
     let currentViewingUserId = null;
     let isOwnProfile = true;
     let currentUserPrivacy = null;
-
-    // Инициализация
     document.addEventListener('DOMContentLoaded', async () => {
         await checkAuthAndLoadProfile();
         setupEventListeners();
     });
 
-    // Проверка авторизации и загрузка профиля
     async function checkAuthAndLoadProfile() {
         const authData = getAuthData();
         
@@ -46,7 +39,6 @@
         }
     }
 
-    // Загрузка своего профиля
     async function loadOwnProfile() {
         const authData = getAuthData();
         
@@ -56,7 +48,6 @@
         }
         
         try {
-            // Используем /api/user/me
             const response = await fetch('/api/user/me', {
                 headers: { 'Authorization': `Bearer ${authData.token}` }
             });
@@ -67,7 +58,6 @@
             if (data.success && data.user) {
                 const user = data.user;
                 
-                // Обновляем auth данные
                 authData.balance = user.balance;
                 authData.badges = user.badges || {};
                 authData.email = user.email;
@@ -77,7 +67,6 @@
                 renderProfile(user, true);
                 renderBalance(user.balance || 0);
                 
-                // Загружаем заказы
                 console.log('📦 Загрузка заказов...');
                 const ordersResponse = await fetch(`/api/user/${authData.id}/orders`, {
                     headers: { 'Authorization': `Bearer ${authData.token}` }
@@ -94,11 +83,9 @@
                     updateStats([], user);
                 }
                 
-                // Загружаем промокоды
                 await loadUserPromocodes();
                 await loadActivePromocodes();
                 
-                // Инициализируем чат
                 if (window.ChatSystem) {
                     window.chatSystem = new ChatSystem();
                     await window.chatSystem.init();
@@ -138,7 +125,6 @@
     function renderForeignProfileWithPrivacy(user, privacy) {
         let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
         
-        // Аватарка - только если разрешено и есть данные
         if (privacy.show_avatar !== false && user.avatar) {
             if (user.avatar.startsWith('a_')) {
                 avatarUrl = `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.gif?size=256`;
@@ -149,7 +135,6 @@
             avatarUrl = 'image/avatar-hidden.png';
         }
         
-        // Бейджи - только если разрешено
         let badgesHTML = '';
         let mainBadge = '';
         
@@ -187,7 +172,6 @@
         }
     }
     
-    // Загрузка чужого профиля с проверкой приватности
     async function loadForeignProfile(userId) {
         try {
             const response = await fetch(`/api/user/${userId}`);
@@ -196,7 +180,6 @@
             if (data.success && data.user) {
                 const user = data.user;
                 
-                // Если профиль скрыт или заморожен
                 if (user.hidden === true || user.frozen === true) {
                     if (user.frozen === true) {
                         showFrozenError();
@@ -207,8 +190,6 @@
                 }
                 
                 const privacy = user.privacy || {};
-                
-                // Скрываем секции
                 const balanceSection = document.getElementById('balanceSection');
                 const promocodeSection = document.getElementById('promocodeSection');
                 const supportSection = document.getElementById('supportChat')?.parentElement;
@@ -219,11 +200,7 @@
                 
                 const settingsBtn = document.getElementById('settingsBtn');
                 if (settingsBtn) settingsBtn.style.display = 'none';
-                
-                // Рендерим профиль с учетом скрытых данных
                 renderForeignProfileWithPrivacy(user, privacy);
-                
-                // Загружаем заказы только если разрешено
                 let orders = [];
                 let totalSpent = 0;
                 let ordersCount = 0;
@@ -256,7 +233,6 @@
         }
     }
 
-    // Получение настроек приватности по умолчанию
     function getDefaultPrivacy() {
         return {
             show_avatar: true,
@@ -270,7 +246,6 @@
         };
     }
 
-    // Рендер чужого профиля с учетом приватности
     function renderForeignProfile(user, privacy) {
         let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
         
@@ -311,7 +286,6 @@
         }
     }
 
-    // Рендер заказов для чужого профиля с учетом приватности
     function renderForeignOrders(orders, privacy) {
         const ordersList = document.getElementById('ordersList');
         if (!ordersList) return;
@@ -365,7 +339,6 @@
         `).join('');
     }
 
-    // Обновление статистики для чужого профиля
     function updateForeignStats(ordersCount, totalSpent, user, privacy) {
         const totalOrdersElem = document.getElementById('totalOrdersStat');
         const totalSpentElem = document.getElementById('totalSpentStat');
@@ -398,7 +371,6 @@
         }
     }
 
-    // Рендер профиля (свой)
     function renderProfile(user, isOwn) {
         let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
         
@@ -447,7 +419,6 @@
         }
     }
 
-    // Рендер баланса
     function renderBalance(balance) {
         const balanceElement = document.getElementById('balanceAmount');
         if (balanceElement) {
@@ -455,7 +426,6 @@
         }
     }
 
-    // Рендер заказов (свой профиль)
     function renderOrders(orders, showCancelButton = true) {
         const ordersList = document.getElementById('ordersList');
         if (!ordersList) return;
@@ -536,7 +506,6 @@
         }).join('');
     }
 
-    // Обновление статистики (свой профиль)
     function updateStats(orders, user) {
         const totalOrdersElem = document.getElementById('totalOrdersStat');
         const totalSpentElem = document.getElementById('totalSpentStat');
@@ -566,7 +535,6 @@
         }
     }
 
-    // Ошибка - профиль скрыт
     function showProfileHiddenError() {
         const container = document.querySelector('.profile-container');
         if (container) {
@@ -583,7 +551,6 @@
         }
     }
 
-    // Ошибка - пользователь не найден
     function showNotFoundError() {
         const container = document.querySelector('.profile-container');
         if (container) {
@@ -600,7 +567,6 @@
         }
     }
 
-    // ========== НАСТРОЙКИ - ТРИ КАТЕГОРИИ ==========
     window.showSettingsModal = function() {
         const authData = getAuthData();
         const privacy = authData.privacy || getDefaultPrivacy();
@@ -739,18 +705,11 @@
         `;
         
         document.body.appendChild(modal);
-        
-        // Обработчик сохранения приватности
         document.getElementById('savePrivacyBtn').addEventListener('click', () => savePrivacySettings());
-        
-        // Обработчик заморозки
         document.getElementById('freezeAccountBtn').addEventListener('click', () => freezeAccount());
-        
-        // Обработчик удаления
         document.getElementById('deleteAccountBtn').addEventListener('click', () => showDeleteConfirmModal());
     };
 
-    // Сохранение настроек приватности
     async function savePrivacySettings() {
         const authData = getAuthData();
         
@@ -792,7 +751,6 @@
         }
     }
 
-    // Заморозка аккаунта
     async function freezeAccount() {
         if (!confirm('⚠️ ВНИМАНИЕ!\n\nВы действительно хотите заморозить свой аккаунт?\n\nПосле заморозки вы не сможете войти в аккаунт до его разморозки.\n\nРазморозить аккаунт можно будет только через Discord с подтверждением кода.')) {
             return;
@@ -826,7 +784,6 @@
         }
     }
 
-    // Подтверждение удаления аккаунта
     let deleteVerificationCode = null;
     
     async function showDeleteConfirmModal() {
@@ -938,7 +895,6 @@
         });
     }
 
-    // Обновление email
     window.updateEmail = async function() {
         const newEmail = document.getElementById('newEmail')?.value.trim();
         if (!newEmail) {
@@ -980,7 +936,6 @@
         }
     };
 
-    // Обновление аватарки
     window.refreshAvatar = async function() {
         const authData = getAuthData();
         
@@ -1019,7 +974,6 @@
         }
     };
 
-    // Добавление кнопки чата
     function addChatButton(userId, username) {
         const profileHeader = document.getElementById('profileHeader');
         if (profileHeader && !document.getElementById('foreignChatBtn')) {
@@ -1040,7 +994,6 @@
         }
     }
 
-    // Регистрация нового пользователя
     async function registerNewUser(authData) {
         try {
             const response = await fetch('/api/register', {
@@ -1073,7 +1026,6 @@
         }
     }
 
-    // Детали заказа
     window.showOrderDetails = function(orderId) {
         const authData = getAuthData();
         
@@ -1144,7 +1096,6 @@
             });
     };
 
-    // Отмена заказа
     window.cancelOrder = async function(orderId) {
         if (!confirm('⚠️ ВНИМАНИЕ!\n\nВы действительно хотите отменить заказ?\n\nОтмена возможна только для заказов в статусе "Ожидание".\n\nСредства будут возвращены на ваш баланс.')) {
             return;
@@ -1175,7 +1126,6 @@
         }
     };
 
-    // Промокоды
     async function loadUserPromocodes() {
         const authData = getAuthData();
         if (!authData.id) return;
@@ -1308,7 +1258,6 @@
         `;
     }
 
-    // Вспомогательные функции
     function getAuthData() {
         try {
             return JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
@@ -1409,8 +1358,7 @@
             }
         }
     }
-
-    // Глобальные функции
+    
     window.closeCurrentModal = function() {
         const modal = document.querySelector('.modal');
         if (modal) modal.remove();
@@ -1437,11 +1385,9 @@ function decodeAuthToken(token) {
     if (!token) return null;
     
     try {
-      // Пробуем как JWT
       const decoded = jwt.verify(token, JWT_SECRET);
       return decoded;
     } catch (jwtError) {
-      // Пробуем как base64
       try {
         const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
         return decoded;
@@ -1452,7 +1398,6 @@ function decodeAuthToken(token) {
     }
   }
 
-// Добавляем метод в promocodeSystem
 if (window.promocodeSystem && !window.promocodeSystem.applyPromocodeByCode) {
     window.promocodeSystem.applyPromocodeByCode = async function(code) {
         if (this.isProcessing) return;

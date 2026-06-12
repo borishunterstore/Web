@@ -2105,12 +2105,12 @@ app.post('/api/chat/send', async (req, res) => {
                   
                   await axios.post(webhookUrl, {
                       embeds: [{
-                          title: '💬 Новое сообщение от пользователя',
+                          title: '<:TG:1474931529896431838> Новое сообщение от пользователя',
                           description: message,
                           color: 0x5865F2,
                           fields: [
-                              { name: '👤 Пользователь', value: `<@${userId}>`, inline: true },
-                              { name: '📝 Имя', value: user?.username || 'Неизвестно', inline: true }
+                              { name: '<:User:1474931634804359433> Пользователь', value: `<@${userId}>`, inline: true },
+                              { name: '<:Dot:1474932579328069794> Имя', value: user?.username || 'Неизвестно', inline: true }
                           ],
                           timestamp: now
                       }]
@@ -3064,7 +3064,7 @@ app.post('/api/send-verification', async (req, res) => {
     await axios.post(webhookUrl, {
       content: `<@${userId}>`,
       embeds: [{
-        title: '<:Hearts:1474933149422059712> Код верификации',
+        title: '<:DS:1474931565036441741> Верификация',
         description: `<a:Dot:1386279213278953545> Код - \`${code}\``,
         color: 0x5865F2,
         timestamp: new Date().toISOString()
@@ -3260,13 +3260,15 @@ app.post('/api/create-order', async (req, res) => {
       const webhookUrl = 'https://discord.com/api/webhooks/1475847164801581127/8YklZGMVs-4reVU9yr4WbsO5OM1R5l2lM6yYmYyIPxhFICS1fDRZCD4ATL8sLEIaF1v5';
       
       const embed = {
-        title: '💰 Новая покупка!',
-        description: `<@${userId}> купил "${productName}"`,
+        title: '<:Price:1474932616523415583> Новая покупка!',
+        description: `<:User:1474931634804359433> <@${userId}> купил "${productName}"
+        <:logo1:1486375822049677372><:logo2:1486376008838942880>
+        <:logo1:1486375822049677372><:logo2:1486376008838942880>`,
         color: 0x57F287,
         fields: [
-          { name: '💰 Цена', value: `${finalPrice} ₽`, inline: true },
-          { name: '📦 Заказ', value: orderId, inline: true },
-          { name: '💎 Баланс после', value: `${newBalance} ₽`, inline: true }
+          { name: '<:Dot:1474932579328069794> Цена', value: `${finalPrice} ₽`, inline: true },
+          { name: '<:Dot:1474932579328069794> Заказ', value: orderId, inline: true },
+          { name: '<:Dot:1474932579328069794> Баланс после', value: `${newBalance} ₽`, inline: true }
         ],
         timestamp: new Date().toISOString()
       };

@@ -1,4 +1,3 @@
-// payment.js - Оптимизированная система оплаты
 class PaymentSystem {
     constructor() {
         this.init();

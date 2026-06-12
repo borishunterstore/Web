@@ -1,4 +1,3 @@
-// promocode.js - Оптимизированная система промокодов
 class PromocodeSystem {
     constructor() {
         this.activeDiscounts = [];

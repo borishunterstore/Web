@@ -1,4 +1,3 @@
-// api.js - BHStore API Client
 class BHStoreAPI {
     constructor() {
         this.baseUrl = 'https://bhstore.netlify.app';

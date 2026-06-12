@@ -518,11 +518,9 @@ async function loadProducts() {
         }, 100);
     };
     
-    // Функция покупки (глобальная)
     window.buyProduct = async function(productId, productName, originalPrice) {
         console.log('🛒 Buying product:', { productId, productName, originalPrice });
         
-        // Проверяем статус магазина
         const isOpen = await checkShopStatus();
         if (!isOpen) {
             showToast('Магазин временно закрыт. Покупки недоступны.', 'error');

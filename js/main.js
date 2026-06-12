@@ -1,11 +1,9 @@
-// main.js - Оптимизированный главный модуль
 (function() {
     'use strict';
     
     let refreshInterval = null;
     let isInitialized = false;
 
-    // Конфигурация бейджей
     const BADGE_CONFIG = {
         admin: { name: 'Администратор', image: '/image/BADGE/admin.png', priority: 1 },
         verified: { name: 'Верифицированный', image: '/image/BADGE/verified.gif', priority: 2 },
@@ -15,7 +13,6 @@
         vip: { name: 'VIP', image: '/image/BADGE/vip.png', priority: 6 }
     };
 
-    // Инициализация
     document.addEventListener('DOMContentLoaded', async () => {
         if (isInitialized) return;
         isInitialized = true;
@@ -41,7 +38,6 @@
         refreshInterval = setInterval(() => checkAuth(), 30000);
     });
 
-    // Авторизация
     async function checkAuth() {
         const authData = getAuthData();
         const authBtn = document.getElementById('authBtn');
@@ -144,7 +140,6 @@
         btn.onclick = () => window.location.href = '/auth.html';
     }
 
-    // Меню пользователя
     async function showUserMenu(event) {
         event?.stopPropagation();
         
@@ -264,7 +259,6 @@
         }, 100);
     }
 
-    // Вспомогательные функции
     function getAvatarUrl(userId, avatar, size = 64) {
         if (!avatar) return 'https://cdn.discordapp.com/embed/avatars/0.png';
         const ext = avatar.startsWith('a_') ? 'gif' : 'png';
@@ -404,7 +398,6 @@
         if (menu) menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
     }
 
-    // Глобальные экспорты
     window.checkAuth = checkAuth;
     window.showUserMenu = showUserMenu;
     window.isAdmin = isAdmin;
