@@ -1,39 +1,64 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Авторизация | BHStore</title>
+    <meta name="description" content="Авторизация BHStore — войдите через Discord или Telegram">
+    <meta name="theme-color" content="#0C0A14">
+    
     <link rel="stylesheet" href="css/general.css">
     <link rel="stylesheet" href="css/auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="/image/logo.png">
-    <!-- reCAPTCHA v2 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://api.fontshare.com/v2/css?f[]=clash-display@700,800&display=swap" rel="stylesheet">
+    
+    <link rel="icon" type="image/png" href="image/logo.png">
+    <link rel="apple-touch-icon" href="image/logo.png">
+    
+    <!-- reCAPTCHA -->
     <script src="https://www.google.com/recaptcha/api.js?render=6LfunBMtAAAAAERlHV1wjXssrw5yYmgPUmxvVUAQ"></script>
-    <!-- Yandex.Metrika counter -->
-    <script type="text/javascript">
-        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097','ym');
+    
+    <!-- Yandex.Metrika -->
+    <script>
+        (function(m,e,t,r,i,k,a){
+            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+            m[i].l=1*new Date();
+            for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}
+            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+        })(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097','ym');
         ym(107215097,'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",referrer:document.referrer,url:location.href,accurateTrackBounce:true,trackLinks:true});
     </script>
-    <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute;left:-9999px" alt=""></div></noscript>
+    
+    <script src="js/cursor.js"></script>
+    <script src="js/pkm.js"></script>
+    <script src="js/mobile-nav.js"></script>
+    <script src="js/auth.js"></script>
 </head>
 <body>
-<script src="https://www.google.com/recaptcha/api.js?render=6LfunBMtAAAAAERlHV1wjXssrw5yYmgPUmxvVUAQ" async defer></script>
+    <div class="custom-cursor"></div>
+
     <div class="auth-container">
         <div class="auth-card">
+            <!-- Заголовок -->
             <div class="auth-header">
-                <i class="fab fa-discord"></i>
+                <div class="auth-header-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
                 <h1>Авторизация</h1>
-                <p>Выберите способ входа</p>
+                <p>Выберите удобный способ входа в аккаунт</p>
             </div>
 
+            <!-- Кнопки авторизации -->
             <div class="auth-buttons">
                 <button id="discordAuthBtn" class="btn-auth btn-discord-auth">
                     <div class="btn-auth-icon"><i class="fab fa-discord"></i></div>
                     <div class="btn-auth-content">
                         <span class="btn-auth-title">Discord</span>
-                        <span class="btn-auth-desc">Войти через Discord</span>
+                        <span class="btn-auth-desc">Войти через Discord аккаунт</span>
                     </div>
                     <i class="fas fa-chevron-right btn-auth-arrow"></i>
                 </button>
@@ -42,14 +67,13 @@
                     <div class="btn-auth-icon"><i class="fab fa-telegram"></i></div>
                     <div class="btn-auth-content">
                         <span class="btn-auth-title">Telegram</span>
-                        <span class="btn-auth-desc">Войти через Telegram</span>
+                        <span class="btn-auth-desc">Войти через Telegram аккаунт</span>
                     </div>
                     <i class="fas fa-chevron-right btn-auth-arrow"></i>
                 </button>
-                
             </div>
 
-            <!-- СОГЛАСИЯ -->
+            <!-- Секция согласий -->
             <div class="consent-section">
                 <div class="consent-header">
                     <i class="fas fa-file-contract"></i>
@@ -58,48 +82,71 @@
                 <div class="consent-buttons">
                     <div class="consent-item" data-doc="offer">
                         <div class="consent-status"><i class="fas fa-circle pending"></i></div>
-                        <button class="consent-btn" data-doc="offer"><i class="fas fa-file-signature"></i> Оферта</button>
-                        <a href="/legal?offer" target="_blank" class="doc-link"><i class="fas fa-external-link-alt"></i></a>
+                        <button class="consent-btn" data-doc="offer">
+                            <i class="fas fa-file-signature"></i> Публичная оферта
+                        </button>
+                        <a href="legal.html#offer" target="_blank" class="doc-link">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
                     </div>
                     <div class="consent-item" data-doc="terms">
                         <div class="consent-status"><i class="fas fa-circle pending"></i></div>
-                        <button class="consent-btn" data-doc="terms"><i class="fas fa-file-contract"></i> Пользовательское соглашение</button>
-                        <a href="/legal?terms" target="_blank" class="doc-link"><i class="fas fa-external-link-alt"></i></a>
+                        <button class="consent-btn" data-doc="terms">
+                            <i class="fas fa-file-contract"></i> Пользовательское соглашение
+                        </button>
+                        <a href="legal.html#terms" target="_blank" class="doc-link">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
                     </div>
                     <div class="consent-item" data-doc="privacy">
                         <div class="consent-status"><i class="fas fa-circle pending"></i></div>
-                        <button class="consent-btn" data-doc="privacy"><i class="fas fa-shield-alt"></i> Политика конфиденциальности</button>
-                        <a href="/legal?privacy" target="_blank" class="doc-link"><i class="fas fa-external-link-alt"></i></a>
+                        <button class="consent-btn" data-doc="privacy">
+                            <i class="fas fa-shield-alt"></i> Политика конфиденциальности
+                        </button>
+                        <a href="legal.html#privacy" target="_blank" class="doc-link">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
                     </div>
                 </div>
-                <div class="consent-progress"><span id="completedCount">0</span> из <span id="totalCount">3</span> документов</div>
-                <div class="warning-message" id="warningMessage"><i class="fas fa-exclamation-triangle"></i> Ознакомьтесь со всеми документами</div>
+                <div class="consent-progress">
+                    Ознакомлено: <span id="completedCount">0</span> из <span>3</span>
+                </div>
+                <div class="warning-message" id="warningMessage">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Ознакомьтесь со всеми документами перед авторизацией
+                </div>
             </div>
 
+            <!-- Безопасность -->
             <div class="security-note">
                 <i class="fas fa-shield-alt"></i>
-                <div><strong>Безопасность:</strong> Мы не получаем доступ к вашим паролям. Авторизация происходит через официальные API.</div>
+                <div>
+                    <strong>Безопасность</strong>
+                    Мы не получаем доступ к вашим паролям. Авторизация происходит через официальные API Discord и Telegram.
+                </div>
             </div>
 
+            <!-- Футер -->
             <div class="auth-footer">
-                <p>Нажимая кнопку авторизации, вы принимаете <a href="/legal">условия использования</a></p>
+                <p>Нажимая кнопку авторизации, вы принимаете <a href="legal.html">условия использования</a></p>
             </div>
         </div>
     </div>
 
-    <script src="js/cursor.js"></script>
-    <script src="js/pkm.js"></script>
-    <script src="js/mobile-nav.js"></script>
-    <script src="js/auth.js"></script>
-
     <script>
         (function() {
+            // ============ КЛЮЧИ ============
             const STORAGE_KEYS = {
                 offer: 'legal_consent_offer',
                 terms: 'legal_consent_terms',
                 privacy: 'legal_consent_privacy'
             };
             
+            // Сброс при загрузке
+            Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
+            sessionStorage.removeItem('consent_verified');
+            
+            // ============ DOM ============
             const discordBtn = document.getElementById('discordAuthBtn');
             const telegramBtn = document.getElementById('telegramAuthBtn');
             const consentBtns = document.querySelectorAll('.consent-btn');
@@ -108,16 +155,45 @@
             
             let isTelegramProcessing = false;
             
+            // ============ ПРОВЕРКИ ============
             function checkAllConsents() {
-                return localStorage.getItem(STORAGE_KEYS.offer) === 'true' &&
-                       localStorage.getItem(STORAGE_KEYS.terms) === 'true' &&
-                       localStorage.getItem(STORAGE_KEYS.privacy) === 'true';
+                const allSet = Object.values(STORAGE_KEYS).every(key => localStorage.getItem(key) === 'true');
+                const sessionOk = sessionStorage.getItem('consent_verified') === 'ok';
+                return allSet && sessionOk;
             }
             
             function getCompletedCount() {
                 return Object.values(STORAGE_KEYS).filter(key => localStorage.getItem(key) === 'true').length;
             }
             
+            // ============ БЛОКИРОВКА/РАЗБЛОКИРОВКА ============
+            function lockAuthButtons() {
+                [discordBtn, telegramBtn].forEach(btn => {
+                    if (btn) {
+                        btn.classList.add('locked');
+                        btn.style.pointerEvents = 'none';
+                        btn.setAttribute('disabled', '');
+                    }
+                });
+                sessionStorage.removeItem('consent_verified');
+            }
+            
+            function unlockAuthButtons() {
+                if (getCompletedCount() < 3) return;
+                if (!sessionStorage.getItem('consent_verified')) return;
+                
+                [discordBtn, telegramBtn].forEach(btn => {
+                    if (btn) {
+                        btn.classList.remove('locked');
+                        btn.classList.add('unlocked');
+                        btn.style.pointerEvents = 'auto';
+                        btn.removeAttribute('disabled');
+                        setTimeout(() => btn.classList.remove('unlocked'), 600);
+                    }
+                });
+            }
+            
+            // ============ UI ============
             function updateUI() {
                 if (completedSpan) completedSpan.textContent = getCompletedCount();
                 
@@ -130,198 +206,179 @@
                     if (item) {
                         if (isCompleted) {
                             item.classList.add('completed');
-                            if (btn) btn.innerHTML = `<i class="fas fa-check-circle"></i> Ознакомлен(а)`;
+                            if (btn) btn.innerHTML = '<i class="fas fa-check-circle"></i> Ознакомлен(а)';
                             if (statusIcon) statusIcon.className = 'fas fa-check-circle completed';
                         } else {
                             item.classList.remove('completed');
                             if (btn) {
-                                const texts = { offer: 'Оферта', terms: 'Пользовательское соглашение', privacy: 'Политика конфиденциальности' };
-                                btn.innerHTML = `<i class="fas ${doc === 'offer' ? 'fa-file-signature' : doc === 'terms' ? 'fa-file-contract' : 'fa-shield-alt'}"></i> ${texts[doc]}`;
+                                const icons = { offer: 'fa-file-signature', terms: 'fa-file-contract', privacy: 'fa-shield-alt' };
+                                const labels = { offer: 'Публичная оферта', terms: 'Пользовательское соглашение', privacy: 'Политика конфиденциальности' };
+                                btn.innerHTML = `<i class="fas ${icons[doc]}"></i> ${labels[doc]}`;
                             }
                             if (statusIcon) statusIcon.className = 'fas fa-circle pending';
                         }
                     }
                 });
                 
-                if (warningMessage) warningMessage.classList.toggle('show', !checkAllConsents());
+                const allThree = getCompletedCount() === 3;
+                
+                if (allThree) {
+                    sessionStorage.setItem('consent_verified', 'ok');
+                    if (warningMessage) warningMessage.classList.remove('show');
+                    unlockAuthButtons();
+                } else {
+                    sessionStorage.removeItem('consent_verified');
+                    if (warningMessage) warningMessage.classList.add('show');
+                    lockAuthButtons();
+                }
             }
             
+            // ============ КЛИК ПО СОГЛАСИЯМ ============
             consentBtns.forEach(btn => {
-                btn.addEventListener('click', (e) => {
+                btn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    const docType = btn.getAttribute('data-doc');
-                    if (docType && localStorage.getItem(STORAGE_KEYS[docType]) !== 'true') {
-                        localStorage.setItem(STORAGE_KEYS[docType], 'true');
-                        updateUI();
+                    
+                    const docType = this.getAttribute('data-doc');
+                    if (!docType) return;
+                    
+                    const key = STORAGE_KEYS[docType];
+                    const current = localStorage.getItem(key);
+                    
+                    if (current === 'true') {
+                        localStorage.removeItem(key);
+                    } else {
+                        localStorage.setItem(key, 'true');
                     }
+                    
+                    updateUI();
                 });
             });
             
-            // DISCORD
-            function startDiscordAuth() {
-                if (!checkAllConsents()) {
-                    warningMessage.classList.add('show');
-                    return;
-                }
+            // ============ ЗАЩИТА КНОПОК АВТОРИЗАЦИИ ============
+            [discordBtn, telegramBtn].forEach(btn => {
+                if (!btn) return;
+                
+                btn.addEventListener('click', function(e) {
+                    if (!checkAllConsents()) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        
+                        if (warningMessage) {
+                            warningMessage.classList.add('show');
+                            warningMessage.style.animation = 'none';
+                            void warningMessage.offsetHeight;
+                            warningMessage.style.animation = 'shake 0.5s ease';
+                        }
+                        return false;
+                    }
+                }, true);
+            });
+            
+            // ============ DISCORD ============
+            async function startDiscordAuth() {
+                if (!checkAllConsents()) return;
+                
                 const clientId = '1328718434967486575';
                 const redirectUri = 'https://bhstore.netlify.app/auth/discord/callback';
-                const state = Math.random().toString(36).substring(2, 15);
+                const state = Math.random().toString(36).substring(2, 15) + '_' + Date.now();
                 localStorage.setItem('discord_oauth_state', state);
+                
                 const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify email&state=${state}&prompt=consent`;
-                window.open(authUrl, 'Discord Auth', 'width=500,height=600,menubar=no,toolbar=no,location=no,status=no');
+                window.open(authUrl, 'Discord Auth', 'width=500,height=650');
             }
             
-            // TELEGRAM с reCAPTCHA
+            // ============ TELEGRAM ============
             async function startTelegramAuth() {
-                if (!checkAllConsents()) {
-                    warningMessage.classList.add('show');
-                    return;
-                }
+                if (!checkAllConsents() || isTelegramProcessing) return;
                 
-                if (isTelegramProcessing) return;
                 isTelegramProcessing = true;
-                
                 const btn = telegramBtn;
-                const originalContent = btn.innerHTML;
+                const orig = btn.innerHTML;
                 btn.disabled = true;
-                btn.innerHTML = '<div class="btn-auth-icon"><i class="fas fa-spinner fa-spin"></i></div><div class="btn-auth-content"><span class="btn-auth-title">Обработка...</span><span class="btn-auth-desc">Пожалуйста, подождите</span></div><i class="fas fa-chevron-right btn-auth-arrow"></i>';
+                btn.innerHTML = '<div class="btn-auth-icon"><i class="fas fa-spinner fa-spin"></i></div><div class="btn-auth-content"><span class="btn-auth-title">Обработка...</span></div>';
                 
                 try {
-                    // Получаем reCAPTCHA токен
-                    const recaptchaToken = await grecaptcha.execute('6LfunBMtAAAAAERlHV1wjXssrw5yYmgPUmxvVUAQ', { action: 'telegram_login' });
-                    
-                    // Создаём сессию на сервере
-                    const response = await fetch('/api/telegram/create-session', {
+                    const token = await grecaptcha.execute('6LfunBMtAAAAAERlHV1wjXssrw5yYmgPUmxvVUAQ', { action: 'telegram_login' });
+                    const res = await fetch('/api/telegram/create-session', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ recaptchaToken })
+                        body: JSON.stringify({ recaptchaToken: token })
                     });
-                    
-                    const data = await response.json();
+                    const data = await res.json();
                     
                     if (data.success) {
-                        // Открываем ссылку на бота
                         window.open(data.botLink, '_blank');
-                        alert('✅ Перейдите в Telegram и подтвердите вход!\n\nСсылка действительна 10 минут.');
+                        alert('✅ Перейдите в Telegram и подтвердите вход!');
                     } else {
-                        alert('❌ Ошибка: ' + (data.error || 'Не удалось создать сессию'));
+                        alert('❌ ' + (data.error || 'Ошибка'));
                         btn.disabled = false;
-                        btn.innerHTML = originalContent;
+                        btn.innerHTML = orig;
                     }
-                } catch (error) {
-                    console.error('Telegram auth error:', error);
-                    alert('❌ Ошибка: ' + error.message);
+                } catch (e) {
+                    alert('❌ ' + e.message);
                     btn.disabled = false;
-                    btn.innerHTML = originalContent;
+                    btn.innerHTML = orig;
                 } finally {
                     isTelegramProcessing = false;
                 }
             }
             
-            if (discordBtn) discordBtn.addEventListener('click', startDiscordAuth);
-            if (telegramBtn) telegramBtn.addEventListener('click', startTelegramAuth);
+            // ============ СОБЫТИЯ ============
+            discordBtn?.addEventListener('click', startDiscordAuth);
+            telegramBtn?.addEventListener('click', startTelegramAuth);
             
-            // DISCORD CALLBACK
-            window.addEventListener('message', async (event) => {
-                if (event.data?.type === 'DISCORD_AUTH_CALLBACK') {
-                    if (!checkAllConsents()) {
-                        alert('Ознакомьтесь со всеми документами');
-                        return;
-                    }
-                    const savedState = localStorage.getItem('discord_oauth_state');
-                    if (savedState !== event.data.state) {
-                        alert('Ошибка безопасности');
-                        return;
-                    }
-                    localStorage.removeItem('discord_oauth_state');
+            // ============ DISCORD CALLBACK ============
+            window.addEventListener('message', async (e) => {
+                if (e.data?.type !== 'DISCORD_AUTH_CALLBACK') return;
+                if (!checkAllConsents()) { alert('Примите все согласия'); return; }
+                
+                const saved = localStorage.getItem('discord_oauth_state');
+                if (saved !== e.data.state) { alert('Ошибка безопасности'); return; }
+                localStorage.removeItem('discord_oauth_state');
+                
+                if (!e.data.code) { alert('Код не получен'); return; }
+                
+                discordBtn.disabled = true;
+                telegramBtn.disabled = true;
+                
+                try {
+                    const res = await fetch('/api/auth/discord', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code: e.data.code })
+                    });
+                    const data = await res.json();
                     
-                    const code = event.data.code;
-                    if (!code) {
-                        alert('Код не получен');
-                        return;
-                    }
-                    
-                    discordBtn.disabled = true;
-                    telegramBtn.disabled = true;
-                    
-                    try {
-                        const response = await fetch('/api/auth/discord', {
+                    if (data.success && data.user) {
+                        const code = String(Math.floor(100000 + Math.random() * 900000));
+                        await fetch('/api/send-verification', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ code })
+                            body: JSON.stringify({ userId: data.user.id, code })
                         });
-                        const data = await response.json();
-                        
-                        if (data.success && data.user) {
-                            const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-                            const sendResponse = await fetch('/api/send-verification', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ userId: data.user.id, code: verificationCode })
-                            });
-                            const sendResult = await sendResponse.json();
-                            
-                            if (sendResult.success) {
-                                localStorage.setItem('bhstore_auth', JSON.stringify({
-                                    ...data.user,
-                                    verificationCode,
-                                    token: data.token
-                                }));
-                                window.location.href = '/verify.html';
-                            } else {
-                                throw new Error('Ошибка отправки кода');
-                            }
-                        } else {
-                            throw new Error(data.error || 'Ошибка авторизации');
-                        }
-                    } catch (error) {
-                        alert('Ошибка: ' + error.message);
-                        discordBtn.disabled = false;
-                        telegramBtn.disabled = false;
+                        localStorage.setItem('bhstore_auth', JSON.stringify({ ...data.user, verificationCode: code, token: data.token }));
+                        location.href = '/verify.html';
+                    } else {
+                        throw new Error(data.error || 'Ошибка');
                     }
+                } catch (err) {
+                    alert('Ошибка: ' + err.message);
+                    discordBtn.disabled = false;
+                    telegramBtn.disabled = false;
                 }
             });
             
-            // Проверка уже авторизованного
-            const authData = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-            if (authData.username && !authData.verificationCode) {
-                window.location.href = '/';
-            }
+            // ============ УЖЕ АВТОРИЗОВАН ============
+            try {
+                const auth = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
+                if (auth.username && !auth.verificationCode) location.href = '/';
+            } catch(e) {}
             
+            // ============ СТАРТ ============
+            lockAuthButtons();
             updateUI();
         })();
     </script>
-    
-    <style>
-        .auth-buttons { display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; }
-        .btn-auth { display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: #2a2b36; border: 1px solid #40444b; border-radius: 16px; cursor: pointer; transition: all 0.2s ease; width: 100%; }
-        .btn-auth:hover { transform: translateY(-2px); background: #1e1f29; }
-        .btn-discord-auth:hover { border-color: #5865F2; background: rgba(88,101,242,0.1); }
-        .btn-telegram-auth:hover { border-color: #26A5E4; background: rgba(38,165,228,0.1); }
-        .btn-auth-icon { width: 48px; height: 48px; background: #1e1f29; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-        .btn-discord-auth .btn-auth-icon { color: #5865F2; }
-        .btn-telegram-auth .btn-auth-icon { color: #26A5E4; }
-        .btn-auth-content { flex: 1; text-align: left; }
-        .btn-auth-title { display: block; font-size: 1.1rem; font-weight: 600; color: white; }
-        .btn-auth-desc { display: block; font-size: 0.8rem; color: #72767d; }
-        .btn-auth-arrow { color: #72767d; }
-        .btn-auth:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-        .consent-section { background: #1e1f29; border-radius: 16px; padding: 20px; margin: 20px 0; }
-        .consent-header { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #40444b; color: #5865F2; font-weight: 600; }
-        .consent-buttons { display: flex; flex-direction: column; gap: 10px; }
-        .consent-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: #2a2b36; border-radius: 12px; }
-        .consent-item.completed { background: rgba(87,242,135,0.1); }
-        .consent-status i.pending { color: #FEE75C; }
-        .consent-status i.completed { color: #57F287; }
-        .consent-btn { flex: 1; text-align: left; background: none; border: none; color: #b9bbbe; cursor: pointer; padding: 8px; border-radius: 8px; }
-        .consent-btn:hover { background: rgba(88,101,242,0.2); color: white; }
-        .doc-link { color: #5865F2; padding: 8px; border-radius: 8px; }
-        .doc-link:hover { background: rgba(88,101,242,0.2); }
-        .consent-progress { text-align: center; margin-top: 15px; padding-top: 10px; border-top: 1px solid #40444b; font-size: 0.85rem; color: #72767d; }
-        .warning-message { display: none; align-items: center; gap: 8px; background: rgba(237,66,69,0.15); color: #ED4245; padding: 10px 15px; border-radius: 10px; margin-top: 15px; }
-        .warning-message.show { display: flex; }
-        @media (max-width: 768px) { .btn-auth-icon { width: 40px; height: 40px; } .btn-auth-title { font-size: 1rem; } }
-    </style>
-    <div class="custom-cursor"></div>
 </body>
 </html>

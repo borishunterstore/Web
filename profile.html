@@ -1,21 +1,35 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Профиль | BHStore</title>
     <meta name="description" content="Управляйте своим профилем, балансом и заказами в BHStore">
+    <meta name="theme-color" content="#0C0A14">
+    
     <link rel="stylesheet" href="css/general.css">
     <link rel="stylesheet" href="css/profile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="/image/logo.png">
-    <!-- Yandex.Metrika counter -->
-    <script type="text/javascript">
-        (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097','ym');
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://api.fontshare.com/v2/css?f[]=clash-display@700,800&display=swap" rel="stylesheet">
+    
+    <link rel="icon" type="image/png" href="image/logo.png">
+    <link rel="apple-touch-icon" href="image/logo.png">
+    
+    <!-- Yandex.Metrika -->
+    <script>
+        (function(m,e,t,r,i,k,a){
+            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+            m[i].l=1*new Date();
+            for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}
+            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+        })(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097','ym');
         ym(107215097,'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",referrer:document.referrer,url:location.href,accurateTrackBounce:true,trackLinks:true});
     </script>
-    <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute;left:-9999px" alt=""></div></noscript>
+    
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/chat.js"></script>
@@ -30,99 +44,185 @@
 <body>
     <div class="custom-cursor"></div>
     
-    <nav class="navbar">
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
         <div class="nav-container">
-            <a href="/" class="nav-logo"><img src="image/logo.png" alt="BHStore" style="width: 50px;"><span class="logo-text">BHStore</span></a>
+            <a href="/" class="nav-logo">
+                <img src="image/logo.png" alt="BHStore" class="logo-image">
+                <span class="logo-text">BHStore</span>
+            </a>
             <div class="nav-menu">
                 <a href="/" class="nav-link"><i class="fas fa-home"></i> Главная</a>
-                <a href="/shop.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Магазин</a>
-                <a href="/news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
-                <a href="/faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
-                <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Правовая информация</a>
+                <a href="shop.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Магазин</a>
+                <a href="news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
+                <a href="faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
+                <a href="legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Документы</a>
             </div>
-            <div class="nav-auth"><button id="authBtn" class="btn-discord"><i class="fab fa-discord"></i> Войти</button></div>
-            <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+            <div class="nav-auth">
+                <button id="authBtn" class="btn-discord"><i class="fab fa-discord"></i><span>Войти</span></button>
+            </div>
+            <button class="mobile-menu-btn" aria-label="Меню"><i class="fas fa-bars"></i></button>
         </div>
     </nav>
 
+    <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+    <div class="mobile-nav" id="mobileNav">
+        <div class="mobile-nav-header">
+            <div class="mobile-nav-logo"><img src="image/logo.png" alt="BHStore"><span>BHStore</span></div>
+            <button class="mobile-nav-close" aria-label="Закрыть"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="mobile-nav-menu">
+            <a href="/" class="nav-link"><i class="fas fa-home"></i> Главная</a>
+            <a href="shop.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Магазин</a>
+            <a href="news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
+            <a href="faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
+            <a href="legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Документы</a>
+        </div>
+        <div class="mobile-nav-auth">
+            <button class="btn-discord"><i class="fab fa-discord"></i> Войти</button>
+        </div>
+    </div>
+
+    <!-- Profile Content -->
     <div class="profile-container">
+        <!-- Header -->
         <div class="profile-header" id="profileHeader"></div>
         
-        <div class="balance-section" id="balanceSection">
-            <h2><i class="fas fa-coins"></i>Баланс</h2>
-            <div class="balance-info">
-                <div><div class="balance-label">Текущий баланс</div><div class="balance-amount" id="balanceAmount">0₽</div></div>
-                <div class="balance-actions"><button class="btn-primary" onclick="window.showAddBalanceModal()"><i class="fas fa-plus"></i> Пополнить</button></div>
+        <!-- Stats -->
+        <div class="profile-stats">
+            <div class="stat-card">
+                <div class="stat-card-icon"><i class="fas fa-shopping-bag"></i></div>
+                <div class="stat-card-value" id="totalOrdersStat">0</div>
+                <div class="stat-card-label">Всего заказов</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-icon"><i class="fas fa-coins"></i></div>
+                <div class="stat-card-value" id="totalSpentStat">0₽</div>
+                <div class="stat-card-label">Потрачено всего</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-icon"><i class="fas fa-calendar-alt"></i></div>
+                <div class="stat-card-value" id="memberSinceStat">...</div>
+                <div class="stat-card-label">С нами</div>
+            </div>
+        </div>
+        
+        <!-- Balance -->
+        <div class="balance-section">
+            <div class="balance-header">
+                <div class="balance-icon"><i class="fas fa-coins"></i></div>
+                <h2>Баланс</h2>
+            </div>
+            <div class="balance-body">
+                <div>
+                    <div class="balance-label">Текущий баланс</div>
+                    <div class="balance-amount" id="balanceAmount">0₽</div>
+                </div>
+                <div class="balance-actions">
+                    <button class="btn-primary" onclick="window.showAddBalanceModal()">
+                        <i class="fas fa-plus"></i> Пополнить
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div class="profile-stats" style="margin-bottom: 25px;">
-            <div class="stat-card"><div class="stat-icon"><i class="fas fa-shopping-bag"></i></div><div class="stat-value" id="totalOrdersStat">0</div><div class="stat-label">Всего заказов</div></div>
-            <div class="stat-card"><div class="stat-icon"><i class="fas fa-coins"></i></div><div class="stat-value" id="totalSpentStat">0₽</div><div class="stat-label">Потрачено всего</div></div>
-            <div class="stat-card"><div class="stat-icon"><i class="fas fa-calendar"></i></div><div class="stat-value" id="memberSinceStat">...</div><div class="stat-label">С нами</div></div>
-        </div>
-
+        <!-- Support Chat -->
         <div class="profile-section">
-            <h2><i class="fas fa-headset"></i> Поддержка</h2>
-            <div id="supportChat" class="chat-container"><div style="text-align: center; padding: 40px; color: #b9bbbe;"><i class="fas fa-spinner fa-spin"></i><p>Загрузка чата...</p></div></div>
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-headset"></i></div>
+                <h2>Поддержка</h2>
+            </div>
+            <div id="supportChat">
+                <div style="text-align:center;padding:40px;color:#7C7888;">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Загрузка чата...</p>
+                </div>
+            </div>
         </div>
         
+        <!-- Promocodes -->
         <div class="promocode-section" id="promocodeSection">
-            <h2><i class="fas fa-ticket-alt"></i> Промокоды</h2>
+            <div class="section-header">
+                <div class="section-icon" style="background:rgba(245,158,11,0.1);color:#F59E0B;">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+                <h2>Промокоды</h2>
+            </div>
             <div class="promocode-input-container">
                 <input type="text" id="promocodeInput" placeholder="Введите промокод" autocomplete="off">
-                <button id="applyPromocodeBtn" class="btn-promocode"><i class="fas fa-check"></i> Активировать</button>
+                <button id="applyPromocodeBtn" class="btn-promocode">
+                    <i class="fas fa-check"></i> Активировать
+                </button>
             </div>
             <div id="promocodeMessage"></div>
-            <div id="userActivePromocodes" style="margin-top: 20px;"></div>
-            <div id="userPromocodesList" style="margin-top: 20px;"></div>
+            <div id="userActivePromocodes" style="margin-top:20px;"></div>
+            <div id="userPromocodesList" style="margin-top:20px;"></div>
         </div>
         
+        <!-- Orders -->
         <div class="orders-list">
-            <h2><i class="fas fa-shopping-bag"></i>Мои заказы</h2>
+            <div class="section-header">
+                <div class="section-icon"><i class="fas fa-shopping-bag"></i></div>
+                <h2>Мои заказы</h2>
+            </div>
             <div id="ordersList"></div>
         </div>
     </div>
 
-    <div id="addBalanceModal" class="modal" style="display: none;">
+    <!-- Balance Modal -->
+    <div id="addBalanceModal" class="modal" style="display:none;">
         <div class="modal-content">
-            <h2><i class="fas fa-coins"></i>Пополнение баланса</h2>
-            <p>Для пополнения баланса обратитесь к администратору через чат с поддержкой или Discord.</p>
+            <h2><i class="fas fa-coins"></i> Пополнение баланса</h2>
+            <p>Для пополнения баланса обратитесь к администратору через чат поддержки или Discord.</p>
             <div class="modal-actions">
-                <button class="btn-primary" onclick="window.location.href='#supportChat'"><i class="fas fa-headset"></i> Написать в поддержку</button>
-                <button class="btn-admin" onclick="window.closeModal('addBalanceModal')"><i class="fas fa-times"></i> Закрыть</button>
+                <button class="btn-primary" onclick="window.location.href='#supportChat'">
+                    <i class="fas fa-headset"></i> Написать в поддержку
+                </button>
+                <button class="btn-secondary" onclick="document.getElementById('addBalanceModal').style.display='none'">
+                    <i class="fas fa-times"></i> Закрыть
+                </button>
             </div>
         </div>
     </div>
 
-    <footer class="footer">
-        <img src="image/bhstore.png" style="width: 100%;">
-        <p class="footertxt" style="text-align: center; margin-bottom: 20px;">СПАСИБО, ЧТО ИСПОЛЬЗУЕТЕ НАШ СЕРВИС!</p>
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3><i class="fas fa-compass"></i> Навигация</h3>
-                <a href="/"><i class="fas fa-home"></i> Главная</a>
-                <a href="shop.html"><i class="fas fa-shopping-cart"></i> Магазин</a>
-                <a href="news.html"><i class="fas fa-newspaper"></i> Новости</a>
-                <a href="faq.html"><i class="fas fa-question-circle"></i> FAQ</a>
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="image/bhstore.png" alt="BHStore" style="width:100%;max-width:280px;">
+                    <p style="margin-top:16px;">Профессиональная разработка с гарантией качества.</p>
+                </div>
+                <div class="footer-column">
+                    <h4><i class="fas fa-compass"></i> Навигация</h4>
+                    <div class="footer-links">
+                        <a href="/"><i class="fas fa-home"></i> Главная</a>
+                        <a href="shop.html"><i class="fas fa-shopping-cart"></i> Магазин</a>
+                        <a href="news.html"><i class="fas fa-newspaper"></i> Новости</a>
+                        <a href="faq.html"><i class="fas fa-question-circle"></i> FAQ</a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h4><i class="fas fa-file-contract"></i> Документы</h4>
+                    <div class="footer-links">
+                        <a href="legal.html#terms"><i class="fas fa-file-signature"></i> Соглашение</a>
+                        <a href="legal.html#privacy"><i class="fas fa-shield-alt"></i> Конфиденциальность</a>
+                        <a href="legal.html#offer"><i class="fas fa-hand-holding-heart"></i> Оферта</a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h4><i class="fas fa-headset"></i> Контакты</h4>
+                    <div class="footer-links">
+                        <a href="https://t.me/borishunterstore" target="_blank" rel="noopener"><i class="fab fa-telegram"></i> Telegram</a>
+                        <a href="https://discord.gg/YfZxXXeW6D" target="_blank" rel="noopener"><i class="fab fa-discord"></i> Discord</a>
+                        <a href="https://vk.com/fastvideo_zeny" target="_blank" rel="noopener"><i class="fab fa-vk"></i> VK</a>
+                    </div>
+                </div>
             </div>
-            <div class="footer-section">
-                <h3><i class="fas fa-file-contract"></i> Документы</h3>
-                <a href="legal.html#terms"><i class="fas fa-file-signature"></i> Пользовательское соглашение</a>
-                <a href="legal.html#privacy"><i class="fas fa-shield-alt"></i> Политика конфиденциальности</a>
-                <a href="legal.html#offer"><i class="fas fa-hand-holding-heart"></i> Публичная оферта</a>
+            <div class="footer-bottom">
+                <p>&copy; 2024–2026 BHStore. Все права защищены.</p>
+                <p>ИНН: 742541714674 / Стахеев Д.А.</p>
             </div>
-            <div class="footer-section">
-                <h3><i class="fas fa-headset"></i> Контакты</h3>
-                <a href="https://t.me/borishunterstore"><i class="fab fa-telegram"></i> TELEGRAM</a>
-                <a href="https://www.facebook.com/groups/borishunterstore"><i class="fab fa-facebook"></i> FACEBOOK</a>
-                <a href="https://discord.gg/YfZxXXeW6D"><i class="fab fa-discord"></i> DISCORD</a>
-                <a href="https://vk.com/fastvideo_zeny"><i class="fab fa-vk"></i> VK</a>
-            </div>
-        </div>
-        <div class="footer-bottom" style="margin-bottom: 20px;">
-            <p><i class="far fa-copyright"></i> 2024 - 2026 BHStore. Все права защищены.</p>
-            <p><i class="fas fa-id-card"></i> ИНН: 742541714674 / Стахеев Д.А.</p>
         </div>
     </footer>
 </body>

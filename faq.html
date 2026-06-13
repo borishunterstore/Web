@@ -1,29 +1,27 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>FAQ | BHStore</title>
+    <meta name="description" content="Часто задаваемые вопросы BHStore. Ответы на вопросы о регистрации, заказах, оплате и поддержке.">
+    
+    <meta property="og:title" content="FAQ | BHStore">
+    <meta property="og:description" content="Ответы на часто задаваемые вопросы">
+    <meta property="og:image" content="image/logo.png">
+    
+    <meta name="theme-color" content="#0C0A14">
+    
     <link rel="stylesheet" href="css/general.css">
     <link rel="stylesheet" href="css/faq.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="/image/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://api.fontshare.com/v2/css?f[]=clash-display@700,800&display=swap" rel="stylesheet">
     
-    <!-- Yandex.Metrika counter -->
-    <script type="text/javascript">
-        (function(m,e,t,r,i,k,a){
-            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-            m[i].l=1*new Date();
-            for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-        })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097', 'ym');
-
-        ym(107215097, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-    </script>
-    <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-    <!-- /Yandex.Metrika counter -->
+    <link rel="icon" type="image/png" href="image/logo.png">
+    <link rel="apple-touch-icon" href="image/logo.png">
     
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
@@ -38,182 +36,391 @@
 <body>
     <div class="custom-cursor"></div>
 
-    <nav class="navbar">
+    <!-- Yandex.Metrika -->
+    <script>
+        (function(m,e,t,r,i,k,a){
+            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+            m[i].l=1*new Date();
+            for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}
+            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+        })(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097','ym');
+        ym(107215097,'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",referrer:document.referrer,url:location.href,accurateTrackBounce:true,trackLinks:true});
+    </script>
+    <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute;left:-9999px" alt=""></div></noscript>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo">
-                <img src="image/logo.png" alt="BHStore" style="width: 50px;">
+                <img src="image/logo.png" alt="BHStore" class="logo-image">
                 <span class="logo-text">BHStore</span>
             </a>
             <div class="nav-menu">
                 <a href="/" class="nav-link"><i class="fas fa-home"></i> Главная</a>
-                <a href="/shop.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Магазин</a>
-                <a href="/news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
-                <a href="/faq.html" class="nav-link active"><i class="fas fa-question-circle"></i> FAQ</a>
-                <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Правовая информация</a>
+                <a href="shop.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Магазин</a>
+                <a href="news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
+                <a href="faq.html" class="nav-link active"><i class="fas fa-question-circle"></i> FAQ</a>
+                <a href="legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Документы</a>
             </div>
             <div class="nav-auth">
                 <button id="authBtn" class="btn-discord">
-                    <i class="fab fa-discord"></i> Войти
+                    <i class="fab fa-discord"></i>
+                    <span>Войти</span>
                 </button>
             </div>
-            <button class="mobile-menu-btn">
+            <button class="mobile-menu-btn" aria-label="Открыть меню">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
     </nav>
 
-    <div class="faq-container">
-        <h1 class="section-title logo-text">BHSTORE FAQ</h1>
-        
-        <div class="faq-search">
-            <i class="fas fa-search"></i>
-            <input type="text" id="faqSearch" placeholder="Поиск по вопросам...">
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+    <div class="mobile-nav" id="mobileNav">
+        <div class="mobile-nav-header">
+            <div class="mobile-nav-logo">
+                <img src="image/logo.png" alt="BHStore">
+                <span>BHStore</span>
+            </div>
+            <button class="mobile-nav-close" aria-label="Закрыть меню">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        
-        <div class="faq-count">
+        <div class="mobile-nav-menu">
+            <a href="/" class="nav-link"><i class="fas fa-home"></i> Главная</a>
+            <a href="shop.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Магазин</a>
+            <a href="news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
+            <a href="faq.html" class="nav-link active"><i class="fas fa-question-circle"></i> FAQ</a>
+            <a href="legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Документы</a>
+        </div>
+        <div class="mobile-nav-auth">
+            <button id="mobileAuthBtn" class="btn-discord">
+                <i class="fab fa-discord"></i> Войти через Discord
+            </button>
+        </div>
+    </div>
+
+    <!-- FAQ Banner -->
+    <section class="faq-banner">
+        <img src="image/banner.jpg" alt="BHStore FAQ" class="faq-banner-image" loading="eager">
+        <div class="faq-banner-overlay">
+            <div class="faq-banner-content">
+                <div class="faq-banner-badge">
+                    <i class="fas fa-bolt"></i> BHStore
+                </div>
+                <h1 class="faq-banner-title">
+                    Часто задаваемые вопросы
+                    <span class="faq-banner-subtitle">Ответы на популярные вопросы о нашем сервисе</span>
+                </h1>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Content -->
+    <div class="faq-container">
+        <div class="faq-header">
+            <div class="faq-header-icon">
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <h1>BHSTORE FAQ</h1>
+            <p>Здесь собраны ответы на самые популярные вопросы</p>
+        </div>
+
+        <!-- Search -->
+        <div class="faq-search-wrapper">
+            <input type="text" class="faq-search-input" id="faqSearch" placeholder="Поиск по вопросам...">
+            <i class="fas fa-search faq-search-icon"></i>
+        </div>
+
+        <!-- Counter -->
+        <div class="faq-counter" id="faqCounter">
             Показано <span id="visibleCount">6</span> из <span id="totalCount">6</span> вопросов
         </div>
-        
-        <div class="faq-item">
-            <div class="faq-question">
-                <span><img src="image/emoji/Invite_member.png" style="width: 50px; vertical-align: middle; margin-right: 15px;"> Как зарегистрироваться на сайте?</span>
-                <i class="fas fa-chevron-down"></i>
+
+        <!-- FAQ List -->
+        <div class="faq-list" id="faqList">
+            <!-- Item 1 -->
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <span class="faq-question-text">Как зарегистрироваться на сайте?</span>
+                    <div class="faq-question-chevron">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="faq-answer-wrapper">
+                    <div class="faq-answer-content">
+                        <div class="faq-answer-inner">
+                            <div class="step">
+                                <span class="faq-step-number">1</span>
+                                Нажмите на кнопку в правом верхнем углу «Войти нажмите для входа»
+                            </div>
+                            <div class="step">
+                                <span class="faq-step-number">2</span>
+                                Авторизуйтесь через Discord или Telegram
+                            </div>
+                            <div class="step">
+                                <span class="faq-step-number">3</span>
+                                Готово! Вы успешно зарегистрированы
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="faq-answer">
-                <p><img src="image/emoji/1.png" style="width: 25px; vertical-align: middle; margin-right: 7px;"> Нажмите на кнопку в правом верхнем углу "Войти через Discord"<br>
-                   <img src="image/emoji/2.png" style="width: 25px; vertical-align: middle; margin-right: 7px;"> Следуйте инструкции уже на сайте регистрации<br>
+
+            <!-- Item 2 -->
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <span class="faq-question-text">Как оформить заказ?</span>
+                    <div class="faq-question-chevron">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="faq-answer-wrapper">
+                    <div class="faq-answer-content">
+                        <div class="faq-answer-inner">
+                            <div class="step">
+                                <span class="faq-step-number">1</span>
+                                Авторизуйтесь на сайте
+                            </div>
+                            <div class="step">
+                                <span class="faq-step-number">2</span>
+                                Перейдите на страницу «Магазин»
+                            </div>
+                            <div class="step">
+                                <span class="faq-step-number">3</span>
+                                Выберите нужный товар и нажмите «Купить»
+                            </div>
+                            <div class="step">
+                                <span class="faq-step-number">4</span>
+                                Подтвердите покупку и ожидайте выполнения
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 3 -->
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <span class="faq-question-text">Как происходит завершение заказа?</span>
+                    <div class="faq-question-chevron">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="faq-answer-wrapper">
+                    <div class="faq-answer-content">
+                        <div class="faq-answer-inner">
+                            <p>После оформления заказа вам предоставляется примерная дата окончания работы. Если по истечении этого срока заказ не выполнен — свяжитесь с поддержкой.</p>
+                            <p>Обычно заказы выполняются в течение 1–3 рабочих дней, в зависимости от сложности.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 4 -->
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <span class="faq-question-text">Как получить помощь или поддержку?</span>
+                    <div class="faq-question-chevron">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="faq-answer-wrapper">
+                    <div class="faq-answer-content">
+                        <div class="faq-answer-inner">
+                            <p>Вы можете получить поддержку несколькими способами:</p>
+                            <div class="step">
+                                <span class="faq-step-number">
+                                    <i class="fas fa-comments"></i>
+                                </span>
+                                <a href="chat.html">Основной чат поддержки</a>
+                            </div>
+                            <div class="step">
+                                <span class="faq-step-number">
+                                    <i class="fas fa-user"></i>
+                                </span>
+                                <a href="profile.html#supportChat">Чат поддержки в профиле</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 5 -->
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-icon">
+                        <i class="fas fa-undo-alt"></i>
+                    </div>
+                    <span class="faq-question-text">Можно ли вернуть товар?</span>
+                    <div class="faq-question-chevron">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="faq-answer-wrapper">
+                    <div class="faq-answer-content">
+                        <div class="faq-answer-inner">
+                            <p>Подробные условия возврата описаны в документе:</p>
+                            <p>
+                                <a href="legal.html#offer">
+                                    <i class="fas fa-file-contract"></i> Публичная оферта
+                                </a>
+                            </p>
+                            <p>Ознакомьтесь с условиями перед оформлением заказа.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item 6 -->
+            <div class="faq-item">
+                <div class="faq-question">
+                    <div class="faq-question-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <span class="faq-question-text">Какие способы оплаты доступны?</span>
+                    <div class="faq-question-chevron">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+                <div class="faq-answer-wrapper">
+                    <div class="faq-answer-content">
+                        <div class="faq-answer-inner">
+                            <p>В данный момент доступна оплата через Систему Быстрых Платежей (СБП).</p>
+                            <p>Мы постоянно работаем над расширением способов оплаты. Следите за обновлениями в новостях!</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <div class="faq-item">
-            <div class="faq-question">
-                <span><img src="image/emoji/order.png" style="width: 50px; vertical-align: middle; margin-right: 15px;"> Как оформить заказ?</span>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="faq-answer">
-                <p><img src="image/emoji/1.png" style="width: 25px; vertical-align: middle; margin-right: 7px;"> Авторизуйтесь<br>
-                   <img src="image/emoji/2.png" style="width: 25px; vertical-align: middle; margin-right: 7px;"> Перейдите на страницу "Магазин"<br>
-                   <img src="image/emoji/3.png" style="width: 25px; vertical-align: middle; margin-right: 7px;"> Выберите товар и нажмите "Купить"<br>
-                   <img src="image/emoji/success.png" style="width: 25px; vertical-align: middle; margin-right: 7px;"> И всё! <img src="image/emoji/kitty.gif" style="width: 25px; vertical-align: middle; margin-right: 7px;"></p>
-            </div>
-        </div>
-        
-        <div class="faq-item">
-            <div class="faq-question">
-                <span><img src="image/emoji/Completed.png" style="width: 50px; vertical-align: middle; margin-right: 15px;"> Как происходит завершение заказа?</span>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="faq-answer">
-                <p>После оформление заказа вам дают примерную дату окончания работы. Если по истечении этого срока вам не сделали заказ, скорее всего он не оказался в приоритете.</p>
-            </div>
-        </div>
-        
-        <div class="faq-item">
-            <div class="faq-question">
-                <span><img src="image/emoji/jasp_support.png" style="width: 50px; vertical-align: middle; margin-right: 15px;"> Как получить помощь или поддержку?</span>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="faq-answer">
-                <p>Поддержку вы можете получить, перейдя на страницу "ЧАТ" или "ПРОФИЛЬ".<br>
-                    <br>
-                <img src="image/emoji/slowarrow.gif" style="width: 25px; vertical-align: middle; margin-right: 7px"> <a href="https://bhstore.netlify.app/profile#supportChat" style="color: #fff; padding: 0; margin: 0;">ПРОФИЛЬ(ЧАТ ПОДДЕРЖКИ)</a><br>
-                <img src="image/emoji/slowarrow.gif" style="width: 25px; vertical-align: middle; margin-right: 7px"> <a href="https://bhstore.netlify.app/chat" style="color: #fff; padding: 0; margin: 0;">ОСНОВНАЯ СТРАНИЦА ЧАТА ПОДДЕРЖКИ</a></p>
-            </div>
-        </div>
-        
-        <div class="faq-item">
-            <div class="faq-question">
-                <span><img src="image/emoji/info.png" style="width: 45px; vertical-align: middle; margin-right: 15px"> Можно ли вернуть товар?</span>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="faq-answer">
-                <p>Подробнее прочтите здесь <img src="image/emoji/slowarrow.gif" style="width: 25px; vertical-align: middle; margin-right: 7px"> <a href="https://bhstore.netlify.app/legal#offer" style="color: #fff; padding: 0; margin: 0;">ПУБЛИЧНАЯ ОФЕРТА</a></p>
-            </div>
-        </div>
-        
-        <div class="faq-item">
-            <div class="faq-question">
-                <span><img src="image/emoji/PAYMENT_SUPPORT.png" style="width: 45px; vertical-align: middle; margin-right: 15px">Какие способы оплаты доступны?</span>
-                <i class="fas fa-chevron-down"></i>
-            </div>
-            <div class="faq-answer">
-                <p>Сейчас доступна любая оплата которая есть в СБП </p>
-            </div>
-        </div>
-        
+
+        <!-- Support Section -->
         <div class="support-section">
-            <p class="txtminn"><i class="fas"></i> <img src="image/emoji/Villager_Question_What.png" style="vertical-align: middle"> Не нашли ответ на свой вопрос? <img src="image/emoji/Villager_Question_What.png" style="vertical-align: middle; transform: scaleX(-1);"></p>
-            <a href="/chat.html" onclick="alert('Внимание! При неподобающем общении с персоналом вы будете заблокированы')" class="btn-support">
-                <i class="fas"><img src="image/emoji/helper.png" style="width: 45px; vertical-align: middle; margin-right: 10px"></i> Связаться с поддержкой
+            <div class="support-icon">
+                <i class="fas fa-hands-helping"></i>
+            </div>
+            <h2>Не нашли ответ?</h2>
+            <p>Наша команда поддержки всегда готова помочь вам с любым вопросом</p>
+            <a href="chat.html" class="btn-support" onclick="alert('Внимание! При неподобающем общении с персоналом вы будете заблокированы')">
+                <img src="image/emoji/helper.png" alt="" class="btn-support-icon">
+                Связаться с поддержкой
             </a>
         </div>
     </div>
 
-    <footer class="footer"><img src="image/bhstore.png" style="width: 100%;"><p class="footertxt" style="text-align: center; margin-bottom: 20px;">СПАСИБО, ЧТО ИСПОЛЬЗУЕТЕ НАШ СЕРВИС!</p><div class="footer-content"><div class="footer-section"><h3><i class="fas fa-compass"></i> Навигация</h3><a href="/"><i class="fas fa-home"></i> Главная</a><a href="shop.html"><i class="fas fa-shopping-cart"></i> Магазин</a><a href="news.html"><i class="fas fa-newspaper"></i> Новости</a><a href="faq.html"><i class="fas fa-question-circle"></i> FAQ</a></div><div class="footer-section"><h3><i class="fas fa-file-contract"></i> Документы</h3><a href="legal.html#terms"><i class="fas fa-file-signature"></i> Пользовательское соглашение</a><a href="legal.html#privacy"><i class="fas fa-shield-alt"></i> Политика конфиденциальности</a><a href="legal.html#offer"><i class="fas fa-hand-holding-heart"></i> Публичная оферта</a></div><div class="footer-section"><h3><i class="fas fa-headset"></i> Контакты</h3><a href="https://t.me/borishunterstore"><i class="fab fa-telegram"></i> TELEGRAM</a><a href="https://www.facebook.com/groups/borishunterstore"><i class="fab fa-facebook"></i> FACEBOOK</a><a href="https://discord.gg/YfZxXXeW6D"><i class="fab fa-discord"></i> DISCORD</a><a href="https://vk.com/fastvideo_zeny"><i class="fab fa-vk"></i> VK</a></div></div><div class="footer-bottom" style="margin-bottom: 20px;"><p><i class="far fa-copyright"></i> 2024 - 2026 BHStore. Все права защищены.</p><p><i class="fas fa-id-card"></i> ИНН: 742541714674 / Стахеев Д.А.</p></div></footer>
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="image/bhstore.png" alt="BHStore" style="width: 100%; max-width: 280px;">
+                    <p style="margin-top: 16px;">Профессиональная разработка цифровых решений с гарантией качества.</p>
+                </div>
+                <div class="footer-column">
+                    <h4><i class="fas fa-compass"></i> Навигация</h4>
+                    <div class="footer-links">
+                        <a href="/"><i class="fas fa-home"></i> Главная</a>
+                        <a href="shop.html"><i class="fas fa-shopping-cart"></i> Магазин</a>
+                        <a href="news.html"><i class="fas fa-newspaper"></i> Новости</a>
+                        <a href="faq.html"><i class="fas fa-question-circle"></i> FAQ</a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h4><i class="fas fa-file-contract"></i> Документы</h4>
+                    <div class="footer-links">
+                        <a href="legal.html#terms"><i class="fas fa-file-signature"></i> Соглашение</a>
+                        <a href="legal.html#privacy"><i class="fas fa-shield-alt"></i> Конфиденциальность</a>
+                        <a href="legal.html#offer"><i class="fas fa-hand-holding-heart"></i> Оферта</a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h4><i class="fas fa-headset"></i> Контакты</h4>
+                    <div class="footer-links">
+                        <a href="https://t.me/borishunterstore" target="_blank" rel="noopener"><i class="fab fa-telegram"></i> Telegram</a>
+                        <a href="https://discord.gg/YfZxXXeW6D" target="_blank" rel="noopener"><i class="fab fa-discord"></i> Discord</a>
+                        <a href="https://vk.com/fastvideo_zeny" target="_blank" rel="noopener"><i class="fab fa-vk"></i> VK</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024–2026 BHStore. Все права защищены.</p>
+                <p>ИНН: 742541714674 / Стахеев Д.А.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- FAQ Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Аккордеон для FAQ
             const faqItems = document.querySelectorAll('.faq-item');
+            const searchInput = document.getElementById('faqSearch');
+            const visibleCount = document.getElementById('visibleCount');
+            const totalCount = document.getElementById('totalCount');
             
+            // Инициализация счётчика
+            if (totalCount) totalCount.textContent = faqItems.length;
+            if (visibleCount) visibleCount.textContent = faqItems.length;
+            
+            // Аккордеон
             faqItems.forEach(item => {
                 const question = item.querySelector('.faq-question');
                 
                 question.addEventListener('click', () => {
-                    // Закрываем все другие элементы
-                    faqItems.forEach(otherItem => {
-                        if (otherItem !== item) {
-                            otherItem.classList.remove('active');
-                        }
-                    });
+                    const isActive = item.classList.contains('active');
                     
-                    // Открываем/закрываем текущий элемент
-                    item.classList.toggle('active');
+                    // Закрываем все
+                    faqItems.forEach(other => other.classList.remove('active'));
+                    
+                    // Открываем текущий, если был закрыт
+                    if (!isActive) {
+                        item.classList.add('active');
+                    }
                 });
             });
             
-            // Поиск по FAQ
-            const searchInput = document.getElementById('faqSearch');
-            const totalCount = document.getElementById('totalCount');
-            const visibleCount = document.getElementById('visibleCount');
-            
-            if (searchInput) {
-                searchInput.addEventListener('input', function() {
-                    const searchTerm = this.value.toLowerCase();
-                    let visible = 0;
-                    
-                    faqItems.forEach(item => {
-                        const question = item.querySelector('.faq-question span').textContent.toLowerCase();
-                        const answer = item.querySelector('.faq-answer p').textContent.toLowerCase();
-                        
-                        if (question.includes(searchTerm) || answer.includes(searchTerm)) {
-                            item.style.display = 'block';
-                            visible++;
-                        } else {
-                            item.style.display = 'none';
-                        }
-                    });
-                    
-                    visibleCount.textContent = visible;
-                    totalCount.textContent = faqItems.length;
-                });
+            // Открываем первый элемент по умолчанию
+            if (faqItems.length > 0) {
+                faqItems[0].classList.add('active');
             }
             
-            // Категории (демо-функциональность)
-            const categories = document.querySelectorAll('.faq-category');
-            categories.forEach(cat => {
-                cat.addEventListener('click', function() {
-                    categories.forEach(c => c.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Здесь можно добавить фильтрацию по категориям
-                    // Для демонстрации просто показываем все
-                    faqItems.forEach(item => {
-                        item.style.display = 'block';
-                    });
-                    
-                    if (visibleCount) visibleCount.textContent = faqItems.length;
+            // Поиск с debounce
+            if (searchInput) {
+                let debounceTimer;
+                
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        const term = this.value.toLowerCase().trim();
+                        let visible = 0;
+                        
+                        faqItems.forEach(item => {
+                            const question = item.querySelector('.faq-question-text').textContent.toLowerCase();
+                            const answer = item.querySelector('.faq-answer-inner').textContent.toLowerCase();
+                            
+                            if (!term || question.includes(term) || answer.includes(term)) {
+                                item.style.display = '';
+                                visible++;
+                            } else {
+                                item.style.display = 'none';
+                            }
+                        });
+                        
+                        if (visibleCount) visibleCount.textContent = visible;
+                    }, 200);
                 });
-            });
+            }
         });
     </script>
 </body>

@@ -1,218 +1,415 @@
 <!DOCTYPE html>
-<html lang="ru">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Правовая информация | BHStore</title>
-        <link rel="stylesheet" href="css/general.css">
-        <link rel="stylesheet" href="css/legal.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <link rel="icon" type="image/png" href="/image/logo.png">
-        
-        <!-- Yandex.Metrika counter -->
-        <script type="text/javascript">
-            (function(m,e,t,r,i,k,a){
-                m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-                m[i].l=1*new Date();
-                for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-                k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
-            })(window, document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097', 'ym');
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Правовая информация | BHStore</title>
+    <meta name="description" content="Официальные документы BHStore: пользовательское соглашение, политика конфиденциальности, публичная оферта.">
+    <meta property="og:title" content="Правовая информация | BHStore">
+    <meta property="og:description" content="Официальные документы BHStore">
+    <meta property="og:image" content="image/logo.png">
+    <meta name="theme-color" content="#0C0A14">
     
-            ym(107215097, 'init', {ssr:true, webvisor:true, clickmap:true, ecommerce:"dataLayer", referrer: document.referrer, url: location.href, accurateTrackBounce:true, trackLinks:true});
-        </script>
-        <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
-        <!-- /Yandex.Metrika counter -->
-        
-        <script src="js/api.js"></script>
-        <script src="js/auth.js"></script>
-        <script src="js/promocode.js"></script>
-        <script src="js/payment.js"></script>
-        <script src="js/chat.js"></script>
-        <script src="js/main.js"></script>
-        <script src="js/cursor.js"></script>
-        <script src="js/pkm.js"></script>
-        <script src="js/mobile-nav.js"></script>
-    </head>
+    <link rel="stylesheet" href="css/general.css">
+    <link rel="stylesheet" href="css/legal.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://api.fontshare.com/v2/css?f[]=clash-display@700,800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="image/logo.png">
+    
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/promocode.js"></script>
+    <script src="js/payment.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/cursor.js"></script>
+    <script src="js/pkm.js"></script>
+    <script src="js/mobile-nav.js"></script>
+</head>
 <body>
     <div class="custom-cursor"></div>
-    <nav class="navbar">
+
+    <!-- Yandex.Metrika -->
+    <script>
+        (function(m,e,t,r,i,k,a){
+            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+            m[i].l=1*new Date();
+            for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}
+            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+        })(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097','ym');
+        ym(107215097,'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",referrer:document.referrer,url:location.href,accurateTrackBounce:true,trackLinks:true});
+    </script>
+    <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute;left:-9999px" alt=""></div></noscript>
+
+    <nav class="navbar" id="navbar">
         <div class="nav-container">
-            <a href="/" class="nav-logo"><img src="image/logo.png" style="width: 50px;"><span class="logo-text">BHStore</span></a>
+            <a href="/" class="nav-logo">
+                <img src="image/logo.png" alt="BHStore" class="logo-image">
+                <span class="logo-text">BHStore</span>
+            </a>
             <div class="nav-menu">
                 <a href="/" class="nav-link"><i class="fas fa-home"></i> Главная</a>
-                <a href="/shop.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Магазин</a>
-                <a href="/news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
-                <a href="/faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
-                <a href="/legal.html" class="nav-link active"><i class="fas fa-scale-balanced"></i> Правовая информация</a></div>
-            <div class="nav-auth"><button id="authBtn" class="btn-discord"><i class="fab fa-discord"></i> Войти</button></div>
-            <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button></div></nav>
+                <a href="shop.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Магазин</a>
+                <a href="news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
+                <a href="faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
+                <a href="legal.html" class="nav-link active"><i class="fas fa-scale-balanced"></i> Документы</a>
+            </div>
+            <div class="nav-auth">
+                <button id="authBtn" class="btn-discord"><i class="fab fa-discord"></i><span>Войти</span></button>
+            </div>
+            <button class="mobile-menu-btn" aria-label="Открыть меню"><i class="fas fa-bars"></i></button>
+        </div>
+    </nav>
+    <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+    <div class="mobile-nav" id="mobileNav">
+        <div class="mobile-nav-header">
+            <div class="mobile-nav-logo"><img src="image/logo.png" alt="BHStore"><span>BHStore</span></div>
+            <button class="mobile-nav-close" aria-label="Закрыть меню"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="mobile-nav-menu">
+            <a href="/" class="nav-link"><i class="fas fa-home"></i> Главная</a>
+            <a href="shop.html" class="nav-link"><i class="fas fa-shopping-cart"></i> Магазин</a>
+            <a href="news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
+            <a href="faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
+            <a href="legal.html" class="nav-link active"><i class="fas fa-scale-balanced"></i> Документы</a>
+        </div>
+        <div class="mobile-nav-auth">
+            <button id="mobileAuthBtn" class="btn-discord"><i class="fab fa-discord"></i> Войти через Discord</button>
+        </div>
+    </div>
 
-    <div class="legal-banner"><img src="image/banner.jpg" alt="Правовая информация" class="banner-image"><div class="banner-overlay"><h1 class="banner-title"><img src="image/emoji/document.png" style="width: 50px; vertical-align: middle"> Документация<span>Это официальная страница всех документов магазина</span></h1></div></div>
+    <section class="legal-banner">
+        <img src="image/banner.jpg" alt="BHStore Legal" class="legal-banner-image" loading="eager">
+        <div class="legal-banner-overlay">
+            <div class="legal-banner-content">
+                <div class="legal-banner-badge"><i class="fas fa-bolt"></i> BHStore</div>
+                <h1 class="legal-banner-title">Документация<span class="legal-banner-subtitle">Официальные документы и правовая информация</span></h1>
+            </div>
+        </div>
+    </section>
 
     <div class="legal-container">
-        <div class="legal-nav">
-            <a href="#terms" class="legal-nav-item" style="text-decoration: none;"><i class="fas"></i>Соглашение</a>
-            <a href="#privacy" class="legal-nav-item" style="text-decoration: none;"><i class="fas"></i>Конфиденциальность</a>
-            <a href="#offer" class="legal-nav-item" style="text-decoration: none;"><i class="fas"></i>Оферта</a>
-            <a href="#promo" class="legal-nav-item" style="text-decoration: none;"><i class="fas"></i>Промокоды</a>
-            <a href="#buy" class="legal-nav-item" style="text-decoration: none;"><i class="fas"></i>Покупку и оплата</a></div>
+        <nav class="legal-nav" id="legalNav">
+            <a href="#terms" class="legal-nav-item active"><i class="fas fa-file-contract"></i> Соглашение</a>
+            <a href="#privacy" class="legal-nav-item"><i class="fas fa-shield-alt"></i> Конфиденциальность</a>
+            <a href="#offer" class="legal-nav-item"><i class="fas fa-hand-holding-heart"></i> Оферта</a>
+            <a href="#promo" class="legal-nav-item"><i class="fas fa-ticket-alt"></i> Промокоды</a>
+            <a href="#buy" class="legal-nav-item"><i class="fas fa-credit-card"></i> Покупка и оплата</a>
+        </nav>
 
         <div class="legal-section" id="terms">
-            <h2><i class="fas fa-file-contract"></i> Пользовательское соглашение</h2>
-            <p data-number="1.0">Настоящее Пользовательское соглашение (далее — Соглашение) регулирует отношения между Стахеевым Данилой Александровичем (далее — Администрация) и Пользователем сайта BHStore (далее — Сайт) при использовании сервисов, функционала и услуг, предоставляемых на Сайте.</p>
-            
-            <h3>1. ОБЩИЕ ПОЛОЖЕНИЯ</h3>
-            <p data-number="1.1">Использование Сайта и его сервисов означает полное и безоговорочное принятие Пользователем условий настоящего Соглашения в соответствии со ст. 437 Гражданского кодекса РФ.</p>
-            <p data-number="1.2">Администрация вправе в любое время в одностороннем порядке изменять условия Соглашения без уведомления Пользователя. Новая редакция вступает в силу с момента ее размещения на Сайте.</p>
-            <p data-number="1.3">Если Пользователь не согласен с условиями Соглашения, он обязан прекратить использование Сайта и его сервисов.</p>
-            
-            <h3>2. ПРАВА И ОБЯЗАННОСТИ СТОРОН</h3>
-            <p data-number="2.1">Пользователь обязуется:</p>
-            <p data-number="2.1.1">Предоставлять достоверную информацию при регистрации (если требуется) и оформлении заказа.</p>
-            <p data-number="2.1.2">Не использовать сайт для распространения вредоносного ПО, спама, а также для действий, нарушающих законодательство РФ.</p>
-            <p data-number="2.1.3">Осуществлять оплату услуг в порядке, сроки и на условиях, указанных на Сайте или в переписке с Администрацией.</p>
-            <p data-number="2.2">Администрация обязуется:</p>
-            <p data-number="2.2.1">Оказывать услуги в соответствии с условиями Публичной оферты и согласованным техническим заданием.</p>
-            <p data-number="2.2.2">Обеспечивать конфиденциальность персональных данных Пользователя в порядке, предусмотренном Политикой конфиденциальности.</p>
-            
-            <h3>3. ИНТЕЛЛЕКТУАЛЬНАЯ СОБСТВЕННОСТЬ</h3>
-            <p data-number="3.1">Все материалы, размещенные на Сайте (дизайн, логотипы, тексты, графика), являются объектами исключительных прав Администрации и защищены законодательством РФ.</p>
-            <p data-number="3.2">Исключительное право на результат оказанных услуг (код, дизайн, контент) переходит к Заказчику только после полной оплаты. До момента оплаты Администрация сохраняет за собой право использовать результат в портфолио.</p>
-            
-            <h3>4. ОТВЕТСТВЕННОСТЬ</h3>
-            <p data-number="4.1">Администрация не несет ответственности за убытки, возникшие в результате использования или невозможности использования Сайта, а также за действия третьих лиц.</p>
-            <p data-number="4.2">Сайт может содержать ссылки на сторонние ресурсы. Администрация не несет ответственности за информацию и материалы, размещенные на этих ресурсах.</p>
-            
-            <h3>5. ЗАКЛЮЧИТЕЛЬНЫЕ ПОЛОЖЕНИЯ</h3>
-            <p data-number="5.1">Все споры подлежат рассмотрению в суде по месту нахождения Администрации в соответствии с действующим законодательством РФ.</p>
-            <p data-number="5.2">Признание недействительным какого-либо положения Соглашения не влечет за собой недействительность остальных положений.</p>
-            
-            <h3>6. РЕКВИЗИТЫ АДМИНИСТРАЦИИ</h3>
+            <div class="legal-section-header">
+                <div class="legal-section-icon"><i class="fas fa-file-contract"></i></div>
+                <h2>Пользовательское соглашение</h2>
+            </div>
+
+            <div class="legal-paragraph">
+                <span class="legal-paragraph-number">1.0</span>
+                <span class="legal-paragraph-content">Настоящее Пользовательское соглашение (далее — Соглашение) регулирует отношения между <strong>Стахеевым Данилой Александровичем</strong> (далее — Администрация) и Пользователем сайта BHStore (далее — Сайт) при использовании сервисов, функционала и услуг, предоставляемых на Сайте.</span>
+            </div>
+
+            <h3>1. Общие положения</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">1.1</span><span class="legal-paragraph-content">Использование Сайта и его сервисов означает полное и безоговорочное принятие Пользователем условий настоящего Соглашения в соответствии со ст. 437 Гражданского кодекса РФ.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">1.2</span><span class="legal-paragraph-content">Администрация вправе в любое время в одностороннем порядке изменять условия Соглашения без уведомления Пользователя. Новая редакция вступает в силу с момента ее размещения на Сайте.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">1.3</span><span class="legal-paragraph-content">Если Пользователь не согласен с условиями Соглашения, он обязан прекратить использование Сайта и его сервисов.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">1.4</span><span class="legal-paragraph-content">Сайт предназначен для лиц, достигших 14 лет. Используя Сайт, Пользователь подтверждает, что достиг указанного возраста.</span></div>
+
+            <h3>2. Права и обязанности сторон</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">2.1</span><span class="legal-paragraph-content">Пользователь обязуется:</span></div>
+            <ul class="legal-list">
+                <li>Предоставлять достоверную информацию при регистрации и оформлении заказа.</li>
+                <li>Не использовать Сайт для распространения вредоносного ПО, спама, мошеннических схем, а также для действий, нарушающих законодательство РФ.</li>
+                <li>Не предпринимать попыток взлома, обхода систем защиты, несанкционированного доступа к данным других пользователей.</li>
+                <li>Осуществлять оплату услуг в порядке, сроки и на условиях, указанных на Сайте или в переписке с Администрацией.</li>
+                <li>Соблюдать условия Публичной оферты при оформлении заказов.</li>
+            </ul>
+
+            <div class="legal-paragraph"><span class="legal-paragraph-number">2.2</span><span class="legal-paragraph-content">Администрация обязуется:</span></div>
+            <ul class="legal-list">
+                <li>Оказывать услуги в соответствии с условиями Публичной оферты и согласованным Техническим заданием.</li>
+                <li>Обеспечивать конфиденциальность персональных данных Пользователя в порядке, предусмотренном Политикой конфиденциальности.</li>
+                <li>Предоставлять актуальную информацию об услугах, ценах и сроках на Сайте.</li>
+                <li>Рассматривать претензии Пользователя в установленные законом сроки.</li>
+            </ul>
+
+            <div class="legal-paragraph"><span class="legal-paragraph-number">2.3</span><span class="legal-paragraph-content">Администрация вправе:</span></div>
+            <ul class="legal-list">
+                <li>Временно или полностью прекращать работу Сайта для проведения технических работ с предварительным уведомлением или без такового.</li>
+                <li>Блокировать доступ Пользователя к Сайту при нарушении условий настоящего Соглашения.</li>
+                <li>Изменять ассортимент услуг, цены и условия их предоставления в одностороннем порядке.</li>
+            </ul>
+
+            <h3>3. Интеллектуальная собственность</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">3.1</span><span class="legal-paragraph-content">Все материалы, размещенные на Сайте (дизайн, логотипы, тексты, графика, программный код), являются объектами исключительных прав Администрации и защищены законодательством РФ об авторском праве.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">3.2</span><span class="legal-paragraph-content">Копирование, воспроизведение, распространение материалов Сайта без письменного разрешения Администрации запрещено.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">3.3</span><span class="legal-paragraph-content">Исключительное право на результат оказанных услуг (код, дизайн, контент) переходит к Заказчику только после полной оплаты. До момента оплаты Администрация сохраняет за собой право использовать результат в портфолио.</span></div>
+
+            <h3>4. Ответственность сторон</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">4.1</span><span class="legal-paragraph-content">Администрация не несет ответственности за убытки, возникшие в результате использования или невозможности использования Сайта, а также за действия третьих лиц.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">4.2</span><span class="legal-paragraph-content">Сайт может содержать ссылки на сторонние ресурсы. Администрация не несет ответственности за информацию и материалы, размещенные на этих ресурсах.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">4.3</span><span class="legal-paragraph-content">Пользователь несет полную ответственность за сохранность своих учетных данных (логин, пароль) и за действия, совершенные с использованием его учетной записи.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">4.4</span><span class="legal-paragraph-content">Администрация не несет ответственности за временные сбои и перерывы в работе Сайта, вызванные техническими неполадками, профилактическими работами или обстоятельствами непреодолимой силы.</span></div>
+
+            <h3>5. Заключительные положения</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">5.1</span><span class="legal-paragraph-content">Все споры подлежат рассмотрению в суде по месту нахождения Администрации в соответствии с действующим законодательством РФ.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">5.2</span><span class="legal-paragraph-content">Признание недействительным какого-либо положения Соглашения не влечет за собой недействительность остальных положений.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">5.3</span><span class="legal-paragraph-content">Настоящее Соглашение регулируется и толкуется в соответствии с законодательством Российской Федерации.</span></div>
+
+            <h3>6. Реквизиты Администрации</h3>
             <div class="contacts-grid">
                 <div class="contact-card">
-                    <div class="contact-icon"><img src="image/emoji/emoji_1.png" style="width: 50px;" alt="CEO"></div>
+                    <div class="contact-card-icon"><i class="fas fa-user-tie"></i></div>
                     <h4>Исполнитель</h4>
                     <p>Стахеев Данила Александрович</p>
-                    <p>ИНН: 742541714674</p></div>
+                    <p>ИНН: 742541714674</p>
+                </div>
                 <div class="contact-card">
-                    <div class="contact-icon"><img src="image/emoji/emoji_2.png" style="width: 50px;" alt="Phone"></div>
+                    <div class="contact-card-icon"><i class="fas fa-phone-alt"></i></div>
                     <h4>Контактный телефон</h4>
-                    <p>+7 905 354 7612</p></div></div></div>
-        
+                    <p>+7 905 354 7612</p>
+                </div>
+                <div class="contact-card">
+                    <div class="contact-card-icon"><i class="fab fa-telegram"></i></div>
+                    <h4>Telegram</h4>
+                    <p>@borishunterstore</p>
+                </div>
+            </div>
+        </div>
+
         <div class="legal-section" id="privacy">
-            <h2><i class="fas fa-shield-alt"></i> Политика конфиденциальности и обработки персональных данных</h2>
-            <p data-number="1.0">Настоящая Политика определяет порядок обработки персональных данных и меры по обеспечению безопасности персональных данных, предпринимаемые Оператором (Стахеев Данила Александрович, ИНН 742541714674).</p>
-            
-            <h3>1. ОСНОВНЫЕ ПОНЯТИЯ И СФЕРА ДЕЙСТВИЯ</h3>
-            <p data-number="1.1">Политика разработана в соответствии с Федеральным законом от 27.07.2006 № 152-ФЗ «О персональных данных».</p>
-            <p data-number="1.2">Настоящая Политика распространяется на все персональные данные, которые Оператор может получить о Пользователе при использовании Сайта, сервисов, а также в процессе общения в социальных сетях (Telegram, Discord, VK) и мессенджерах.</p>
-            
-            <h3>2. ПЕРЕЧЕНЬ ОБРАБАТЫВАЕМЫХ ДАННЫХ И ЦЕЛИ ОБРАБОТКИ</h3>
-            <p data-number="2.1">Оператор обрабатывает следующие данные Пользователя:</p>
-            <p data-number="2.1.1">Имя, фамилия (никнейм), адрес электронной почты, номер телефона.</p>
-            <p data-number="2.1.2">Реквизиты учетных записей в социальных сетях (логины, ID).</p>
-            <p data-number="2.1.3">Содержание переписки, необходимой для выполнения заказа.</p>
-            <p data-number="2.1.4">Информацию о заказах и историю платежей.</p>
-            <p data-number="2.2"><strong>Цели обработки:</strong></p>
-            <p data-number="2.2.1">Заключение и исполнение договора возмездного оказания услуг (ст. 6 152-ФЗ).</p>
-            <p data-number="2.2.2">Идентификация Пользователя для связи с ним.</p>
-            <p data-number="2.2.3">Предоставление Пользователю технической поддержки.</p>
-            <p data-number="2.2.4">Выполнение требований налогового и иного законодательства РФ.</p>
-            
-            <h3>3. ПРАВОВЫЕ ОСНОВАНИЯ ОБРАБОТКИ</h3>
-            <p data-number="3.1">Правовыми основаниями обработки персональных данных являются: ст. 24 Конституции РФ, Гражданский кодекс РФ, Федеральный закон № 152-ФЗ, а также настоящее Согласие Пользователя, выраженное путем совершения конклюдентных действий (оформление заказа, отправка сообщения).</p>
-            
-            <h3>4. ПРИНЦИПЫ И УСЛОВИЯ ОБРАБОТКИ</h3>
-            <p data-number="4.1">Оператор не раскрывает третьим лицам и не распространяет персональные данные без согласия субъекта, за исключением случаев, предусмотренных федеральным законом (по запросу суда, правоохранительных органов).</p>
-            <p data-number="4.2">Данные хранятся в электронном виде в защищенных системах обмена сообщениями (Telegram) и на защищенных серверах. Срок хранения — 5 лет с момента последнего взаимодействия, либо до истечения срока исковой давности, установленного законом.</p>
-            <p data-number="4.3">Пользователь вправе отозвать согласие на обработку данных, направив письменное уведомление на электронную почту или в Telegram Оператора. В этом случае Оператор прекращает обработку и удаляет данные, если их дальнейшее хранение не требуется по закону.</p>
-            
-            <h3>5. КОНТАКТНАЯ ИНФОРМАЦИЯ</h3>
+            <div class="legal-section-header">
+                <div class="legal-section-icon"><i class="fas fa-shield-alt"></i></div>
+                <h2>Политика конфиденциальности и обработки персональных данных</h2>
+            </div>
+
+            <div class="legal-paragraph">
+                <span class="legal-paragraph-number">1.0</span>
+                <span class="legal-paragraph-content">Настоящая Политика определяет порядок обработки персональных данных и меры по обеспечению безопасности персональных данных, предпринимаемые Оператором — <strong>Стахеевым Данилой Александровичем, ИНН 742541714674</strong> (далее — Оператор).</span>
+            </div>
+
+            <h3>1. Основные понятия и сфера действия</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">1.1</span><span class="legal-paragraph-content">Политика разработана в соответствии с Федеральным законом от 27.07.2006 № 152-ФЗ «О персональных данных» и иными нормативными актами РФ.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">1.2</span><span class="legal-paragraph-content">Настоящая Политика распространяется на все персональные данные, которые Оператор может получить о Пользователе при использовании Сайта, сервисов, а также в процессе общения в социальных сетях (Telegram, Discord, VK) и мессенджерах.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">1.3</span><span class="legal-paragraph-content">Использование Сайта означает согласие Пользователя с настоящей Политикой и условиями обработки его персональных данных.</span></div>
+
+            <h3>2. Перечень обрабатываемых данных и цели обработки</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">2.1</span><span class="legal-paragraph-content">Оператор обрабатывает следующие данные Пользователя:</span></div>
+            <ul class="legal-list">
+                <li>Имя, фамилия (никнейм), адрес электронной почты, номер телефона.</li>
+                <li>Реквизиты учетных записей в социальных сетях (логины, ID).</li>
+                <li>Содержание переписки, необходимой для выполнения заказа.</li>
+                <li>Информацию о заказах и историю платежей.</li>
+                <li>Технические данные: IP-адрес, тип браузера, данные cookies, информация о посещении Сайта.</li>
+            </ul>
+
+            <div class="legal-paragraph"><span class="legal-paragraph-number">2.2</span><span class="legal-paragraph-content"><strong>Цели обработки персональных данных:</strong></span></div>
+            <ul class="legal-list">
+                <li>Заключение и исполнение договора возмездного оказания услуг (ст. 6 152-ФЗ).</li>
+                <li>Идентификация Пользователя для связи с ним по вопросам заказа.</li>
+                <li>Предоставление Пользователю технической поддержки и консультаций.</li>
+                <li>Улучшение качества работы Сайта и предоставляемых услуг.</li>
+                <li>Выполнение требований налогового и иного законодательства РФ.</li>
+            </ul>
+
+            <h3>3. Правовые основания обработки</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">3.1</span><span class="legal-paragraph-content">Правовыми основаниями обработки персональных данных являются: ст. 24 Конституции РФ, Гражданский кодекс РФ, Федеральный закон № 152-ФЗ «О персональных данных», а также согласие Пользователя, выраженное путем совершения конклюдентных действий (регистрация, оформление заказа, отправка сообщения).</span></div>
+
+            <h3>4. Принципы и условия обработки</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">4.1</span><span class="legal-paragraph-content">Обработка персональных данных осуществляется на законной и справедливой основе, ограничиваясь достижением конкретных, заранее определенных целей.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">4.2</span><span class="legal-paragraph-content">Оператор не раскрывает третьим лицам и не распространяет персональные данные без согласия субъекта, за исключением случаев, предусмотренных федеральным законом (по запросу суда, правоохранительных органов).</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">4.3</span><span class="legal-paragraph-content">Данные хранятся в электронном виде в защищенных системах обмена сообщениями (Telegram) и на защищенных серверах. Срок хранения — 5 лет с момента последнего взаимодействия, либо до истечения срока исковой давности.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">4.4</span><span class="legal-paragraph-content">Пользователь вправе отозвать согласие на обработку данных, направив письменное уведомление на электронную почту или в Telegram Оператора. В этом случае Оператор прекращает обработку и удаляет данные в течение 30 дней, если их дальнейшее хранение не требуется по закону.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">4.5</span><span class="legal-paragraph-content">Пользователь имеет право на доступ к своим персональным данным, их уточнение, блокирование или уничтожение в установленном законом порядке.</span></div>
+
+            <h3>5. Контактная информация</h3>
             <div class="contacts-grid">
                 <div class="contact-card">
-                    <div class="contact-icon"><img src="image/emoji/emoji_1.png" style="width: 50px;"></div>
+                    <div class="contact-card-icon"><i class="fas fa-user-tie"></i></div>
                     <h4>Исполнитель</h4>
                     <p>Стахеев Данила Александрович</p>
-                    <p>ИНН: 742541714674</p></div>
+                    <p>ИНН: 742541714674</p>
+                </div>
                 <div class="contact-card">
-                    <div class="contact-icon"><img src="image/emoji/emoji_3.png" style="width: 50px;"></div>
+                    <div class="contact-card-icon"><i class="fab fa-telegram"></i></div>
                     <h4>Telegram для запросов</h4>
-                    <p>@borisonchikofficial</p></div>
+                    <p>@borishunterstore</p>
+                </div>
                 <div class="contact-card">
-                    <div class="contact-icon"><img src="image/emoji/emoji_2.png" style="width: 50px;"></div>
+                    <div class="contact-card-icon"><i class="fas fa-phone-alt"></i></div>
                     <h4>Телефон</h4>
-                    <p>+7 905 354 7612</p></div></div></div>
-        
+                    <p>+7 905 354 7612</p>
+                </div>
+            </div>
+        </div>
+
         <div class="legal-section" id="offer">
-            <h2><i class="fas fa-hand-holding-heart"></i> Договор публичной оферты на оказание услуг</h2>
-            <p data-number="0.1">Стахеев Данила Александрович (ИНН 742541714674), именуемый в дальнейшем «Исполнитель», публикует настоящий документ, являющийся официальным предложением (публичной офертой) для неопределенного круга физических и юридических лиц (далее — «Заказчик»).</p>
-            
-            <h3>1. ОПРЕДЕЛЕНИЯ И ТЕРМИНЫ</h3>
-            <p data-number="1.1"><strong>Оферта</strong> — настоящий документ, условия которого определяют существенные условия договора.</p>
-            <p data-number="1.2"><strong>Акцепт Оферты</strong> — полное и безоговорочное принятие условий Оферты путем осуществления Заказчиком действий, указанных в п. 3.3. данного Договора.</p>
-            <p data-number="1.3"><strong>Услуги</strong> — деятельность Исполнителя по созданию, разработке, настройке цифровых продуктов и консультированию, включая: монтаж видео, разработку Discord серверов, Telegram ботов, сайтов, графический дизайн и иные работы, согласованные Сторонами в Техническом задании (ТЗ).</p>
-            <p data-number="1.4"><strong>Техническое задание (ТЗ)</strong> — документ, фиксируемый в переписке сторон (Telegram, Discord), определяющий состав, объем, сроки и стоимость конкретной услуги.</p>
-            
-            <h3>2. ПРЕДМЕТ ДОГОВОРА</h3>
-            <p data-number="2.1">Исполнитель обязуется по заданию Заказчика оказать услуги, указанные в ТЗ, а Заказчик обязуется принять и оплатить эти услуги в порядке и на условиях, предусмотренных настоящим Договором.</p>
-            
-            <h3>3. ПОРЯДОК ЗАКЛЮЧЕНИЯ ДОГОВОРА (АКЦЕПТ)</h3>
-            <p data-number="3.1">Заказчик направляет Исполнителю запрос через формы связи на Сайте или через социальные сети.</p>
-            <p data-number="3.2">Стороны согласовывают ТЗ, фиксируя его в текстовом виде (переписка).</p>
-            <p data-number="3.3">Акцептом Оферты, с которого Договор считается заключенным, является факт оплаты Заказчиком счета или аванса в размере 100% или согласованного процента от стоимости услуг.</p>
-            
-            <h3>4. СТОИМОСТЬ УСЛУГ И ПОРЯДОК РАСЧЕТОВ</h3>
-            <p data-number="4.1">Стоимость услуг указывается в рублях РФ и фиксируется в ТЗ. НДС не облагается в связи с применением Исполнителем специального налогового режима (НПД или УСН).</p>
-            <p data-number="4.2">Оплата производится путем перевода денежных средств на карту (счет) Исполнителя через Систему Быстрых Платежей (СБП) или по реквизитам, указанным в счете.</p>
-            <p data-number="4.3">Моментом оплаты считается поступление денежных средств на расчетный счет или карту Исполнителя.</p>
-            
-            <h3>5. СРОКИ ОКАЗАНИЯ УСЛУГ</h3>
-            <p data-number="5.1">Сроки оказания услуг указываются в ТЗ. Отсчет срока начинается на следующий рабочий день после поступления предоплаты и получения от Заказчика всех необходимых материалов (тексты, изображения, доступы).</p>
-            <p data-number="5.2">Исполнитель вправе приостановить работы в случае неполучения ответов от Заказчика по уточняющим вопросам более чем на 3 (три) рабочих дня. Срок оказания услуг увеличивается на период приостановки.</p>
-            
-            <h3>6. СДАЧА И ПРИЕМКА РАБОТ</h3>
-            <p data-number="6.1">По завершении работ Исполнитель направляет Заказчику уведомление о готовности и ссылку на результат.</p>
-            <p data-number="6.2">Заказчик обязан в течение 3 (трех) рабочих дней проверить результат на соответствие ТЗ и подписать акт сдачи-приемки (направить подтверждение в переписке) либо направить мотивированный отказ с указанием недостатков.</p>
-            <p data-number="6.3">Если в указанный срок Заказчик не направил мотивированный отказ, услуги считаются принятыми и подлежащими оплате в полном объеме.</p>
-            <p data-number="6.4">Исправление недостатков, не связанных с нарушением ТЗ, осуществляется за отдельную плату по согласованию сторон.</p>
-            
-            <h3>7. ОТВЕТСТВЕННОСТЬ СТОРОН И ФОРС-МАЖОР</h3>
-            <p data-number="7.1">За неисполнение или ненадлежащее исполнение обязательств Стороны несут ответственность в соответствии с законодательством РФ.</p>
-            <p data-number="7.2">Исполнитель не несет ответственности за невозможность использования результата работ, если это вызвано действиями (бездействием) самого Заказчика или третьих лиц.</p>
-            <p data-number="7.3">Стороны освобождаются от ответственности за частичное или полное неисполнение обязательств, если это явилось следствием обстоятельств непреодолимой силы (форс-мажор).</p>
-            
-            <h3>8. ПОРЯДОК ВОЗВРАТА ДЕНЕЖНЫХ СРЕДСТВ</h3>
-            <p data-number="8.1">Заказчик вправе отказаться от исполнения договора до начала оказания услуг, оплатив Исполнителю фактически понесенные расходы (ст. 782 ГК РФ).</p>
-            <p data-number="8.2">Если работы начаты, возврат денежных средств производится пропорционально невыполненной части работ, за вычетом фактически понесенных расходов.</p>
-            <p data-number="8.3">Возврат осуществляется на банковскую карту Заказчика в течение 10 (десяти) рабочих дней с момента получения письменного требования.</p>
-            
-            <h3>9. ЗАКЛЮЧИТЕЛЬНЫЕ ПОЛОЖЕНИЯ</h3>
-            <p data-number="9.1">Договор вступает в силу с момента Акцепта и действует до полного исполнения обязательств Сторонами.</p>
-            <p data-number="9.2">Все споры решаются путем переговоров. При недостижении согласия — в суде по месту регистрации Исполнителя (г. [Ваш город]).</p>
-            <p data-number="9.3">Признание судом недействительным какого-либо условия Договора не влечет за собой недействительность остальных его условий.</p>
-            
-            <h3>10. РЕКВИЗИТЫ ИСПОЛНИТЕЛЯ</h3>
+            <div class="legal-section-header">
+                <div class="legal-section-icon"><i class="fas fa-hand-holding-heart"></i></div>
+                <h2>Договор публичной оферты на оказание услуг</h2>
+            </div>
+
+            <div class="legal-paragraph">
+                <span class="legal-paragraph-number">0.1</span>
+                <span class="legal-paragraph-content"><strong>Стахеев Данила Александрович</strong> (ИНН 742541714674), именуемый в дальнейшем «Исполнитель», публикует настоящий документ, являющийся официальным предложением (публичной офертой) для неопределенного круга физических и юридических лиц (далее — «Заказчик») на оказание услуг, перечень и стоимость которых публикуются на Сайте и в социальных сетях Исполнителя.</span>
+            </div>
+
+            <h3>1. Определения и термины</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">1.1</span><span class="legal-paragraph-content"><strong>Оферта</strong> — настоящий документ, опубликованный в сети Интернет, определяющий все существенные условия договора возмездного оказания услуг.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">1.2</span><span class="legal-paragraph-content"><strong>Акцепт Оферты</strong> — полное и безоговорочное принятие условий Оферты путем осуществления Заказчиком действий, указанных в п. 3.3 настоящего Договора.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">1.3</span><span class="legal-paragraph-content"><strong>Услуги</strong> — деятельность Исполнителя по созданию, разработке, настройке цифровых продуктов и консультированию, включая: монтаж видео, создание аватарок и превью, разработку и настройку Discord серверов, Telegram ботов, веб-сайтов, плагинов для Minecraft, графический дизайн и иные работы, согласованные Сторонами в Техническом задании (ТЗ).</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">1.4</span><span class="legal-paragraph-content"><strong>Техническое задание (ТЗ)</strong> — документ, фиксируемый в переписке Сторон (Telegram, Discord, VK, чат на Сайте), определяющий состав, объем, сроки и стоимость конкретной услуги.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">1.5</span><span class="legal-paragraph-content"><strong>Результат работ</strong> — готовый цифровой продукт (файл, доступ, ссылка), созданный Исполнителем в соответствии с ТЗ.</span></div>
+
+            <h3>2. Предмет договора</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">2.1</span><span class="legal-paragraph-content">Исполнитель обязуется по заданию Заказчика оказать услуги, указанные в ТЗ, а Заказчик обязуется принять и оплатить эти услуги в порядке и на условиях, предусмотренных настоящим Договором.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">2.2</span><span class="legal-paragraph-content">Перечень, объем, стоимость и сроки оказания услуг согласовываются Сторонами индивидуально для каждого заказа и фиксируются в ТЗ.</span></div>
+
+            <h3>3. Порядок заключения договора (Акцепт)</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">3.1</span><span class="legal-paragraph-content">Заказчик направляет Исполнителю запрос через формы связи на Сайте, через социальные сети (Telegram, Discord, VK) или мессенджеры.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">3.2</span><span class="legal-paragraph-content">Стороны согласовывают ТЗ, фиксируя его в текстовом виде в переписке. ТЗ считается согласованным после подтверждения обеими Сторонами.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">3.3</span><span class="legal-paragraph-content"><strong>Акцептом Оферты</strong>, с которого Договор считается заключенным, является факт оплаты Заказчиком счета (100% предоплаты или согласованного аванса) от стоимости услуг. С момента Акцепта Договор имеет полную юридическую силу.</span></div>
+
+            <h3>4. Стоимость услуг и порядок расчетов</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">4.1</span><span class="legal-paragraph-content">Стоимость услуг указывается в рублях РФ и фиксируется в ТЗ. НДС не облагается в связи с применением Исполнителем специального налогового режима (налог на профессиональный доход).</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">4.2</span><span class="legal-paragraph-content">Оплата производится путем перевода денежных средств на карту (счет) Исполнителя через Систему Быстрых Платежей (СБП) или по реквизитам, указанным в счете.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">4.3</span><span class="legal-paragraph-content">Моментом оплаты считается поступление денежных средств на расчетный счет или карту Исполнителя.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">4.4</span><span class="legal-paragraph-content">В случае изменения объема работ по инициативе Заказчика, стоимость может быть пересмотрена по согласованию Сторон.</span></div>
+
+            <h3>5. Сроки оказания услуг</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">5.1</span><span class="legal-paragraph-content">Сроки оказания услуг указываются в ТЗ. Отсчет срока начинается на следующий рабочий день после поступления оплаты и получения от Заказчика всех необходимых материалов (тексты, изображения, доступы, пояснения).</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">5.2</span><span class="legal-paragraph-content">Исполнитель вправе приостановить работы в случае неполучения ответов от Заказчика по уточняющим вопросам более чем на 3 (три) рабочих дня. Срок оказания услуг увеличивается на период такой приостановки.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">5.3</span><span class="legal-paragraph-content">Исполнитель не несет ответственности за нарушение сроков, если это вызвано действиями (бездействием) Заказчика или обстоятельствами непреодолимой силы.</span></div>
+
+            <h3>6. Сдача и приемка работ</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">6.1</span><span class="legal-paragraph-content">По завершении работ Исполнитель направляет Заказчику уведомление о готовности и ссылку на результат (файл, доступ).</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">6.2</span><span class="legal-paragraph-content">Заказчик обязан в течение 3 (трех) рабочих дней проверить результат на соответствие ТЗ и направить Исполнителю подтверждение приемки (акцепт в переписке) либо мотивированный отказ с указанием конкретных недостатков.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">6.3</span><span class="legal-paragraph-content">Если в указанный срок Заказчик не направил мотивированный отказ, услуги считаются принятыми и подлежащими оплате в полном объеме.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">6.4</span><span class="legal-paragraph-content">Исправление недостатков, не связанных с нарушением ТЗ, осуществляется за отдельную плату по согласованию Сторон.</span></div>
+
+            <h3>7. Ответственность сторон и форс-мажор</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">7.1</span><span class="legal-paragraph-content">За неисполнение или ненадлежащее исполнение обязательств Стороны несут ответственность в соответствии с законодательством РФ.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">7.2</span><span class="legal-paragraph-content">Исполнитель не несет ответственности за невозможность использования результата работ, если это вызвано действиями (бездействием) самого Заказчика или третьих лиц.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">7.3</span><span class="legal-paragraph-content">Стороны освобождаются от ответственности за частичное или полное неисполнение обязательств, если это явилось следствием обстоятельств непреодолимой силы (форс-мажор): природные катастрофы, войны, эпидемии, отключение электроэнергии, блокировки сервисов и т.п.</span></div>
+
+            <h3>8. Порядок возврата денежных средств</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">8.1</span><span class="legal-paragraph-content">Заказчик вправе отказаться от исполнения договора до начала оказания услуг, оплатив Исполнителю фактически понесенные расходы (ст. 782 ГК РФ). Возврат осуществляется за вычетом комиссий платежных систем.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">8.2</span><span class="legal-paragraph-content">Если работы начаты, возврат денежных средств производится пропорционально невыполненной части работ, за вычетом фактически понесенных расходов.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">8.3</span><span class="legal-paragraph-content">Возврат осуществляется на банковскую карту Заказчика в течение 10 (десяти) рабочих дней с момента получения письменного требования.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">8.4</span><span class="legal-paragraph-content">В случае если результат работ соответствует ТЗ, но не соответствует субъективным ожиданиям Заказчика, возврат не производится.</span></div>
+
+            <h3>9. Заключительные положения</h3>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">9.1</span><span class="legal-paragraph-content">Договор вступает в силу с момента Акцепта и действует до полного исполнения обязательств Сторонами.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">9.2</span><span class="legal-paragraph-content">Все споры решаются путем переговоров. При недостижении согласия — в суде по месту регистрации Исполнителя в соответствии с законодательством РФ.</span></div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">9.3</span><span class="legal-paragraph-content">Признание судом недействительным какого-либо условия Договора не влечет за собой недействительность остальных его условий.</span></div>
+
+            <h3>10. Реквизиты Исполнителя</h3>
             <div class="contacts-grid">
                 <div class="contact-card">
-                    <div class="contact-icon"><img src="image/emoji/emoji_1.png" style="width: 50px;" alt="CEO"></div>
+                    <div class="contact-card-icon"><i class="fas fa-user-tie"></i></div>
                     <h4>Исполнитель</h4>
                     <p>Стахеев Данила Александрович</p>
                     <p>Статус: Самозанятый</p>
                     <p>ИНН: 742541714674</p>
-                    <p>Банк: ПАО СберБанк</p></div>
+                </div>
                 <div class="contact-card">
-                    <div class="contact-icon"><img src="image/emoji/emoji_3.png" style="width: 50px;" alt="Telegram"></div>
+                    <div class="contact-card-icon"><i class="fab fa-telegram"></i></div>
                     <h4>Telegram для связи</h4>
-                    <p>@borisonchikofficial</p></div>
+                    <p>@borishunterstore</p>
+                </div>
                 <div class="contact-card">
-                    <div class="contact-icon"><img src="image/emoji/emoji_2.png" style="width: 50px;" alt="Phone"></div>
+                    <div class="contact-card-icon"><i class="fas fa-phone-alt"></i></div>
                     <h4>Телефон</h4>
-                    <p>+7 905 354 7612</p></div></div></div>
-    <div class="legal-section" id="promo"><h2><i class="fas fa-hand-holding-heart"></i> Все про промокоды</h2></div>
-    <div class="legal-section" id="buy"><h2><i class="fas fa-hand-holding-heart"></i> Все про покупку и оплату</h2></div></div>
+                    <p>+7 905 354 7612</p>
+                </div>
+            </div>
+        </div>
 
-<footer class="footer"><img src="image/bhstore.png" style="width: 100%;"><p class="footertxt" style="text-align: center; margin-bottom: 20px;">СПАСИБО, ЧТО ИСПОЛЬЗУЕТЕ НАШ СЕРВИС!</p><div class="footer-content"><div class="footer-section"><h3><i class="fas fa-compass"></i> Навигация</h3><a href="/"><i class="fas fa-home"></i> Главная</a><a href="shop.html"><i class="fas fa-shopping-cart"></i> Магазин</a><a href="news.html"><i class="fas fa-newspaper"></i> Новости</a><a href="faq.html"><i class="fas fa-question-circle"></i> FAQ</a></div><div class="footer-section"><h3><i class="fas fa-file-contract"></i> Документы</h3><a href="legal.html#terms"><i class="fas fa-file-signature"></i> Пользовательское соглашение</a><a href="legal.html#privacy"><i class="fas fa-shield-alt"></i> Политика конфиденциальности</a><a href="legal.html#offer"><i class="fas fa-hand-holding-heart"></i> Публичная оферта</a></div><div class="footer-section"><h3><i class="fas fa-headset"></i> Контакты</h3><a href="https://t.me/borishunterstore"><i class="fab fa-telegram"></i> t.me/@borishunterstore</a><a href="https://discord.gg/borishunterstore"><i class="fab fa-discord"></i> discord.gg/borishunterstore</a></div></div><div class="footer-bottom" style="margin-bottom: 20px;"><p><i class="far fa-copyright"></i> 2024 - 2026 BHStore. Все права защищены. | Borisonchik Official</p><p><i class="fas fa-id-card"></i> ИНН: 742541714674 / Стахеев Д.А.</p></div></footer>
-<script>document.addEventListener('DOMContentLoaded', function() {const sections = document.querySelectorAll('.legal-section');const navItems = document.querySelectorAll('.legal-nav-item');window.addEventListener('scroll', function() {let current = '';const scrollPos = window.scrollY + 150;sections.forEach(section => {const sectionTop = section.offsetTop;const sectionBottom = sectionTop + section.offsetHeight;if (scrollPos >= sectionTop && scrollPos < sectionBottom) {current = section.getAttribute('id');}});navItems.forEach(item => {item.classList.remove('active');if (item.getAttribute('href') === `#${current}`) {item.classList.add('active');}});});navItems.forEach(item => {item.addEventListener('click', function(e) {e.preventDefault();const targetId = this.getAttribute('href');const targetSection = document.querySelector(targetId);window.scrollTo({top: targetSection.offsetTop - 100,behavior: 'smooth'});});});});</script>
+        <div class="legal-section" id="promo">
+            <div class="legal-section-header">
+                <div class="legal-section-icon"><i class="fas fa-ticket-alt"></i></div>
+                <h2>Правила использования промокодов</h2>
+            </div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">1.0</span><span class="legal-paragraph-content">Информация о действующих промокодах и скидках публикуется в разделе Новости, в социальных сетях BHStore, а также в активных предложениях на странице Магазина.</span></div>
+        </div>
+
+        <div class="legal-section" id="buy">
+            <div class="legal-section-header">
+                <div class="legal-section-icon"><i class="fas fa-credit-card"></i></div>
+                <h2>Порядок покупки и оплаты</h2>
+            </div>
+            <div class="legal-paragraph"><span class="legal-paragraph-number">1.0</span><span class="legal-paragraph-content">Подробная информация о процессе покупки, способах оплаты и условиях выполнения заказов представлена в разделе FAQ и дублируется в Публичной оферте.</span></div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="image/bhstore.png" alt="BHStore" style="width:100%;max-width:280px;">
+                    <p style="margin-top:16px;">Профессиональная разработка цифровых решений с гарантией качества.</p>
+                </div>
+                <div class="footer-column">
+                    <h4><i class="fas fa-compass"></i> Навигация</h4>
+                    <div class="footer-links">
+                        <a href="/"><i class="fas fa-home"></i> Главная</a>
+                        <a href="shop.html"><i class="fas fa-shopping-cart"></i> Магазин</a>
+                        <a href="news.html"><i class="fas fa-newspaper"></i> Новости</a>
+                        <a href="faq.html"><i class="fas fa-question-circle"></i> FAQ</a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h4><i class="fas fa-file-contract"></i> Документы</h4>
+                    <div class="footer-links">
+                        <a href="legal.html#terms"><i class="fas fa-file-signature"></i> Соглашение</a>
+                        <a href="legal.html#privacy"><i class="fas fa-shield-alt"></i> Конфиденциальность</a>
+                        <a href="legal.html#offer"><i class="fas fa-hand-holding-heart"></i> Оферта</a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h4><i class="fas fa-headset"></i> Контакты</h4>
+                    <div class="footer-links">
+                        <a href="https://t.me/borishunterstore" target="_blank" rel="noopener"><i class="fab fa-telegram"></i> Telegram</a>
+                        <a href="https://discord.gg/YfZxXXeW6D" target="_blank" rel="noopener"><i class="fab fa-discord"></i> Discord</a>
+                        <a href="https://vk.com/fastvideo_zeny" target="_blank" rel="noopener"><i class="fab fa-vk"></i> VK</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024–2026 BHStore. Все права защищены.</p>
+                <p>ИНН: 742541714674 / Стахеев Д.А.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded',()=>{
+            const sections=document.querySelectorAll('.legal-section');
+            const navItems=document.querySelectorAll('.legal-nav-item');
+            const observer=new IntersectionObserver((entries)=>{
+                entries.forEach(entry=>{
+                    if(entry.isIntersecting){
+                        const id=entry.target.getAttribute('id');
+                        navItems.forEach(item=>item.classList.toggle('active',item.getAttribute('href')===`#${id}`));
+                    }
+                });
+            },{rootMargin:'-20% 0px -70% 0px',threshold:0});
+            sections.forEach(s=>observer.observe(s));
+            navItems.forEach(item=>{
+                item.addEventListener('click',function(e){
+                    e.preventDefault();
+                    const target=document.querySelector(this.getAttribute('href'));
+                    if(target){
+                        const offset=120;
+                        const position=target.getBoundingClientRect().top+window.pageYOffset-offset;
+                        window.scrollTo({top:position,behavior:'smooth'});
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

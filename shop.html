@@ -1,15 +1,29 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Магазин | BHStore</title>
-    <link rel="stylesheet" href="css/news.css">
-    <link rel="stylesheet" href="css/shop.css">
+    <meta name="description" content="Магазин BHStore — профессиональные услуги разработки. Discord боты, сайты, монтаж видео, плагины и моды.">
+    
+    <meta property="og:title" content="Магазин | BHStore">
+    <meta property="og:description" content="Профессиональные услуги разработки">
+    <meta property="og:image" content="image/logo.png">
+    <meta property="og:url" content="https://bhstore.netlify.app/shop.html">
+    
+    <meta name="theme-color" content="#0C0A14">
+    
     <link rel="stylesheet" href="css/general.css">
+    <link rel="stylesheet" href="css/shop.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/png" href="/image/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://api.fontshare.com/v2/css?f[]=clash-display@700,800&display=swap" rel="stylesheet">
+    
+    <link rel="icon" type="image/png" href="image/logo.png">
+    <link rel="apple-touch-icon" href="image/logo.png">
+    
     <script src="js/api.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/promocode.js"></script>
@@ -21,57 +35,135 @@
     <script src="js/shop.js"></script>
 </head>
 <body>
-    <nav class="navbar">
+    <div class="custom-cursor"></div>
+
+    <!-- Yandex.Metrika -->
+    <script>
+        (function(m,e,t,r,i,k,a){
+            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+            m[i].l=1*new Date();
+            for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}
+            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+        })(window,document,'script','https://mc.yandex.ru/metrika/tag.js?id=107215097','ym');
+        ym(107215097,'init',{ssr:true,webvisor:true,clickmap:true,ecommerce:"dataLayer",referrer:document.referrer,url:location.href,accurateTrackBounce:true,trackLinks:true});
+    </script>
+    <noscript><div><img src="https://mc.yandex.ru/watch/107215097" style="position:absolute;left:-9999px" alt=""></div></noscript>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo">
-                <img src="image/logo.png" style="width: 50px;">
+                <img src="image/logo.png" alt="BHStore" class="logo-image">
                 <span class="logo-text">BHStore</span>
             </a>
             <div class="nav-menu">
                 <a href="/" class="nav-link"><i class="fas fa-home"></i> Главная</a>
-                <a href="/shop.html" class="nav-link active"><i class="fas fa-shopping-cart"></i> Магазин</a>
-                <a href="/news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
-                <a href="/faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
-                <a href="/legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Правовая информация</a>
+                <a href="shop.html" class="nav-link active"><i class="fas fa-shopping-cart"></i> Магазин</a>
+                <a href="news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
+                <a href="faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
+                <a href="legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Документы</a>
             </div>
             <div class="nav-auth">
-                <button id="authBtn" class="btn-discord"><i class="fab fa-discord"></i> Войти</button>
+                <button id="authBtn" class="btn-discord">
+                    <i class="fab fa-discord"></i>
+                    <span>Войти</span>
+                </button>
             </div>
-            <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
+            <button class="mobile-menu-btn" aria-label="Открыть меню">
+                <i class="fas fa-bars"></i>
+            </button>
         </div>
     </nav>
 
-    <div class="news-banner">
-        <img src="image/banner.jpg" class="news-banner-image">
-        <div class="news-banner-overlay">
-            <div class="news-banner-title">
-                <i class="fas fa-store" style="font-size: 50px;"></i> Магазин
-                <span>Оформляйте заказ, и радуйтесь результату!</span>
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+    <div class="mobile-nav" id="mobileNav">
+        <div class="mobile-nav-header">
+            <div class="mobile-nav-logo">
+                <img src="image/logo.png" alt="BHStore">
+                <span>BHStore</span>
             </div>
+            <button class="mobile-nav-close" aria-label="Закрыть меню">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="mobile-nav-menu">
+            <a href="/" class="nav-link"><i class="fas fa-home"></i> Главная</a>
+            <a href="shop.html" class="nav-link active"><i class="fas fa-shopping-cart"></i> Магазин</a>
+            <a href="news.html" class="nav-link"><i class="fas fa-newspaper"></i> Новости</a>
+            <a href="faq.html" class="nav-link"><i class="fas fa-question-circle"></i> FAQ</a>
+            <a href="legal.html" class="nav-link"><i class="fas fa-scale-balanced"></i> Документы</a>
+        </div>
+        <div class="mobile-nav-auth">
+            <button id="mobileAuthBtn" class="btn-discord">
+                <i class="fab fa-discord"></i> Войти через Discord
+            </button>
         </div>
     </div>
 
+    <!-- Shop Banner -->
+    <section class="shop-banner">
+        <img src="image/leto/bhstore_footer.png" alt="BHStore Shop" class="shop-banner-image" loading="eager">
+        <div class="shop-banner-overlay">
+            <div class="shop-banner-content">
+                <div class="shop-banner-badge">
+                    <i class="fas fa-bolt"></i> BHStore
+                </div>
+                <h1 class="shop-banner-title">
+                    Магазин
+                </h1>
+            </div>
+        </div>
+    </section>
+
+    <!-- Shop Content -->
     <div class="shop-container">
-        <h1 class="section-title"><i class="fas fa-tags"></i> Магазин товаров</h1>
-        
-        <div class="categories">
-            <button class="category-btn active" data-category="all"><i class="fas fa-th-large"></i> Все товары</button>
-            <button class="category-btn" data-category="montaz"><i class="fas fa-video"></i> Монтаж видео</button>
-            <button class="category-btn" data-category="ava"><i class="fas fa-user-circle"></i> Аватарки</button>
-            <button class="category-btn" data-category="preview"><i class="fas fa-images"></i> Превью</button>
-            <button class="category-btn" data-category="discord"><i class="fab fa-discord"></i> Discord</button>
-            <button class="category-btn" data-category="tgbot"><i class="fab fa-telegram"></i> Telegram бот</button>
-            <button class="category-btn" data-category="website"><i class="fas fa-globe"></i> Сайты</button>
-            <button class="category-btn" data-category="minecraft"><i class="fas fa-cube"></i> Minecraft</button>
+        <div class="shop-section-header">
+            <div class="shop-section-icon">
+                <i class="fas fa-tags"></i>
+            </div>
+            <h2 class="shop-section-title" style="word-spacing: 10px">Каталог товаров</h2>
+            <div class="shop-section-line"></div>
         </div>
 
+        <!-- Categories -->
+        <div class="categories">
+            <button class="category-btn active" data-category="all">
+                <i class="fas fa-th-large"></i> Все товары
+            </button>
+            <button class="category-btn" data-category="montaz">
+                <i class="fas fa-video"></i> Монтаж видео
+            </button>
+            <button class="category-btn" data-category="ava">
+                <i class="fas fa-user-circle"></i> Аватарки
+            </button>
+            <button class="category-btn" data-category="preview">
+                <i class="fas fa-images"></i> Превью
+            </button>
+            <button class="category-btn" data-category="discord">
+                <i class="fab fa-discord"></i> Discord
+            </button>
+            <button class="category-btn" data-category="tgbot">
+                <i class="fab fa-telegram"></i> Telegram бот
+            </button>
+            <button class="category-btn" data-category="website">
+                <i class="fas fa-globe"></i> Сайты
+            </button>
+            <button class="category-btn" data-category="minecraft">
+                <i class="fas fa-cube"></i> Minecraft
+            </button>
+        </div>
+
+        <!-- Active Promocodes -->
         <div class="active-promocodes-section" id="promocodeSection" style="display: none;">
-            <div class="active-promocodes-title">
-                <i class="fas fa-ticket-alt"></i>
+            <div class="promocodes-header">
+                <div class="promocodes-header-icon">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
                 <h3>Активные скидки</h3>
-                <span id="promocodeCount">0</span>
+                <span class="promocodes-count" id="promocodeCount">0</span>
             </div>
-            <div id="shopActivePromocodes" class="active-promocodes-list"></div>
+            <div id="shopActivePromocodes" class="promocodes-list"></div>
         </div>
 
         <div id="productsContainer" class="products-grid">
@@ -83,16 +175,55 @@
     </div>
 
     <div id="productModal" class="modal" style="display: none;">
-        <div class="modal-content product-detail-modal">
+        <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalProductTitle"></h2>
-                <button class="modal-close" onclick="window.closeProductModal()">×</button>
+                <button class="modal-close" onclick="window.closeProductModal()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-            <div id="modalProductContent"></div>
+            <div class="modal-body" id="modalProductContent"></div>
         </div>
     </div>
 
-    <footer class="footer"><img src="image/bhstore.png" style="width: 100%;"><p class="footertxt" style="text-align: center; margin-bottom: 20px;">СПАСИБО, ЧТО ИСПОЛЬЗУЕТЕ НАШ СЕРВИС!</p><div class="footer-content"><div class="footer-section"><h3><i class="fas fa-compass"></i> Навигация</h3><a href="/"><i class="fas fa-home"></i> Главная</a><a href="shop.html"><i class="fas fa-shopping-cart"></i> Магазин</a><a href="news.html"><i class="fas fa-newspaper"></i> Новости</a><a href="faq.html"><i class="fas fa-question-circle"></i> FAQ</a></div><div class="footer-section"><h3><i class="fas fa-file-contract"></i> Документы</h3><a href="legal.html#terms"><i class="fas fa-file-signature"></i> Пользовательское соглашение</a><a href="legal.html#privacy"><i class="fas fa-shield-alt"></i> Политика конфиденциальности</a><a href="legal.html#offer"><i class="fas fa-hand-holding-heart"></i> Публичная оферта</a></div><div class="footer-section"><h3><i class="fas fa-headset"></i> Контакты</h3><a href="https://t.me/borishunterstore"><i class="fab fa-telegram"></i> TELEGRAM</a><a href="https://www.facebook.com/groups/borishunterstore"><i class="fab fa-facebook"></i> FACEBOOK</a><a href="https://discord.gg/YfZxXXeW6D"><i class="fab fa-discord"></i> DISCORD</a><a href="https://vk.com/fastvideo_zeny"><i class="fab fa-vk"></i> VK</a></div></div><div class="footer-bottom" style="margin-bottom: 20px;"><p><i class="far fa-copyright"></i> 2024 - 2026 BHStore. Все права защищены.</p><p><i class="fas fa-id-card"></i> ИНН: 742541714674 / Стахеев Д.А.</p></div></footer>
-    <div class="custom-cursor"></div>
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <img src="image/bhstore.png" alt="BHStore" style="width: 100%; max-width: 280px;">
+                    <p style="margin-top: 16px;">Профессиональная разработка цифровых решений с гарантией качества.</p>
+                </div>
+                <div class="footer-column">
+                    <h4><i class="fas fa-compass"></i> Навигация</h4>
+                    <div class="footer-links">
+                        <a href="/"><i class="fas fa-home"></i> Главная</a>
+                        <a href="shop.html"><i class="fas fa-shopping-cart"></i> Магазин</a>
+                        <a href="news.html"><i class="fas fa-newspaper"></i> Новости</a>
+                        <a href="faq.html"><i class="fas fa-question-circle"></i> FAQ</a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h4><i class="fas fa-file-contract"></i> Документы</h4>
+                    <div class="footer-links">
+                        <a href="legal.html#terms"><i class="fas fa-file-signature"></i> Соглашение</a>
+                        <a href="legal.html#privacy"><i class="fas fa-shield-alt"></i> Конфиденциальность</a>
+                        <a href="legal.html#offer"><i class="fas fa-hand-holding-heart"></i> Оферта</a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h4><i class="fas fa-headset"></i> Контакты</h4>
+                    <div class="footer-links">
+                        <a href="https://t.me/borishunterstore" target="_blank" rel="noopener"><i class="fab fa-telegram"></i> Telegram</a>
+                        <a href="https://discord.gg/YfZxXXeW6D" target="_blank" rel="noopener"><i class="fab fa-discord"></i> Discord</a>
+                        <a href="https://vk.com/fastvideo_zeny" target="_blank" rel="noopener"><i class="fab fa-vk"></i> VK</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024–2026 BHStore. Все права защищены.</p>
+                <p>ИНН: 742541714674 / Стахеев Д.А.</p>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>

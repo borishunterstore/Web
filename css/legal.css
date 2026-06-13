@@ -1,461 +1,194 @@
-/* legal.css - Профессиональный дизайн для страницы правовой информации */
+/* ============================================
+   BHSTORE LEGAL - Премиум дизайн документации
+   Авторская разработка | Уникальная архитектура
+   ============================================ */
+
+/* ========== ДИЗАЙН-СИСТЕМА ========== */
 :root {
-    /* Цветовая палитра - профессиональная, спокойная */
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
-    --primary-light: #60a5fa;
-    --secondary: #7c3aed;
-    --accent: #10b981;
-    --gray-50: #525252;
-    --gray-100: #dddddd;
-    --gray-200: #ffffff;
-    --gray-300: #2c2c2c;
-    --gray-400: #ffffff;
-    --gray-500: #111213;
-    --gray-600: #ffffff;
-    --gray-700: #000000;
-    --gray-800: #cccccc;
-    --gray-900: #ffffff;
-    
-    /* Основные цвета */
-    --text-primary: var(--gray-900);
-    --text-secondary: var(--gray-600);
-    --text-tertiary: var(--gray-500);
-    --bg-body: var(--gray-50);
-    --bg-card: #646464;
-    --border-light: var(--gray-200);
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    
-    /* Размеры */
-    --header-height: 70px;
-    --container-width: 1280px;
-    --border-radius: 12px;
-    --border-radius-lg: 16px;
-    
-    /* Анимации */
-    --transition-fast: 0.15s ease;
-    --transition-base: 0.2s ease;
-    --transition-slow: 0.3s ease;
+    --legal-accent: #FF6B35;
+    --legal-accent-secondary: #F7931E;
+    --legal-surface: rgba(255, 255, 255, 0.02);
+    --legal-surface-hover: rgba(255, 255, 255, 0.04);
+    --legal-border: rgba(255, 255, 255, 0.04);
+    --legal-border-hover: rgba(255, 107, 53, 0.2);
+    --legal-glow: 0 0 40px rgba(255, 107, 53, 0.08), 0 0 80px rgba(255, 107, 53, 0.03);
+    --legal-transition: 0.4s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-/* Сброс и базовые стили */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Inter', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), url("../image/banner.jpg");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    color: var(--text-primary);
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    min-height: 100vh;
-}
-
-/* Баннер с изображением */
+/* ========== БАННЕР ========== */
 .legal-banner {
-    background: linear-gradient(105deg, #1e2b4a 0%, #2d3b5e 100%);
-    margin: 30px auto 40px;
-    max-width: var(--container-width);
-    border-radius: 24px;
-    overflow: hidden;
     position: relative;
-    box-shadow: var(--shadow-xl);
-}
-
-.banner-image {
     width: 100%;
-    height: 240px;
-    object-fit: cover;
-    display: block;
-    opacity: 0.9;
-    transition: transform var(--transition-slow);
+    height: 300px;
+    overflow: hidden;
+    margin-bottom: 60px;
+    background: var(--neutral-900);
 }
 
-.legal-banner:hover .banner-image {
-    transform: scale(1.02);
-}
-
-.banner-overlay {
+.legal-banner::before {
+    content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(90deg, rgba(30, 43, 74, 0.9) 0%, rgba(45, 59, 94, 0.7) 50%, transparent 100%);
+    background: 
+        radial-gradient(ellipse at 30% 50%, rgba(255, 107, 53, 0.12), transparent 60%),
+        radial-gradient(ellipse at 70% 50%, rgba(108, 99, 255, 0.08), transparent 60%);
+    z-index: 1;
+}
+
+.legal-banner::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: linear-gradient(to top, var(--neutral-950), transparent);
+    z-index: 2;
+}
+
+.legal-banner-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.3) contrast(1.1) saturate(0.6);
+    transform: scale(1.05);
+    transition: transform 20s ease;
+}
+
+.legal-banner:hover .legal-banner-image {
+    transform: scale(1.1);
+}
+
+.legal-banner-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
     display: flex;
     align-items: center;
-    padding: 0 60px;
+    padding: 0 80px;
 }
 
-.banner-title {
+.legal-banner-content {
+    animation: bannerReveal 1s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+.legal-banner-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    background: rgba(255, 107, 53, 0.15);
+    border: 1px solid rgba(255, 107, 53, 0.25);
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--legal-accent);
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.legal-banner-title {
+    font-family: 'Clash Display', 'Inter', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
     color: white;
-    font-size: 2.8rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.2;
-    max-width: 600px;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
 }
 
-.banner-title span {
-    display: block;
-    font-size: 1.2rem;
+.legal-banner-subtitle {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.65);
     font-weight: 400;
-    opacity: 0.9;
-    margin-top: 12px;
-    color: var(--gray-200);
+    display: block;
+    margin-top: 8px;
 }
 
-/* Основной контейнер */
+/* ========== КОНТЕЙНЕР ========== */
 .legal-container {
-    max-width: var(--container-width);
-    margin: 0 auto 60px;
+    max-width: 1000px;
+    margin: 0 auto 80px;
     padding: 0 24px;
+    position: relative;
 }
 
-/* Навигация по разделам - компактная */
+/* ========== НАВИГАЦИЯ ПО РАЗДЕЛАМ ========== */
 .legal-nav {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 8px;
     margin-bottom: 40px;
-    padding: 12px;
-    background: var(--bg-card);
-    border-radius: 50px;
-    box-shadow: var(--shadow-sm);
-    border: 1px solid var(--border-light);
+    padding: 8px;
+    background: var(--legal-surface);
+    border: 1px solid var(--legal-border);
+    border-radius: 60px;
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: calc(var(--header-height) + 20px);
+    z-index: 10;
 }
 
 .legal-nav-item {
-    padding: 10px 24px;
+    padding: 12px 22px;
     background: transparent;
     border: none;
-    border-radius: 40px;
-    color: var(--text-secondary);
+    border-radius: 50px;
+    color: #A09CAE;
     font-weight: 500;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     gap: 8px;
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
     white-space: nowrap;
 }
 
 .legal-nav-item i {
-    font-size: 1rem;
-    color: var(--gray-400);
-    transition: color var(--transition-fast);
+    font-size: 0.85rem;
+    opacity: 0.6;
+    transition: all 0.3s ease;
 }
 
 .legal-nav-item:hover {
-    background: var(--gray-100);
-    color: var(--primary);
+    background: var(--legal-surface-hover);
+    color: white;
 }
 
 .legal-nav-item:hover i {
-    color: var(--primary);
+    opacity: 1;
 }
 
 .legal-nav-item.active {
-    background: var(--primary);
-    color: white;
+    background: linear-gradient(135deg, rgba(255, 107, 53, 0.2), rgba(247, 147, 30, 0.15));
+    color: var(--legal-accent);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.2);
 }
 
 .legal-nav-item.active i {
-    color: white;
+    opacity: 1;
+    color: var(--legal-accent);
 }
 
-/* Секции */
+/* ========== СЕКЦИИ ДОКУМЕНТОВ ========== */
 .legal-section {
-    background: var(--bg-card);
-    border-radius: var(--border-radius-lg);
-    padding: 32px 36px;
+    background: var(--legal-surface);
+    border: 1px solid var(--legal-border);
+    border-radius: 24px;
+    padding: 40px;
     margin-bottom: 24px;
-    box-shadow: var(--shadow-md);
-    border: 1px solid var(--border-light);
-    transition: all var(--transition-base);
+    transition: all var(--legal-transition);
+    animation: sectionReveal 0.6s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+    opacity: 0;
 }
 
 .legal-section:hover {
-    box-shadow: var(--shadow-lg);
-    border-color: var(--gray-300);
-}
-
-/* Заголовки */
-.section-main-title {
-    font-size: 2.2rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    margin-bottom: 40px;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-.section-main-title i {
-    font-size: 2rem;
-    color: var(--primary);
-    background: var(--gray-100);
-    padding: 12px;
-    border-radius: 16px;
-}
-
-.legal-section h2 {
-    font-size: 1.6rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    color: var(--text-primary);
-    margin: 32px 0 20px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid var(--gray-200);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.legal-section h2:first-of-type {
-    margin-top: 0;
-}
-
-.legal-section h2 i {
-    font-size: 1.4rem;
-    color: var(--primary);
-}
-
-.legal-section h3 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 24px 0 16px;
-    padding-left: 12px;
-    border-left: 4px solid var(--primary);
-    background: linear-gradient(to right, var(--gray-50), transparent);
-    padding: 12px 16px;
-    border-radius: 0 8px 8px 0;
-}
-
-/* Текст */
-.legal-section p {
-    font-size: 0.95rem;
-    color: #d5b9ff;
-    margin-bottom: 12px;
-    padding: 8px 16px;
-    background: #515151;
-    border-radius: 8px;
-    border: 1px solid #ffffff;
-    transition: all var(--transition-fast);
-    position: relative;
-}
-
-.legal-section p[data-number] {
-    padding-left: 48px;
-}
-
-.legal-section p[data-number]::before {
-    content: attr(data-number);
-    position: absolute;
-    left: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: var(--primary);
-    color: white;
-    width: 35px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);}
-
-/* Списки */
-.legal-section ul {
-    list-style: none;
-    margin: 16px 0 16px 24px;
-}
-
-.legal-section ul li {
-    font-size: 0.95rem;
-    color: var(--text-secondary);
-    margin-bottom: 10px;
-    padding: 8px 16px 8px 40px;
-    background: var(--gray-50);
-    border-radius: 8px;
-    border: 1px solid var(--border-light);
-    position: relative;
-}
-
-.legal-section ul li::before {
-    content: '';
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--primary);
-}
-
-.legal-section ul li i {
-    margin-right: 10px;
-    color: var(--primary);
-    font-size: 1rem;
-}
-
-/* Карточки контактов */
-.contacts-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 16px;
-    margin-top: 24px;
-}
-
-.contact-card {
-    background: var(--gray-50);
-    padding: 20px 16px;
-    border-radius: 12px;
-    border: 1px solid var(--border-light);
-    transition: all var(--transition-base);
-    text-align: center;
-}
-
-.contact-card:hover {
-    transform: translateY(-2px);
-    border-color: #9d68ff;
-    box-shadow: #888a91;
-    box-shadow: #888a91;
-}
-
-.contact-icon {
-    font-size: 2rem;
-    margin-bottom: 10px;
-}
-
-.contact-card h4 {
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 6px;
-}
-
-.contact-card p {
-    background: transparent !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border: none !important;
-    font-size: 0.9rem;
-    color: var(--text-tertiary);
-}
-
-/* Адаптивность */
-@media (max-width: 1024px) {
-    .banner-title {
-        font-size: 2.2rem;
-        padding: 0 20px;
-    }
-    
-    .banner-overlay {
-        padding: 0 30px;
-    }
-}
-
-@media (max-width: 768px) {
-    .legal-banner {
-        margin: 20px 16px 30px;
-    }
-    
-    .banner-image {
-        height: 180px;
-    }
-    
-    .banner-title {
-        font-size: 1.8rem;
-    }
-    
-    .banner-title span {
-        font-size: 1rem;
-    }
-    
-    .legal-nav {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        padding: 8px;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-    }
-    
-    .legal-nav::-webkit-scrollbar {
-        display: none;
-    }
-    
-    .legal-nav-item {
-        padding: 8px 16px;
-        font-size: 0.85rem;
-        white-space: nowrap;
-    }
-    
-    .legal-section {
-        padding: 24px 20px;
-    }
-    
-    .section-main-title {
-        font-size: 1.8rem;
-    }
-    
-    .legal-section h2 {
-        font-size: 1.4rem;
-    }
-    
-    .legal-section h3 {
-        font-size: 1.1rem;
-    }
-    
-    .contacts-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 480px) {
-    .banner-title {
-        font-size: 1.5rem;
-    }
-    
-    .section-main-title {
-        font-size: 1.5rem;
-    }
-    
-    .legal-section p {
-        padding: 8px 12px;
-        font-size: 0.9rem;
-    }
-}
-
-/* Анимации */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.legal-section {
-    animation: fadeIn 0.5s ease-out forwards;
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: var(--legal-glow);
 }
 
 .legal-section:nth-child(2) { animation-delay: 0.1s; }
@@ -463,34 +196,275 @@ body {
 .legal-section:nth-child(4) { animation-delay: 0.3s; }
 .legal-section:nth-child(5) { animation-delay: 0.4s; }
 
-/* Настраиваемые переменные - легко менять */
-.theme-custom {
-    /* Поменяйте эти цвета под свой бренд */
-    --primary: #2563eb;    /* Основной цвет */
-    --secondary: #7c3aed;   /* Дополнительный */
-    --accent: #10b981;      /* Акцентный */
+/* Заголовок секции */
+.legal-section-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--legal-border);
 }
 
-/* Профессиональные улучшения */
-::selection {
-    background: var(--primary);
+.legal-section-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 107, 53, 0.1);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: var(--legal-accent);
+    flex-shrink: 0;
+}
+
+.legal-section h2 {
+    font-family: 'Clash Display', 'Inter', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
     color: white;
+    letter-spacing: -0.01em;
+    margin: 0;
 }
 
-.legal-section p code {
-    background: var(--gray-200);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.85rem;
-    color: var(--primary);
-}
-
-.legal-section blockquote {
-    margin: 16px 0;
+/* Подзаголовки */
+.legal-section h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--legal-accent);
+    margin: 32px 0 16px;
     padding: 12px 20px;
-    background: var(--gray-50);
-    border-left: 4px solid var(--primary);
-    border-radius: 0 8px 8px 0;
-    font-style: italic;
-    color: var(--text-secondary);
+    background: rgba(255, 107, 53, 0.04);
+    border-left: 3px solid var(--legal-accent);
+    border-radius: 0 10px 10px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Параграфы с нумерацией */
+.legal-paragraph {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.015);
+    border-radius: 12px;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.legal-paragraph:hover {
+    background: rgba(255, 255, 255, 0.025);
+    border-color: rgba(255, 255, 255, 0.04);
+}
+
+.legal-paragraph-number {
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 107, 53, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--legal-accent);
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', 'Inter', monospace;
+}
+
+.legal-paragraph-content {
+    flex: 1;
+    color: #C4C1D4;
+    font-size: 0.95rem;
+    line-height: 1.7;
+}
+
+.legal-paragraph-content strong {
+    color: white;
+    font-weight: 600;
+}
+
+/* Списки */
+.legal-list {
+    list-style: none;
+    margin: 12px 0 12px 24px;
+}
+
+.legal-list li {
+    padding: 10px 16px 10px 40px;
+    color: #A09CAE;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    position: relative;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.legal-list li:hover {
+    background: rgba(255, 255, 255, 0.015);
+}
+
+.legal-list li::before {
+    content: '';
+    position: absolute;
+    left: 16px;
+    top: 18px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--legal-accent);
+}
+
+/* Контактная сетка */
+.contacts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.contact-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--legal-border);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.contact-card:hover {
+    border-color: var(--legal-border-hover);
+    transform: translateY(-4px);
+    box-shadow: var(--legal-glow);
+}
+
+.contact-card-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 16px;
+    background: rgba(255, 107, 53, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--legal-accent);
+}
+
+.contact-card-icon img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.contact-card h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 8px;
+}
+
+.contact-card p {
+    color: #7C7888;
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+}
+
+/* ========== АНИМАЦИИ ========== */
+@keyframes bannerReveal {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sectionReveal {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== АДАПТИВНОСТЬ ========== */
+@media (max-width: 968px) {
+    .legal-banner {
+        height: 240px;
+    }
+    
+    .legal-banner-overlay {
+        padding: 0 40px;
+    }
+    
+    .legal-section {
+        padding: 28px;
+    }
+}
+
+@media (max-width: 640px) {
+    .legal-banner {
+        height: 200px;
+    }
+    
+    .legal-banner-overlay {
+        padding: 0 24px;
+    }
+    
+    .legal-banner-title {
+        font-size: 1.8rem;
+    }
+    
+    .legal-banner-subtitle {
+        font-size: 0.9rem;
+    }
+    
+    .legal-nav {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding: 6px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        mask-image: linear-gradient(to right, black 85%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+    }
+    
+    .legal-nav::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .legal-nav-item {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    
+    .legal-section {
+        padding: 24px 20px;
+    }
+    
+    .legal-section h2 {
+        font-size: 1.3rem;
+    }
+    
+    .legal-section h3 {
+        font-size: 1rem;
+        padding: 10px 16px;
+    }
+    
+    .legal-paragraph {
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px 14px;
+    }
+    
+    .contacts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ========== ДОСТУПНОСТЬ ========== */
+@media (prefers-reduced-motion: reduce) {
+    .legal-section,
+    .legal-banner-content {
+        animation: none !important;
+        transition: none !important;
+    }
 }
