@@ -616,7 +616,7 @@ body::before {
 
 .footer-links a {
     color: var(--neutral-400);
-    text-decoration: none;
+    text-decoration: none; 
     font-size: var(--text-sm);
     padding: 6px 0;
     transition: all var(--duration-fast) var(--ease-out-expo);

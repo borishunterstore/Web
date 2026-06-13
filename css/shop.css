@@ -52,7 +52,7 @@
     transition: transform 20s ease;
     background: var(--neutral-900);
 }
-
+ 
 .shop-banner:hover .shop-banner-image {
     transform: scale(1.03);
 }

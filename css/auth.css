@@ -568,7 +568,7 @@
 }
 
 /* Иконка замка на заблокированной кнопке */
-.btn-auth.locked .btn-auth-content::after {
+.btn-auth.locked .btn-auth-content::after { 
     content: '';
     font-size: 0.8rem;
     margin-left: 6px;
