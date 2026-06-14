@@ -2687,9 +2687,8 @@ app.get('/api/user/me', async (req, res) => {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    console.log('🔍 /api/user/me - Получен токен:', token.substring(0, 50) + '...');
+    console.log('🔍 /api/user/me - Декодируем токен...');
     
-    // Декодируем токен
     const decoded = decodeAuthToken(token);
     
     if (!decoded) {
@@ -2697,12 +2696,11 @@ app.get('/api/user/me', async (req, res) => {
       return res.status(401).json({ success: false, error: 'Неверный токен' });
     }
     
-    console.log('✅ /api/user/me - Декодирован ID:', decoded.id);
-    console.log('✅ /api/user/me - Данные токена:', { id: decoded.id, username: decoded.username });
+    console.log('✅ /api/user/me - ID из токена:', decoded.id);
+    console.log('✅ /api/user/me - Username из токена:', decoded.username);
     
     if (!sql) {
-      console.log('⚠️ /api/user/me - БД не подключена');
-      // Возвращаем данные из токена если нет БД
+      console.log('⚠️ БД не подключена, возвращаем данные из токена');
       return res.json({
         success: true,
         user: {
@@ -2714,20 +2712,63 @@ app.get('/api/user/me', async (req, res) => {
           balance: 0,
           badges: {},
           orders: [],
-          privacy: {},
+          privacy: { show_avatar: true, show_orders: true, show_badges: true, show_spent: true, show_orders_count: true, show_registered: true, hide_profile: false },
           frozen: false
         }
       });
     }
     
     // Ищем пользователя в БД
-    const [user] = await sql`
-      SELECT discord_id, username, email, avatar, registered_at, balance, badges, orders, privacy, frozen 
-      FROM users WHERE discord_id = ${decoded.id}
-    `;
+    let user = null;
+    try {
+      const result = await sql`
+        SELECT discord_id, username, email, avatar, registered_at, balance, badges, orders, privacy, frozen 
+        FROM users WHERE discord_id = ${decoded.id}
+      `;
+      user = result && result[0];
+    } catch (dbError) {
+      console.error('❌ Ошибка поиска пользователя:', dbError.message);
+    }
+    
+    // Если пользователь не найден - СОЗДАЁМ ЕГО!
+    if (!user) {
+      console.log(`🆕 Пользователь ${decoded.id} не найден в БД, создаём...`);
+      
+      const username = decoded.username || 'User';
+      const email = decoded.email || null;
+      const avatar = decoded.avatar || null;
+      const balance = 0;
+      
+      try {
+        await sql`
+          INSERT INTO users (discord_id, username, email, avatar, balance, badges, orders, frozen, privacy)
+          VALUES (
+            ${decoded.id}, 
+            ${username}, 
+            ${email}, 
+            ${avatar}, 
+            ${balance}, 
+            '{}', 
+            '[]', 
+            false,
+            '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}'
+          )
+        `;
+        console.log(`✅ Создан новый пользователь: ${decoded.id}`);
+        
+        // Получаем созданного пользователя
+        const result = await sql`
+          SELECT discord_id, username, email, avatar, registered_at, balance, badges, orders, privacy, frozen 
+          FROM users WHERE discord_id = ${decoded.id}
+        `;
+        user = result && result[0];
+      } catch (insertError) {
+        console.error('❌ Ошибка создания пользователя:', insertError.message);
+      }
+    }
     
     if (user) {
-      console.log(`✅ /api/user/me - Найден пользователь в БД: ${user.username}, баланс: ${user.balance}`);
+      console.log(`✅ Найден/создан пользователь: ${user.username}, баланс: ${user.balance}`);
       return res.json({
         success: true,
         user: {
@@ -2745,45 +2786,26 @@ app.get('/api/user/me', async (req, res) => {
       });
     }
     
-    // Пользователь не найден в БД - создаём нового
-    console.log(`🆕 /api/user/me - Пользователь ${decoded.id} не найден в БД, создаём...`);
-    
-    const userId = decoded.id;
-    const username = decoded.username || 'User';
-    const email = decoded.email || `${userId}@temp.bhstore`;
-    
-    await sql`
-      INSERT INTO users (discord_id, username, email, balance, badges, frozen, privacy)
-      VALUES (${userId}, ${username}, ${email}, 0, '{}', false, '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}')
-      ON CONFLICT (discord_id) DO NOTHING
-    `;
-    
-    console.log(`✅ /api/user/me - Создан новый пользователь: ${userId}`);
-    
-    // Получаем созданного пользователя
-    const [newUser] = await sql`
-      SELECT discord_id, username, email, avatar, registered_at, balance, badges, orders, privacy, frozen 
-      FROM users WHERE discord_id = ${userId}
-    `;
-    
+    // Если всё ещё нет пользователя - возвращаем данные из токена как fallback
+    console.log('⚠️ Возвращаем данные из токена как fallback');
     return res.json({
       success: true,
       user: {
-        discordId: newUser.discord_id,
-        username: newUser.username,
-        email: newUser.email,
-        avatar: newUser.avatar,
-        registeredAt: newUser.registered_at,
-        balance: newUser.balance || 0,
-        badges: newUser.badges || {},
-        orders: newUser.orders || [],
-        privacy: newUser.privacy || {},
-        frozen: newUser.frozen || false
+        discordId: decoded.id,
+        username: decoded.username || 'User',
+        email: decoded.email || null,
+        avatar: decoded.avatar || null,
+        registeredAt: new Date().toISOString(),
+        balance: 0,
+        badges: {},
+        orders: [],
+        privacy: { show_avatar: true, show_orders: true, show_badges: true, show_spent: true, show_orders_count: true, show_registered: true, hide_profile: false },
+        frozen: false
       }
     });
     
   } catch (error) {
-    console.error('❌ /api/user/me - Ошибка:', error.message);
+    console.error('❌ /api/user/me - Критическая ошибка:', error.message);
     console.error('❌ Stack:', error.stack);
     res.status(500).json({ success: false, error: 'Ошибка сервера: ' + error.message });
   }
