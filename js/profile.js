@@ -1381,23 +1381,6 @@
     };
 })();
 
-function decodeAuthToken(token) {
-    if (!token) return null;
-    
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET);
-      return decoded;
-    } catch (jwtError) {
-      try {
-        const decoded = JSON.parse(Buffer.from(token, 'base64').toString());
-        return decoded;
-      } catch (base64Error) {
-        console.error('❌ Не удалось декодировать токен');
-        return null;
-      }
-    }
-  }
-
 if (window.promocodeSystem && !window.promocodeSystem.applyPromocodeByCode) {
     window.promocodeSystem.applyPromocodeByCode = async function(code) {
         if (this.isProcessing) return;
