@@ -952,39 +952,66 @@
     window.refreshAvatar = async function() {
         const authData = getAuthData();
         
-        try {
-            const response = await fetch('/api/auth/discord/refresh', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authData.token}`
-                }
-            });
-            
-            const data = await response.json();
-            
-            if (data.success && data.user) {
-                await fetch(`/api/user/${authData.id}/avatar`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authData.token}`
-                    },
-                    body: JSON.stringify({ avatar: data.user.avatar })
-                });
+        // Сохраняем текущий токен для восстановления
+        const currentToken = authData.token;
+        
+        // Открываем окно авторизации Discord для получения свежих данных
+        const clientId = 'YOUR_DISCORD_CLIENT_ID'; // Замените на ваш Client ID
+        const redirectUri = encodeURIComponent('https://bhstore.netlify.app/auth/discord/callback');
+        const scope = 'identify email';
+        
+        const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&prompt=none`;
+        
+        // Открываем попап
+        const width = 500;
+        const height = 700;
+        const left = (screen.width - width) / 2;
+        const top = (screen.height - height) / 2;
+        
+        const popup = window.open(authUrl, 'discord_auth', `width=${width},height=${height},left=${left},top=${top}`);
+        
+        // Слушаем сообщение от попапа
+        window.addEventListener('message', async function(event) {
+            if (event.data && event.data.type === 'DISCORD_AUTH_CALLBACK' && event.data.code) {
+                popup.close();
                 
-                authData.avatar = data.user.avatar;
-                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-                alert('Аватарка обновлена!');
-                document.getElementById('settingsModal')?.remove();
-                await loadOwnProfile();
-            } else {
-                alert('Не удалось обновить аватарку');
+                try {
+                    // Обмениваем код на токен
+                    const response = await fetch('/api/auth/discord', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code: event.data.code })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success && data.user) {
+                        // Обновляем аватар в localStorage
+                        authData.avatar = data.user.avatar;
+                        authData.token = data.token;
+                        localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                        
+                        // Обновляем аватар в БД через сервер
+                        await fetch(`/api/user/${authData.id}/avatar`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${data.token}`
+                            },
+                            body: JSON.stringify({ avatar: data.user.avatar })
+                        });
+                        
+                        alert('Аватарка успешно обновлена!');
+                        await loadOwnProfile();
+                    } else {
+                        alert('Не удалось обновить аватарку');
+                    }
+                } catch (error) {
+                    console.error('Error refreshing avatar:', error);
+                    alert('Ошибка при обновлении аватарки');
+                }
             }
-        } catch (error) {
-            console.error('Error refreshing avatar:', error);
-            alert('Ошибка при обновлении аватарки');
-        }
+        });
     };
 
     function addChatButton(userId, username) {

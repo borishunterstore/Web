@@ -1645,7 +1645,6 @@ app.post('/api/auth/discord/refresh', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-      console.log('❌ /api/auth/discord/refresh - Нет авторизации');
       return res.status(401).json({ success: false, error: 'Не авторизован' });
     }
 
@@ -1653,48 +1652,140 @@ app.post('/api/auth/discord/refresh', async (req, res) => {
     const decoded = decodeAuthToken(token);
     
     if (!decoded) {
-      console.log('❌ /api/auth/discord/refresh - Неверный токен');
       return res.status(401).json({ success: false, error: 'Неверный токен' });
     }
     
-    console.log('✅ /api/auth/discord/refresh - Декодирован ID:', decoded.id);
     const userId = decoded.id;
+    console.log('🔄 Обновление данных пользователя:', userId);
     
+    // Получаем свежие данные из Discord API
+    try {
+      // Нам нужен access_token, но у нас его нет в JWT
+      // Вместо этого мы можем сделать запрос к Discord API с существующим токеном?
+      // К сожалению, без access_token мы не можем получить свежие данные.
+      
+      // Альтернатива: используем данные из БД, но аватар может быть устаревшим
+      if (sql) {
+        const [user] = await sql`
+          SELECT discord_id, username, email, avatar, balance, badges
+          FROM users 
+          WHERE discord_id = ${userId}
+        `;
+        
+        if (user) {
+          return res.json({
+            success: true,
+            user: {
+              id: user.discord_id,
+              username: user.username,
+              email: user.email,
+              avatar: user.avatar,
+              balance: user.balance,
+              badges: user.badges
+            }
+          });
+        }
+      }
+      
+      // Возвращаем данные из токена
+      return res.json({
+        success: true,
+        user: {
+          id: decoded.id,
+          username: decoded.username,
+          avatar: decoded.avatar,
+          email: decoded.email
+        }
+      });
+      
+    } catch (discordError) {
+      console.error('Ошибка получения данных из Discord:', discordError.message);
+      
+      // Fallback - данные из БД или токена
+      if (sql) {
+        const [user] = await sql`
+          SELECT discord_id, username, email, avatar, balance, badges
+          FROM users 
+          WHERE discord_id = ${userId}
+        `;
+        
+        if (user) {
+          return res.json({
+            success: true,
+            user: {
+              id: user.discord_id,
+              username: user.username,
+              email: user.email,
+              avatar: user.avatar,
+              balance: user.balance,
+              badges: user.badges
+            }
+          });
+        }
+      }
+      
+      res.json({
+        success: true,
+        user: {
+          id: decoded.id,
+          username: decoded.username,
+          avatar: decoded.avatar,
+          email: decoded.email
+        }
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ Ошибка обновления токена:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+app.post('/api/user/:userId/refresh-avatar', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Не авторизован' });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const decoded = decodeAuthToken(token);
+    
+    if (!decoded) {
+      return res.status(401).json({ success: false, error: 'Неверный токен' });
+    }
+    
+    const userId = req.params.userId;
+    
+    if (decoded.id !== userId) {
+      return res.status(403).json({ success: false, error: 'Доступ запрещен' });
+    }
+    
+    // Получаем свежие данные пользователя из Discord
+    // Для этого нужно, чтобы у пользователя был refresh_token или мы делаем редирект
+    // Простой способ: перенаправить пользователя на повторную авторизацию
+    
+    // Временное решение: возвращаем текущий аватар из БД
     if (sql) {
       const [user] = await sql`
-        SELECT discord_id, username, email, avatar, balance, badges
-        FROM users 
-        WHERE discord_id = ${userId}
+        SELECT avatar FROM users WHERE discord_id = ${userId}
       `;
       
-      if (user) {
+      if (user && user.avatar) {
         return res.json({
           success: true,
-          user: {
-            id: user.discord_id,
-            username: user.username,
-            email: user.email,
-            avatar: user.avatar,
-            balance: user.balance,
-            badges: user.badges
-          }
+          avatar: user.avatar
         });
       }
     }
     
-    // Если не нашли в БД, возвращаем из токена
     res.json({
-      success: true,
-      user: {
-        id: decoded.id,
-        username: decoded.username,
-        avatar: decoded.avatar,
-        email: decoded.email
-      }
+      success: false,
+      error: 'Не удалось обновить аватар'
     });
     
   } catch (error) {
-    console.error('❌ Ошибка обновления токена:', error.message);
+    console.error('❌ Ошибка обновления аватара:', error.message);
     res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
