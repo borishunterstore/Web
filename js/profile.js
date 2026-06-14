@@ -55,52 +55,65 @@
             
             console.log('📦 Данные из /api/user/me:', data);
             
+            let user;
             if (data.success && data.user) {
-                const user = data.user;
-                
-                authData.balance = user.balance;
-                authData.badges = user.badges || {};
-                authData.email = user.email;
-                authData.username = user.username;
-                localStorage.setItem('bhstore_auth', JSON.stringify(authData));
-                
-                renderProfile(user, true);
-                renderBalance(user.balance || 0);
-                
-                console.log('📦 Загрузка заказов...');
-                const ordersResponse = await fetch(`/api/user/${authData.id}/orders`, {
-                    headers: { 'Authorization': `Bearer ${authData.token}` }
-                });
-                const ordersData = await ordersResponse.json();
-                
-                console.log('📦 Заказы получены:', ordersData);
-                
-                if (ordersData.success && ordersData.orders) {
-                    renderOrders(ordersData.orders, true);
-                    updateStats(ordersData.orders, user);
-                } else {
-                    renderOrders([], true);
-                    updateStats([], user);
-                }
-                
-                await loadUserPromocodes();
-                await loadActivePromocodes();
-                
-                if (window.ChatSystem) {
-                    window.chatSystem = new ChatSystem();
-                    await window.chatSystem.init();
-                }
+                user = data.user;
             } else {
-                console.error('No user data received', data);
-                renderProfile(authData, true);
-                renderBalance(0);
-                renderOrders([], true);
-                updateStats([], authData);
+                // 🔥 FALLBACK - используем данные из localStorage
+                console.warn('⚠️ Сервер не вернул пользователя, используем данные из localStorage');
+                user = {
+                    discordId: authData.id,
+                    username: authData.username,
+                    email: authData.email,
+                    avatar: authData.avatar,
+                    registeredAt: new Date().toISOString(),
+                    balance: authData.balance || 0,
+                    badges: authData.badges || {},
+                    orders: authData.orders || [],
+                    privacy: authData.privacy || {},
+                    frozen: false
+                };
             }
+            
+            // Сохраняем актуальные данные
+            authData.balance = user.balance;
+            authData.badges = user.badges || {};
+            authData.email = user.email;
+            authData.username = user.username;
+            localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+            
+            renderProfile(user, true);
+            renderBalance(user.balance || 0);
+            
+            console.log('📦 Загрузка заказов...');
+            const ordersResponse = await fetch(`/api/user/${authData.id}/orders`, {
+                headers: { 'Authorization': `Bearer ${authData.token}` }
+            });
+            const ordersData = await ordersResponse.json();
+            
+            console.log('📦 Заказы получены:', ordersData);
+            
+            if (ordersData.success && ordersData.orders) {
+                renderOrders(ordersData.orders, true);
+                updateStats(ordersData.orders, user);
+            } else {
+                renderOrders([], true);
+                updateStats([], user);
+            }
+            
+            await loadUserPromocodes();
+            await loadActivePromocodes();
+            
+            if (window.ChatSystem) {
+                window.chatSystem = new ChatSystem();
+                await window.chatSystem.init();
+            }
+            
         } catch (error) {
             console.error('Error loading profile:', error);
+            // Используем данные из localStorage при ошибке
             renderProfile(authData, true);
-            renderBalance(0);
+            renderBalance(authData.balance || 0);
             renderOrders([], true);
             updateStats([], authData);
         }

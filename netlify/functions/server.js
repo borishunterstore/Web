@@ -2682,25 +2682,26 @@ app.get('/api/user/me', async (req, res) => {
     const authHeader = req.headers.authorization;
     
     if (!authHeader) {
-      console.log('❌ /api/user/me - Нет заголовка Authorization');
-      return res.status(401).json({ success: false, error: 'Не авторизован' });
+      console.log('❌ /api/user/me - No Authorization header');
+      return res.status(401).json({ success: false, error: 'Not authorized' });
     }
 
     const token = authHeader.replace('Bearer ', '');
-    console.log('🔍 /api/user/me - Декодируем токен...');
+    console.log('🔍 /api/user/me - Decoding token...');
     
     const decoded = decodeAuthToken(token);
     
     if (!decoded) {
-      console.log('❌ /api/user/me - Не удалось декодировать токен');
-      return res.status(401).json({ success: false, error: 'Неверный токен' });
+      console.log('❌ /api/user/me - Invalid token');
+      return res.status(401).json({ success: false, error: 'Invalid token' });
     }
     
-    console.log('✅ /api/user/me - ID из токена:', decoded.id);
-    console.log('✅ /api/user/me - Username из токена:', decoded.username);
+    console.log('✅ /api/user/me - Decoded ID:', decoded.id);
+    console.log('✅ /api/user/me - Decoded username:', decoded.username);
     
+    // Если нет БД, возвращаем данные из токена
     if (!sql) {
-      console.log('⚠️ БД не подключена, возвращаем данные из токена');
+      console.log('⚠️ /api/user/me - No database, returning token data');
       return res.json({
         success: true,
         user: {
@@ -2726,18 +2727,18 @@ app.get('/api/user/me', async (req, res) => {
         FROM users WHERE discord_id = ${decoded.id}
       `;
       user = result && result[0];
+      console.log('🔍 /api/user/me - Database query result:', user ? 'Found' : 'Not found');
     } catch (dbError) {
-      console.error('❌ Ошибка поиска пользователя:', dbError.message);
+      console.error('❌ /api/user/me - Database error:', dbError.message);
     }
     
-    // Если пользователь не найден - СОЗДАЁМ ЕГО!
+    // Если пользователь не найден - СОЗДАЁМ!
     if (!user) {
-      console.log(`🆕 Пользователь ${decoded.id} не найден в БД, создаём...`);
+      console.log(`🆕 /api/user/me - Creating new user for ID: ${decoded.id}`);
       
       const username = decoded.username || 'User';
       const email = decoded.email || null;
       const avatar = decoded.avatar || null;
-      const balance = 0;
       
       try {
         await sql`
@@ -2747,14 +2748,14 @@ app.get('/api/user/me', async (req, res) => {
             ${username}, 
             ${email}, 
             ${avatar}, 
-            ${balance}, 
+            0, 
             '{}', 
             '[]', 
             false,
             '{"show_avatar":true,"show_orders":true,"show_badges":true,"show_spent":true,"show_orders_count":true,"show_registered":true,"hide_profile":false}'
           )
         `;
-        console.log(`✅ Создан новый пользователь: ${decoded.id}`);
+        console.log(`✅ /api/user/me - User created: ${decoded.id}`);
         
         // Получаем созданного пользователя
         const result = await sql`
@@ -2763,12 +2764,12 @@ app.get('/api/user/me', async (req, res) => {
         `;
         user = result && result[0];
       } catch (insertError) {
-        console.error('❌ Ошибка создания пользователя:', insertError.message);
+        console.error('❌ /api/user/me - Insert error:', insertError.message);
       }
     }
     
     if (user) {
-      console.log(`✅ Найден/создан пользователь: ${user.username}, баланс: ${user.balance}`);
+      console.log(`✅ /api/user/me - Returning user: ${user.username}, balance: ${user.balance}`);
       return res.json({
         success: true,
         user: {
@@ -2786,8 +2787,8 @@ app.get('/api/user/me', async (req, res) => {
       });
     }
     
-    // Если всё ещё нет пользователя - возвращаем данные из токена как fallback
-    console.log('⚠️ Возвращаем данные из токена как fallback');
+    // Если всё else failed - возвращаем данные из токена
+    console.log('⚠️ /api/user/me - Returning token data as fallback');
     return res.json({
       success: true,
       user: {
@@ -2805,9 +2806,9 @@ app.get('/api/user/me', async (req, res) => {
     });
     
   } catch (error) {
-    console.error('❌ /api/user/me - Критическая ошибка:', error.message);
+    console.error('❌ /api/user/me - Fatal error:', error.message);
     console.error('❌ Stack:', error.stack);
-    res.status(500).json({ success: false, error: 'Ошибка сервера: ' + error.message });
+    res.status(500).json({ success: false, error: 'Server error: ' + error.message });
   }
 });
 
