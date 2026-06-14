@@ -952,11 +952,7 @@
     window.refreshAvatar = async function() {
         const authData = getAuthData();
         
-        // Сохраняем текущий токен для восстановления
-        const currentToken = authData.token;
-        
-        // Открываем окно авторизации Discord для получения свежих данных
-        const clientId = 'YOUR_DISCORD_CLIENT_ID'; // Замените на ваш Client ID
+        const clientId = '1328718434967486575';
         const redirectUri = encodeURIComponent('https://bhstore.netlify.app/auth/discord/callback');
         const scope = 'identify email';
         
@@ -968,11 +964,12 @@
         const left = (screen.width - width) / 2;
         const top = (screen.height - height) / 2;
         
-        const popup = window.open(authUrl, 'discord_auth', `width=${width},height=${height},left=${left},top=${top}`);
+        const popup = window.open(authUrl, 'refresh_avatar', `width=${width},height=${height},left=${left},top=${top}`);
         
         // Слушаем сообщение от попапа
-        window.addEventListener('message', async function(event) {
+        const messageHandler = async function(event) {
             if (event.data && event.data.type === 'DISCORD_AUTH_CALLBACK' && event.data.code) {
+                window.removeEventListener('message', messageHandler);
                 popup.close();
                 
                 try {
@@ -986,12 +983,13 @@
                     const data = await response.json();
                     
                     if (data.success && data.user) {
-                        // Обновляем аватар в localStorage
+                        // Обновляем данные в localStorage
                         authData.avatar = data.user.avatar;
+                        authData.username = data.user.username;
                         authData.token = data.token;
                         localStorage.setItem('bhstore_auth', JSON.stringify(authData));
                         
-                        // Обновляем аватар в БД через сервер
+                        // Обновляем аватар в БД
                         await fetch(`/api/user/${authData.id}/avatar`, {
                             method: 'POST',
                             headers: {
@@ -1001,17 +999,27 @@
                             body: JSON.stringify({ avatar: data.user.avatar })
                         });
                         
-                        alert('Аватарка успешно обновлена!');
-                        await loadOwnProfile();
+                        alert('✅ Аватарка успешно обновлена!');
+                        await loadOwnProfile(); // Перезагружаем профиль
                     } else {
-                        alert('Не удалось обновить аватарку');
+                        alert('❌ Не удалось обновить аватарку');
                     }
                 } catch (error) {
                     console.error('Error refreshing avatar:', error);
-                    alert('Ошибка при обновлении аватарки');
+                    alert('❌ Ошибка при обновлении аватарки');
                 }
             }
-        });
+        };
+        
+        window.addEventListener('message', messageHandler);
+        
+        // Закрываем попап через 30 секунд, если пользователь не завершил авторизацию
+        setTimeout(() => {
+            if (popup && !popup.closed) {
+                popup.close();
+                window.removeEventListener('message', messageHandler);
+            }
+        }, 30000);
     };
 
     function addChatButton(userId, username) {
