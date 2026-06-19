@@ -350,10 +350,8 @@
         </div>
     </footer>
 
-    <!-- Data Loading Script -->
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            // Discord stats
             try {
                 const res = await fetch('https://discord.com/api/guilds/1241001251907309701/widget.json');
                 const data = await res.json();
@@ -366,51 +364,7 @@
                 document.getElementById('memberCount').textContent = 'Discord сервер';
                 document.getElementById('onlineCount').innerHTML = '<i class="fas fa-circle" style="color:#57F287;font-size:10px;"></i> онлайн';
             }
-
-            await loadPopularProducts();
-            await loadLatestNews();
         });
-
-        const esc = s => String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[m]);
-
-        async function loadPopularProducts() {
-            const el = document.getElementById('popularProducts');
-            if (!el) return;
-            try {
-                const res = await fetch('/api/products');
-                const data = await res.json();
-                const items = (data?.success && data.products?.length)
-                    ? (data.products.filter(p => p.popular).slice(0, 3).length
-                        ? data.products.filter(p => p.popular).slice(0, 3)
-                        : data.products.slice(0, 3))
-                    : [];
-
-                if (items.length) {
-                    el.innerHTML = items.map(p => `
-                        <div class="product-card">
-                            <div class="product-media">
-                                <img src="${esc(p.image||p.icon||'/image/default-product.png')}" alt="${esc(p.name)}" loading="lazy" onerror="this.src='/image/default-product.png'">
-                                <div class="product-media-overlay">
-                                    <span class="product-badge">Популярное</span>
-                                </div>
-                            </div>
-                            <div class="product-details">
-                                <h3 class="product-name">${esc(p.name)}</h3>
-                                <p class="product-desc">${esc((p.description||'').substring(0, 80))}...</p>
-                                <div class="product-footer">
-                                    <div class="product-price">${p.price} ₽ <small>за шт.</small></div>
-                                    <a href="shop.html?product=${encodeURIComponent(p.id)}" class="product-btn">Подробнее</a>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    el.innerHTML = '<p style="text-align:center;color:var(--neutral-400);grid-column:1/-1;">Товары временно недоступны</p>';
-                }
-            } catch {
-                el.innerHTML = '<p style="text-align:center;color:var(--neutral-400);grid-column:1/-1;">Не удалось загрузить товары</p>';
-            }
-        }
     </script>
 
     <script src="js/telegram-auth.js"></script>

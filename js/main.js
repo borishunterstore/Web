@@ -349,30 +349,28 @@
             
             if (data?.success && data.news?.length) {
                 items = data.news.slice(0, 3);
-            } else {
-                items = [];
             }
             
-            container.innerHTML = items.map(news => {
-                const imageUrl = news.image || '/image/default-news.jpg';
+            container.innerHTML = items.map(item => {  // ← переименовал в "item"
+                const imageUrl = item.image || '/image/default-news.jpg';
                 
                 return `
-                    <div class="news-card" onclick="location.href='/news.html?id=${news.id}'" style="cursor: pointer;">
+                    <div class="news-card" onclick="location.href='/news.html?id=${item.id}'" style="cursor: pointer;">
                         <div class="news-card-image">
                             <img src="${escapeHtml(imageUrl)}" 
-                                 alt="${escapeHtml(news.title)}" 
+                                 alt="${escapeHtml(item.title)}" 
                                  loading="lazy"
                                  onerror="this.src='/image/default-news.jpg'">
                         </div>
                         <div class="news-card-content">
                             <div class="news-card-meta">
                                 <span class="news-card-date">
-                                    <i class="far fa-calendar-alt"></i> ${escapeHtml(news.date)}
+                                    <i class="far fa-calendar-alt"></i> ${escapeHtml(item.date)}
                                 </span>
-                                <span class="news-card-tag">${escapeHtml(news.category || 'Новость')}</span>
+                                <span class="news-card-tag">${escapeHtml(item.category || 'Новость')}</span>
                             </div>
-                            <h3>${escapeHtml(news.title)}</h3>
-                            <p>${escapeHtml((news.content || '').substring(0, 100))}${news.content && news.content.length > 100 ? '...' : ''}</p>
+                            <h3>${escapeHtml(item.title)}</h3>
+                            <p>${escapeHtml((item.content || '').substring(0, 100))}${item.content && item.content.length > 100 ? '...' : ''}</p>
                             <span class="news-card-link">
                                 Читать далее <i class="fas fa-arrow-right"></i>
                             </span>
