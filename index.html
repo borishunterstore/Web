@@ -411,41 +411,6 @@
                 el.innerHTML = '<p style="text-align:center;color:var(--neutral-400);grid-column:1/-1;">Не удалось загрузить товары</p>';
             }
         }
-
-        async function loadLatestNews() {
-            const el = document.getElementById('latestNews');
-            if (!el) return;
-            try {
-                const res = await fetch('/api/news');
-                const data = await res.json();
-                let items = (data?.success && data.news?.length) ? data.news.slice(0, 3) : [];
-                if (!items.length) {
-                    items = [
-                        {id:1,title:'Запуск BHStore',content:'Мы рады представить вам нашу платформу.',date:new Date().toLocaleDateString('ru-RU'),category:'announcement'},
-                        {id:2,title:'Новые услуги',content:'Расширенный ассортимент услуг уже доступен.',date:new Date().toLocaleDateString('ru-RU'),category:'updates'},
-                        {id:3,title:'Сезонная акция',content:'Специальные предложения для новых клиентов.',date:new Date().toLocaleDateString('ru-RU'),category:'promo'}
-                    ];
-                }
-                el.innerHTML = items.map(n => `
-                    <div class="news-card" onclick="location.href='/news.html?id=${n.id}'">
-                        <div class="news-card-image">
-                            <img src="/image/default-news.jpg" alt="${esc(n.title)}" loading="lazy">
-                        </div>
-                        <div class="news-card-content">
-                            <div class="news-card-meta">
-                                <span class="news-card-date">${esc(n.date)}</span>
-                                <span class="news-card-tag">${esc(n.category||'Новость')}</span>
-                            </div>
-                            <h3>${esc(n.title)}</h3>
-                            <p>${esc((n.content||'').substring(0, 100))}...</p>
-                            <span class="news-card-link">Читать <i class="fas fa-arrow-right"></i></span>
-                        </div>
-                    </div>
-                `).join('');
-            } catch {
-                el.innerHTML = '<p style="text-align:center;color:var(--neutral-400);grid-column:1/-1;">Не удалось загрузить новости</p>';
-            }
-        }
     </script>
 
     <script src="js/telegram-auth.js"></script>

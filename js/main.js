@@ -344,23 +344,52 @@
         try {
             const response = await fetch('/api/news');
             const data = await response.json();
-            if (!data?.success) return;
             
-            const latest = data.news.slice(0, 3);
-            container.innerHTML = latest.map(news => `
-                <div class="news-card">
-                    <div class="news-content">
-                        <div class="news-card-image img">${news.image}</div> 
-                        <div class="news-date">${news.date}</div>
-                        <span class="news-tag">${news.category}</span>
-                        <h3>${escapeHtml(news.title)}</h3>
-                        <p>${escapeHtml(news.content?.substring(0, 100))}...</p>
-                        <a href="/news.html">Читать далее →</a>
+            let items = [];
+            
+            if (data?.success && data.news?.length) {
+                items = data.news.slice(0, 3);
+            } else {
+                items = [];
+            }
+            
+            container.innerHTML = items.map(news => {
+                const imageUrl = news.image || '/image/default-news.jpg';
+                
+                return `
+                    <div class="news-card" onclick="location.href='/news.html?id=${news.id}'" style="cursor: pointer;">
+                        <div class="news-card-image">
+                            <img src="${escapeHtml(imageUrl)}" 
+                                 alt="${escapeHtml(news.title)}" 
+                                 loading="lazy"
+                                 onerror="this.src='/image/default-news.jpg'">
+                        </div>
+                        <div class="news-card-content">
+                            <div class="news-card-meta">
+                                <span class="news-card-date">
+                                    <i class="far fa-calendar-alt"></i> ${escapeHtml(news.date)}
+                                </span>
+                                <span class="news-card-tag">${escapeHtml(news.category || 'Новость')}</span>
+                            </div>
+                            <h3>${escapeHtml(news.title)}</h3>
+                            <p>${escapeHtml((news.content || '').substring(0, 100))}${news.content && news.content.length > 100 ? '...' : ''}</p>
+                            <span class="news-card-link">
+                                Читать далее <i class="fas fa-arrow-right"></i>
+                            </span>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
+            
         } catch (error) {
-            console.error('❌ Ошибка новостей:', error);
+            console.error('❌ Ошибка загрузки новостей:', error);
+            container.innerHTML = `
+                <div class="news-error" style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--neutral-400);">
+                    <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+                    <p>Не удалось загрузить новости</p>
+                    <p style="font-size: 0.85rem; margin-top: 0.5rem;">Попробуйте обновить страницу</p>
+                </div>
+            `;
         }
     }
 
