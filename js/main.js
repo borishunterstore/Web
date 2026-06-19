@@ -350,6 +350,7 @@
             container.innerHTML = latest.map(news => `
                 <div class="news-card">
                     <div class="news-content">
+                        <div class="news-card-image img">${news.image}</div> 
                         <div class="news-date">${news.date}</div>
                         <span class="news-tag">${news.category}</span>
                         <h3>${escapeHtml(news.title)}</h3>
