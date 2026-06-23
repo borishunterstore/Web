@@ -2193,7 +2193,7 @@ app.post('/api/chat/send', async (req, res) => {
     
     if (!fromAdmin) {
       try {
-        const webhookUrl = process.env.DISCORD_WEBHOOK_CHAT || 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG';
+        const webhookUrl = process.env.DISCORD_WEBHOOK_CHAT || 'https://discord.com/api/webhooks/1518976553856405555/UIJWGhA7I0RdnfoegWoOFazHqRXuEi_mzTSxX0_Bi5Og2OUW3pYi_7iuK_Kz5BY3yM8B';
         
         console.log('Попытка отправки вебхука от пользователя...');
         
@@ -3188,7 +3188,7 @@ app.post('/api/send-verification', async (req, res) => {
     const { userId, code } = req.body;
     console.log(`Отправка кода ${code} пользователю ${userId}`);
     
-    const webhookUrl = 'https://discord.com/api/webhooks/1475846621425303674/Cm1D7yfWCjoh0nJys6jyedmEawUID6kpe2ycOc7xfjIC-p0M7i341cekSOVfMA2HLWn5';
+    const webhookUrl = 'https://discord.com/api/webhooks/1518976627487281364/j7i7z1BTK1Vx2ugRcTK6ufQCVev1IxG0tJ0zbNnJLal4HhfRENGHUe6edyUqvRaND-PR';
     
     await axios.post(webhookUrl, {
       content: `<@${userId}>`,
@@ -3268,7 +3268,7 @@ app.post('/api/welcome-message', async (req, res) => {
   try {
       const { userId } = req.body;
       
-      const webhookUrl = 'https://discord.com/api/webhooks/1475846621425303674/Cm1D7yfWCjoh0nJys6jyedmEawUID6kpe2ycOc7xfjIC-p0M7i341cekSOVfMA2HLWn5';
+      const webhookUrl = 'https://discord.com/api/webhooks/1518979592185053385/kGUtr7Kwx2mGXT1o7-PSa_xbhwJT_UKajZq20RwzOEqW6NKjnJHrSjUpn5CnytUM4U6m';
       
       await axios.post(webhookUrl, {
           content: `<@${userId}>`,
@@ -3386,7 +3386,7 @@ app.post('/api/create-order', async (req, res) => {
     }
 
     try {
-      const webhookUrl = 'https://discord.com/api/webhooks/1475847164801581127/8YklZGMVs-4reVU9yr4WbsO5OM1R5l2lM6yYmYyIPxhFICS1fDRZCD4ATL8sLEIaF1v5';
+      const webhookUrl = 'https://discord.com/api/webhooks/1518979354212827406/kPDaqfNL-fKDu8SThdR_WVKh2Buw4JMuABNiQ_M3zJ5AphkZ4gtt_9PI4hsN4b7WjMmR';
       
       const embed = {
         title: '<:Price:1474932616523415583> Новая покупка!',
@@ -4155,7 +4155,7 @@ app.post('/api/admin/news', async (req, res) => {
           console.log(`Новость создана: ${title} (ID: ${result[0].id})`);
           
           try {
-            const webhookUrl = 'https://discord.com/api/webhooks/1475843665921576960/dzWLdmiJOrsOH_Lnvj7I3DVB69UaAiCg4b-Leiu7-LlhiZZzVYL2thbjvXdXvwtVTw89';
+            const webhookUrl = 'https://discord.com/api/webhooks/1518979592185053385/kGUtr7Kwx2mGXT1o7-PSa_xbhwJT_UKajZq20RwzOEqW6NKjnJHrSjUpn5CnytUM4U6m';
             
             const categoryNames = {
               'announcement': '📢 Объявление',
@@ -5632,7 +5632,7 @@ app.post('/api/reviews', async (req, res) => {
     `;
     
     console.log(`Отзыв создан: ${reviewId} от ${name}`);
-    const webhookUrl = 'https://discord.com/api/webhooks/1475843665921576960/dzWLdmiJOrsOH_Lnvj7I3DVB69UaAiCg4b-Leiu7-LlhiZZzVYL2thbjvXdXvwtVTw89';
+    const webhookUrl = 'https://discord.com/api/webhooks/1518976761172594809/a5ImszXDt-RMJhUZB5DE2vNQfiyCr84mbozXShnujpKGMz3Lvnmgf02IOl3WpQsSWf45';
     
     axios.post(webhookUrl, {
       embeds: [{
@@ -5855,7 +5855,7 @@ app.post('/api/webhook/send', async (req, res) => {
   try {
       const { title, description, color, fields } = req.body;
       
-      const webhookUrl = process.env.DISCORD_WEBHOOK_CHAT || 'https://discord.com/api/webhooks/1475844623250227430/Q0fZcJ4U1WuqsyWb6-L_mFemtOPlUQFbzoJkO0V_T2kpOce5OGRZz4D5xzk12FE0mvKG';
+      const webhookUrl = process.env.DISCORD_WEBHOOK_CHAT || 'https://discord.com/api/webhooks/1518976553856405555/UIJWGhA7I0RdnfoegWoOFazHqRXuEi_mzTSxX0_Bi5Og2OUW3pYi_7iuK_Kz5BY3yM8B';
       
       const response = await axios.post(webhookUrl, {
           embeds: [{
