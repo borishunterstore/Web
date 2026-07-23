@@ -2911,15 +2911,14 @@ app.get('/api/user/me', async (req, res) => {
 app.post('/api/auth/discord', async (req, res) => {
   try {
     const { code } = req.body;
-    console.log('Получен запрос авторизации');
-    console.log('Получен code:', code ? 'да' : 'нет');
-    console.log('Проверка переменных:');
-    console.log('- DISCORD_CLIENT_ID:', DISCORD_CLIENT_ID ? 'установлен' : 'ОТСУТСТВУЕТ');
-    console.log('- DISCORD_CLIENT_SECRET:', DISCORD_CLIENT_SECRET ? 'установлен' : 'ОТСУТСТВУЕТ');
-    console.log('- DISCORD_REDIRECT_URI:', DISCORD_REDIRECT_URI);
+    console.log('🔐 Получен запрос авторизации');
+    console.log('📝 Code:', code ? 'получен' : 'ОТСУТСТВУЕТ');
+    console.log('📝 CLIENT_ID:', DISCORD_CLIENT_ID ? 'установлен' : 'ОТСУТСТВУЕТ');
+    console.log('📝 CLIENT_SECRET:', DISCORD_CLIENT_SECRET ? 'установлен' : 'ОТСУТСТВУЕТ');
+    console.log('📝 REDIRECT_URI:', DISCORD_REDIRECT_URI);
 
     if (!DISCORD_CLIENT_ID || !DISCORD_CLIENT_SECRET) {
-      console.error('Не настроены Discord credentials');
+      console.error('❌ Discord credentials не настроены');
       return res.status(500).json({ 
         success: false, 
         error: 'Сервер не настроен для Discord авторизации' 
@@ -2933,6 +2932,7 @@ app.post('/api/auth/discord', async (req, res) => {
       });
     }
 
+    // Обмен кода на токен
     const params = new URLSearchParams();
     params.append('client_id', DISCORD_CLIENT_ID);
     params.append('client_secret', DISCORD_CLIENT_SECRET);
@@ -2941,8 +2941,7 @@ app.post('/api/auth/discord', async (req, res) => {
     params.append('redirect_uri', DISCORD_REDIRECT_URI);
     params.append('scope', 'identify email');
 
-    console.log('Отправка запроса в Discord для получения токена...');
-    console.log('URL:', 'https://discord.com/api/oauth2/token');
+    console.log('🔄 Обмен кода на токен...');
     
     const tokenResponse = await axios.post(
       'https://discord.com/api/oauth2/token',
@@ -2954,11 +2953,12 @@ app.post('/api/auth/discord', async (req, res) => {
       }
     );
 
-    console.log('Токен успешно получен от Discord');
+    console.log('✅ Токен получен');
 
     const { access_token, token_type } = tokenResponse.data;
 
-    console.log('Запрос данных пользователя из Discord...');
+    // Получение данных пользователя
+    console.log('🔄 Получение данных пользователя...');
     
     const userResponse = await axios.get('https://discord.com/api/users/@me', {
       headers: {
@@ -2966,7 +2966,7 @@ app.post('/api/auth/discord', async (req, res) => {
       }
     });
 
-    console.log('Данные пользователя получены');
+    console.log('✅ Данные пользователя получены');
 
     const userData = {
       id: userResponse.data.id,
@@ -2976,29 +2976,21 @@ app.post('/api/auth/discord', async (req, res) => {
       global_name: userResponse.data.global_name || userResponse.data.username
     };
 
-    console.log(`Пользователь: ${userData.username} (${userData.id})`);
-    if (!users[userData.id]) {
-      users[userData.id] = {
-        discordId: userData.id,
-        username: userData.username,
-        email: userData.email,
-        avatar: userData.avatar,
-        registeredAt: new Date().toISOString(),
-        balance: 0,
-        orders: [],
-        badges: {}
-      };
-      console.log('Пользователь сохранен в памяти');
-    }
+    console.log(`👤 Пользователь: ${userData.username} (${userData.id})`);
 
+    // Сохраняем в БД
+    let userFromDb = null;
+    let isNewUser = false;
+    
     if (sql) {
       try {
         const [existingUser] = await sql`
           SELECT * FROM users WHERE discord_id = ${userData.id}
         `;
+        userFromDb = existingUser;
         
         if (!existingUser) {
-          // Новый пользователь - создаём с настройками по умолчанию
+          isNewUser = true;
           await sql`
             INSERT INTO users (
               discord_id, username, email, avatar, balance, badges, frozen, privacy
@@ -3021,9 +3013,9 @@ app.post('/api/auth/discord', async (req, res) => {
               })}
             )
           `;
-          console.log('Новый пользователь сохранен в БД');
+          console.log('✅ Новый пользователь сохранен в БД');
         } else {
-          // Существующий пользователь - РАЗМОРАЖИВАЕМ и ОТКРЫВАЕМ ПРОФИЛЬ
+          // Размораживаем и открываем профиль
           let currentPrivacy = existingUser.privacy || {};
           
           await sql`
@@ -3038,35 +3030,77 @@ app.post('/api/auth/discord', async (req, res) => {
                 })}
             WHERE discord_id = ${userData.id}
           `;
-          console.log(`✅ Пользователь ${userData.id} разморожен и профиль открыт при входе`);
+          console.log(`✅ Пользователь ${userData.id} обновлен и разморожен`);
+          
+          // Получаем обновленные данные
+          const [updatedUser] = await sql`
+            SELECT * FROM users WHERE discord_id = ${userData.id}
+          `;
+          userFromDb = updatedUser;
         }
       } catch (dbError) {
-        console.error('Ошибка сохранения в БД (используем память):', dbError.message);
+        console.error('❌ Ошибка БД:', dbError.message);
       }
     }
 
+    // Сохраняем в памяти
+    if (!users[userData.id]) {
+      users[userData.id] = {
+        discordId: userData.id,
+        username: userData.username,
+        email: userData.email,
+        avatar: userData.avatar,
+        registeredAt: new Date().toISOString(),
+        balance: 0,
+        orders: [],
+        badges: {}
+      };
+      console.log('✅ Пользователь сохранен в памяти');
+    }
+
+    // Создаем JWT
     const token = jwt.sign(
-      { ...userData },
+      { 
+        id: userData.id,
+        username: userData.username,
+        email: userData.email,
+        avatar: userData.avatar
+      },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    console.log('Токен для клиента создан');
+    console.log('✅ JWT токен создан');
+
+    // Если это новый пользователь - отправляем skipVerification
+    // Или если включен режим "без верификации"
+    const skipVerification = isNewUser || process.env.SKIP_VERIFICATION === 'true';
+    
+    if (skipVerification) {
+      console.log('⏩ Пропускаем верификацию для нового пользователя');
+    }
 
     res.json({
       success: true,
       token: token,
-      user: userData
+      user: userData,
+      skipVerification: skipVerification,
+      isNewUser: isNewUser,
+      userFromDb: userFromDb ? {
+        id: userFromDb.discord_id,
+        balance: userFromDb.balance || 0,
+        badges: userFromDb.badges || {}
+      } : null
     });
 
   } catch (error) {
-    console.error('ОШИБКА АВТОРИЗАЦИИ:');
+    console.error('❌ ОШИБКА АВТОРИЗАЦИИ:');
     console.error('- Сообщение:', error.message);
     if (error.response) {
-      console.error('- Статус ответа Discord:', error.response.status);
-      console.error('- Данные от Discord:', error.response.data);
+      console.error('- Статус:', error.response.status);
+      console.error('- Данные:', error.response.data);
     }
-    console.error('- Полный стек:', error.stack);
+    console.error('- Стек:', error.stack);
 
     res.status(500).json({ 
       success: false, 
@@ -3186,32 +3220,86 @@ app.get('/auth/discord/callback', (req, res) => {
 app.post('/api/send-verification', async (req, res) => {
   try {
     const { userId, code } = req.body;
-    console.log(`Отправка кода ${code} пользователю ${userId}`);
+    console.log(`📧 Отправка кода ${code} пользователю ${userId}`);
     
-    const webhookUrl = 'https://discord.com/api/webhooks/1518976627487281364/j7i7z1BTK1Vx2ugRcTK6ufQCVev1IxG0tJ0zbNnJLal4HhfRENGHUe6edyUqvRaND-PR';
+    if (!userId || !code) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Не указаны userId или code' 
+      });
+    }
     
-    await axios.post(webhookUrl, {
-      content: `<@${userId}>`,
-      embeds: [{
-        title: '<:DS:1474931565036441741> Верификация',
-        description: `<a:Dot:1386279213278953545> Код - \`${code}\``,
-        color: 0x5865F2,
-        timestamp: new Date().toISOString()
-      }]
-    });
+    let sent = false;
+    let methods = [];
     
-    console.log('Код отправлен через вебхук');
+    // 1. Пробуем отправить через Discord Webhook
+    const discordWebhookUrl = 'https://discord.com/api/webhooks/1518976627487281364/j7i7z1BTK1Vx2ugRcTK6ufQCVev1IxG0tJ0zbNnJLal4HhfRENGHUe6edyUqvRaND-PR';
+    
+    try {
+      console.log('📤 Попытка отправки через Discord webhook...');
+      await axios.post(discordWebhookUrl, {
+        content: `<@${userId}>`,
+        embeds: [{
+          title: '🔐 Верификация BHStore',
+          description: `Ваш код верификации: \`${code}\``,
+          color: 0x5865F2,
+          fields: [
+            { name: '⏰ Действителен', value: '5 минут', inline: true },
+            { name: '⚠️ Важно', value: 'Никому не сообщайте код!', inline: true }
+          ],
+          timestamp: new Date().toISOString()
+        }]
+      });
+      
+      sent = true;
+      methods.push('discord_webhook');
+      console.log('✅ Код отправлен через Discord webhook');
+    } catch (discordError) {
+      console.log('❌ Discord webhook не работает:', discordError.message);
+    }
+    
+    // 2. Пробуем отправить через Telegram бота
+    if (!sent) {
+      const TELEGRAM_BOT_TOKEN = '6876007284:AAH5R2BCqS8RPafZWg5s_0v-DJfoiJsiQco';
+      
+      try {
+        console.log('📤 Попытка отправки через Telegram бота...');
+        await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+          chat_id: userId,
+          text: `🔐 **КОД ВЕРИФИКАЦИИ BHStore**\n\nЗдравствуйте!\n\nВаш код: \`${code}\`\n\n⏰ Код действителен 5 минут.\n⚠️ Никому не сообщайте код!`,
+          parse_mode: 'Markdown'
+        });
+        
+        sent = true;
+        methods.push('telegram_bot');
+        console.log('✅ Код отправлен через Telegram бота');
+      } catch (telegramError) {
+        console.log('❌ Telegram бот не работает:', telegramError.message);
+      }
+    }
+    
+    // 3. Если ничего не работает - возвращаем код в ответе
+    if (!sent) {
+      console.warn('⚠️ Не удалось отправить код ни через один канал');
+      return res.json({ 
+        success: false, 
+        error: 'Не удалось отправить код. Попробуйте позже.',
+        code: code,
+        fallback: true
+      });
+    }
     
     res.json({ 
       success: true,
-      message: 'Код отправлен в Discord'
+      message: 'Код отправлен',
+      methods: methods
     });
-
+    
   } catch (error) {
-    console.error('Ошибка отправки кода:', error.message);
+    console.error('❌ Ошибка отправки кода:', error.message);
     res.status(500).json({ 
       success: false, 
-      error: 'Не удалось отправить код'
+      error: 'Ошибка сервера: ' + error.message
     });
   }
 });
@@ -3220,30 +3308,68 @@ app.post('/api/send-verification', async (req, res) => {
 app.post('/api/register', async (req, res) => {
   try {
     const { discordId, username, email, avatar } = req.body;
-    console.log(`📝 Регистрация: ${username}`);
+    console.log(`📝 Регистрация: ${username} (${discordId})`);
 
-    const [existingUser] = await sql`
-      SELECT * FROM users WHERE discord_id = ${discordId}
-    `;
-
-    if (existingUser) {
-      return res.json({ 
-        success: true,
-        message: 'Пользователь уже зарегистрирован'
+    if (!discordId || !username) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Не указаны обязательные поля' 
       });
     }
 
-    await sql`
-      INSERT INTO users (discord_id, username, email, avatar, balance, badges)
-      VALUES (
-        ${discordId}, 
-        ${username}, 
-        ${email}, 
-        ${avatar}, 
-        0,
-        ${JSON.stringify({})}
-      )
-    `;
+    if (sql) {
+      const [existingUser] = await sql`
+        SELECT * FROM users WHERE discord_id = ${discordId}
+      `;
+
+      if (existingUser) {
+        console.log(`ℹ️ Пользователь ${discordId} уже зарегистрирован`);
+        return res.json({ 
+          success: true,
+          message: 'Пользователь уже зарегистрирован',
+          alreadyExists: true
+        });
+      }
+
+      await sql`
+        INSERT INTO users (
+          discord_id, username, email, avatar, balance, badges, frozen, privacy
+        ) VALUES (
+          ${discordId}, 
+          ${username}, 
+          ${email || ''}, 
+          ${avatar || null}, 
+          0,
+          ${JSON.stringify({})},
+          false,
+          ${JSON.stringify({
+            show_avatar: true,
+            show_orders: true,
+            show_badges: true,
+            show_spent: true,
+            show_orders_count: true,
+            show_registered: true,
+            hide_profile: false
+          })}
+        )
+      `;
+      
+      console.log(`✅ Пользователь ${discordId} зарегистрирован в БД`);
+    }
+
+    // Сохраняем в памяти
+    if (!users[discordId]) {
+      users[discordId] = {
+        discordId: discordId,
+        username: username,
+        email: email || '',
+        avatar: avatar || null,
+        registeredAt: new Date().toISOString(),
+        balance: 0,
+        orders: [],
+        badges: {}
+      };
+    }
 
     res.json({ 
       success: true,
@@ -3254,7 +3380,7 @@ app.post('/api/register', async (req, res) => {
     console.error('❌ Ошибка регистрации:', error.message);
     res.status(500).json({ 
       success: false, 
-      error: 'Ошибка регистрации' 
+      error: 'Ошибка регистрации: ' + error.message
     });
   }
 });
@@ -3431,15 +3557,9 @@ app.post('/api/create-order', async (req, res) => {
   }
 });
 
-// ============================================
-// Товары
-// ============================================
-
-// Получение товаров из БД
 app.get('/api/products', (req, res) => {
   console.log('📦 GET /api/products');
   
-  // Возвращаем товары из памяти
   res.json({
     success: true,
     products: productsData,
@@ -3601,11 +3721,6 @@ function getTestProducts() {
 productsData = getTestProducts();
 console.log(`✅ Загружено ${productsData.length} тестовых товаров`);
 
-// ============================================
-// Новости
-// ============================================
-
-// Получение новостей ТОЛЬКО из БД
 app.get('/api/news', async (req, res) => {
   try {
     console.log('📰 Запрос новостей из БД...');
@@ -3659,7 +3774,6 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
-// Получение одной новости по ID (ТОЛЬКО из БД)
 app.get('/api/news/:id', async (req, res) => {
   try {
     const newsId = parseInt(req.params.id);
@@ -3690,7 +3804,6 @@ app.get('/api/news/:id', async (req, res) => {
       });
     }
     
-    // Увеличиваем счётчик просмотров
     await sql`
       UPDATE news 
       SET views = views + 1 
@@ -3737,10 +3850,6 @@ function getDemoNews() {
     }
   ];
 }
-
-// ============================================
-// УПРАВЛЕНИЕ ЗАКАЗАМИ (FULL CRUD)
-// ============================================
 
 app.post('/api/admin/orders/manual', async (req, res) => {
   try {
@@ -3808,7 +3917,6 @@ app.post('/api/admin/orders/manual', async (req, res) => {
   }
 });
 
-// Удалить заказ
 app.delete('/api/admin/orders/:orderId', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -3826,7 +3934,6 @@ app.delete('/api/admin/orders/:orderId', async (req, res) => {
     const orderId = req.params.orderId;
     
     if (!sql) {
-      // Удаляем из памяти
       let found = false;
       for (const user of Object.values(users)) {
         const orders = user.orders || [];
@@ -3841,7 +3948,6 @@ app.delete('/api/admin/orders/:orderId', async (req, res) => {
       return res.json({ success: true, message: 'Заказ удалён (in-memory)' });
     }
     
-    // Удаляем из БД
     const usersList = await sql`SELECT * FROM users`;
     let found = false;
     
@@ -3871,7 +3977,6 @@ app.delete('/api/admin/orders/:orderId', async (req, res) => {
   }
 });
 
-// Обновить заказ (полное редактирование)
 app.put('/api/admin/orders/:orderId', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -3880,8 +3985,6 @@ app.put('/api/admin/orders/:orderId', async (req, res) => {
     const token = authHeader.replace('Bearer ', '');
     const decoded = decodeAuthToken(token);
 
-    
-    // Проверка админа
     const isAdmin = decoded.id === '992442453833547886';
     if (!isAdmin) {
       return res.status(403).json({ success: false, error: 'Требуются права администратора' });
@@ -3891,7 +3994,6 @@ app.put('/api/admin/orders/:orderId', async (req, res) => {
     const { productName, finalPrice, status, date } = req.body;
     
     if (!sql) {
-      // Если нет БД, обновляем в памяти
       let found = false;
       for (const user of Object.values(users)) {
         const orders = user.orders || [];
@@ -3911,7 +4013,6 @@ app.put('/api/admin/orders/:orderId', async (req, res) => {
       return res.json({ success: true, message: 'Заказ обновлён (in-memory)' });
     }
     
-    // Обновляем в БД
     const usersList = await sql`SELECT * FROM users`;
     let found = false;
     
@@ -3949,11 +4050,6 @@ app.put('/api/admin/orders/:orderId', async (req, res) => {
   }
 });
 
-// ============================================
-// УПРАВЛЕНИЕ ПОЛЬЗОВАТЕЛЯМИ (FULL CRUD)
-// ============================================
-
-// Удалить пользователя
 app.delete('/api/admin/users/:userId', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -3969,7 +4065,6 @@ app.delete('/api/admin/users/:userId', async (req, res) => {
 
     const userId = req.params.userId;
     
-    // Удаляем связанные данные
     await sql`DELETE FROM messages WHERE user_id = ${userId}`;
     await sql`DELETE FROM reviews WHERE user_id = ${userId}`;
     await sql`DELETE FROM notifications WHERE user_id = ${userId}`;
@@ -3985,7 +4080,6 @@ app.delete('/api/admin/users/:userId', async (req, res) => {
   }
 });
 
-// Обновить пользователя
 app.put('/api/admin/users/:userId', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -4034,7 +4128,6 @@ app.put('/api/admin/users/:userId', async (req, res) => {
   }
 });
 
-// Назначить/снять бейджи
 app.post('/api/admin/users/:userId/badges', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -4073,10 +4166,6 @@ app.post('/api/admin/users/:userId/badges', async (req, res) => {
     res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
-
-// ============================================
-// Админ маршруты
-// ============================================
 
 function isAdminUser(decodedToken) {
   const adminIds = ['992442453833547886'];
@@ -4229,7 +4318,6 @@ app.post('/api/admin/news', async (req, res) => {
   }
 });
 
-// Удаление новости (админ)
 app.put('/api/admin/news/:id', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -4373,7 +4461,6 @@ app.get('/api/admin/news', async (req, res) => {
   }
 });
 
-// Добавление баланса пользователя
 app.post('/api/admin/balance/add', async (req, res) => {
   try {
       const authHeader = req.headers.authorization;
@@ -4432,7 +4519,6 @@ app.post('/api/admin/balance/add', async (req, res) => {
   }
 });
 
-// Списание баланса пользователя
 app.post('/api/admin/balance/remove', async (req, res) => {
   try {
       const authHeader = req.headers.authorization;
@@ -4498,7 +4584,6 @@ app.post('/api/admin/balance/remove', async (req, res) => {
   }
 });
 
-// Установка баланса пользователя
 app.post('/api/admin/balance/set', async (req, res) => {
   try {
       const authHeader = req.headers.authorization;
@@ -4613,11 +4698,6 @@ app.get('/api/admin/balance-history/:userId', async (req, res) => {
   }
 });
 
-// ============================================
-// Админ маршруты для заказов
-// ============================================
-
-// Получение всех заказов
 app.get('/api/admin/orders', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -4678,7 +4758,6 @@ app.get('/api/admin/orders', async (req, res) => {
   }
 });
 
-// Обновление статуса заказа
 app.post('/api/admin-update-order', async (req, res) => {
   try {
       const authHeader = req.headers.authorization;
@@ -4720,11 +4799,6 @@ app.post('/api/admin-update-order', async (req, res) => {
   }
 });
 
-// ============================================
-// Админ маршруты для товаров
-// ============================================
-
-// Создание товара
 app.post('/api/admin/products', async (req, res) => {
   try {
       const authHeader = req.headers.authorization;
@@ -4798,7 +4872,6 @@ app.post('/api/admin/products', async (req, res) => {
   }
 });
 
-// Получение товара по ID
 app.get('/api/admin/products/:id', async (req, res) => {
   try {
       const authHeader = req.headers.authorization;
@@ -4842,7 +4915,6 @@ app.get('/api/admin/products/:id', async (req, res) => {
   }
 });
 
-// Обновление товара
 app.put('/api/admin/products/:id', async (req, res) => {
   try {
       const authHeader = req.headers.authorization;
@@ -4895,7 +4967,6 @@ app.put('/api/admin/products/:id', async (req, res) => {
   }
 });
 
-// Удаление товара
 app.delete('/api/admin/products/:id', async (req, res) => {
   try {
       const authHeader = req.headers.authorization;
@@ -4983,7 +5054,6 @@ app.get('/api/admin/users', async (req, res) => {
   }
 });
 
-// Проверка прав администратора
 app.get('/api/admin/check', async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -4993,8 +5063,6 @@ app.get('/api/admin/check', async (req, res) => {
     }
 
     const token = authHeader.replace('Bearer ', '');
-    
-    // ✅ ИСПОЛЬЗУЕМ decodeAuthToken
     const decoded = decodeAuthToken(token);
     
     if (decoded && decoded.id === '992442453833547886') {
@@ -5070,11 +5138,6 @@ app.get('/api/admin/stats', async (req, res) => {
   }
 });
 
-// ============================================
-// API для промокодов
-// ============================================
-
-// Проверка промокода
 app.post('/api/promocodes/check', async (req, res) => {
   try {
     const { userId, code } = req.body;
@@ -5109,7 +5172,6 @@ app.post('/api/promocodes/check', async (req, res) => {
       });
     }
     
-    // Проверка активности
     if (!promocode.active) {
       return res.status(400).json({ 
         success: false, 
@@ -5117,7 +5179,6 @@ app.post('/api/promocodes/check', async (req, res) => {
       });
     }
     
-    // Проверка общего лимита использований
     if (promocode.max_uses && promocode.used_count >= promocode.max_uses) {
       return res.status(400).json({ 
         success: false, 
@@ -5126,7 +5187,6 @@ app.post('/api/promocodes/check', async (req, res) => {
       });
     }
     
-    // Проверка лимита использований на пользователя
     const usedBy = promocode.used_by || [];
     const userUseCount = usedBy.filter(id => id === userId).length;
     const maxPerUser = promocode.max_uses_per_user || 1;
@@ -5139,7 +5199,6 @@ app.post('/api/promocodes/check', async (req, res) => {
       });
     }
     
-    // Проверка периода действия
     if (promocode.valid_from) {
       const validFrom = new Date(promocode.valid_from);
       if (now < validFrom) {
@@ -5187,7 +5246,6 @@ app.post('/api/promocodes/check', async (req, res) => {
   }
 });
 
-// Активация промокода
 app.post('/api/promocodes/activate', async (req, res) => {
   try {
     const { userId, code } = req.body;
@@ -5228,7 +5286,6 @@ app.post('/api/promocodes/activate', async (req, res) => {
       });
     }
     
-    // Проверка общего лимита использований
     if (promocode.max_uses && promocode.used_count >= promocode.max_uses) {
       return res.status(400).json({ 
         success: false, 
@@ -5236,7 +5293,6 @@ app.post('/api/promocodes/activate', async (req, res) => {
       });
     }
     
-    // Проверка лимита использований на пользователя
     let usedBy = promocode.used_by || [];
     const userUseCount = usedBy.filter(id => id === userId).length;
     const maxPerUser = promocode.max_uses_per_user || 1;
@@ -5248,7 +5304,6 @@ app.post('/api/promocodes/activate', async (req, res) => {
       });
     }
     
-    // Проверка периода действия
     if (promocode.valid_from) {
       const validFrom = new Date(promocode.valid_from);
       if (now < validFrom) {
@@ -5271,7 +5326,6 @@ app.post('/api/promocodes/activate', async (req, res) => {
       }
     }
     
-    // ===== ОБНОВЛЯЕМ ПРОМОКОД (ДОБАВЛЯЕМ userId В used_by) =====
     usedBy.push(userId);
     const newUsedCount = (promocode.used_count || 0) + 1;
     
@@ -5291,7 +5345,6 @@ app.post('/api/promocodes/activate', async (req, res) => {
     
     const promoType = String(promocode.type).toLowerCase();
     
-    // ДЛЯ БАЛАНСОВЫХ ПРОМОКОДОВ
     if (promoType === 'balance') {
       console.log(`💰 Балансовый промокод: начисляем ${promocode.value} ₽`);
       
@@ -5322,7 +5375,6 @@ app.post('/api/promocodes/activate', async (req, res) => {
       });
     }
     
-    // ДЛЯ СКИДОЧНЫХ ПРОМОКОДОВ
     else if (promoType === 'discount') {
       console.log(`🏷️ Скидочный промокод: скидка ${promocode.value}%`);
       
@@ -5361,7 +5413,6 @@ app.post('/api/promocodes/activate', async (req, res) => {
   }
 });
 
-// Получить активные промокоды пользователя
 app.get('/api/promocodes/active/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -5370,18 +5421,15 @@ app.get('/api/promocodes/active/:userId', async (req, res) => {
     let activePromocodes = [];
     
     if (sql) {
-      // Получаем все промокоды, которые использовал пользователь
       const userPromocodes = await sql`
         SELECT * FROM promocodes 
         WHERE used_by ? ${userId}
       `;
       
-      // Фильтруем только скидочные промокоды, которые не истекли
       activePromocodes = userPromocodes
         .filter(promo => {
           if (promo.type !== 'discount') return false;
           
-          // Проверяем дату истечения
           if (promo.valid_days && promo.valid_days > 0) {
             const usedAt = promo.updated_at;
             const expiresAt = new Date(usedAt);
@@ -5389,7 +5437,6 @@ app.get('/api/promocodes/active/:userId', async (req, res) => {
             return new Date() <= expiresAt;
           }
           
-          // Проверяем период действия
           if (promo.valid_until) {
             return new Date() <= new Date(promo.valid_until);
           }
@@ -5419,7 +5466,6 @@ app.get('/api/promocodes/active/:userId', async (req, res) => {
   }
 });
 
-// Сохранить активные промокоды
 app.post('/api/promocodes/save-active', async (req, res) => {
   try {
       const { userId, activeDiscounts } = req.body;
@@ -5436,7 +5482,6 @@ app.post('/api/promocodes/save-active', async (req, res) => {
   }
 });
 
-// Удалить активный промокод
 app.post('/api/promocodes/remove-active', async (req, res) => {
   try {
       const { userId, code } = req.body;
@@ -5459,7 +5504,6 @@ app.post('/api/promocodes/remove-active', async (req, res) => {
   }
 });
 
-// История промокодов пользователя
 app.get('/api/promocodes/user/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -5529,11 +5573,6 @@ app.get('/api/promocodes/user/:userId', async (req, res) => {
   }
 });
 
-// ============================================
-// API для отзывов
-// ============================================
-
-// GET /api/reviews - получение всех отзывов
 app.get('/api/reviews', async (req, res) => {
   try {
     const { page = 1, limit = 10 } = req.query;
@@ -5582,7 +5621,6 @@ app.get('/api/reviews', async (req, res) => {
   }
 });
 
-// POST /api/reviews - создание нового отзыва
 app.post('/api/reviews', async (req, res) => {
   try {
     const { userId, name, productId, productName, rating, text } = req.body;
@@ -5675,7 +5713,6 @@ app.post('/api/reviews', async (req, res) => {
   }
 });
 
-// POST /api/reviews/:id/helpful - отметка "полезно"
 app.post('/api/reviews/:id/helpful', async (req, res) => {
   try {
     const reviewId = req.params.id;
@@ -5705,11 +5742,6 @@ app.post('/api/reviews/:id/helpful', async (req, res) => {
   }
 });
 
-// ============================================
-// API для уведомлений
-// ============================================
-
-// Получение уведомлений пользователя
 app.get('/api/notifications/user/:userId', async (req, res) => {
   try {
       const userId = req.params.userId;
@@ -5731,7 +5763,6 @@ app.get('/api/notifications/user/:userId', async (req, res) => {
   }
 });
 
-// Отметить уведомление как прочитанное
 app.post('/api/notifications/:id/read', async (req, res) => {
   try {
       const notificationId = req.params.id;
@@ -5749,7 +5780,6 @@ app.post('/api/notifications/:id/read', async (req, res) => {
   }
 });
 
-// Сохранение уведомления о покупке
 app.post('/api/notifications/purchase', async (req, res) => {
   try {
       const { userId, productName, amount, orderId } = req.body;
@@ -5776,7 +5806,6 @@ app.post('/api/notifications/purchase', async (req, res) => {
   }
 });
 
-// Сохранение уведомления о регистрации
 app.post('/api/notifications/registration', async (req, res) => {
   try {
       const { userId, username } = req.body;
@@ -5803,7 +5832,6 @@ app.post('/api/notifications/registration', async (req, res) => {
   }
 });
 
-// Сохранение ошибки
 app.post('/api/notifications/error', async (req, res) => {
   try {
       const { errorType, errorMessage, userId, userAgent, url } = req.body;
@@ -5830,7 +5858,6 @@ app.post('/api/notifications/error', async (req, res) => {
   }
 });
 
-// Сохранение статистики
 app.post('/api/stats/save', async (req, res) => {
   try {
       const stats = req.body;
@@ -5850,7 +5877,6 @@ app.post('/api/stats/save', async (req, res) => {
   }
 });
 
-// Отправка вебхука (безопасно, с сервера)
 app.post('/api/webhook/send', async (req, res) => {
   try {
       const { title, description, color, fields } = req.body;
@@ -5873,10 +5899,6 @@ app.post('/api/webhook/send', async (req, res) => {
       res.status(500).json({ success: false, error: 'Ошибка отправки' });
   }
 });
-
-// ============================================
-// Обновление баланса
-// ============================================
 
 app.post('/api/update-balance', async (req, res) => {
   try {
@@ -5931,10 +5953,6 @@ app.post('/api/update-balance', async (req, res) => {
     });
   }
 });
-
-// ============================================
-// Тестовый маршрут
-// ============================================
 
 app.get('/api/test', (req, res) => {
   res.json({
