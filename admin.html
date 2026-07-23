@@ -208,7 +208,7 @@
         };
 
         window.updateOrderStatus = function(orderId) {
-            if (window.adminOrders) window.adminOrders.updateOrderStatus(orderId);
+            if (window.adminOrders) window.adminOrders.openStatusModal(orderId);
         };
 
         window.deleteOrder = function(orderId) {
