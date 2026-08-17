@@ -14,6 +14,48 @@ const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET;
 const DISCORD_REDIRECT_URI = process.env.DISCORD_REDIRECT_URI || 'https://bhstore.netlify.app/auth/discord/callback';
 const JWT_SECRET = process.env.JWT_SECRET || 'bhstore-super-secret-key-2024-change-this';
+// ===== ЗАПУСК DISCORD БОТОВ =====
+const { spawn } = require('child_process');
+const path = require('path');
+const fs = require('fs');
+
+// Функция запуска ботов
+function startBots() {
+    const botsPath = path.join(__dirname, '../../bots');
+    
+    // Проверяем наличие ботов
+    if (!fs.existsSync(botsPath)) {
+        console.log('⚠️ Папка bots не найдена');
+        return;
+    }
+    
+    if (!fs.existsSync(path.join(botsPath, 'index.js'))) {
+        console.log('⚠️ index.js ботов не найден');
+        return;
+    }
+    
+    console.log('🤖 Запуск Discord ботов...');
+    
+    try {
+        // Запускаем ботов в отдельном процессе
+        const botProcess = spawn('node', [path.join(botsPath, 'index.js')], {
+            cwd: botsPath,
+            stdio: 'inherit',
+            detached: true,
+            env: { ...process.env }
+        });
+        
+        botProcess.unref();
+        console.log('✅ Discord боты запущены');
+    } catch (error) {
+        console.error('❌ Ошибка запуска ботов:', error.message);
+    }
+}
+
+// Запускаем ботов при старте сервера (один раз)
+if (process.env.NODE_ENV !== 'development') {
+    startBots();
+}
 
 console.log('🚀 SERVER FUNCTION STARTED');
 
@@ -5966,6 +6008,15 @@ app.get('/api/test', (req, res) => {
       promocodes: Object.keys(promocodes).length
     }
   });
+});
+// ===== API ДЛЯ ПРОВЕРКИ СТАТУСА БОТОВ =====
+app.get('/api/bots/status', (req, res) => {
+    res.json({
+        success: true,
+        message: 'Боты запущены вместе с сайтом',
+        status: 'running',
+        note: 'Боты работают в фоновом режиме'
+    });
 });
 
 module.exports.handler = serverless(app);
