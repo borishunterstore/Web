@@ -459,18 +459,21 @@
         ordersList.innerHTML = orders.map(order => {
             const statusClass = {
                 'pending': 'status-pending',
+                'processing': 'status-processing',
                 'completed': 'status-completed',
                 'cancelled': 'status-cancelled'
             }[order.status] || 'status-pending';
             
             const statusText = {
                 'pending': 'Ожидание',
+                'processing': 'В обработке',
                 'completed': 'Выполнено',
                 'cancelled': 'Отменено'
             }[order.status] || order.status;
             
             const statusIcon = {
                 'pending': 'fa-clock',
+                'processing': 'fa-spinner',
                 'completed': 'fa-check-circle',
                 'cancelled': 'fa-times-circle'
             }[order.status] || 'fa-clock';

@@ -156,9 +156,17 @@ class DiscordAuth {
             }
             
             const savedState = localStorage.getItem('discord_oauth_state');
-            if (savedState !== state) throw new Error('State mismatch');
+            if (savedState !== state) {
+                console.error('State mismatch:', { savedState, state });
+                throw new Error('Ошибка безопасности: неверный state параметр');
+            }
             localStorage.removeItem('discord_oauth_state');
-            if (!code) throw new Error('No code');
+            
+            if (!code) {
+                throw new Error('Код авторизации не получен');
+            }
+            
+            console.log('🔄 Отправка кода на сервер...');
             
             const response = await fetch(`${this.apiBase}/auth/discord`, {
                 method: 'POST',
@@ -167,20 +175,73 @@ class DiscordAuth {
             });
             
             const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Auth failed');
-            if (!data.success) throw new Error(data.error || 'Auth failed');
             
+            if (!response.ok) {
+                throw new Error(data.error || 'Ошибка авторизации');
+            }
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Ошибка авторизации');
+            }
+            
+            console.log('✅ Пользователь авторизован:', data.user.id);
+            
+            // Проверяем, есть ли пропуск верификации
+            if (data.skipVerification) {
+                console.log('⏩ Пропускаем верификацию');
+                const authData = {
+                    id: data.user.id,
+                    username: data.user.username,
+                    email: data.user.email,
+                    avatar: data.user.avatar,
+                    token: data.token,
+                    requiresVerification: false
+                };
+                this.saveAuthData(authData);
+                window.api?.setAuthToken(data.token);
+                window.location.href = '/';
+                return;
+            }
+            
+            // Получаем данные пользователя из БД
             const userData = await this.fetchUserData(data.user.id);
+            
+            // Генерируем код верификации
             const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+            console.log(`📧 Код верификации: ${verificationCode}`);
             
-            const sendResponse = await fetch(`${this.apiBase}/send-verification`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: data.user.id, code: verificationCode })
-            });
+            // Отправляем код
+            let sendSuccess = false;
+            let sendError = null;
             
-            const sendResult = await sendResponse.json();
-            if (!sendResult.success) throw new Error('Failed to send code');
+            try {
+                const sendResponse = await fetch(`${this.apiBase}/send-verification`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        userId: data.user.id, 
+                        code: verificationCode 
+                    })
+                });
+                
+                const sendResult = await sendResponse.json();
+                
+                if (sendResult.success) {
+                    sendSuccess = true;
+                    console.log('✅ Код отправлен успешно');
+                } else {
+                    sendError = sendResult.error || 'Неизвестная ошибка';
+                }
+            } catch (err) {
+                sendError = err.message;
+                console.error('❌ Ошибка отправки кода:', err);
+            }
+            
+            // Если код не отправился - показываем его пользователю
+            if (!sendSuccess) {
+                console.warn('⚠️ Код не отправился, показываем пользователю');
+                alert(`⚠️ Не удалось отправить код автоматически.\n\nВаш код верификации: ${verificationCode}\n\nВведите его на странице верификации.\n\nОшибка: ${sendError || 'Неизвестная'}`);
+            }
             
             const authData = {
                 id: data.user.id,
@@ -189,17 +250,19 @@ class DiscordAuth {
                 avatar: data.user.avatar,
                 balance: userData?.balance || 0,
                 badges: userData?.badges || {},
-                verificationCode,
+                verificationCode: verificationCode,
                 token: data.token,
                 requiresVerification: true
             };
             
             this.saveAuthData(authData);
             window.api?.setAuthToken(data.token);
+            
+            // Переход на страницу верификации
             window.location.href = '/verify.html';
             
         } catch (error) {
-            console.error('❌ Ошибка:', error);
+            console.error('❌ Ошибка авторизации:', error);
             alert('Ошибка авторизации: ' + error.message);
             setTimeout(() => window.location.href = '/auth.html', 2000);
         }
@@ -209,8 +272,27 @@ class DiscordAuth {
         const verifyBtn = document.getElementById('verifyBtn');
         const codeInput = document.getElementById('verificationCode');
         const resendBtn = document.getElementById('resendBtn');
+        const authData = this.getAuthData();
         
         if (!verifyBtn || !codeInput) return;
+        
+        // Если нет данных авторизации - перенаправляем
+        if (!authData?.id) {
+            alert('Сессия истекла. Пройдите авторизацию заново.');
+            window.location.href = '/auth.html';
+            return;
+        }
+        
+        // Если верификация не требуется - пропускаем
+        if (!authData.requiresVerification) {
+            window.location.href = '/';
+            return;
+        }
+        
+        // Автозаполнение кода из данных
+        if (authData.verificationCode && codeInput) {
+            codeInput.value = authData.verificationCode;
+        }
         
         codeInput.addEventListener('input', (e) => {
             e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
@@ -227,11 +309,12 @@ class DiscordAuth {
             verifyBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Проверка...';
             
             try {
-                if (await this.verifyCode(code)) {
+                const result = await this.verifyCode(code);
+                if (result.success) {
                     this.showVerificationSuccess();
                     setTimeout(() => window.location.href = '/', 2000);
                 } else {
-                    throw new Error('Неверный код');
+                    throw new Error(result.error || 'Неверный код');
                 }
             } catch (error) {
                 alert('Ошибка: ' + error.message);
@@ -255,22 +338,29 @@ class DiscordAuth {
                 
                 try {
                     const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+                    
                     const response = await fetch(`${this.apiBase}/send-verification`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ userId: authData.id, code: newCode })
                     });
+                    
                     const result = await response.json();
                     
                     if (result.success) {
                         authData.verificationCode = newCode;
                         this.saveAuthData(authData);
-                        alert('Новый код отправлен!');
+                        if (codeInput) codeInput.value = newCode;
+                        alert('✅ Новый код отправлен!');
                     } else {
-                        throw new Error('Failed to resend');
+                        // Если не отправилось - показываем код
+                        alert(`⚠️ Код не удалось отправить.\n\nВаш код: ${newCode}\nВведите его вручную.`);
+                        authData.verificationCode = newCode;
+                        this.saveAuthData(authData);
+                        if (codeInput) codeInput.value = newCode;
                     }
                 } catch (error) {
-                    alert('Ошибка отправки');
+                    alert('❌ Ошибка отправки: ' + error.message);
                 } finally {
                     resendBtn.disabled = false;
                     resendBtn.innerHTML = originalText;
@@ -286,8 +376,13 @@ class DiscordAuth {
         
         const authData = this.getAuthData();
         if (!authData?.id) throw new Error('Сессия истекла');
-        if (authData.verificationCode !== inputCode) throw new Error('Неверный код');
         
+        // Проверяем код
+        if (authData.verificationCode !== inputCode) {
+            throw new Error('Неверный код');
+        }
+        
+        // Регистрируем пользователя
         const response = await fetch(`${this.apiBase}/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -300,9 +395,14 @@ class DiscordAuth {
         });
         
         const result = await response.json();
-        if (!result.success) throw new Error(result.error || 'Registration failed');
+        if (!result.success) {
+            throw new Error(result.error || 'Ошибка регистрации');
+        }
         
+        // Получаем обновленные данные
         const userData = await this.fetchUserData(authData.id);
+        
+        // Обновляем данные
         const updatedAuth = {
             ...authData,
             balance: userData?.balance || 0,
@@ -313,13 +413,18 @@ class DiscordAuth {
         
         this.saveAuthData(updatedAuth);
         
-        fetch(`${this.apiBase}/welcome-message`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: authData.id })
-        }).catch(console.error);
+        // Отправляем приветствие
+        try {
+            await fetch(`${this.apiBase}/welcome-message`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: authData.id })
+            });
+        } catch (e) {
+            console.error('Ошибка отправки приветствия:', e);
+        }
         
-        return true;
+        return { success: true };
     }
 
     showVerificationSuccess() {
@@ -339,7 +444,8 @@ class DiscordAuth {
 
     getAuthData() {
         try {
-            return JSON.parse(localStorage.getItem('bhstore_auth') || 'null');
+            const data = localStorage.getItem('bhstore_auth');
+            return data ? JSON.parse(data) : null;
         } catch {
             return null;
         }
@@ -347,6 +453,7 @@ class DiscordAuth {
 
     saveAuthData(data) {
         localStorage.setItem('bhstore_auth', JSON.stringify(data));
+        this.updateAuthButton();
     }
 
     isAuthenticated() {
@@ -378,6 +485,7 @@ class DiscordAuth {
     }
 }
 
+// Функция для Telegram авторизации
 async function startTelegramAuth() {
     if (!checkAllConsents()) {
         warningMessage.classList.add('show');
@@ -435,9 +543,11 @@ async function startTelegramAuth() {
     }
 }
 
+// Экспортируем
 const auth = new DiscordAuth();
 window.DiscordAuth = DiscordAuth;
 window.auth = auth;
+window.startTelegramAuth = startTelegramAuth;
 
 document.addEventListener('DOMContentLoaded', () => {
     auth.refreshUserBalance();
