@@ -149,124 +149,94 @@ class DiscordAuth {
 
     async handleCallback(code, state) {
         try {
-            if (!(await this.checkAuthStatus())) {
-                alert('Авторизация временно недоступна');
-                window.location.href = '/';
-                return;
-            }
-            
-            const savedState = localStorage.getItem('discord_oauth_state');
-            if (savedState !== state) {
-                console.error('State mismatch:', { savedState, state });
-                throw new Error('Ошибка безопасности: неверный state параметр');
-            }
-            localStorage.removeItem('discord_oauth_state');
-            
-            if (!code) {
-                throw new Error('Код авторизации не получен');
-            }
-            
-            console.log('🔄 Отправка кода на сервер...');
-            
-            const response = await fetch(`${this.apiBase}/auth/discord`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code })
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok) {
-                throw new Error(data.error || 'Ошибка авторизации');
-            }
-            
-            if (!data.success) {
-                throw new Error(data.error || 'Ошибка авторизации');
-            }
-            
-            console.log('✅ Пользователь авторизован:', data.user.id);
-            
-            // Проверяем, есть ли пропуск верификации
-            if (data.skipVerification) {
-                console.log('⏩ Пропускаем верификацию');
-                const authData = {
-                    id: data.user.id,
-                    username: data.user.username,
-                    email: data.user.email,
-                    avatar: data.user.avatar,
-                    token: data.token,
-                    requiresVerification: false
-                };
-                this.saveAuthData(authData);
-                window.api?.setAuthToken(data.token);
-                window.location.href = '/';
-                return;
-            }
-            
-            // Получаем данные пользователя из БД
-            const userData = await this.fetchUserData(data.user.id);
-            
-            // Генерируем код верификации
-            const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-            console.log(`📧 Код верификации: ${verificationCode}`);
-            
-            // Отправляем код
-            let sendSuccess = false;
-            let sendError = null;
-            
-            try {
-                const sendResponse = await fetch(`${this.apiBase}/send-verification`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        userId: data.user.id, 
-                        code: verificationCode 
-                    })
-                });
-                
-                const sendResult = await sendResponse.json();
-                
-                if (sendResult.success) {
-                    sendSuccess = true;
-                    console.log('✅ Код отправлен успешно');
-                } else {
-                    sendError = sendResult.error || 'Неизвестная ошибка';
-                }
-            } catch (err) {
-                sendError = err.message;
-                console.error('❌ Ошибка отправки кода:', err);
-            }
-            
-            // Если код не отправился - показываем его пользователю
-            if (!sendSuccess) {
-                console.warn('⚠️ Код не отправился, показываем пользователю');
-                alert(`⚠️ Не удалось отправить код автоматически.\n\nВаш код верификации: ${verificationCode}\n\nВведите его на странице верификации.\n\nОшибка: ${sendError || 'Неизвестная'}`);
-            }
-            
+          if (!(await this.checkAuthStatus())) {
+            alert('Авторизация временно недоступна');
+            window.location.href = '/';
+            return;
+          }
+      
+          const savedState = localStorage.getItem('discord_oauth_state');
+          if (savedState !== state) {
+            console.error('State mismatch:', { savedState, state });
+            throw new Error('Ошибка безопасности: неверный state параметр');
+          }
+          localStorage.removeItem('discord_oauth_state');
+      
+          if (!code) {
+            throw new Error('Код авторизации не получен');
+          }
+      
+          console.log('🔄 Отправка кода на сервер...');
+      
+          const response = await fetch(`${this.apiBase}/auth/discord`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code })
+          });
+      
+          const data = await response.json();
+      
+          if (!response.ok) throw new Error(data.error || 'Ошибка авторизации');
+          if (!data.success) throw new Error(data.error || 'Ошибка авторизации');
+      
+          console.log('✅ Пользователь авторизован:', data.user.id);
+      
+          // Пропуск верификации (для старых юзеров)
+          if (data.skipVerification) {
+            console.log('⏩ Пропускаем верификацию');
             const authData = {
-                id: data.user.id,
-                username: data.user.username,
-                email: data.user.email,
-                avatar: data.user.avatar,
-                balance: userData?.balance || 0,
-                badges: userData?.badges || {},
-                verificationCode: verificationCode,
-                token: data.token,
-                requiresVerification: true
+              id: data.user.id,
+              username: data.user.username,
+              email: data.user.email,
+              avatar: data.user.avatar,
+              balance: data.userFromDb?.balance || 0,
+              badges: data.userFromDb?.badges || {},
+              token: data.token,
+              requiresVerification: false
             };
-            
             this.saveAuthData(authData);
             window.api?.setAuthToken(data.token);
-            
-            // Переход на страницу верификации
-            window.location.href = '/verify.html';
-            
+            window.location.href = '/';
+            return;
+          }
+      
+          // === Новый пользователь: сохраняем и идём на верификацию ===
+          const authData = {
+            id: data.user.id,
+            username: data.user.username,
+            email: data.user.email,
+            avatar: data.user.avatar,
+            token: data.token,
+            requiresVerification: true
+            // ❌ НЕ сохраняем verificationCode в localStorage — он теперь на сервере
+          };
+          this.saveAuthData(authData);
+          window.api?.setAuthToken(data.token);
+      
+          // Отправляем код в Discord DM
+          try {
+            const code6 = Math.floor(100000 + Math.random() * 900000).toString();
+            const sendRes = await fetch(`${this.apiBase}/send-verification`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: data.user.id, code: code6 })
+            });
+            const sendData = await sendRes.json();
+            if (!sendData.success) {
+              console.warn('⚠️ Код не отправился:', sendData.error);
+            }
+          } catch (e) {
+            console.warn('⚠️ Ошибка отправки кода:', e.message);
+          }
+      
+          window.location.href = '/verify.html';
+      
         } catch (error) {
-            console.error('❌ Ошибка авторизации:', error);
-            alert('Ошибка авторизации: ' + error.message);
-            setTimeout(() => window.location.href = '/auth.html', 2000);
+          console.error('❌ Ошибка авторизации:', error);
+          alert('Ошибка авторизации: ' + error.message);
+          setTimeout(() => window.location.href = '/auth.html', 2000);
         }
-    }
+      }
 
     initVerifyPage() {
         const verifyBtn = document.getElementById('verifyBtn');

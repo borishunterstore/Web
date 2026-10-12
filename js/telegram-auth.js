@@ -1,42 +1,98 @@
-// telegram-auth.js - упрощённая версия
-(function(){
+// js/telegram-auth.js
+(function() {
     'use strict';
-    
-    class TelegramAuth {
-        constructor() {
-            this.init();
+  
+    let isProcessing = false;
+    let pollTimer = null;
+  
+    async function startTelegramAuth() {
+      if (isProcessing) return;
+      isProcessing = true;
+  
+      const btn = document.getElementById('telegramAuthBtn');
+      const originalHTML = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Создание сессии...';
+      }
+  
+      try {
+        // 1. Получаем reCAPTCHA-токен
+        const recaptchaToken = await new Promise((resolve, reject) => {
+          if (typeof grecaptcha === 'undefined') return reject(new Error('reCAPTCHA не загружена'));
+          grecaptcha.ready(() => {
+            grecaptcha.execute('6LfunBMtAAAAAERlHV1wjXssrw5yYmgPUmxvVUAQ', { action: 'telegram_login' })
+              .then(resolve)
+              .catch(reject);
+          });
+        });
+  
+        // 2. Создаём сессию
+        const res = await fetch('/api/telegram/create-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ recaptchaToken })
+        });
+        const data = await res.json();
+  
+        if (!data.success) throw new Error(data.error || 'Не удалось создать сессию');
+  
+        // 3. Открываем бота
+        window.open(data.botLink, '_blank');
+  
+        if (btn) {
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ожидание подтверждения в Telegram...';
         }
-        
-        init() {
-            console.log('📱 Telegram Auth загружен');
-            this.setupButton();
-        }
-        
-        setupButton() {
-            const btn = document.getElementById('telegramAuthBtn');
-            if(btn) {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    this.redirectToBot();
-                });
+  
+        // 4. Поллим статус сессии
+        let seconds = 0;
+        const maxSeconds = 300; // 5 минут
+        pollTimer = setInterval(async () => {
+          seconds += 3;
+          if (seconds > maxSeconds) {
+            clearInterval(pollTimer);
+            isProcessing = false;
+            if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
+            alert('Время ожидания истекло. Попробуйте снова.');
+            return;
+          }
+  
+          try {
+            const statusRes = await fetch(`/api/telegram/session-status?token=${encodeURIComponent(data.token)}`);
+            const statusData = await statusRes.json();
+  
+            if (statusData.status === 'confirmed') {
+              clearInterval(pollTimer);
+              // Переходим на страницу завершения регистрации
+              window.location.href = `/auth/telegram/callback?token=${encodeURIComponent(data.token)}&telegram_id=${encodeURIComponent(statusData.telegram_id)}&username=${encodeURIComponent(statusData.username || '')}&name=${encodeURIComponent(statusData.name || '')}`;
+            } else if (statusData.status === 'expired') {
+              clearInterval(pollTimer);
+              isProcessing = false;
+              if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
+              alert('Сессия истекла. Попробуйте снова.');
             }
-        }
-        
-        redirectToBot() {
-            // Генерируем случайный токен
-            const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-            
-            // Сохраняем токен в localStorage для проверки
-            localStorage.setItem('telegram_auth_token', token);
-            
-            // Открываем бота
-            window.open(`https://t.me/Meentioned_bot?start=${token}`, '_blank');
-            
-            // Показываем сообщение
-            alert('📱 Открыт Telegram бот!\n\n1. Нажмите "ВОЙТИ В АККАУНТ"\n2. Нажмите "ПЕРЕЙТИ К АВТОРИЗАЦИИ"\n3. Нажмите "ПОДТВЕРДИТЬ ВХОД"');
-        }
+          } catch (e) {
+            console.error('Poll error:', e);
+          }
+        }, 3000);
+  
+      } catch (err) {
+        console.error('Telegram auth error:', err);
+        alert('Ошибка: ' + err.message);
+        isProcessing = false;
+        if (btn) { btn.disabled = false; btn.innerHTML = originalHTML; }
+      }
     }
-    
-    window.telegramAuth = new TelegramAuth();
-    console.log('✅ Telegram Auth инициализирован');
-})();
+  
+    window.startTelegramAuth = startTelegramAuth;
+  
+    document.addEventListener('DOMContentLoaded', () => {
+      const btn = document.getElementById('telegramAuthBtn');
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          startTelegramAuth();
+        });
+      }
+    });
+  })();

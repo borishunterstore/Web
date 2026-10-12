@@ -111,7 +111,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ---------- CORS (один раз, с credentials) ----------
+// ---------- CORS (строгий) ----------
 const ALLOWED_ORIGINS = [
   PUBLIC_URL,
   'https://bhstore.netlify.app',
@@ -121,14 +121,25 @@ const ALLOWED_ORIGINS = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // curl / server-to-server
-    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-    return callback(null, true); // не блокируем, но credentials ниже
+    // Разрешаем запросы без origin (curl, server-to-server, Postman)
+    if (!origin) return callback(null, true);
+    
+    // Разрешаем только из белого списка
+    if (ALLOWED_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Всё остальное — блокируем
+    console.warn(`⚠️ CORS blocked for origin: ${origin}`);
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Обработка preflight-запросов
+app.options('*', cors());
 
 app.options('*', cors());
 
@@ -288,6 +299,17 @@ async function initDatabase() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+
+    await sql`
+  CREATE TABLE IF NOT EXISTS verification_codes (
+    user_id TEXT PRIMARY KEY,
+    code TEXT NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    attempts INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`;
+await sql`CREATE INDEX IF NOT EXISTS idx_verification_codes_expires ON verification_codes(expires_at)`;
 
     // -------- users --------
     await sql`
@@ -2245,6 +2267,19 @@ app.post('/api/send-verification', authLimiter, async (req, res) => {
       return res.status(400).json({ success: false, error: 'Не указаны userId или code' });
     }
 
+    // ✅ Сохраняем код в БД, а не в localStorage
+    if (sql) {
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 минут
+      await sql`
+        INSERT INTO verification_codes (user_id, code, expires_at, attempts)
+        VALUES (${userId}, ${code}, ${expiresAt.toISOString()}, 0)
+        ON CONFLICT (user_id) DO UPDATE SET
+          code = EXCLUDED.code,
+          expires_at = EXCLUDED.expires_at,
+          attempts = 0
+      `;
+    }
+
     let sent = false;
     const methods = [];
 
@@ -2287,14 +2322,82 @@ app.post('/api/send-verification', authLimiter, async (req, res) => {
     }
 
     if (!sent) {
-      console.warn('⚠️ Не удалось отправить код');
-      return res.json({ success: false, error: 'Не удалось отправить код. Попробуйте позже.', code, fallback: true });
+      return res.json({ success: false, error: 'Не удалось отправить код. Попробуйте позже.' });
     }
 
     res.json({ success: true, message: 'Код отправлен', methods });
   } catch (error) {
     console.error('❌ /api/send-verification:', error.message);
-    res.status(500).json({ success: false, error: 'Ошибка сервера: ' + error.message });
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+// Проверка кода верификации (серверная)
+app.post('/api/verify-code', authLimiter, async (req, res) => {
+  try {
+    const { userId, code } = req.body;
+    if (!userId || !code) {
+      return res.status(400).json({ success: false, error: 'Не указаны userId или code' });
+    }
+    if (!sql) {
+      return res.status(503).json({ success: false, error: 'БД недоступна' });
+    }
+
+    const [row] = await sql`
+      SELECT code, expires_at, attempts FROM verification_codes
+      WHERE user_id = ${userId}
+    `;
+
+    if (!row) {
+      return res.status(400).json({ success: false, error: 'Код не найден. Запросите новый.' });
+    }
+    if (new Date(row.expires_at) < new Date()) {
+      await sql`DELETE FROM verification_codes WHERE user_id = ${userId}`;
+      return res.status(400).json({ success: false, error: 'Код истёк. Запросите новый.' });
+    }
+    if (row.attempts >= 3) {
+      await sql`DELETE FROM verification_codes WHERE user_id = ${userId}`;
+      return res.status(400).json({ success: false, error: 'Превышено число попыток. Запросите новый.' });
+    }
+
+    if (String(row.code) !== String(code)) {
+      await sql`UPDATE verification_codes SET attempts = attempts + 1 WHERE user_id = ${userId}`;
+      return res.status(400).json({ success: false, error: `Неверный код. Осталось попыток: ${2 - row.attempts}` });
+    }
+
+    await sql`DELETE FROM verification_codes WHERE user_id = ${userId}`;
+    res.json({ success: true, message: 'Код подтверждён' });
+  } catch (error) {
+    console.error('❌ /api/verify-code:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
+  }
+});
+
+app.get('/api/telegram/session-status', async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ success: false, error: 'Не указан token' });
+    if (!sql) return res.json({ success: true, status: 'pending' });
+
+    const [row] = await sql`
+      SELECT user_id, username, name FROM auth_sessions
+      WHERE token = ${token} AND expires_at > NOW()
+    `;
+
+    if (!row) return res.json({ success: true, status: 'expired' });
+    if (row.user_id && row.user_id !== 'pending') {
+      return res.json({
+        success: true,
+        status: 'confirmed',
+        telegram_id: row.user_id,
+        username: row.username,
+        name: row.name
+      });
+    }
+    res.json({ success: true, status: 'pending' });
+  } catch (error) {
+    console.error('❌ /api/telegram/session-status:', error.message);
+    res.status(500).json({ success: false, error: 'Ошибка сервера' });
   }
 });
 
@@ -2371,82 +2474,113 @@ app.post('/api/welcome-message', async (req, res) => {
 // CREATE ORDER
 // ============================================================
 
-app.post('/api/create-order', async (req, res) => {
+const orderLimiter = createRateLimiter({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: 'Слишком много заказов. Подождите минуту.'
+});
+
+app.post('/api/create-order', orderLimiter, async (req, res) => {
   try {
     const {
       userId, productId, productName, price, originalPrice, username,
       promocodes: usedPromocodes, discount, discountAmount, orderId: clientOrderId
     } = req.body;
 
-    if (!userId || !productName || price === undefined) {
+    // Валидация обязательных полей
+    if (!userId || !productId || !productName) {
       return res.status(400).json({ success: false, error: 'Не указаны обязательные поля' });
     }
 
-    const orderId = clientOrderId || `BH-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    if (!sql) {
+      return res.status(503).json({ success: false, error: 'БД недоступна' });
+    }
 
+    // ✅ БЕРЁМ ЦЕНУ ИЗ БД, А НЕ ОТ КЛИЕНТА
+    let productFromDb = null;
+    try {
+      const [product] = await sql`SELECT id, name, price FROM products WHERE id = ${productId}`;
+      productFromDb = product;
+    } catch (dbError) {
+      console.error('❌ create-order: ошибка получения товара:', dbError.message);
+    }
+
+    // Если товара нет в БД — используем productsData (fallback)
+    if (!productFromDb) {
+      const fallbackProduct = productsData.find(p => p.id === productId);
+      if (!fallbackProduct) {
+        return res.status(404).json({ success: false, error: 'Товар не найден' });
+      }
+      productFromDb = {
+        id: fallbackProduct.id,
+        name: fallbackProduct.name,
+        price: fallbackProduct.price
+      };
+    }
+
+    // ✅ Итоговая цена = цена из БД минус скидка (скидку тоже проверяем)
+    const basePrice = productFromDb.price;
+    const safeDiscount = Math.min(Math.max(parseInt(discount) || 0, 0), 90); // 0..90%
+    const computedFinalPrice = Math.round(basePrice * (100 - safeDiscount) / 100);
+
+    // Если клиент прислал цену — сравниваем с вычисленной
+    if (price !== undefined && Math.abs(price - computedFinalPrice) > 1) {
+      console.warn(`⚠️ Клиент прислал цену ${price}, а должна быть ${computedFinalPrice}. Используем серверную.`);
+    }
+
+    const finalPrice = computedFinalPrice;
+
+    // Получаем пользователя
     let user = null;
     let userBalance = 0;
 
-    if (sql) {
-      try {
-        const [dbUser] = await sql`SELECT * FROM users WHERE discord_id = ${userId}`;
-        user = dbUser;
-        if (user) userBalance = user.balance || 0;
-      } catch (dbError) {
-        console.error('❌ create-order DB:', dbError.message);
-      }
+    try {
+      const [dbUser] = await sql`SELECT * FROM users WHERE discord_id = ${userId}`;
+      user = dbUser;
+      if (user) userBalance = user.balance || 0;
+    } catch (dbError) {
+      console.error('❌ create-order DB:', dbError.message);
     }
 
     if (!user) {
-      user = users[userId];
-      userBalance = user?.balance || 0;
+      return res.status(404).json({ success: false, error: 'Пользователь не найден' });
     }
 
-    if (!user) return res.status(404).json({ success: false, error: 'Пользователь не найден' });
-
-    const finalPrice = price;
     if (userBalance < finalPrice) {
       return res.status(400).json({ success: false, error: 'Недостаточно средств на балансе' });
     }
 
     const newBalance = userBalance - finalPrice;
+    const orderId = clientOrderId || `BH-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
     const order = {
       id: orderId,
-      productId,
-      productName,
+      productId: productFromDb.id,
+      productName: productFromDb.name,
       price: finalPrice,
-      originalPrice: originalPrice || price,
-      discount: discount || 0,
-      discountAmount: discountAmount || 0,
-      promocodes: usedPromocodes || [],
+      originalPrice: basePrice,
+      discount: safeDiscount,
+      discountAmount: basePrice - finalPrice,
+      promocodes: Array.isArray(usedPromocodes) ? usedPromocodes : [],
       date: new Date().toISOString(),
       status: 'completed'
     };
 
-    if (users[userId]) {
-      users[userId].balance = newBalance;
-      users[userId].orders = users[userId].orders || [];
-      users[userId].orders.push(order);
-      users[userId].badges = users[userId].badges || {};
-      users[userId].badges.buyer = true;
-    }
+    // Сохраняем заказ
+    try {
+      const orders = user.orders || [];
+      orders.push(order);
+      const badges = user.badges || {};
+      badges.buyer = true;
 
-    if (sql) {
-      try {
-        const orders = user.orders || [];
-        orders.push(order);
-        const badges = user.badges || {};
-        badges.buyer = true;
-
-        await sql`
-          UPDATE users
-          SET balance = ${newBalance}, orders = ${JSON.stringify(orders)}, badges = ${JSON.stringify(badges)}
-          WHERE discord_id = ${userId}
-        `;
-      } catch (dbError) {
-        console.error('❌ create-order UPDATE:', dbError.message);
-      }
+      await sql`
+        UPDATE users
+        SET balance = ${newBalance}, orders = ${JSON.stringify(orders)}, badges = ${JSON.stringify(badges)}
+        WHERE discord_id = ${userId}
+      `;
+    } catch (dbError) {
+      console.error('❌ create-order UPDATE:', dbError.message);
+      return res.status(500).json({ success: false, error: 'Ошибка сохранения заказа' });
     }
 
     // Webhook
@@ -2454,7 +2588,7 @@ app.post('/api/create-order', async (req, res) => {
       try {
         const embed = {
           title: '<:Price:1474932616523415583> Новая покупка!',
-          description: `<:User:1474931634804359433> <@${userId}> купил "${productName}"`,
+          description: `<:User:1474931634804359433> <@${userId}> купил "${productFromDb.name}"`,
           color: 0x57F287,
           fields: [
             { name: '<:Dot:1474932579328069794> Цена', value: `${finalPrice} ₽`, inline: true },
@@ -2464,8 +2598,12 @@ app.post('/api/create-order', async (req, res) => {
           timestamp: new Date().toISOString()
         };
 
-        if (discount && discount > 0) embed.fields.unshift({ name: '🏷️ Скидка', value: `${discount}%`, inline: true });
-        if (usedPromocodes && usedPromocodes.length > 0) embed.fields.unshift({ name: '🎫 Промокоды', value: usedPromocodes.join(', '), inline: true });
+        if (safeDiscount > 0) {
+          embed.fields.unshift({ name: '🏷️ Скидка', value: `${safeDiscount}%`, inline: true });
+        }
+        if (order.promocodes.length > 0) {
+          embed.fields.unshift({ name: '🎫 Промокоды', value: order.promocodes.join(', '), inline: true });
+        }
 
         await axios.post(WEBHOOK_PURCHASE, { embeds: [embed] });
       } catch (webhookError) {
@@ -2473,7 +2611,7 @@ app.post('/api/create-order', async (req, res) => {
       }
     }
 
-    res.json({ success: true, orderId, newBalance });
+    res.json({ success: true, orderId, newBalance, finalPrice });
   } catch (error) {
     console.error('❌ /api/create-order:', error.message);
     res.status(500).json({ success: false, error: 'Ошибка создания заказа' });
