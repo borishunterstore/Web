@@ -3,9 +3,9 @@
 
     const BADGE_IMAGES = {
         verified: 'image/BADGE/verified.gif',
-        partner: 'image/BADGE/partner.png',
+        partner: 'image/BADGE/partner.gif',
         buyer: 'image/BADGE/buy.gif',
-        admin: 'image/BADGE/admin.png',
+        admin: 'image/BADGE/admin.gif',
         vip: 'image/BADGE/vip.png',
         early: 'image/BADGE/early.png'
     };
