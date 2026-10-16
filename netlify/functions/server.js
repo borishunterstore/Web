@@ -2593,27 +2593,27 @@ app.post('/api/create-order', orderLimiter, async (req, res) => {
       console.error('❌ create-order UPDATE:', dbError.message);
       return res.status(500).json({ success: false, error: 'Ошибка сохранения заказа' });
     }
-
+    
     // Webhook
     if (WEBHOOK_PURCHASE) {
       try {
         const embed = {
-          title: '<:Price:1474932616523415583> Новая покупка!',
-          description: `<:User:1474931634804359433> <@${userId}> купил "${productFromDb.name}"`,
+          title: '<:new_1:1560705084822790365><:new_2:1560705099519496314> Новая покупка!',
+          description: `<:user:1560705158093078568> <@${userId}> купил "${productFromDb.name}"`,
           color: 0x57F287,
           fields: [
-            { name: '<:Dot:1474932579328069794> Цена', value: `${finalPrice} ₽`, inline: true },
-            { name: '<:Dot:1474932579328069794> Заказ', value: orderId, inline: true },
-            { name: '<:Dot:1474932579328069794> Баланс после', value: `${newBalance} ₽`, inline: true }
+            { name: '<:money:1560705318714089472> **Цена**', value: `${finalPrice}₽`, inline: true },
+            { name: '<:list:1560705178628530246> **Заказ**', value: orderId, inline: true },
+            { name: '<:cash:1560705216385392730> **Баланс**', value: `${newBalance}₽`, inline: true }
           ],
           timestamp: new Date().toISOString()
         };
-
+        
         if (safeDiscount > 0) {
-          embed.fields.unshift({ name: '🏷️ Скидка', value: `${safeDiscount}%`, inline: true });
+          embed.fields.unshift({ name: '<:sale:1560705871074295848> **Скидка**', value: `${safeDiscount}%`, inline: true });
         }
         if (order.promocodes.length > 0) {
-          embed.fields.unshift({ name: '🎫 Промокоды', value: order.promocodes.join(', '), inline: true });
+          embed.fields.unshift({ name: '<:promocode:1560706033859436594> **Промокоды**', value: order.promocodes.join(', '), inline: true });
         }
 
         await axios.post(WEBHOOK_PURCHASE, { embeds: [embed] });
