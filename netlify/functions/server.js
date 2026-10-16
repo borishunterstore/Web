@@ -1472,8 +1472,11 @@ app.post('/api/orders/:orderId/cancel', async (req, res) => {
     }
 
     if (!order) return res.status(404).json({ success: false, error: 'Заказ не найден' });
-    if (order.status !== 'pending') {
-      return res.status(400).json({ success: false, error: 'Можно отменить только заказы в статусе "Ожидание"' });
+    if (order.status === 'cancelled' || order.status === 'completed') {
+      return res.status(400).json({
+        success: false,
+        error: 'Нельзя отменить выполненный или уже отменённый заказ'
+      });
     }
 
     const refundAmount = order.price || order.finalPrice || 0;
@@ -2571,7 +2574,7 @@ app.post('/api/create-order', orderLimiter, async (req, res) => {
       discountAmount: basePrice - finalPrice,
       promocodes: Array.isArray(usedPromocodes) ? usedPromocodes : [],
       date: new Date().toISOString(),
-      status: 'completed'
+      status: 'pending'
     };
 
     // Сохраняем заказ
