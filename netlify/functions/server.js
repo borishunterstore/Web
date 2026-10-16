@@ -26,7 +26,8 @@ const REQUIRED_ENV = [
   'JWT_SECRET',
   'TELEGRAM_BOT_TOKEN',
   'RECAPTCHA_SECRET_KEY',
-  'DATABASE_URL'
+  'DATABASE_URL',
+  'ADMIN_ID'
 ];
 
 const OPTIONAL_ENV_DEFAULTS = {
@@ -37,8 +38,15 @@ const OPTIONAL_ENV_DEFAULTS = {
 
 const missingEnv = REQUIRED_ENV.filter(key => !process.env[key]);
 if (missingEnv.length > 0) {
-  console.error('❌ ОТСУТСТВУЮТ ENV ПЕРЕМЕННЫЕ:', missingEnv.join(', '));
-  console.error('⚠️ Сервер продолжит работу, но соответствующие функции будут недоступны');
+  console.warn('⚠️ ОТСУТСТВУЮТ ENV ПЕРЕМЕННЫЕ:', missingEnv.join(', '));
+  console.warn('⚠️ Соответствующие функции будут недоступны:');
+  if (missingEnv.includes('TELEGRAM_BOT_TOKEN')) console.warn('   → Telegram-авторизация');
+  if (missingEnv.includes('RECAPTCHA_SECRET_KEY')) console.warn('   → защита от ботов');
+  if (missingEnv.includes('JWT_SECRET')) console.warn('   → JWT-авторизация (КРИТИЧНО!)');
+  if (missingEnv.includes('DATABASE_URL')) console.warn('   → база данных');
+  if (missingEnv.includes('ADMIN_ID')) console.warn('   → доступ в админку');
+} else {
+  console.log('✅ Все обязательные ENV установлены');
 }
 
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
