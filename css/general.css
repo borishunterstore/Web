@@ -1508,6 +1508,265 @@ body::before {
     background: rgba(255, 117, 24, 0.4);
     color: white;
 }
+/* ========== БЕЙДЖИ В МЕНЮ ПОЛЬЗОВАТЕЛЯ ========== */
+.user-menu-avatar-badge {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 22px;
+    height: 22px;
+    background: var(--neutral-900);
+    border: 2px solid var(--accent-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.user-menu-avatar-badge img {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
+.user-menu-badges-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.user-menu-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px 3px 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-full);
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: var(--neutral-300);
+    line-height: 1;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.user-menu-badge:hover {
+    background: rgba(255, 117, 24, 0.12);
+    border-color: rgba(255, 117, 24, 0.3);
+    color: var(--accent-tertiary);
+}
+
+.user-menu-badge img {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.user-menu-badge span {
+    white-space: nowrap;
+}
+
+/* Бейдж "Admin" в пункте меню */
+.user-menu-item-badge {
+    margin-left: auto;
+    padding: 2px 8px;
+    background: var(--accent-primary);
+    color: white;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-radius: var(--radius-full);
+    line-height: 1.4;
+}
+
+.user-menu-item.user-menu-item-admin {
+    background: rgba(255, 117, 24, 0.04);
+    border: 1px solid rgba(255, 117, 24, 0.15);
+}
+
+.user-menu-item.user-menu-item-admin:hover {
+    background: rgba(255, 117, 24, 0.1);
+    border-color: rgba(255, 117, 24, 0.3);
+}
+
+.user-menu-item.user-menu-item-admin .user-menu-item-icon {
+    background: rgba(255, 117, 24, 0.12);
+    color: var(--accent-primary);
+}
+
+/* Бейджи в кнопке авторизации */
+.auth-badge-icon {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 16px;
+    height: 16px;
+    background: var(--neutral-900);
+    border: 1.5px solid var(--accent-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.auth-badge-icon img {
+    width: 10px;
+    height: 10px;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
+.auth-badges {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin: 0 4px;
+}
+
+.auth-badges img {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
+/* Блок баланса в меню */
+.user-menu-balance {
+    padding: 14px 20px;
+    background: rgba(127, 255, 0, 0.04);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.user-menu-balance-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--neutral-400);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.user-menu-balance-label i {
+    color: var(--ghost-primary);
+    font-size: 0.85rem;
+}
+
+.user-menu-balance-amount {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ghost-primary);
+    letter-spacing: -0.02em;
+}
+
+/* ========== ЗАВЕРШЕНИЕ РЕГИСТРАЦИИ ========== */
+.auth-verification {
+    background: rgba(255, 117, 24, 0.1) !important;
+    border: 1px solid rgba(255, 117, 24, 0.3) !important;
+    color: var(--accent-tertiary) !important;
+}
+
+.auth-verification:hover {
+    background: rgba(255, 117, 24, 0.18) !important;
+    border-color: rgba(255, 117, 24, 0.5) !important;
+}
+
+.auth-verification-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    color: var(--accent-primary);
+    font-size: 0.95rem;
+}
+
+.auth-verification-text {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--accent-tertiary);
+}
+
+.auth-verification-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    background: var(--accent-primary);
+    color: white;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Кнопка "Войти" для неавторизованных */
+.auth-discord-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background: #5865F2;
+    color: white;
+    border-radius: 50%;
+    font-size: 0.75rem;
+}
+
+.auth-login-text {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.auth-login-hint {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-left: 4px;
+}
+
+/* Адаптив для меню */
+@media (max-width: 768px) {
+    .user-menu-badges-container {
+        gap: 3px;
+    }
+    
+    .user-menu-badge {
+        font-size: 0.6rem;
+        padding: 2px 6px 2px 3px;
+    }
+    
+    .user-menu-badge img {
+        width: 12px;
+        height: 12px;
+    }
+    
+    .user-menu-balance-amount {
+        font-size: 1.1rem;
+    }
+    
+    .auth-badges {
+        display: none;
+    }
+    
+    .auth-login-hint {
+        display: none;
+    }
+}
 
 /* ========== МЕДИА ========== */
 @media (max-width: 1200px) {
