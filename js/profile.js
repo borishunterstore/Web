@@ -231,7 +231,7 @@
                 renderForeignOrders(orders, privacy);
                 updateForeignStats(ordersCount, totalSpent, user, privacy);
                 
-                document.title = `${user.username || 'Пользователь'} | BHStore`;
+                document.title = `${user.username || 'Пользователь'} | BS`;
                 addChatButton(userId, user.username);
                 
                 const url = new URL(window.location.href);

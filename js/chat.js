@@ -57,7 +57,7 @@ class ChatSystem {
                 <div class="chat-header">
                     <div class="header-info">
                         <i class="fas fa-headset"></i>
-                        <span>Поддержка BHStore</span>
+                        <span>Поддержка BS</span>
                     </div>
                     <div class="header-status">
                         <span class="status-dot"></span> 

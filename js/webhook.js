@@ -203,7 +203,7 @@
                 id: `local_${Date.now()}`,
                 type: 'registration',
                 title: 'Добро пожаловать!',
-                message: `${username}, вы успешно зарегистрировались в BHStore`,
+                message: `${username}, вы успешно зарегистрировались в BS`,
                 created_at: new Date().toISOString()
             });
 
@@ -329,7 +329,7 @@
 
             return await this.sendDiscordNotification(
                 '<:Stat:1474931447731322880> Статистика магазина',
-                'Ежедневная статистика работы BHStore',
+                'Ежедневная статистика работы BS',
                 0x5865F2,
                 fields
             );
@@ -414,7 +414,7 @@
         }
 
         if (Notification.permission === "granted") {
-            const title = notification.fromAdmin ? '💬 Сообщение от администратора' : '🔔 BHStore';
+            const title = notification.fromAdmin ? '💬 Сообщение от администратора' : '🔔 BS';
             new Notification(title, {
                 body: notification.message?.substring(0, 100) || notification.title || 'Новое уведомление',
                 icon: '/favicon.ico',

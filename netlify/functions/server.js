@@ -1,8 +1,3 @@
-// ============================================================
-// BHStore Backend — server.js
-// Netlify Functions + Express + Neon PostgreSQL
-// ============================================================
-
 const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
@@ -300,7 +295,7 @@ async function initDatabase() {
         date DATE DEFAULT CURRENT_DATE,
         category TEXT DEFAULT 'announcement',
         views INTEGER DEFAULT 0,
-        author TEXT DEFAULT 'BHStore',
+        author TEXT DEFAULT 'BS',
         tags JSONB DEFAULT '[]',
         image TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -894,7 +889,7 @@ app.post('/api/telegram/send-code', telegramLimiter, async (req, res) => {
       createdAt: Date.now()
     };
 
-    const message = `🔐 **КОД АВТОРИЗАЦИИ BHStore**\n\nЗдравствуйте, ${escapeHtml(name)}!\n\nВаш код для входа: \`${verificationCode}\`\n\n⚠️ Никому не сообщайте код!\n⏰ Код действителен 5 минут.\n\n✅ Код можно использовать ТОЛЬКО ОДИН РАЗ!`;
+    const message = `🔐 **КОД АВТОРИЗАЦИИ BS**\n\nЗдравствуйте, ${escapeHtml(name)}!\n\nВаш код для входа: \`${verificationCode}\`\n\n⚠️ Никому не сообщайте код!\n⏰ Код действителен 5 минут.\n\n✅ Код можно использовать ТОЛЬКО ОДИН РАЗ!`;
 
     await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       chat_id: parseInt(id),
@@ -935,7 +930,7 @@ app.post('/api/auth/telegram/deep', authLimiter, async (req, res) => {
       id: userId,
       username: username,
       avatar: null,
-      email: `${userId}@telegram.bhstore`,
+      email: `${userId}@telegram.BS`,
       authMethod: 'telegram'
     };
 
@@ -1040,7 +1035,7 @@ app.get('/auth/telegram/callback', async (req, res) => {
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Завершение регистрации | BHStore</title>
+<title>Завершение регистрации | BS</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 <style>
@@ -1205,7 +1200,7 @@ app.post('/api/auth/telegram/complete', authLimiter, async (req, res) => {
     const userData = {
       id: userId,
       username: userDisplayName,
-      email: userEmail || `${userId}@telegram.bhstore`,
+      email: userEmail || `${userId}@telegram.BS`,
       authMethod: 'telegram'
     };
 
@@ -1217,7 +1212,7 @@ app.post('/api/auth/telegram/complete', authLimiter, async (req, res) => {
       user: {
         id: userId,
         username: userDisplayName,
-        email: userEmail || `${userId}@telegram.bhstore`
+        email: userEmail || `${userId}@telegram.BS`
       }
     });
   } catch (error) {
@@ -1264,7 +1259,7 @@ app.post('/api/auth/telegram', telegramLimiter, async (req, res) => {
       id: userId,
       username: userDisplayName,
       avatar: null,
-      email: `${userId}@telegram.bhstore`,
+      email: `${userId}@telegram.BS`,
       authMethod: 'telegram'
     };
 
@@ -2221,7 +2216,7 @@ app.get('/auth/discord/callback', (req, res) => {
   const html = `<!DOCTYPE html>
 <html>
 <head>
-<title>Авторизация BHStore</title>
+<title>Авторизация BS</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
@@ -2300,7 +2295,7 @@ app.post('/api/send-verification', authLimiter, async (req, res) => {
         await axios.post(WEBHOOK_VERIFY, {
           content: `<@${userId}>`,
           embeds: [{
-            title: '🔐 Верификация BHStore',
+            title: '🔐 Верификация BS',
             description: `Ваш код верификации: \`${code}\``,
             color: 0x5865F2,
             fields: [
@@ -2322,7 +2317,7 @@ app.post('/api/send-verification', authLimiter, async (req, res) => {
       try {
         await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
           chat_id: userId,
-          text: `🔐 **КОД ВЕРИФИКАЦИИ BHStore**\n\nЗдравствуйте!\n\nВаш код: \`${code}\`\n\n⏰ Код действителен 5 минут.\n⚠️ Никому не сообщайте код!`,
+          text: `🔐 **КОД ВЕРИФИКАЦИИ BS**\n\nЗдравствуйте!\n\nВаш код: \`${code}\`\n\n⏰ Код действителен 5 минут.\n⚠️ Никому не сообщайте код!`,
           parse_mode: 'Markdown'
         });
         sent = true;
@@ -2463,7 +2458,7 @@ app.post('/api/welcome-message', async (req, res) => {
     await axios.post(WEBHOOK_WELCOME, {
       content: `<@${userId}>`,
       embeds: [{
-        title: '<:Wave:1386273780556496967> Добро пожаловать в BHStore!',
+        title: '<:Wave:1386273780556496967> Добро пожаловать в BS!',
         description: 'Вы успешно зарегистрировались в нашем магазине!',
         color: 0x57F287,
         fields: [
@@ -2648,7 +2643,7 @@ app.get('/api/news', async (req, res) => {
       date: item.date ? new Date(item.date).toISOString().split('T')[0] : new Date(item.created_at).toISOString().split('T')[0],
       category: item.category || 'announcement',
       views: item.views || 0,
-      author: item.author || 'BHStore',
+      author: item.author || 'BS',
       tags: item.tags || [],
       image: item.image || null,
       created_at: item.created_at
@@ -2681,7 +2676,7 @@ app.get('/api/news/:id', async (req, res) => {
         date: newsItem.date ? new Date(newsItem.date).toISOString().split('T')[0] : new Date(newsItem.created_at).toISOString().split('T')[0],
         category: newsItem.category || 'announcement',
         views: (newsItem.views || 0) + 1,
-        author: newsItem.author || 'BHStore',
+        author: newsItem.author || 'BS',
         tags: newsItem.tags || [],
         image: newsItem.image || null,
         created_at: newsItem.created_at
@@ -3974,7 +3969,7 @@ app.post('/api/notifications/registration', async (req, res) => {
     await sql`
       INSERT INTO notifications (id, user_id, type, title, message, data, created_at)
       VALUES (${notificationId}, ${userId}, 'registration', 'Добро пожаловать!',
-        ${`${username}, вы успешно зарегистрировались в BHStore`},
+        ${`${username}, вы успешно зарегистрировались в BS`},
         ${JSON.stringify({ username })}, ${new Date().toISOString()})
     `;
     res.json({ success: true });
