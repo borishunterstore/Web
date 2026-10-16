@@ -1689,12 +1689,12 @@ app.post('/api/chat/send', chatLimiter, async (req, res) => {
       try {
         await axios.post(WEBHOOK_CHAT, {
           embeds: [{
-            title: '<:TG:1474931529896431838> Новое сообщение от пользователя',
+            title: '<:new_1:1560705084822790365><:new_2:1560705099519496314> Новое сообщение',
             description: message,
             color: 0x5865F2,
             fields: [
-              { name: '<:User:1474931634804359433> Пользователь', value: `<@${userId}>`, inline: true },
-              { name: '<:Dot:1474932579328069794> Имя', value: user?.username || 'Неизвестно', inline: true }
+              { name: '<:user:1560705158093078568> Пользователь', value: `<@${userId}>`, inline: true },
+              { name: '<:promocode:1560706033859436594> Никнейм', value: user?.username || 'Неизвестно', inline: true }
             ],
             timestamp: now
           }]
@@ -2295,13 +2295,9 @@ app.post('/api/send-verification', authLimiter, async (req, res) => {
         await axios.post(WEBHOOK_VERIFY, {
           content: `<@${userId}>`,
           embeds: [{
-            title: '🔐 Верификация BS',
+            title: '<:verified:1560705143513682060> Верификация BS',
             description: `Ваш код верификации: \`${code}\``,
             color: 0x5865F2,
-            fields: [
-              { name: '⏰ Действителен', value: '5 минут', inline: true },
-              { name: '⚠️ Важно', value: 'Никому не сообщайте код!', inline: true }
-            ],
             timestamp: new Date().toISOString()
           }]
         });
@@ -2317,7 +2313,7 @@ app.post('/api/send-verification', authLimiter, async (req, res) => {
       try {
         await axios.post(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
           chat_id: userId,
-          text: `🔐 **КОД ВЕРИФИКАЦИИ BS**\n\nЗдравствуйте!\n\nВаш код: \`${code}\`\n\n⏰ Код действителен 5 минут.\n⚠️ Никому не сообщайте код!`,
+          text: `<:verified:1560705143513682060> **КОД ВЕРИФИКАЦИИ BS**\nВаш код: \`${code}\``,
           parse_mode: 'Markdown'
         });
         sent = true;
