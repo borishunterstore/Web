@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Новости | BHStore</title>
-    <meta name="description" content="Последние новости и обновления BHStore. Будьте в курсе всех событий.">
+    <title>Новости | BS</title>
+    <meta name="description" content="Последние новости и обновления BS. Будьте в курсе всех событий.">
     
-    <meta property="og:title" content="Новости | BHStore">
-    <meta property="og:description" content="Последние новости и обновления BHStore">
+    <meta property="og:title" content="Новости | BS">
+    <meta property="og:description" content="Последние новости и обновления BS">
     <meta property="og:image" content="image/logo.png">
     <meta property="og:url" content="https://bhstore.netlify.app/news.html">
     <meta property="og:type" content="website">
@@ -54,8 +54,8 @@
     <nav class="navbar" id="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo">
-                <img src="image/logo.png" alt="BHStore" class="logo-image">
-                <span class="logo-text">BHStore</span>
+                <img src="image/logo.png" alt="BS" class="logo-image">
+                <span class="logo-text">BS</span>
             </a>
             <div class="nav-menu">
                 <a href="/" class="nav-link"><i class="fas fa-home"></i> Главная</a>
@@ -80,8 +80,8 @@
     <div class="mobile-nav" id="mobileNav">
         <div class="mobile-nav-header">
             <div class="mobile-nav-logo">
-                <img src="image/logo.png" alt="BHStore">
-                <span>BHStore</span>
+                <img src="image/logo.png" alt="BS">
+                <span>BS</span>
             </div>
             <button class="mobile-nav-close" aria-label="Закрыть меню">
                 <i class="fas fa-times"></i>
@@ -107,11 +107,11 @@
             <div class="news-banner-line"></div>
             <div class="news-banner-line"></div>
         </div>
-        <img src="image/leto/bhstore_footer.png" alt="BHStore News" class="news-banner-image" loading="eager">
+        <img src="image/leto/bhstore_footer.png" alt="BS News" class="news-banner-image" loading="eager">
         <div class="news-banner-overlay">
             <div class="news-banner-content">
                 <div class="news-banner-badge">
-                    <i class="fas fa-bolt"></i> BHStore
+                    <i class="fas fa-bolt"></i> BS
                 </div> 
                 <h1 class="news-banner-title">
                     Новости
@@ -131,7 +131,7 @@
         <div class="footer-container">
             <div class="footer-grid">
                 <div class="footer-brand">
-                    <img src="image/leto/bhstore_footer.png" alt="BHStore" style="height: 90px; width: 280px;">
+                    <img src="image/leto/bhstore_footer.png" alt="BS" style="height: 90px; width: 280px;">
                     <p style="margin-top: 10px;">Мы занимаемся созданием Discord / Telegram ботов для всех нужд! Так же создаем сайты. Пишет плагины, моды, скрипты.</p>
                 </div>
                 <div class="footer-column">
@@ -162,7 +162,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024–2026 BHStore. Все права защищены.</p>
+                <p>&copy; 2024–2026 BS. Все права защищены.</p>
                 <p>ИНН: 742541714674 / Стахеев Д.А.</p>
             </div>
         </div>
@@ -231,7 +231,7 @@
                 
                 if (data.success && data.news) {
                     renderSingleNews(data.news);
-                    document.title = `${data.news.title} | BHStore`;
+                    document.title = `${data.news.title} | BS`;
                 } else {
                     container.innerHTML = `
                         <div class="news-empty-state">
