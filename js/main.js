@@ -5,9 +5,9 @@
     let isInitialized = false;
 
     const BADGE_CONFIG = {
-        admin: { name: 'Администратор', image: '/image/BADGE/admin.png', priority: 1 },
+        admin: { name: 'Администратор', image: '/image/BADGE/admin.gif', priority: 1 },
         verified: { name: 'Верифицированный', image: '/image/BADGE/verified.gif', priority: 2 },
-        partner: { name: 'Партнёр', image: '/image/BADGE/partner.png', priority: 3 },
+        partner: { name: 'Партнёр', image: '/image/BADGE/partner.gif', priority: 3 },
         buyer: { name: 'Покупатель', image: '/image/BADGE/buy.gif', priority: 4 },
         early: { name: 'Ранний сторонник', image: '/image/BADGE/early.png', priority: 5 },
         vip: { name: 'VIP', image: '/image/BADGE/vip.png', priority: 6 }
