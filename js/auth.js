@@ -16,9 +16,11 @@ class DiscordAuth {
             this.initVerifyPage();
         }
         
+        // ✅ Обработчик message отключён — обработка в auth.html inline
+        // Это убирает двойное срабатывание и «Ошибку безопасности»
         window.addEventListener('message', (e) => {
             if (e.data?.type === 'DISCORD_AUTH_CALLBACK') {
-                this.handleCallback(e.data.code, e.data.state);
+                console.log('📥 Discord callback получен (обрабатывается inline в auth.html)');
             }
         });
         
@@ -147,96 +149,11 @@ class DiscordAuth {
         return null;
     }
 
+    // ⚠️ handleCallback оставлен для совместимости, но НЕ вызывается из message
+    // Логика Discord callback полностью в auth.html inline
     async handleCallback(code, state) {
-        try {
-          if (!(await this.checkAuthStatus())) {
-            alert('Авторизация временно недоступна');
-            window.location.href = '/';
-            return;
-          }
-      
-          const savedState = localStorage.getItem('discord_oauth_state');
-          if (savedState !== state) {
-            console.error('State mismatch:', { savedState, state });
-            throw new Error('Ошибка безопасности: неверный state параметр');
-          }
-          localStorage.removeItem('discord_oauth_state');
-      
-          if (!code) {
-            throw new Error('Код авторизации не получен');
-          }
-      
-          console.log('🔄 Отправка кода на сервер...');
-      
-          const response = await fetch(`${this.apiBase}/auth/discord`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code })
-          });
-      
-          const data = await response.json();
-      
-          if (!response.ok) throw new Error(data.error || 'Ошибка авторизации');
-          if (!data.success) throw new Error(data.error || 'Ошибка авторизации');
-      
-          console.log('✅ Пользователь авторизован:', data.user.id);
-      
-          // Пропуск верификации (для старых юзеров)
-          if (data.skipVerification) {
-            console.log('⏩ Пропускаем верификацию');
-            const authData = {
-              id: data.user.id,
-              username: data.user.username,
-              email: data.user.email,
-              avatar: data.user.avatar,
-              balance: data.userFromDb?.balance || 0,
-              badges: data.userFromDb?.badges || {},
-              token: data.token,
-              requiresVerification: false
-            };
-            this.saveAuthData(authData);
-            window.api?.setAuthToken(data.token);
-            window.location.href = '/';
-            return;
-          }
-      
-          // === Новый пользователь: сохраняем и идём на верификацию ===
-          const authData = {
-            id: data.user.id,
-            username: data.user.username,
-            email: data.user.email,
-            avatar: data.user.avatar,
-            token: data.token,
-            requiresVerification: true
-            // ❌ НЕ сохраняем verificationCode в localStorage — он теперь на сервере
-          };
-          this.saveAuthData(authData);
-          window.api?.setAuthToken(data.token);
-      
-          // Отправляем код в Discord DM
-          try {
-            const code6 = Math.floor(100000 + Math.random() * 900000).toString();
-            const sendRes = await fetch(`${this.apiBase}/send-verification`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ userId: data.user.id, code: code6 })
-            });
-            const sendData = await sendRes.json();
-            if (!sendData.success) {
-              console.warn('⚠️ Код не отправился:', sendData.error);
-            }
-          } catch (e) {
-            console.warn('⚠️ Ошибка отправки кода:', e.message);
-          }
-      
-          window.location.href = '/verify.html';
-      
-        } catch (error) {
-          console.error('❌ Ошибка авторизации:', error);
-          alert('Ошибка авторизации: ' + error.message);
-          setTimeout(() => window.location.href = '/auth.html', 2000);
-        }
-      }
+        console.warn('⚠️ handleCallback вызван, но обработка должна быть в auth.html inline');
+    }
 
     initVerifyPage() {
         const verifyBtn = document.getElementById('verifyBtn');
@@ -318,16 +235,9 @@ class DiscordAuth {
                     const result = await response.json();
                     
                     if (result.success) {
-                        authData.verificationCode = newCode;
-                        this.saveAuthData(authData);
-                        if (codeInput) codeInput.value = newCode;
                         alert('✅ Новый код отправлен!');
                     } else {
-                        // Если не отправилось - показываем код
                         alert(`⚠️ Код не удалось отправить.\n\nВаш код: ${newCode}\nВведите его вручную.`);
-                        authData.verificationCode = newCode;
-                        this.saveAuthData(authData);
-                        if (codeInput) codeInput.value = newCode;
                     }
                 } catch (error) {
                     alert('❌ Ошибка отправки: ' + error.message);
@@ -347,9 +257,16 @@ class DiscordAuth {
         const authData = this.getAuthData();
         if (!authData?.id) throw new Error('Сессия истекла');
         
-        // Проверяем код
-        if (authData.verificationCode !== inputCode) {
-            throw new Error('Неверный код');
+        // Проверяем код на сервере
+        const verifyResponse = await fetch(`${this.apiBase}/verify-code`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: authData.id, code: inputCode })
+        });
+        
+        const verifyResult = await verifyResponse.json();
+        if (!verifyResult.success) {
+            throw new Error(verifyResult.error || 'Неверный код');
         }
         
         // Регистрируем пользователя

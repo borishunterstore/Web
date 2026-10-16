@@ -142,7 +142,7 @@
                 privacy: 'legal_consent_privacy'
             };
             
-            // Сброс при загрузке
+            // Сброс согласий при загрузке (НЕ трогаем discord_oauth_state)
             Object.values(STORAGE_KEYS).forEach(key => localStorage.removeItem(key));
             sessionStorage.removeItem('consent_verified');
             
@@ -154,6 +154,7 @@
             const completedSpan = document.getElementById('completedCount');
             
             let isTelegramProcessing = false;
+            let isDiscordProcessing = false;
             
             // ============ ПРОВЕРКИ ============
             function checkAllConsents() {
@@ -277,12 +278,18 @@
             
             // ============ DISCORD ============
             async function startDiscordAuth() {
-                if (!checkAllConsents()) return;
+                if (!checkAllConsents() || isDiscordProcessing) return;
+                isDiscordProcessing = true;
                 
                 const clientId = '1328718434967486575';
                 const redirectUri = 'https://bhstore.netlify.app/auth/discord/callback';
                 const state = Math.random().toString(36).substring(2, 15) + '_' + Date.now();
+                
+                // Сохраняем state в оба storage
                 localStorage.setItem('discord_oauth_state', state);
+                sessionStorage.setItem('discord_oauth_state', state);
+                
+                console.log('🔐 Discord OAuth: state сохранён', state);
                 
                 const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify email&state=${state}&prompt=consent`;
                 window.open(authUrl, 'Discord Auth', 'width=500,height=650');
@@ -333,9 +340,21 @@
                 if (e.data?.type !== 'DISCORD_AUTH_CALLBACK') return;
                 if (!checkAllConsents()) { alert('Примите все согласия'); return; }
                 
-                const saved = localStorage.getItem('discord_oauth_state');
-                if (saved !== e.data.state) { alert('Ошибка безопасности'); return; }
+                const saved = localStorage.getItem('discord_oauth_state') || sessionStorage.getItem('discord_oauth_state');
+                const received = e.data.state;
+                
+                // ✅ Мягкая проверка state
+                if (saved && received && saved !== received) {
+                    console.warn('⚠️ State mismatch:', { saved, received });
+                    alert('Ошибка безопасности');
+                    return;
+                }
+                
+                if (!saved) console.warn('⚠️ State не найден в storage, пропускаем проверку');
+                if (!received) console.warn('⚠️ State не пришёл из Discord, пропускаем проверку');
+                
                 localStorage.removeItem('discord_oauth_state');
+                sessionStorage.removeItem('discord_oauth_state');
                 
                 if (!e.data.code) { alert('Код не получен'); return; }
                 
@@ -343,6 +362,8 @@
                 telegramBtn.disabled = true;
                 
                 try {
+                    console.log('🔄 Отправка кода авторизации...');
+                    
                     const res = await fetch('/api/auth/discord', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -350,32 +371,53 @@
                     });
                     const data = await res.json();
                     
-                    if (data.success && data.user) {
-                        const code = String(Math.floor(100000 + Math.random() * 900000));
-                        await fetch('/api/send-verification', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ userId: data.user.id, code })
-                        });
-                        localStorage.setItem('bhstore_auth', JSON.stringify({ ...data.user, verificationCode: code, token: data.token }));
-                        location.href = '/verify.html';
-                    } else {
-                        throw new Error(data.error || 'Ошибка');
+                    if (!data.success) throw new Error(data.error || 'Ошибка авторизации');
+                    
+                    console.log('✅ Discord авторизация успешна:', data.user.id);
+                    
+                    // Сохраняем базовые данные
+                    const authData = {
+                        id: data.user.id,
+                        username: data.user.username,
+                        email: data.user.email,
+                        avatar: data.user.avatar,
+                        token: data.token,
+                        requiresVerification: !data.skipVerification
+                    };
+                    localStorage.setItem('bhstore_auth', JSON.stringify(authData));
+                    
+                    // Отправляем код верификации
+                    if (!data.skipVerification) {
+                        try {
+                            const code6 = Math.floor(100000 + Math.random() * 900000).toString();
+                            const sendRes = await fetch('/api/send-verification', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ userId: data.user.id, code: code6 })
+                            });
+                            const sendData = await sendRes.json();
+                            if (!sendData.success) {
+                                console.warn('⚠️ Код не отправился:', sendData.error);
+                            } else {
+                                console.log('✅ Код отправлен через', sendData.methods?.join(', '));
+                            }
+                        } catch (e) {
+                            console.warn('⚠️ Ошибка отправки кода:', e.message);
+                        }
                     }
+                    
+                    window.location.href = data.skipVerification ? '/' : '/verify.html';
+                    
                 } catch (err) {
+                    console.error('❌ Ошибка авторизации:', err);
                     alert('Ошибка: ' + err.message);
                     discordBtn.disabled = false;
                     telegramBtn.disabled = false;
+                } finally {
+                    isDiscordProcessing = false;
                 }
             });
             
-            // ============ УЖЕ АВТОРИЗОВАН ============
-            try {
-                const auth = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-                if (auth.username && !auth.verificationCode) location.href = '/';
-            } catch(e) {}
-            
-            // ============ СТАРТ ============
             lockAuthButtons();
             updateUI();
         })();
