@@ -11,7 +11,6 @@
     };
     let currentViewingUserId = null;
     let isOwnProfile = true;
-    let currentUserPrivacy = null;
     document.addEventListener('DOMContentLoaded', async () => {
         await checkAuthAndLoadProfile();
         setupEventListeners();
@@ -104,10 +103,6 @@
             await loadUserPromocodes();
             await loadActivePromocodes();
             
-            if (window.ChatSystem) {
-                window.chatSystem = new ChatSystem();
-                await window.chatSystem.init();
-            }
             
         } catch (error) {
             console.error('Error loading profile:', error);
@@ -124,62 +119,12 @@
         if (container) {
             container.innerHTML = `
                 <div class="error-page" style="text-align: center; padding: 100px 20px;">
-                    <i class="fas fa-snowflake" style="font-size: 5rem; color: #5865F2; margin-bottom: 20px;"></i>
+                    <i class="fas fa-snowflake" style="font-size: 5rem; color: var(--profile-accent); margin-bottom: 20px;"></i>
                     <h2>Аккаунт заморожен</h2>
                     <p>Этот аккаунт временно заморожен владельцем.</p>
                     <a href="/profile.html" class="btn-primary" style="margin-top: 20px; display: inline-block;">
                         <i class="fas fa-arrow-left"></i> Вернуться
                     </a>
-                </div>
-            `;
-        }
-    }
-
-    function renderForeignProfileWithPrivacy(user, privacy) {
-        let avatarUrl = 'https://cdn.discordapp.com/embed/avatars/0.png';
-        
-        if (privacy.show_avatar !== false && user.avatar) {
-            if (user.avatar.startsWith('a_')) {
-                avatarUrl = `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.gif?size=256`;
-            } else {
-                avatarUrl = `https://cdn.discordapp.com/avatars/${user.discordId}/${user.avatar}.png?size=256`;
-            }
-        } else if (privacy.show_avatar === false) {
-            avatarUrl = 'image/avatar-hidden.png';
-        }
-        
-        let badgesHTML = '';
-        let mainBadge = '';
-        
-        if (privacy.show_badges !== false && user.badges) {
-            const badges = normalizeBadges(user.badges);
-            mainBadge = getMainBadge(badges);
-            badgesHTML = generateBadgesHTML(badges);
-        }
-        
-        const profileHeader = document.getElementById('profileHeader');
-        if (profileHeader) {
-            profileHeader.innerHTML = `
-                <div class="profile-avatar-wrapper">
-                    <img src="${avatarUrl}" 
-                         class="profile-avatar"
-                         alt="Avatar"
-                         onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
-                    ${mainBadge}
-                </div>
-                <div class="profile-info">
-                    <h2>
-                        <i class="fas fa-user-circle"></i>
-                        ${escapeHtml(user.username || 'Пользователь')}
-                    </h2>
-                    <div class="badges-container">
-                        ${badgesHTML}
-                    </div>
-                    <p><i class="fas fa-hashtag"></i> ID: ${escapeHtml(user.discordId)}</p>
-                    ${privacy.show_registered !== false && user.registeredAt ? 
-                        `<p><i class="fas fa-calendar-alt"></i> Зарегистрирован: ${new Date(user.registeredAt).toLocaleDateString('ru-RU')}</p>` : 
-                        privacy.show_registered === false ? '<p><i class="fas fa-lock"></i> Дата регистрации скрыта</p>' : ''
-                    }
                 </div>
             `;
         }
@@ -602,9 +547,9 @@
                 <div style="padding: 20px;">
                     <!-- КАТЕГОРИЯ 1: ОСНОВНЫЕ -->
                     <div class="settings-category" style="margin-bottom: 30px;">
-                        <h3 style="color: #5865F2; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #5865F2;">
-                            <i class="fas fa-user-circle"></i> Основные
-                        </h3>
+                    <h3 class="category-main">
+                    <i class="fas fa-user-circle"></i> Основные
+                    </h3>
                         
                         <div class="form-group" style="margin-bottom: 15px;">
                             <label style="color: #b9bbbe;">Электронная почта</label>
@@ -614,7 +559,7 @@
                             <label style="color: #b9bbbe;">Новый email</label>
                             <input type="email" id="newEmail" placeholder="Введите новый email" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
                         </div>
-                        <button class="btn-save-email" onclick="window.updateEmail()" style="background: #5865F2; border: none; padding: 10px 20px; border-radius: 8px; color: white; cursor: pointer; width: 100%; margin-bottom: 15px;">
+                        <button class="btn-save-email" onclick="window.updateEmail()" style="background: var(--profile-accent); border: none; padding: 10px 20px; border-radius: 8px; color: white; cursor: pointer; width: 100%; margin-bottom: 15px;">
                             <i class="fas fa-save"></i> Обновить email
                         </button>
                         
@@ -624,16 +569,16 @@
                                  onerror="this.src='https://cdn.discordapp.com/embed/avatars/0.png'">
                             <span style="color: #b9bbbe;">Текущая аватарка</span>
                         </div>
-                        <button class="btn-refresh-avatar" onclick="window.refreshAvatar()" style="background: #57F287; border: none; padding: 10px 20px; border-radius: 8px; color: #1e1f29; cursor: pointer; width: 100%;">
+                        <button class="btn-refresh-avatar" onclick="window.refreshAvatar()" style="background: var(--profile-ghost); border: none; padding: 10px 20px; border-radius: 8px; color: #050308; cursor: pointer; width: 100%;">
                             <i class="fas fa-sync-alt"></i> Обновить аватарку из Discord
                         </button>
                     </div>
                     
                     <!-- КАТЕГОРИЯ 2: КОНФИДЕНЦИАЛЬНОСТЬ -->
                     <div class="settings-category" style="margin-bottom: 30px;">
-                        <h3 style="color: #FEE75C; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #FEE75C;">
-                            <i class="fas fa-lock"></i> Конфиденциальность
-                        </h3>
+                    <h3 class="category-privacy">
+                    <i class="fas fa-lock"></i> Конфиденциальность
+                    </h3>
                         
                         <div class="privacy-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #40444b;">
                             <span style="color: white;"><i class="fas fa-image"></i> Показывать аватарку</span>
@@ -691,16 +636,16 @@
                             </label>
                         </div>
                         
-                        <button id="savePrivacyBtn" class="btn-save-privacy" style="background: #FEE75C; border: none; padding: 12px 20px; border-radius: 8px; color: #1e1f29; cursor: pointer; width: 100%; margin-top: 20px; font-weight: 600;">
+                        <button id="savePrivacyBtn" class="btn-save-privacy" style="background: var(--profile-accent-secondary); border: none; padding: 12px 20px; border-radius: 8px; color: #1e1f29; cursor: pointer; width: 100%; margin-top: 20px; font-weight: 600;">
                             <i class="fas fa-save"></i> Сохранить настройки конфиденциальности
                         </button>
                     </div>
                     
                     <!-- КАТЕГОРИЯ 3: ОПАСНАЯ ЗОНА -->
                     <div class="settings-category" style="margin-bottom: 20px;">
-                        <h3 style="color: #ED4245; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #ED4245;">
-                            <i class="fas fa-exclamation-triangle"></i> Опасная зона
-                        </h3>
+                    <h3 class="category-danger">
+                    <i class="fas fa-exclamation-triangle"></i> Опасная зона
+                    </h3>
                         
                         <div style="background: rgba(237, 66, 69, 0.1); border-radius: 12px; padding: 15px; margin-bottom: 15px;">
                             <p style="color: #ED4245; margin-bottom: 15px;"><i class="fas fa-snowflake"></i> <strong>Заморозка профиля</strong><br><small>При заморозке вы не сможете заходить в аккаунт до разморозки через Discord</small></p>
@@ -827,7 +772,7 @@
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label style="color: #b9bbbe;">Код подтверждения</label>
                     <input type="text" id="deleteConfirmCode" placeholder="Введите код из Discord" style="width: 100%; padding: 12px; background: #1e1f29; border: 1px solid #40444b; border-radius: 8px; color: white;">
-                    <button id="sendDeleteCodeBtn" style="margin-top: 10px; background: #5865F2; border: none; padding: 8px 16px; border-radius: 8px; color: white; cursor: pointer;">Отправить код</button>
+                    <button id="sendDeleteCodeBtn" style="margin-top: 10px; background: var(--profile-accent); border: none; padding: 8px 16px; border-radius: 8px; color: white; cursor: pointer;">Отправить код</button>
                 </div>
                 
                 <div style="display: flex; gap: 10px; margin-top: 20px;">
@@ -1020,8 +965,8 @@
         setTimeout(() => {
             if (popup && !popup.closed) {
                 popup.close();
-                window.removeEventListener('message', messageHandler);
             }
+            window.removeEventListener('message', messageHandler);
         }, 30000);
     };
 
@@ -1042,38 +987,6 @@
                 }
             };
             profileHeader.appendChild(chatBtn);
-        }
-    }
-
-    async function registerNewUser(authData) {
-        try {
-            const response = await fetch('/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    discordId: authData.id,
-                    username: authData.username,
-                    email: authData.email,
-                    avatar: authData.avatar
-                })
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                await loadOwnProfile();
-            } else {
-                renderProfile(authData, true);
-                renderBalance(0);
-                renderOrders([], true);
-                updateStats([], authData);
-            }
-        } catch (error) {
-            console.error('Registration error:', error);
-            renderProfile(authData, true);
-            renderBalance(0);
-            renderOrders([], true);
-            updateStats([], authData);
         }
     }
 
@@ -1101,35 +1014,35 @@
                         </div>
                         <div style="padding: 20px;">
                             <div style="margin-bottom: 15px;">
-                                <label style="color: #5865F2; font-weight: 600;">Номер заказа:</label>
+                                <label style="color: var(--profile-accent); font-weight: 600;">Номер заказа:</label>
                                 <p style="color: white; font-family: monospace;">${escapeHtml(order.id)}</p>
                             </div>
                             <div style="margin-bottom: 15px;">
-                                <label style="color: #5865F2; font-weight: 600;">Товар:</label>
+                                <label style="color: var(--profile-accent); font-weight: 600;">Товар:</label>
                                 <p style="color: white;">${escapeHtml(order.productName)}</p>
                             </div>
                             <div style="margin-bottom: 15px;">
-                                <label style="color: #5865F2; font-weight: 600;">Сумма:</label>
-                                <p style="color: #57F287; font-weight: 700;">${order.price || 0}₽</p>
+                                <label style="color: var(--profile-accent); font-weight: 600;">Сумма:</label>
+                                <p style="color: var(--profile-ghost); font-weight: 700;">${order.price || 0}₽</p>
                             </div>
                             <div style="margin-bottom: 15px;">
-                                <label style="color: #5865F2; font-weight: 600;">Дата:</label>
+                                <label style="color: var(--profile-accent); font-weight: 600;">Дата:</label>
                                 <p style="color: #b9bbbe;">${new Date(order.date || order.createdAt).toLocaleString('ru-RU')}</p>
                             </div>
                             <div style="margin-bottom: 15px;">
-                                <label style="color: #5865F2; font-weight: 600;">Статус:</label>
+                                <label style="color: var(--profile-accent); font-weight: 600;">Статус:</label>
                                 <p><span class="status-badge ${order.status === 'completed' ? 'status-completed' : order.status === 'pending' ? 'status-pending' : 'status-cancelled'}">${order.status === 'completed' ? 'Выполнен' : order.status === 'pending' ? 'Ожидание' : 'Отменён'}</span></p>
                             </div>
                             ${order.discount ? `
                                 <div style="margin-bottom: 15px;">
-                                    <label style="color: #5865F2; font-weight: 600;">Скидка:</label>
-                                    <p style="color: #FEE75C;">${order.discount}% (${order.discountAmount || 0}₽)</p>
+                                    <label style="color: var(--profile-accent); font-weight: 600;">Скидка:</label>
+                                    <p style="color: var(--profile-accent-secondary);">${order.discount}% (${order.discountAmount || 0}₽)</p>
                                 </div>
                             ` : ''}
                             ${order.promocodes && order.promocodes.length ? `
                                 <div style="margin-bottom: 15px;">
-                                    <label style="color: #5865F2; font-weight: 600;">Применённые промокоды:</label>
-                                    <p style="color: #FEE75C;">${order.promocodes.join(', ')}</p>
+                                    <label style="color: var(--profile-accent); font-weight: 600;">Применённые промокоды:</label>
+                                    <p style="color: var(--profile-accent-secondary);">${order.promocodes.join(', ')}</p>
                                 </div>
                             ` : ''}
                         </div>
@@ -1232,7 +1145,7 @@
         container.innerHTML = `
             <div class="promocodes-history-header" style="margin-bottom: 20px;">
                 <h3 style="font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-history" style="color: #5865F2;"></i> 
+                    <i class="fas fa-history" style="color: var(--profile-accent);"></i> 
                     История использованных промокодов
                     <span style="font-size: 0.8rem; background: #2a2b36; padding: 2px 10px; border-radius: 20px; color: #b9bbbe;">${promocodes.length} шт.</span>
                 </h3>
@@ -1242,11 +1155,11 @@
                     <div class="promocode-history-item" style="background: #1e1f29; border-radius: 16px; padding: 16px 20px; border: 1px solid #2a2b36;">
                         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
                             <div style="display: flex; align-items: center; gap: 15px;">
-                                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, ${promo.type === 'discount' ? '#FEE75C' : '#57F287'}, ${promo.type === 'discount' ? '#e6d048' : '#43b581'}); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, ${promo.type === 'discount' ? 'var(--profile-accent-secondary)' : 'var(--profile-ghost)'}, ${promo.type === 'discount' ? '#e6d048' : '#43b581'}); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                                     <i class="fas fa-${promo.type === 'discount' ? 'percent' : 'coins'}" style="color: #1e1f29; font-size: 1.4rem;"></i>
                                 </div>
                                 <div>
-                                    <div style="font-weight: 700; color: ${promo.type === 'discount' ? '#FEE75C' : '#57F287'}; font-family: monospace; font-size: 1.1rem;">
+                                    <div style="font-weight: 700; color: ${promo.type === 'discount' ? 'var(--profile-accent-secondary)' : 'var(--profile-ghost)'}; font-family: monospace; font-size: 1.1rem;">
                                         ${escapeHtml(promo.code)}
                                     </div>
                                     <div style="display: flex; gap: 15px; margin-top: 6px; font-size: 0.85rem; color: #b9bbbe;">
@@ -1255,7 +1168,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div style="padding: 6px 16px; border-radius: 30px; font-size: 0.8rem; background: rgba(87, 242, 135, 0.15); color: #57F287;">
+                            <div style="padding: 6px 16px; border-radius: 30px; font-size: 0.8rem; background: rgba(87, 242, 135, 0.15); color: var(--profile-ghost);">
                                 <i class="fas fa-check-circle"></i> Использован
                             </div>
                         </div>
@@ -1282,25 +1195,25 @@
         container.innerHTML = `
             <div class="active-promocodes-header" style="margin-bottom: 15px;">
                 <h3 style="font-size: 1.1rem; color: #fff; display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-fire" style="color: #FEE75C;"></i> 
+                    <i class="fas fa-fire" style="color: var(--profile-accent-secondary);"></i> 
                     Активные промокоды (скидки)
-                    <span style="font-size: 0.8rem; background: #2a2b36; padding: 2px 10px; border-radius: 20px; color: #FEE75C;">${promocodes.length} шт.</span>
+                    <span style="font-size: 0.8rem; background: #2a2b36; padding: 2px 10px; border-radius: 20px; color: var(--profile-accent-secondary);">${promocodes.length} шт.</span>
                 </h3>
             </div>
             <div class="active-promocodes-list" style="display: flex; flex-direction: column; gap: 10px;">
                 ${promocodes.map(promo => `
                     <div class="active-promocode-item" style="background: linear-gradient(135deg, rgba(254, 231, 92, 0.1), rgba(254, 231, 92, 0.05)); border-radius: 16px; padding: 12px 16px; border: 1px solid rgba(254, 231, 92, 0.3); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                         <div style="display: flex; align-items: center; gap: 12px;">
-                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #FEE75C, #e6d048); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--profile-accent-secondary), #e6d048); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
                                 <i class="fas fa-percent" style="color: #1e1f29; font-size: 1.2rem;"></i>
                             </div>
                             <div>
-                                <div style="font-weight: 700; color: #FEE75C; font-family: monospace; font-size: 1rem;">${escapeHtml(promo.code)}</div>
+                                <div style="font-weight: 700; color: var(--profile-accent-secondary); font-family: monospace; font-size: 1rem;">${escapeHtml(promo.code)}</div>
                                 <div style="font-size: 0.8rem; color: #b9bbbe;">Скидка ${promo.value}%</div>
                             </div>
                         </div>
                         <div style="display: flex; align-items: center; gap: 15px;">
-                            ${promo.expires_at ? `<div style="font-size: 0.7rem; color: #FEE75C;"><i class="fas fa-clock"></i> до ${new Date(promo.expires_at).toLocaleDateString('ru-RU')}</div>` : ''}
+                            ${promo.expires_at ? `<div style="font-size: 0.7rem; color: var(--profile-accent-secondary);"><i class="fas fa-clock"></i> до ${new Date(promo.expires_at).toLocaleDateString('ru-RU')}</div>` : ''}
                             <button class="btn-remove-promo" onclick="window.promocodeSystem?.removeDiscount('${escapeHtml(promo.code)}')" style="background: none; border: none; color: #ED4245; cursor: pointer; padding: 5px 10px; border-radius: 8px;"><i class="fas fa-trash-alt"></i></button>
                         </div>
                     </div>
@@ -1411,8 +1324,7 @@
     }
     
     window.closeCurrentModal = function() {
-        const modal = document.querySelector('.modal');
-        if (modal) modal.remove();
+        document.querySelectorAll('.modal').forEach(m => m.remove());
     };
     
     window.showAddBalanceModal = function() {
