@@ -67,6 +67,7 @@ class PromocodeSystem {
         this.setLoading(true);
         
         try {
+            // 1. Проверка промокода
             const checkData = await window.api.request('/promocodes/check', {
                 method: 'POST',
                 body: JSON.stringify({ userId: auth.id, code: code.toUpperCase() })
@@ -78,6 +79,7 @@ class PromocodeSystem {
                 return;
             }
             
+            // 2. Активация промокода
             const activateData = await window.api.request('/promocodes/activate', {
                 method: 'POST',
                 body: JSON.stringify({ userId: auth.id, code: code.toUpperCase() })
@@ -87,6 +89,7 @@ class PromocodeSystem {
                 const promo = checkData.promocode;
                 
                 if (promo.type === 'discount') {
+                    // Скидочный промокод
                     this.activeDiscounts.push({
                         code: promo.code,
                         value: promo.value,
@@ -99,8 +102,10 @@ class PromocodeSystem {
                     window.updateProductsDisplay?.();
                     
                 } else if (promo.type === 'balance') {
+                    // Балансовый промокод
                     this.showMessage(`💰 Баланс пополнен на ${promo.value} ₽`, 'success');
                     this.onBalanceUpdate?.(activateData.newBalance);
+                    
                     const authData = this.getAuth();
                     if (authData && activateData.newBalance !== undefined) {
                         authData.balance = activateData.newBalance;
@@ -108,9 +113,11 @@ class PromocodeSystem {
                     }
                 }
                 
+                // Очищаем поле ввода
                 const input = document.getElementById('promocodeInput');
                 if (input) input.value = '';
                 
+                // Перезагружаем список
                 await this.loadFromAPI();
                 this.renderUI();
                 this.onPromocodeActivated?.(activateData);
@@ -118,7 +125,8 @@ class PromocodeSystem {
                 this.showMessage(activateData.error || 'Ошибка активации', 'error');
             }
         } catch (error) {
-            this.showMessage('Ошибка сервера', 'error');
+            // Показываем РЕАЛЬНУЮ ошибку от сервера
+            this.showMessage(error.message || 'Ошибка сервера', 'error');
         } finally {
             this.setLoading(false);
         }
@@ -157,7 +165,7 @@ class PromocodeSystem {
     }
 
     getDiscountForProduct(originalPrice, productId = null) {
-        if (!this.activeDiscounts.length) return { finalPrice: originalPrice, discount: 0, discountAmount: 0 };
+        if (!this.activeDiscounts.length) return { finalPrice: originalPrice, discount: 0, discountAmount: 0, appliedPromocodes: [] };
         
         const applicable = this.activeDiscounts.filter(promo => !promo.product_ids?.length || promo.product_ids.includes(productId));
         const totalDiscount = Math.min(applicable.reduce((sum, d) => sum + (d.value || 0), 0), 90);

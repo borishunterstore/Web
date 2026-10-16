@@ -47,16 +47,16 @@ class PaymentSystem {
                         ${discountInfo.discount > 0 ? `
                             <div class="purchase-row">
                                 <span class="purchase-label"><i class="fas fa-tag"></i> Оригинал:</span>
-                                <span class="purchase-value" style="text-decoration:line-through">${originalPrice} ₽</span>
+                                <span class="purchase-value" style="text-decoration:line-through;opacity:0.6">${originalPrice} ₽</span>
                             </div>
                             <div class="purchase-row">
                                 <span class="purchase-label"><i class="fas fa-percent"></i> Скидка (${discountInfo.discount}%):</span>
-                                <span class="purchase-value highlight">-${discountInfo.discountAmount} ₽</span>
+                                <span class="purchase-value" style="color:var(--accent-primary)">-${discountInfo.discountAmount} ₽</span>
                             </div>
                         ` : ''}
                         <div class="purchase-row">
                             <span class="purchase-label"><i class="fas fa-credit-card"></i> Итого:</span>
-                            <span class="purchase-value highlight">${finalPrice} ₽</span>
+                            <span class="purchase-value" style="color:var(--ghost-primary);font-weight:700">${finalPrice} ₽</span>
                         </div>
                     </div>
                     <div class="modal-actions">
@@ -130,14 +130,14 @@ function showPaymentSuccess(productName, newBalance) {
     const modalHtml = `
         <div class="modal" id="successModal">
             <div class="modal-content" style="text-align:center">
-                <div style="width:70px;height:70px;background:#57F287;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
-                    <i class="fas fa-check" style="color:#1e1f29;font-size:2rem"></i>
+                <div style="width:70px;height:70px;background:var(--ghost-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+                    <i class="fas fa-check" style="color:var(--neutral-950);font-size:2rem"></i>
                 </div>
-                <h2 style="color:#57F287">Покупка успешна!</h2>
+                <h2 style="color:var(--ghost-primary)">Покупка успешна!</h2>
                 <p>Товар: <strong>${escapeHtml(productName)}</strong></p>
-                <div style="background:#1e1f29;padding:15px;border-radius:12px;margin:20px 0">
+                <div style="background:rgba(255,255,255,0.03);padding:15px;border-radius:12px;margin:20px 0">
                     <p>Остаток на балансе:</p>
-                    <p style="font-size:1.5rem;color:#57F287">${newBalance} ₽</p>
+                    <p style="font-size:1.5rem;color:var(--ghost-primary)">${newBalance} ₽</p>
                 </div>
                 <button class="btn-primary" onclick="location.reload()">Ок</button>
             </div>
