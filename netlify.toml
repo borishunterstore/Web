@@ -5,21 +5,76 @@
 
 [functions]
   node_bundler = "esbuild"
+  external_node_modules = ["express", "serverless-http", "jsonwebtoken", "bcryptjs", "axios", "cors", "dotenv"]
 
+# ==========================================
+# РЕДИРЕКТЫ
+# ==========================================
+# API -> Serverless Functions
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/:splat"
   status = 200
   force = true
 
+# Discord OAuth callback
 [[redirects]]
   from = "/auth/discord/callback"
   to = "/.netlify/functions/server/auth/discord/callback"
   status = 200
   force = true
 
+# Telegram Callback
 [[redirects]]
   from = "/auth/telegram/callback"
-  to = "/.netlify/functions/telegram-callback"
+  to = "/.netlify/functions/server/auth/telegram/callback"
   status = 200
   force = true
+
+# SPA-роутинг (все не-API запросы -> index.html)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 404
+
+# ==========================================
+# HEADERS (безопасность и кэширование)
+# ==========================================
+# Кэширование изображений и шрифтов на 1 год
+[[headers]]
+  for = "/image/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Кэширование CSS и JS на 1 месяц (обновления подхватятся через версионирование)
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000"
+
+# HTML не кэшируем (чтобы всегда получали свежий код)
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Безопасность
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+    Access-Control-Allow-Origin = "*"

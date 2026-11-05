@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const serverless = require('serverless-http');
 const { initDatabase, initShopSettings } = require('./lib/db');
+
+// Импорт роутов
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const orderRoutes = require('./routes/orders');
@@ -14,32 +16,80 @@ const promocodeRoutes = require('./routes/promocodes');
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+// ═══ Безопасность и парсинг ═══
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
-// Ленивая инициализация БД (чтобы Netlify не падал при сборке)
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
+
+// ═══ Инициализация БД (один раз) ═══
 let initialized = false;
-app.use(async (req, res, next) => {
-  if (!initialized) {
-    try {
-      await initDatabase();
-      await initShopSettings();
-      initialized = true;
-    } catch (e) { console.error(e); }
+let initError = null;
+
+async function ensureInit() {
+  if (initialized) return true;
+  try {
+    await initDatabase();
+    await initShopSettings();
+    initialized = true;
+    return true;
+  } catch (error) {
+    initError = error.message;
+    console.error('❌ Ошибка инициализации:', error);
+    return false;
   }
+}
+
+// Мидлвар — инициализация при первом запросе
+app.use(async (req, res, next) => {
+  if (req.path === '/api/test' || req.path === '/api/ping') return next();
+  await ensureInit();
   next();
 });
 
-// Подключение роутов
-app.use('/api', authRoutes);
-app.use('/api/user', userRoutes);
-app.use('/api', orderRoutes);
-app.use('/api/chat', chatRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api', productRoutes);
-app.use('/api', newsRoutes);
-app.use('/api', reviewRoutes);
-app.use('/api', promocodeRoutes);
-app.get('/api/test', (req, res) => res.json({ ok: true }));
+// ═══ Health Check ═══
+app.get('/api/test', (req, res) => {
+  res.json({
+    ok: true,
+    initialized,
+    initError,
+    timestamp: new Date().toISOString(),
+    version: '2.0.0'
+  });
+});
 
+app.get('/api/ping', (req, res) => res.send('pong'));
+
+// ═══ API Роуты ═══
+app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api', orderRoutes);           // /create-order, /orders/:id/cancel
+app.use('/api/chat', chatRoutes);
+app.use('/api/admin', adminRoutes);     // /api/admin/check, /api/admin/users, /api/admin/orders
+app.use('/api', productRoutes);         // /api/products
+app.use('/api', newsRoutes);            // /api/news
+app.use('/api', reviewRoutes);          // /api/reviews
+app.use('/api', promocodeRoutes);       // /api/promocodes/check, /api/promocodes/activate
+
+// ═══ 404 для несуществующих API ═══
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ success: false, error: 'API route not found' });
+});
+
+// ═══ Глобальный обработчик ошибок ═══
+app.use((err, req, res, next) => {
+  console.error('❌ Express error:', err);
+  res.status(err.status || 500).json({
+    success: false,
+    error: process.env.NODE_ENV === 'production' 
+      ? 'Внутренняя ошибка сервера' 
+      : err.message
+  });
+});
+
+// ═══ Экспорт ═══
 module.exports.handler = serverless(app);
