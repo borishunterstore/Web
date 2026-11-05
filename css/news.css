@@ -88,3 +88,34 @@
   .news-banner-overlay { padding: 0 24px; }
   .news-grid { grid-template-columns: 1fr; }
 }
+
+/* Принудительное исправление ссылок в тексте новости */
+.news-detail-content a,
+.news-detail-content a:visited {
+    color: var(--accent-400) !important;
+    text-decoration: none;
+    border-bottom: 1px dashed var(--accent-500);
+}
+.news-detail-content a:hover {
+    color: var(--accent-500) !important;
+    border-bottom-style: solid;
+}
+
+/* Фикс для бэк-кнопки */
+.news-detail-back {
+    color: var(--text-muted) !important;
+    text-decoration: none !important;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    padding: 10px 20px;
+    border-radius: 50px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    transition: all 0.3s;
+}
+.news-detail-back:hover {
+    color: var(--accent-500) !important;
+    border-color: var(--accent-500);
+}

@@ -150,7 +150,7 @@ async function initDatabase() {
       )
     `;
 
-    // Товары (если добавляются через админку)
+    // ТОВАРЫ (ДОБАВЛЕНА КОЛОНКА created_at)
     await sql`
       CREATE TABLE IF NOT EXISTS products (
         id TEXT PRIMARY KEY,
@@ -166,8 +166,11 @@ async function initDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+    
+    // Если таблица уже была создана ранее без колонки — добавляем её принудительно
+    await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP`;
 
-    console.log('✅ База данных инициализирована');
+    console.log('✅ База данных инициализирована (колонка created_at добавлена)');
   } catch (error) {
     console.error('❌ Ошибка инициализации БД:', error.message);
   }
