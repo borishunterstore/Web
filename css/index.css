@@ -282,3 +282,55 @@
     .cta-actions { flex-direction: column; }
     .cta-actions .btn { width: 100%; }
 }
+
+/* ============================================
+   ФИКС ПУСТЫХ БЛОКОВ И КАРТОЧЕК НА ГЛАВНОЙ
+   ============================================ */
+
+/* Контейнер для карточек товаров на главной */
+#popularProducts.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+/* Контейнер для карточек новостей на главной */
+#latestNews.news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+/* Общий стиль для пустых состояний (заглушек) */
+.empty-state {
+    grid-column: 1 / -1;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed var(--border-hi);
+    border-radius: var(--r-xl);
+    padding: 60px 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: var(--accent-500);
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    color: var(--text);
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+}
+
+.empty-state p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
