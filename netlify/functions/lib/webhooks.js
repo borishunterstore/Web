@@ -1,4 +1,3 @@
-// lib/webhooks.js
 const axios = require('axios');
 
 const W = {
@@ -17,7 +16,7 @@ async function send(type, payload) {
   try {
     return await axios.post(url, payload, { timeout: 5000 });
   } catch (e) {
-    console.error(`Webhook ${type} failed:`, e.message);
+    console.error(`❌ Webhook ${type} failed:`, e.message);
     return null;
   }
 }

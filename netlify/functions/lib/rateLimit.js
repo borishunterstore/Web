@@ -1,5 +1,3 @@
-// В serverless setInterval не работает между вызовами.
-// Простой sliding-window на Map, но без定时 очистки.
 const buckets = new Map();
 
 function rateLimit({ windowMs, max, message }) {
@@ -15,7 +13,7 @@ function rateLimit({ windowMs, max, message }) {
     bucket.count++;
     buckets.set(key, bucket);
 
-    // Ленивая очистка: 1% шанс
+    // Ленивая очистка старых записей (1% шанс)
     if (Math.random() < 0.01) {
       for (const [k, v] of buckets) {
         if (v.resetAt < now) buckets.delete(k);

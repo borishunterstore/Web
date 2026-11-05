@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET || JWT_SECRET.length < 32) {
-  console.error('❌ JWT_SECRET must be ≥32 chars');
+  console.error('❌ КРИТИЧНО: JWT_SECRET не задан или слишком короткий (мин. 32 символа)!');
 }
 
 const ADMIN_ID = process.env.ADMIN_ID || '992442453833547886';
@@ -25,8 +25,10 @@ function getAuthFromReq(req) {
 async function isAdminUserAsync(decoded) {
   if (!decoded) return false;
   if (decoded.id === ADMIN_ID) return true;
+  
   const { sql } = require('./db');
   if (!sql) return false;
+  
   try {
     const [u] = await sql`SELECT badges FROM users WHERE discord_id = ${decoded.id}`;
     return u?.badges?.admin === true;
@@ -43,4 +45,11 @@ function signUserToken(user) {
   );
 }
 
-module.exports = { decodeAuthToken, getAuthFromReq, isAdminUserAsync, signUserToken, JWT_SECRET, ADMIN_ID };
+module.exports = { 
+  decodeAuthToken, 
+  getAuthFromReq, 
+  isAdminUserAsync, 
+  signUserToken, 
+  JWT_SECRET, 
+  ADMIN_ID 
+};

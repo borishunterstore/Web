@@ -1,41 +1,30 @@
 const router = require('express').Router();
 const { sql } = require('../lib/db');
-const path = require('path');
-const fs = require('fs');
+const { getTestProducts } = require('../lib/products');
 
-// Fallback, если БД нет
-const PRODUCTS_JSON = path.join(__dirname, '../../data/products.json');
-let fallbackProducts = [];
-try {
-  if (fs.existsSync(PRODUCTS_JSON)) {
-    fallbackProducts = JSON.parse(fs.readFileSync(PRODUCTS_JSON, 'utf8'));
-  }
-} catch (e) {
-  console.error('products.json read:', e.message);
-}
-
-router.get('/', async (req, res) => {
+router.get('/products', async (req, res) => {
   try {
-    // 1. Проверка "магазин закрыт"
     if (sql) {
-      const [s] = await sql`SELECT setting_value FROM shop_settings WHERE setting_key='shop_open'`;
-      if (s && s.setting_value === false) {
-        return res.json({ success: false, shop_closed: true, products: [], total: 0 });
+      // Проверяем, не закрыт ли магазин
+      const [setting] = await sql`SELECT setting_value FROM shop_settings WHERE setting_key = 'shop_open'`;
+      if (setting && setting.setting_value === false) {
+        return res.json({ success: false, shop_closed: true, products: [] });
+      }
+
+      const products = await sql`SELECT * FROM products ORDER BY created_at DESC`;
+      
+      // Если в БД есть товары — отдаем их
+      if (products.length > 0) {
+        return res.json({ success: true, products, source: 'database' });
       }
     }
-
-    // 2. Всегда берём из БД, если есть данные (иначе — из JSON)
-    if (sql) {
-      const rows = await sql`SELECT * FROM products ORDER BY created_at DESC`;
-      if (rows.length > 0) {
-        return res.json({ success: true, products: rows, total: rows.length, source: 'db' });
-      }
-    }
-
-    res.json({ success: true, products: fallbackProducts, total: fallbackProducts.length, source: 'json' });
+    
+    // Если БД нет или она пуста — отдаем тестовые
+    const testProducts = getTestProducts();
+    res.json({ success: true, products: testProducts, source: 'fallback' });
   } catch (e) {
-    console.error('GET /products:', e.message);
-    res.json({ success: true, products: fallbackProducts, total: fallbackProducts.length, source: 'json-fallback' });
+    console.error('Ошибка получения товаров:', e);
+    res.json({ success: true, products: getTestProducts(), source: 'error-fallback' });
   }
 });
 
