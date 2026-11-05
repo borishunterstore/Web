@@ -16,10 +16,8 @@
   };
 
   document.addEventListener('DOMContentLoaded', async () => {
-    // Проверяем, открыт ли магазин
     const isOpen = await checkShopStatus();
     if (!isOpen) return;
-
     await loadProducts();
     initCategories();
     initURLHandling();
@@ -32,49 +30,33 @@
       const data = await res.json();
       if (data.success && data.settings.shop_open === false) {
         const container = document.getElementById('productsContainer');
-        if (container) {
-          container.innerHTML = `
-            <div class="shop-closed-state">
-              <i class="fas fa-store-slash" style="font-size:4rem;color:var(--danger-500);margin-bottom:20px"></i>
-              <h2 style="color:white;margin-bottom:10px">Магазин временно закрыт</h2>
-              <p style="color:var(--text-muted)">Зайдите позже, администрация проводит технические работы</p>
-            </div>
-          `;
-        }
+        if (container) container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-store-slash"></i><h3>Магазин временно закрыт</h3></div>`;
         return false;
       }
       return true;
-    } catch {
-      return true; // Если API недоступно — считаем, что открыт
-    }
+    } catch { return true; }
   }
 
   async function loadProducts() {
     const container = document.getElementById('productsContainer');
     if (!container) return;
 
-    // ═══ SKELETON LOADING ═══
+    // Skeleton
     container.innerHTML = Array(6).fill(null).map(() => `
-      <div class="product-card skeleton">
-        <div class="skeleton-media" style="height:200px;background:linear-gradient(90deg,#1a1a1a 25%,#2a2a2a 50%,#1a1a1a 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;"></div>
+      <div class="product-card skeleton" style="pointer-events:none;opacity:0.7;">
+        <div style="height:200px;background:linear-gradient(90deg,#1a1a1a 25%,#2a2a2a 50%,#1a1a1a 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;"></div>
         <div style="padding:24px">
-          <div class="skeleton-line" style="height:20px;width:70%;margin-bottom:12px;background:#2a2a2a;border-radius:6px"></div>
-          <div class="skeleton-line" style="height:14px;width:100%;margin-bottom:8px;background:#1f1f1f;border-radius:6px"></div>
-          <div class="skeleton-line" style="height:14px;width:80%;margin-bottom:24px;background:#1f1f1f;border-radius:6px"></div>
-          <div class="skeleton-line" style="height:40px;width:100%;background:#2a2a2a;border-radius:10px"></div>
+          <div style="height:20px;width:70%;margin-bottom:12px;background:#2a2a2a;border-radius:6px"></div>
+          <div style="height:14px;width:100%;margin-bottom:8px;background:#1f1f1f;border-radius:6px"></div>
+          <div style="height:40px;width:100%;background:#2a2a2a;border-radius:10px"></div>
         </div>
       </div>
     `).join('');
 
-    // Добавляем CSS-анимацию (если её ещё нет)
     if (!document.getElementById('skeleton-style')) {
       const style = document.createElement('style');
       style.id = 'skeleton-style';
-      style.textContent = `
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        .product-card.skeleton { pointer-events: none; opacity: 0.7; }
-        .product-card.skeleton:hover { transform: none; box-shadow: none; border-color: var(--border); }
-      `;
+      style.textContent = `@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`;
       document.head.appendChild(style);
     }
 
@@ -82,12 +64,9 @@
       const response = await fetch('/api/products');
       const data = await response.json();
 
-      if (!data.success || !Array.isArray(data.products)) {
-        throw new Error('Ошибка загрузки');
-      }
+      if (!data.success || !Array.isArray(data.products)) throw new Error('Ошибка загрузки');
 
       allProducts = data.products;
-
       const urlParams = new URLSearchParams(window.location.search);
       const categoryParam = urlParams.get('category');
       const productParam = urlParams.get('product');
@@ -103,19 +82,8 @@
       } else {
         renderProducts(allProducts);
       }
-
     } catch (error) {
-      console.error('❌ Ошибка загрузки товаров:', error);
-      container.innerHTML = `
-        <div class="shop-closed-state">
-          <i class="fas fa-exclamation-triangle" style="font-size:4rem;color:var(--danger-500);margin-bottom:20px"></i>
-          <h2 style="color:white;margin-bottom:10px">Не удалось загрузить товары</h2>
-          <p style="color:var(--text-muted);margin-bottom:20px">${error.message || 'Проверьте соединение'}</p>
-          <button onclick="location.reload()" class="btn-buy" style="width:auto;padding:12px 24px">
-            <i class="fas fa-sync-alt"></i> Повторить
-          </button>
-        </div>
-      `;
+      container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-exclamation-triangle"></i><h3>Ошибка загрузки</h3><p>${error.message}</p></div>`;
     }
   }
 
@@ -128,13 +96,7 @@
     if (!container) return;
 
     if (products.length === 0) {
-      container.innerHTML = `
-        <div class="shop-closed-state">
-          <i class="fas fa-box-open" style="font-size:4rem;color:var(--text-dim);margin-bottom:20px"></i>
-          <h2 style="color:white;margin-bottom:10px">Товары не найдены</h2>
-          <p style="color:var(--text-muted)">В этой категории пока нет товаров</p>
-        </div>
-      `;
+      container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-box-open"></i><h3>Товары не найдены</h3></div>`;
       return;
     }
 
@@ -187,25 +149,11 @@
   }
 
   function getDiscountInfo(originalPrice, productId) {
-    if (!window.promocodeSystem?.activeDiscounts?.length) {
-      return { originalPrice, finalPrice: originalPrice, discount: 0 };
-    }
-
-    const applied = window.promocodeSystem.activeDiscounts.filter(p =>
-      !p.product_ids?.length || p.product_ids.includes(productId)
-    );
-
-    if (applied.length === 0) {
-      return { originalPrice, finalPrice: originalPrice, discount: 0 };
-    }
-
+    if (!window.promocodeSystem?.activeDiscounts?.length) return { originalPrice, finalPrice: originalPrice, discount: 0 };
+    const applied = window.promocodeSystem.activeDiscounts.filter(p => !p.product_ids?.length || p.product_ids.includes(productId));
+    if (applied.length === 0) return { originalPrice, finalPrice: originalPrice, discount: 0 };
     const total = Math.min(applied.reduce((s, p) => s + (p.value || 0), 0), 90);
-    return {
-      originalPrice,
-      finalPrice: Math.round(originalPrice * (100 - total) / 100),
-      discount: total,
-      appliedPromocodes: applied
-    };
+    return { originalPrice, finalPrice: Math.round(originalPrice * (100 - total) / 100), discount: total, appliedPromocodes: applied };
   }
 
   function initCategories() {
@@ -222,9 +170,7 @@
   }
 
   function activateCategoryButton(cat) {
-    document.querySelectorAll('.category-btn').forEach(b =>
-      b.classList.toggle('active', b.dataset.category === cat)
-    );
+    document.querySelectorAll('.category-btn').forEach(b => b.classList.toggle('active', b.dataset.category === cat));
   }
 
   function updateURL() {
@@ -246,9 +192,7 @@
 
   function initProductModalClose() {
     const modal = document.getElementById('productModal');
-    if (modal) {
-      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-    }
+    if (modal) modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
   }
 
@@ -267,7 +211,6 @@
     const p = allProducts.find(x => x.id === id);
     if (p) openProductModal(p);
   };
-
   window.closeProductModal = closeModal;
 
   function openProductModal(product) {
@@ -282,45 +225,25 @@
     content.innerHTML = `
       <div style="display:flex;flex-direction:column;gap:16px">
         <div style="background:linear-gradient(135deg,#1a1525,#252030);border-radius:16px;padding:24px;text-align:center">
-          <img src="${escapeHtml(product.image || product.icon || '/image/logo.png')}" 
-               alt="${escapeHtml(product.name)}" 
-               style="max-width:100%;max-height:200px;border-radius:12px" 
-               onerror="this.src='/image/logo.png'">
+          <img src="${escapeHtml(product.image || product.icon || '/image/logo.png')}" alt="${escapeHtml(product.name)}" style="max-width:100%;max-height:200px;border-radius:12px" onerror="this.src='/image/logo.png'">
         </div>
         <p style="color:var(--text-muted);line-height:1.7">${escapeHtml(product.description || '')}</p>
         ${product.features && product.features.length ? `
           <div>
             <h3 style="color:white;margin-bottom:12px"><i class="fas fa-list-check"></i> Что входит:</h3>
             <ul style="list-style:none;display:flex;flex-direction:column;gap:6px">
-              ${product.features.map(f => `
-                <li style="display:flex;gap:8px;color:var(--text-muted);padding:6px 0;border-bottom:1px solid var(--border)">
-                  <i class="fas fa-check-circle" style="color:var(--ghost-500);margin-top:3px"></i>
-                  <span>${escapeHtml(f)}</span>
-                </li>
-              `).join('')}
+              ${product.features.map(f => `<li style="display:flex;gap:8px;color:var(--text-muted);padding:6px 0;border-bottom:1px solid var(--border)"><i class="fas fa-check-circle" style="color:var(--ghost-500);margin-top:3px"></i><span>${escapeHtml(f)}</span></li>`).join('')}
             </ul>
           </div>
         ` : ''}
         <div style="background:var(--bg-elevated);border-radius:12px;padding:16px;margin-top:8px">
           ${d.discount > 0 ? `
-            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-              <span>Обычная цена:</span>
-              <span style="text-decoration:line-through;color:var(--text-dim)">${d.originalPrice} ₽</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-              <span>Скидка:</span>
-              <span style="color:var(--ghost-500)">-${d.discount}%</span>
-            </div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Обычная цена:</span><span style="text-decoration:line-through;color:var(--text-dim)">${d.originalPrice} ₽</span></div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Скидка:</span><span style="color:var(--ghost-500)">-${d.discount}%</span></div>
           ` : ''}
-          <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border);font-size:1.2rem;font-weight:700">
-            <span>Итого:</span>
-            <span style="color:var(--accent-500)">${d.finalPrice} ₽</span>
-          </div>
+          <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border);font-size:1.2rem;font-weight:700"><span>Итого:</span><span style="color:var(--accent-500)">${d.finalPrice} ₽</span></div>
         </div>
-        <button class="btn-primary" style="width:100%;padding:14px" 
-                onclick="window.buyProduct('${escapeHtml(product.id)}','${escapeHtml(product.name)}',${product.price});window.closeProductModal()">
-          <i class="fas fa-shopping-cart"></i> Купить сейчас
-        </button>
+        <button class="btn-primary" style="width:100%;padding:14px" onclick="window.buyProduct('${escapeHtml(product.id)}','${escapeHtml(product.name)}',${product.price});window.closeProductModal()"><i class="fas fa-shopping-cart"></i> Купить сейчас</button>
       </div>
     `;
 
@@ -330,35 +253,18 @@
 
   window.buyProduct = async function(productId, productName, originalPrice) {
     const auth = JSON.parse(localStorage.getItem('bhstore_auth') || '{}');
-    
-    if (!auth.id) {
-      showToast('Войдите, чтобы купить', 'warning');
-      setTimeout(() => location.href = '/auth.html', 1500);
-      return;
-    }
-    if (auth.verificationCode) {
-      showToast('Завершите регистрацию', 'warning');
-      setTimeout(() => location.href = '/verify.html', 1500);
-      return;
-    }
+    if (!auth.id) { showToast('Войдите, чтобы купить', 'warning'); setTimeout(() => location.href = '/auth.html', 1500); return; }
+    if (auth.verificationCode) { showToast('Завершите регистрацию', 'warning'); setTimeout(() => location.href = '/verify.html', 1500); return; }
 
     try {
-      const res = await fetch(`/api/user/${auth.id}/balance`, {
-        headers: { 'Authorization': `Bearer ${auth.token}` }
-      });
+      const res = await fetch(`/api/user/${auth.id}/balance`, { headers: { 'Authorization': `Bearer ${auth.token}` } });
       const data = await res.json();
       const balance = data.balance || 0;
       const d = getDiscountInfo(originalPrice, productId);
 
-      if (balance < d.finalPrice) {
-        showInsufficientFunds(d.finalPrice, balance, productName);
-        return;
-      }
-
+      if (balance < d.finalPrice) { showInsufficientFunds(d.finalPrice, balance, productName); return; }
       showPurchaseConfirm(productId, productName, d, balance);
-    } catch (err) {
-      showToast('Ошибка: ' + err.message, 'error');
-    }
+    } catch (err) { showToast('Ошибка: ' + err.message, 'error'); }
   };
 
   function showInsufficientFunds(price, balance, productName) {
@@ -367,26 +273,15 @@
     modal.style.display = 'flex';
     modal.innerHTML = `
       <div class="modal-content" style="text-align:center">
-        <div style="width:70px;height:70px;background:var(--danger-500);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
-          <i class="fas fa-exclamation-triangle" style="color:white;font-size:2rem"></i>
-        </div>
+        <div style="width:70px;height:70px;background:var(--danger-500);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px"><i class="fas fa-exclamation-triangle" style="color:white;font-size:2rem"></i></div>
         <h2 style="color:var(--danger-500)">Недостаточно средств</h2>
         <p style="color:var(--text-muted);margin:12px 0">Для покупки "${escapeHtml(productName)}"</p>
         <div style="background:var(--bg-elevated);padding:16px;border-radius:12px;margin:16px 0;text-align:left">
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-            <span>Стоимость:</span><strong style="color:var(--danger-500)">${price} ₽</strong>
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-            <span>Ваш баланс:</span><strong>${balance} ₽</strong>
-          </div>
-          <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border)">
-            <span>Не хватает:</span><strong style="color:var(--danger-500)">${price - balance} ₽</strong>
-          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Стоимость:</span><strong style="color:var(--danger-500)">${price} ₽</strong></div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span>Ваш баланс:</span><strong>${balance} ₽</strong></div>
+          <div style="display:flex;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border)"><span>Не хватает:</span><strong style="color:var(--danger-500)">${price - balance} ₽</strong></div>
         </div>
-        <div class="modal-actions">
-          <button class="btn-primary" onclick="location.href='/profile.html#balance'">Пополнить</button>
-          <button class="btn-secondary" onclick="this.closest('.modal').remove()">Закрыть</button>
-        </div>
+        <div class="modal-actions"><button class="btn-primary" onclick="location.href='/profile.html#balance'">Пополнить</button><button class="btn-secondary" onclick="this.closest('.modal').remove()">Закрыть</button></div>
       </div>
     `;
     document.body.appendChild(modal);
@@ -399,31 +294,15 @@
     modal.id = 'purchaseModal';
     modal.innerHTML = `
       <div class="modal-content">
-        <div class="modal-header">
-          <h2><i class="fas fa-shopping-cart"></i> Подтверждение</h2>
-          <button class="modal-close" onclick="document.getElementById('purchaseModal').remove()">×</button>
-        </div>
+        <div class="modal-header"><h2><i class="fas fa-shopping-cart"></i> Подтверждение</h2><button class="modal-close" onclick="document.getElementById('purchaseModal').remove()">×</button></div>
         <div style="padding:16px 0;display:flex;flex-direction:column;gap:12px">
-          <div style="display:flex;justify-content:space-between">
-            <span>Товар:</span><strong>${escapeHtml(productName)}</strong>
-          </div>
-          ${d.discount > 0 ? `
-            <div style="display:flex;justify-content:space-between">
-              <span>Скидка:</span>
-              <span style="color:var(--ghost-500)">-${d.discount}% (-${d.originalPrice - d.finalPrice} ₽)</span>
-            </div>
-          ` : ''}
-          <div style="display:flex;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border);font-size:1.1rem">
-            <span>К оплате:</span><strong style="color:var(--accent-500)">${d.finalPrice} ₽</strong>
-          </div>
-          <div style="display:flex;justify-content:space-between">
-            <span>Ваш баланс:</span><span>${balance} ₽</span>
-          </div>
+          <div style="display:flex;justify-content:space-between"><span>Товар:</span><strong>${escapeHtml(productName)}</strong></div>
+          ${d.discount > 0 ? `<div style="display:flex;justify-content:space-between"><span>Скидка:</span><span style="color:var(--ghost-500)">-${d.discount}% (-${d.originalPrice - d.finalPrice} ₽)</span></div>` : ''}
+          <div style="display:flex;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border);font-size:1.1rem"><span>К оплате:</span><strong style="color:var(--accent-500)">${d.finalPrice} ₽</strong></div>
+          <div style="display:flex;justify-content:space-between"><span>Ваш баланс:</span><span>${balance} ₽</span></div>
         </div>
         <div class="modal-actions">
-          <button class="btn-primary" onclick="window.confirmPurchase('${escapeHtml(productId)}', ${d.appliedPromocodes?.map(p => `'${p.code}'`).join(',') || ''})">
-            <i class="fas fa-check"></i> Подтвердить
-          </button>
+          <button class="btn-primary" onclick="window.confirmPurchase('${escapeHtml(productId)}', ${d.appliedPromocodes?.map(p => `'${p.code}'`).join(',') || ''})"><i class="fas fa-check"></i> Подтвердить</button>
           <button class="btn-secondary" onclick="document.getElementById('purchaseModal').remove()">Отмена</button>
         </div>
       </div>
@@ -439,15 +318,8 @@
     try {
       const res = await fetch('/api/create-order', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${auth.token}`
-        },
-        body: JSON.stringify({
-          userId: auth.id,
-          productId,
-          promocodes
-        })
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${auth.token}` },
+        body: JSON.stringify({ userId: auth.id, productId, promocodes })
       });
 
       const data = await res.json();
@@ -459,11 +331,7 @@
       auth.balance = data.newBalance;
       localStorage.setItem('bhstore_auth', JSON.stringify(auth));
 
-      // Убираем промокоды из активных
-      if (promocodes.length && window.promocodeSystem) {
-        promocodes.forEach(code => window.promocodeSystem.removeDiscount(code));
-      }
-
+      if (promocodes.length && window.promocodeSystem) promocodes.forEach(code => window.promocodeSystem.removeDiscount(code));
       setTimeout(() => location.reload(), 3000);
     } catch (err) {
       showToast(err.message, 'error');
@@ -477,15 +345,10 @@
     modal.style.display = 'flex';
     modal.innerHTML = `
       <div class="modal-content" style="text-align:center">
-        <div style="width:70px;height:70px;background:var(--ghost-500);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
-          <i class="fas fa-check" style="color:black;font-size:2rem"></i>
-        </div>
+        <div style="width:70px;height:70px;background:var(--ghost-500);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px"><i class="fas fa-check" style="color:black;font-size:2rem"></i></div>
         <h2 style="color:var(--ghost-500)">Покупка успешна!</h2>
         <p style="color:var(--text-muted);margin:12px 0">Заказ: <strong>${escapeHtml(orderId)}</strong></p>
-        <div style="background:var(--bg-elevated);padding:16px;border-radius:12px;margin:16px 0">
-          <p style="color:var(--text-muted);margin-bottom:6px">Остаток баланса:</p>
-          <p style="font-size:1.5rem;color:var(--ghost-500);font-weight:700">${newBalance} ₽</p>
-        </div>
+        <div style="background:var(--bg-elevated);padding:16px;border-radius:12px;margin:16px 0"><p style="color:var(--text-muted);margin-bottom:6px">Остаток баланса:</p><p style="font-size:1.5rem;color:var(--ghost-500);font-weight:700">${newBalance} ₽</p></div>
         <button class="btn-primary" style="width:100%" onclick="location.reload()">ОК</button>
       </div>
     `;
@@ -502,7 +365,6 @@
 
   function escapeHtml(s) {
     if (!s) return '';
-    return String(s).replace(/[&<>"']/g, m =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
   }
 })();

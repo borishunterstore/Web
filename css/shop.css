@@ -1,26 +1,22 @@
 @import url('./general.css');
 
-/* БАННЕР */
 .shop-banner { position: relative; height: 280px; overflow: hidden; background: var(--bg-surface); margin-bottom: 48px; }
 .shop-banner-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; filter: brightness(0.4) sepia(0.3); }
 .shop-banner-overlay { position: absolute; inset: 0; display: flex; align-items: center; padding: 0 64px; background: radial-gradient(ellipse at 70% 50%, rgba(10,10,10,0.5), transparent 70%); }
 .shop-banner-badge { display: inline-flex; padding: 4px 12px; background: rgba(229, 148, 37, 0.15); border: 1px solid rgba(229, 148, 37, 0.25); border-radius: 999px; font-size: 0.75rem; color: var(--accent-400); margin-bottom: 16px; }
 .shop-banner-title { font-family: var(--font-display); font-size: clamp(2rem,5vw,3.25rem); }
 
-/* КОНТЕЙНЕР */
 .shop-container { max-width: 1280px; margin: 0 auto 64px; padding: 0 24px; }
 .shop-section-header { display: flex; align-items: center; gap: 16px; margin-bottom: 32px; }
 .shop-section-icon { width: 44px; height: 44px; background: rgba(229, 148, 37, 0.1); border-radius: 14px; display: flex; align-items: center; justify-content: center; color: var(--accent-500); }
 .shop-section-title { font-family: var(--font-display); font-size: 1.875rem; }
 .shop-section-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
 
-/* КАТЕГОРИИ */
 .categories { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 999px; margin-bottom: 32px; overflow-x: auto; scrollbar-width: none; }
 .category-btn { padding: 10px 20px; background: transparent; border: none; border-radius: 999px; color: var(--text-muted); font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; gap: 6px; }
 .category-btn:hover { background: rgba(255,255,255,0.05); color: var(--text); }
 .category-btn.active { background: rgba(229, 148, 37, 0.15); color: var(--accent-400); }
 
-/* СЕТКА ТОВАРОВ (ИСПРАВЛЕНИЕ) */
 .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
 .product-card { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 20px; display: flex; flex-direction: column; position: relative; transition: all 0.4s; overflow: hidden; }
 .product-card:hover { border-color: var(--border-hi); transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
@@ -39,7 +35,6 @@
 .btn-buy { width: 100%; padding: 12px; background: var(--accent-500); color: #fff; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .btn-buy:hover { background: var(--accent-400); transform: translateY(-1px); }
 
-/* МОДАЛКА */
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); padding: 16px; }
 .modal.active, .modal[style*="display: flex"] { display: flex; }
 .modal-content { background: var(--bg-surface); border-radius: 24px; padding: 32px; max-width: 600px; width: 100%; max-height: 85vh; overflow-y: auto; border: 1px solid var(--border); }
@@ -51,7 +46,6 @@
 .btn-primary { flex: 1; padding: 12px; background: var(--accent-500); color: #fff; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; }
 .btn-secondary { flex: 1; padding: 12px; background: rgba(255,255,255,0.04); color: var(--text); border: 1px solid var(--border); border-radius: 12px; font-weight: 600; cursor: pointer; }
 
-/* ЗАГЛУШКИ И ЗАГРУЗКА */
 .empty-state, .loading-spinner { grid-column: 1/-1; background: rgba(255,255,255,0.02); border: 1px dashed var(--border-hi); border-radius: 20px; padding: 64px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .empty-state i, .loading-spinner i { font-size: 3rem; color: var(--accent-500); margin-bottom: 16px; opacity: 0.5; }
 .empty-state h3 { color: var(--text); font-size: 1.25rem; margin-bottom: 8px; }
