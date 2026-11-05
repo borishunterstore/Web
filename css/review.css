@@ -10,4 +10,48 @@
 .stat-value { font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--accent-500), var(--accent-600)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
 .stat-label { color: var(--text-muted); font-size: 0.95rem; }
 
-.review-filters { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 30px; padding: 12px; background: var(--n-900); border-radius: 50px; border:
+.review-filters { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 30px; padding: 12px; background: var(--n-900); border-radius: 50px; border: 1px solid var(--border); }
+.filter-btn { padding: 10px 24px; background: transparent; border: none; border-radius: 40px; color: var(--text-muted); font-weight: 500; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.filter-btn:hover { background: var(--bg-hover); color: var(--accent-500); }
+.filter-btn.active { background: var(--accent-500); color: white; }
+
+.reviews-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 30px; margin-bottom: 40px; }
+.review-card { background: var(--n-900); border-radius: 16px; padding: 28px; border: 1px solid var(--border); position: relative; overflow: hidden; }
+.review-card:hover { transform: translateY(-8px); border-color: rgba(229, 148, 37, 0.3); }
+.review-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+.reviewer-avatar { width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--accent-500); object-fit: cover; }
+.reviewer-name { font-size: 1.2rem; font-weight: 600; color: white; margin-bottom: 4px; }
+.review-date { color: var(--text-dim); font-size: 0.85rem; }
+.review-rating { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+.rating-stars i { color: var(--warn-500); font-size: 1rem; }
+.review-product { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; background: rgba(229, 148, 37, 0.1); border-radius: 30px; margin-bottom: 20px; font-size: 0.9rem; color: var(--text-muted); }
+.review-text { color: var(--text-muted); line-height: 1.7; margin-bottom: 20px; font-size: 0.95rem; border-top: 1px dashed var(--border); border-bottom: 1px dashed var(--border); padding: 10px 0; }
+
+.add-review-section { background: var(--n-900); border-radius: 20px; padding: 40px; margin: 60px 0 40px; border: 1px solid var(--border); }
+.add-review-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 30px; color: white; display: flex; align-items: center; gap: 12px; }
+.review-form { display: flex; flex-direction: column; gap: 24px; }
+.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+.form-group { display: flex; flex-direction: column; gap: 8px; }
+.form-label { color: var(--text-muted); font-size: 0.95rem; font-weight: 500; }
+.form-input, .form-select, .form-textarea { padding: 14px 18px; background: var(--n-800); border: 2px solid var(--border); border-radius: 12px; color: white; font-size: 1rem; outline: none; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--accent-500); }
+.form-textarea { min-height: 120px; resize: vertical; }
+.submit-review-btn { padding: 16px 32px; background: linear-gradient(135deg, var(--accent-500), var(--accent-600)); color: white; border: none; border-radius: 40px; font-weight: 600; font-size: 1.1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; width: fit-content; }
+
+.loading-spinner, .empty-state { grid-column: 1 / -1; text-align: center; padding: 60px; background: var(--n-900); border-radius: 16px; border: 1px solid var(--border); }
+.spinner { width: 50px; height: 50px; border: 3px solid var(--border); border-top-color: var(--accent-500); border-radius: 50%; margin: 0 auto 20px; animation: spin 1s linear infinite; }
+.empty-state i { font-size: 4rem; color: var(--text-dim); margin-bottom: 20px; opacity: 0.5; }
+.empty-state h3 { color: white; font-size: 1.5rem; margin-bottom: 10px; }
+.empty-state p { color: var(--text-muted); margin-bottom: 25px; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 768px) {
+  .review-container { padding: 0 20px; }
+  .section-title { font-size: 1.8rem; }
+  .review-stats { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .reviews-grid { grid-template-columns: 1fr; gap: 20px; }
+  .add-review-section { padding: 30px 20px; }
+  .form-row { grid-template-columns: 1fr; }
+  .submit-review-btn { width: 100%; justify-content: center; }
+}
